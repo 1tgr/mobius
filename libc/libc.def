@@ -14,7 +14,7 @@ EXPORTS
 	__get_stdout
 	__main
 	__malloc
-	__pure_virtual
+	__cxa_pure_virtual
 	__realloc
 	__udivdi3
 	__umoddi3
