@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.10 2002/03/04 23:50:35 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.11 2002/03/05 02:46:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -214,7 +214,6 @@ void ScSchedule(void)
 	new = thr_sleeping.first->thr;
 	if (sc_uptime >= new->sleep_end)
 	{
-	    wprintf(L"ScSchedule: running sleeping thread %u\n", new->id);
 	    ThrRemoveQueue(new, &thr_sleeping);
 	    new->sleep_end = 0;
 	    ThrRun(new);

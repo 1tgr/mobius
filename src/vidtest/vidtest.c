@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.2 2002/03/05 02:10:21 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.3 2002/03/05 02:46:57 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -11,6 +11,7 @@
 #include <os/rtl.h>
 
 handle_t vid;
+volatile bool key_pressed;
 
 bool VidFillRect(const rect_t *rect, colour_t clr)
 {
@@ -18,9 +19,9 @@ bool VidFillRect(const rect_t *rect, colour_t clr)
     params_vid_t params;
     vid_shape_t shape;
 
-    shapes.shape = VID_SHAPE_FILLRECT;
-    shapes.s.rect.rect = *rect;
-    shapes.s.rect.colour = clr;
+    shape.shape = VID_SHAPE_FILLRECT;
+    shape.s.rect.rect = *rect;
+    shape.s.rect.colour = clr;
     params.vid_draw.shapes = &shape;
     params.vid_draw.length = sizeof(shape);
     if (!FsRequestSync(vid, VID_DRAW, &params, sizeof(params), &op))
@@ -30,6 +31,13 @@ bool VidFillRect(const rect_t *rect, colour_t clr)
     }
 
     return true;
+}
+
+void KeyboardThread(void *param)
+{
+    ConReadKey();
+    key_pressed = true;
+    ThrExitThread(0);
 }
 
 int main(int argc, char **argv)
@@ -42,6 +50,8 @@ int main(int argc, char **argv)
     int dx, dy;
     videomode_t mode;
     
+    ThrCreateThread(KeyboardThread, NULL, 16);
+
     vid = FsOpen(SYS_DEVICES L"/video", FILE_READ | FILE_WRITE);
     if (vid == NULL)
     {
@@ -56,6 +66,8 @@ int main(int argc, char **argv)
     {
 	errno = op.result;
 	_pwerror(L"VID_SETMODE");
+	FsClose(vid);
+	return EXIT_FAILURE;
     }
 
     mode = params.vid_setmode;
@@ -87,19 +99,25 @@ int main(int argc, char **argv)
 	_pwerror(L"VID_TEXTOUT");
     }
 
+    rc.left = rc.top = 200;
+    rc.right = rc.bottom = 400;
+    VidFillRect(&rc, 14);
+
     rc.left = rc.top = 0;
     rc.right = rc.bottom = 100;
     dx = dy = 1;
-    for (;;)
+    while (!key_pressed)
     {
-	VidFillRect(&rect, 0);
+	VidFillRect(&rc, 0);
 
-	if (rc.left <= 0 ||
-	    rc.right > mode.width)
+	if (rc.left <= 0 && dx < 0)
+	    dx = -dx;
+	else if (rc.right > mode.width && dx > 0)
 	    dx = -dx;
 
-	if (rc.top <= 0 ||
-	    rc.bottom > mode.height)
+	if (rc.top <= 0 && dy < 0)
+	    dy = -dy;
+	else if (rc.bottom > mode.height && dy > 0)
 	    dy = -dy;
 
 	rc.left += dx;
@@ -107,7 +125,8 @@ int main(int argc, char **argv)
 	rc.right += dx;
 	rc.bottom += dy;
 
-	VidFillRect(&rect, 15);
+	VidFillRect(&rc, 15);
+	ThrSleep(500);
     }
 
     memset(&params, 0, sizeof(params));

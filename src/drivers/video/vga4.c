@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.3 2002/03/05 01:57:16 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.4 2002/03/05 02:46:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -60,8 +60,7 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
     const uint8_t *regs;
     unsigned i;
     volatile uint8_t a;
-    extern vga_font_t _Cupertino;
-
+    
     regs = NULL;
     for (i = 0; i < _countof(vga4_modes); i++)
 	if (vga4_modes[i].mode.cookie == mode->cookie)

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.13 2002/03/05 02:04:48 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.14 2002/03/05 02:46:57 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -671,7 +671,8 @@ int main(void)
     const char *inptr;
     size_t inbytes, outbytes, len;*/
     
-    ThrCreateThread(ShCtrlCThread, NULL, 16);
+    /*ThrCreateThread(ShCtrlCThread, NULL, 16);*/
+
     proc = ProcGetProcessInfo();
     if (ResLoadString(proc->base, 4096, str, _countof(str)))
     	_cputws(str, wcslen(str));
