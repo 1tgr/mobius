@@ -1,3 +1,5 @@
+/* $Id: s3.h,v 1.2 2002/03/28 15:36:44 pavlovskii Exp $ */
+
 #ifndef S3_H__
 #define S3_H__
 
