@@ -1,4 +1,4 @@
-/* $Id: iconview.cpp,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: iconview.cpp,v 1.4 2002/05/05 13:52:28 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -81,13 +81,10 @@ void IconView::Refresh()
 {
     dirent_t di;
     handle_t search;
-    wchar_t spec[256];
 
-    wcscpy(spec, m_dir);
-    wcscat(spec, L"*");
-    search = FsOpenSearch(spec);
+    search = FsOpenDir(m_dir);
     if (search != NULL)
-        while (FsReadSync(search, &di, sizeof(di), NULL))
+        while (FsReadDir(search, &di, sizeof(di)))
             AddItem(di.name);
 
     FsClose(search);

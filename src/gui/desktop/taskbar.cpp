@@ -1,4 +1,4 @@
-/* $Id: taskbar.cpp,v 1.1 2002/04/11 00:32:30 pavlovskii Exp $ */
+/* $Id: taskbar.cpp,v 1.2 2002/05/05 13:52:28 pavlovskii Exp $ */
 
 #include "taskbar.h"
 #include <gl/mgl.h>
@@ -8,7 +8,6 @@
 #include <os/rtl.h>
 #include <os/syscall.h>
 #include <os/defs.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include "v86.h"
 
@@ -65,7 +64,9 @@ void Taskbar::PowerOff()
     
     size = ResSizeOfResource(NULL, 256, 1, 0);
 
-    code = sbrk((size + 0x10000) & 0xffff);
+    code = (char*) VmmAlloc(PAGE_ALIGN_UP((size + 0x10000) & 0xffff) / PAGE_SIZE,
+        NULL,
+        MEM_READ | MEM_WRITE);
     *(uint16_t*) code = 0x20cd;
 
     memcpy(code + 0x100, rsrc, size);
@@ -74,7 +75,9 @@ void Taskbar::PowerOff()
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
         
     if (sh_v86stack == NULL)
-        sh_v86stack = sbrk(65536);
+        sh_v86stack = (char*) VmmAlloc(PAGE_ALIGN_UP(65536) / PAGE_SIZE,
+            NULL,
+            MEM_READ | MEM_WRITE);
 
     fp_stackend = i386LinearToFp(sh_v86stack);
     memset(sh_v86stack, 0, 65536);
