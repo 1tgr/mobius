@@ -1,4 +1,4 @@
-/* $Id: resource.c,v 1.2 2002/03/14 01:27:07 pavlovskii Exp $ */
+/* $Id: resource.c,v 1.3 2002/08/04 16:04:07 pavlovskii Exp $ */
 
 #include <os/rtl.h>
 #include <os/pe.h>
@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <errno.h>
 
-static const IMAGE_RESOURCE_DIRECTORY_ENTRY* ResFindItem(uint32_t base, 
+static const IMAGE_RESOURCE_DIRECTORY_ENTRY* ResFindItem(addr_t base, 
     const IMAGE_RESOURCE_DIRECTORY* dir, const uint16_t* ids)
 {
     const IMAGE_RESOURCE_DIRECTORY_ENTRY *entry;
@@ -38,7 +38,7 @@ static const IMAGE_RESOURCE_DIRECTORY_ENTRY* ResFindItem(uint32_t base,
     }
 
     /*wprintf(L"%x: Not found\n", ids[0]);*/
-    /*sysSetErrno(ENOTFOUND);*/
+    errno = ENOTFOUND;
     return NULL;
 }
   
@@ -100,13 +100,13 @@ const void* ResFindResource(addr_t base, uint16_t type, uint16_t id, uint16_t la
     dir = (const IMAGE_RESOURCE_DIRECTORY*) 
         (base + header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
 
-    if ((uint32_t) dir <= base)
+    if ((addr_t) dir <= base)
     {
-        /*sysSetErrno(ENOTFOUND);*/
+        errno = ENOTFOUND;
         return NULL;
     }
 
-    entry = ResFindItem((uint32_t) dir, dir, ids);
+    entry = ResFindItem((addr_t) dir, dir, ids);
     if (entry)
     {
         /*wprintf(L"entry->OffsetToData = %x\n", entry->OffsetToData);*/
@@ -135,13 +135,13 @@ size_t ResSizeOfResource(addr_t base, uint16_t type, uint16_t id, uint16_t langu
     dir = (const IMAGE_RESOURCE_DIRECTORY*) 
         (base + header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
 
-    if ((uint32_t) dir <= base)
+    if ((addr_t) dir <= base)
     {
-        /*sysSetErrno(ENOTFOUND);*/
+        errno = ENOTFOUND;
         return -1;
     }
 
-    entry = ResFindItem((uint32_t) dir, dir, ids);
+    entry = ResFindItem((addr_t) dir, dir, ids);
     if (entry)
     {
         /*wprintf(L"entry->OffsetToData = %x\n", entry->OffsetToData);*/
@@ -168,25 +168,41 @@ size_t ResSizeOfResource(addr_t base, uint16_t type, uint16_t id, uint16_t langu
  *        possible to distinguish between a zero-length string and a not-present
  *        string if there are any strings within the same block of 16.
  */
-bool ResLoadString(uint32_t base, uint16_t id, wchar_t* str, size_t str_max)
+bool ResLoadString(addr_t base, uint16_t id, wchar_t* str, size_t str_max)
 {
     const wchar_t* buf;
     uint16_t i;
 
     buf = ResFindResource(base, RT_STRING, (uint16_t) ((id >> 4) + 1), 0);
-    if (buf)
+    if (buf != NULL)
     {
         id &= 15;
 
         for (i = 0; i < id; i++)
-        {
-            /*wprintf(L"%x\t%s\n", buf[0], buf + 1);*/
             buf += buf[0] + 1;
-        }
 
         wcsncpy(str, buf + 1, min((uint16_t) buf[0], str_max));
         return true;
     }
     else
         return false;
+}
+
+size_t ResGetStringLength(addr_t base, uint16_t id)
+{
+    const wchar_t* buf;
+    uint16_t i;
+
+    buf = ResFindResource(base, RT_STRING, (uint16_t) ((id >> 4) + 1), 0);
+    if (buf != NULL)
+    {
+        id &= 15;
+
+        for (i = 0; i < id; i++)
+            buf += buf[0] + 1;
+
+        return buf[0];
+    }
+    else
+        return 0;
 }

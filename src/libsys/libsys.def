@@ -11,6 +11,7 @@ EXPORTS
     FsOpen
     FsOpenDir
     FsQueryFile
+    FsQueryHandle
     FsRead
     FsReadDir
     FsReadSync
@@ -22,6 +23,7 @@ EXPORTS
     HndClose
     KeLeakBegin
     KeLeakEnd
+    KeSetSingleStep
     ProcExitProcess
     ProcGetCwd
     ProcGetExeBase
@@ -36,6 +38,7 @@ EXPORTS
     QueuePopFirst
     QueuePopLast
     ResFindResource
+    ResGetStringLength
     ResLoadString
     ResSizeOfResource
     SysGetInfo
@@ -66,4 +69,5 @@ EXPORTS
     WndSetFocus
     VmmAlloc
     VmmFree
+    VmmMapFile
     VmmMapShared
