@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.18 2002/08/17 17:45:38 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.19 2002/09/01 16:24:39 pavlovskii Exp $ */
 
 /*
  *  Source code the the Möbius FAT driver
@@ -126,7 +126,7 @@ public:
 
     status_t parse_element(const wchar_t *name, wchar_t **new_path, vnode_t *node);
     status_t create_file(vnode_id_t dir, const wchar_t *name, void **cookie);
-    status_t lookup_file(vnode_id_t file, void **cookie);
+    status_t lookup_file(vnode_id_t file, uint32_t open_flags, void **cookie);
     status_t get_file_info(void *cookie, uint32_t type, void *buf);
     status_t set_file_info(void *cookie, uint32_t type, const void *buf);
     void free_cookie(void *cookie);
@@ -849,7 +849,7 @@ status_t Fat::create_file(vnode_id_t dir, const wchar_t *name, void **cookie)
 /*
  *  Called by the VFS when a file vnode is opened
  */
-status_t Fat::lookup_file(vnode_id_t file, void **cookie)
+status_t Fat::lookup_file(vnode_id_t file, uint32_t open_flags, void **cookie)
 {
     FatVnode *vnode;
     FatFile *fatfile;
@@ -1128,6 +1128,7 @@ fsd_t *Fat::Init(driver_t *drv, const wchar_t *path)
     unsigned length, temp;
     uint32_t RootDirSectors, FatSectors;
     vnode_id_t vnode_root;
+    uint32_t clusters;
 
     m_device = IoOpenDevice(path);
     if (m_device == NULL)
@@ -1149,15 +1150,26 @@ fsd_t *Fat::Init(driver_t *drv, const wchar_t *path)
     TRACE1("\tDone: length = %u\n", length);
     m_sectors = m_bpb.sectors == 0 ? m_bpb.total_sectors : m_bpb.sectors;
     TRACE1("\tTotal of %u sectors\n", m_sectors);
+    clusters = m_sectors / m_bpb.sectors_per_cluster;
 
     /*
      * Guess the FAT entry size based on the total number of clusters 
      *  (ref: Microsoft FAT document)
      */
-    if (m_sectors > 20740)
+    if (clusters >= 65525)
+        m_fat_bits = 32;
+    //else if (m_sectors > 20740)
+    else if (clusters >= 4085)
         m_fat_bits = 16;
     else
         m_fat_bits = 12;
+
+    if (m_fat_bits == 32)
+    {
+        wprintf(L"Fat::Init: FAT32 not supported (clusters = %u)\n", clusters);
+        __asm__("int3");
+        return NULL;
+    }
 
     m_bytes_per_cluster = 
         m_bpb.bytes_per_sector * m_bpb.sectors_per_cluster;

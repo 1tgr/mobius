@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.9 2002/08/29 13:59:38 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.10 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     {
         errno = op.result;
         _pwerror(L"VID_SETMODE");
-        FsClose(vid);
+        HndClose(vid);
         return EXIT_FAILURE;
     }
 
@@ -104,6 +104,6 @@ int main(int argc, char **argv)
     }
 
     HndClose(vidmem);
-    FsClose(vid);
+    HndClose(vid);
     return EXIT_SUCCESS;
 }

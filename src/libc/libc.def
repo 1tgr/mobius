@@ -15,6 +15,7 @@ EXPORTS
 	__main
 	__malloc
 	__realloc
+	__pure_virtual
 	__udivdi3
 	__umoddi3
 	_atold

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.21 2002/08/29 13:59:38 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.22 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@ void ShCtrlCThread(void *param)
     }
 
     _pwerror(L"ShCtrlCThread");
-    FsClose(keyboard);
+    HndClose(keyboard);
     ThrExitThread(0);
 }
 
@@ -252,7 +252,7 @@ static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent,
             }
         }
 
-        FsClose(search);
+        HndClose(search);
 
         qsort(entries, num_entries, sizeof(file_info_t), ShCompareDirent);
         columns = 80 / (max_len + 2) - 1;
@@ -432,7 +432,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
 
     free(dyn);
     HndClose(op.event);
-    FsClose(file);
+    HndClose(file);
 }
 
 static void ShTypeOutput(const void *buf, addr_t origin, size_t len)
@@ -517,7 +517,7 @@ void ShCmdPoke(const wchar_t *command, wchar_t *params)
     }
 
     printf("poke: finished\n");
-    FsClose(file);
+    HndClose(file);
 }
 
 static handle_t ShExecProcess(const wchar_t *command, const wchar_t *params, 
@@ -553,7 +553,7 @@ static handle_t ShExecProcess(const wchar_t *command, const wchar_t *params,
     {
         int code;
 
-        FsClose(spawned);
+        HndClose(spawned);
         info = *ProcGetProcessInfo();
         memset(info.cmdline, 0, sizeof(info.cmdline));
         //wcsncpy(info.cmdline, params, _countof(info.cmdline) - 1);
@@ -623,7 +623,7 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
     spawned = FsOpen(buf, 0);
     if (spawned)
     {
-        FsClose(spawned);
+        HndClose(spawned);
         proc = *ProcGetProcessInfo();
         if (in)
             proc.std_in = FsOpen(in, FILE_READ);
@@ -633,9 +633,9 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
         wcsncpy(proc.cmdline, params, _countof(proc.cmdline) - 1);
         spawned = ProcSpawnProcess(buf, &proc);
         if (in)
-            FsClose(proc.std_in);
+            HndClose(proc.std_in);
         if (out)
-            FsClose(proc.std_out);
+            HndClose(proc.std_out);
         if (doWait)
             ThrWaitHandle(spawned);
         HndClose(spawned);
@@ -783,14 +783,14 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
         wprintf(L"FsRead: ");
         errno = op.result;
         _pwerror(params);
-        FsClose(file);
+        HndClose(file);
         return;
     }
 
     if (op.result == SIOPENDING)
         ThrWaitHandle(op.event);
 
-    FsClose(file);
+    HndClose(file);
     if (op.result > 0)
     {
         wprintf(L"FsRead(finished): ");
@@ -870,7 +870,7 @@ void ShCmdDismount(const wchar_t *cmd, wchar_t *params)
 void ShCmdPipe(const wchar_t *cmd, wchar_t *params)
 {
     handle_t server, pipe[2];
-    char buf[2];
+    char buf[1];
     wchar_t handle[11];
     size_t bytes;
 
@@ -884,27 +884,25 @@ void ShCmdPipe(const wchar_t *cmd, wchar_t *params)
     swprintf(handle, L"0x%x", pipe[1]);
     HndSetInheritable(pipe[1], true);
     server = ShExecProcess(L"/System/Boot/pserver", handle, false);
+    HndClose(pipe[1]);
 
-    do
+    while (FsReadSync(pipe[0], buf, _countof(buf), &bytes))
     {
-        if (FsReadSync(pipe[0], buf, _countof(buf) - 1, &bytes))
-        {
-            buf[bytes] = '\0';
-            wprintf(L"%u [%S]\n", bytes, buf);
-            //wprintf(L"%u bytes read\n", bytes);
-        }
-        else
-        {
-            _pwerror(L"read");
-            break;
-        }
-    } while (buf[0] != '\n');
+        //for (i = 0; i < bytes; i++)
+            //printf("%02X ", buf[i]);
+        //printf("\n");
 
+        fwrite(buf, 1, bytes, stdout);
+        if (memchr(buf, '\n', bytes) != NULL)
+            fflush(stdout);
+    }
+
+    fflush(stdout);
+    _pwerror(L"read");
     ThrWaitHandle(server);
     wprintf(L"ShCmdPipe: server exited\n");
     HndClose(server);
     HndClose(pipe[0]);
-    HndClose(pipe[1]);
 }
 
 shell_command_t sh_commands[] =
@@ -1011,10 +1009,8 @@ bool ShInvalidCommand(const wchar_t *command, wchar_t *params)
 
 wchar_t *sh_startup[] =
 {
-    /*L"detach console",
-    L"sleep 100",
-    L"poke ../ports/console",*/
-    L"echo \x1b[37;40m\x1b[2J",
+    L"echo \x1b[37;40m",
+    L"cls",
     NULL,
 };
 

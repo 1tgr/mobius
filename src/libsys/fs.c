@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.3 2002/08/04 16:04:07 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.4 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -53,6 +53,32 @@ bool FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_wri
 
     if (bytes_written != 0)
         *bytes_written = op.bytes;
+
+    return true;
+}
+
+bool FsRequestSync(handle_t file, uint32_t code, void *buf, size_t bytes, size_t *bytes_out)
+{
+    fileop_t op;
+
+    op.event = file;
+    if (!FsRequest(file, code, buf, bytes, &op))
+    {
+        errno = op.result;
+        return false;
+    }
+
+    while (op.result == SIOPENDING)
+        ThrWaitHandle(op.event);
+
+    if (op.result != 0)
+    {
+        errno = op.result;
+        return false;
+    }
+
+    if (bytes_out != 0)
+        *bytes_out = op.bytes;
 
     return true;
 }

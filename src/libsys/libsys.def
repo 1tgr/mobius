@@ -5,7 +5,6 @@ EXPORTS
     EvtIsSignalled
     EvtSignal
     FsChangeDir
-    FsClose
     FsCreate
     FsCreateDir
     FsCreatePipe
@@ -20,6 +19,7 @@ EXPORTS
     FsRead
     FsReadDir
     FsReadSync
+    FsRequest
     FsRequestSync
     FsSeek
     FsWrite
@@ -56,19 +56,6 @@ EXPORTS
     ThrSetV86Context
     ThrSleep
     ThrWaitHandle
-    WndClose
-    WndCreate
-    WndGetAttribute
-    WndGetClip
-    WndGetMessage
-    WndHasFocus
-    WndInvalidate
-    WndOwnRoot
-    WndPostMessage
-    WndQueueInput
-    WndSetAttribute
-    WndSetCapture
-    WndSetFocus
     VmmAlloc
     VmmFree
     VmmMapFile

@@ -20,7 +20,7 @@ fclose(FILE *f)
       && !(f->_flag&_IOSTRG))
   {
     r = fflush(f);
-    if (!FsClose(fileno(f)))
+    if (!HndClose(fileno(f)))
       r = EOF;
     if (f->_flag&_IOMYBUF)
       free(f->_base);

@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.12 2002/08/19 20:00:52 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.13 2002/09/01 16:24:38 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -33,6 +33,7 @@ int *_geterrno(void);
 #define ENOCLIENT   17
 #define ENOEXEC     18
 #define ECANCELLED  19
+#define EPIPECLOSED 20
 
 #define EACCES      EACCESS
 #define EINVAL      EINVALID

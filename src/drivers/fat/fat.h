@@ -1,4 +1,4 @@
-/* $Id: fat.h,v 1.4 2002/08/17 17:45:38 pavlovskii Exp $ */
+/* $Id: fat.h,v 1.5 2002/09/01 16:24:39 pavlovskii Exp $ */
 
 #ifndef __FAT_H
 #define __FAT_H
@@ -29,13 +29,37 @@ struct fat_bootsector_t
     uint16_t num_heads;
     uint32_t hidden_sectors;
     uint32_t total_sectors;
-    uint8_t drive;
-    uint8_t reserved2;
-    uint8_t boot_sig;
-    uint32_t serial_number;
-    uint8_t volume[11];
-    uint8_t system[8];
-    uint8_t code[450];
+
+    union
+    {
+        struct
+        {
+            uint8_t drive;
+            uint8_t reserved2;
+            uint8_t boot_sig;
+            uint32_t serial_number;
+            uint8_t volume[11];
+            uint8_t system[8];
+            uint8_t code[450];
+        } fat;
+
+        struct
+        {
+            uint32_t sectors_per_fat_32;
+            uint16_t ext_flags;
+            uint16_t fs_version;
+            uint32_t root_cluster;
+            uint16_t info_cluster;
+            uint16_t backup_bpb;
+            uint8_t reserved[12];
+            uint8_t drive;
+            uint8_t reserved2;
+            uint8_t boot_sig;
+            uint32_t serial_number;
+            uint8_t volume[11];
+            uint8_t system[8];
+        } fat32;
+    };
 };
 
 typedef struct fat_dirent_t fat_dirent_t;

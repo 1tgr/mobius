@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.5 2002/05/05 13:54:36 pavlovskii Exp $ */
+/* $Id: port.c,v 1.6 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <errno.h>
 #include <wchar.h>
@@ -6,51 +6,31 @@
 #include <os/syscall.h>
 #include <os/device.h>
 #include <os/defs.h>
+#include <os/rtl.h>
 
 bool PortListen(handle_t port)
 {
-    fileop_t op;
     params_port_t params;
-    op.event = port;
     params.port_listen.port = port;
-    if (FsRequestSync(port, PORT_LISTEN, &params, sizeof(params), &op))
-        return true;
-    else
-    {
-        errno = op.result;
-        return false;
-    }
+    return FsRequestSync(port, PORT_LISTEN, &params, sizeof(params), NULL);
 }
 
 bool PortConnect(handle_t port, const wchar_t *remote)
 {
-    fileop_t op;
     params_port_t params;
-    op.event = port;
     params.port_connect.port = port;
     params.port_connect.remote = remote;
     params.port_connect.name_size = (wcslen(remote) + 1) * sizeof(wchar_t);
-    if (FsRequestSync(port, PORT_CONNECT, &params, sizeof(params), &op))
-        return true;
-    else
-    {
-        errno = op.result;
-        return false;
-    }
+    return FsRequestSync(port, PORT_CONNECT, &params, sizeof(params), NULL);
 }
 
 handle_t PortAccept(handle_t port, uint32_t flags)
 {
-    fileop_t op;
     params_port_t params;
-    op.event = port;
     params.port_accept.port = port;
     params.port_accept.flags = flags;
-    if (FsRequestSync(port, PORT_ACCEPT, &params, sizeof(params), &op))
+    if (FsRequestSync(port, PORT_ACCEPT, &params, sizeof(params), NULL))
         return params.port_accept.client;
     else
-    {
-        errno = op.result;
         return NULL;
-    }
 }

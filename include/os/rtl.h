@@ -1,4 +1,4 @@
-/* $Id: rtl.h,v 1.9 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: rtl.h,v 1.10 2002/09/01 16:24:38 pavlovskii Exp $ */
 #ifndef __OS_RTL_H
 #define __OS_RTL_H
 
@@ -21,6 +21,7 @@ size_t      ResSizeOfResource(addr_t base, uint16_t type, uint16_t id, uint16_t 
 size_t      ResGetStringLength(addr_t base, uint16_t id);
 bool        FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read);
 bool        FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_written);
+bool        FsRequestSync(handle_t file, uint32_t code, void *buf, size_t bytes, size_t *bytes_out);
 uint32_t    ConReadKey(void);
 
 #ifdef __cplusplus

@@ -1,8 +1,9 @@
-/* $Id: sound.c,v 1.3 2002/08/17 22:52:06 pavlovskii Exp $ */
+/* $Id: sound.c,v 1.4 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/proc.h>
 #include <errno.h>
+#include <stdio.h>
 #include "sound.h"
 
 sound_t *SbInit(device_t *dev, device_config_t *cfg);

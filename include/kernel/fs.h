@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.12 2002/08/29 14:03:47 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.13 2002/09/01 16:24:38 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -92,7 +92,8 @@ INTERFACE(fsd_t)
         wchar_t **new_path, vnode_t *node) PURE;
     METHOD(status_t, create_file)(THIS_ vnode_id_t dir, const wchar_t *name, 
         void **cookie) PURE;
-    METHOD(status_t, lookup_file)(THIS_ vnode_id_t node, void **cookie) PURE;
+    METHOD(status_t, lookup_file)(THIS_ vnode_id_t node, uint32_t open_flags, 
+        void **cookie) PURE;
     METHOD(status_t, get_file_info)(THIS_ void *cookie, uint32_t type, 
         void *buf) PURE;
     METHOD(status_t, set_file_info)(THIS_ void *cookie, uint32_t type, 
@@ -126,9 +127,10 @@ union dirent_all_t
     dirent_device_t device;
 };
 
+typedef struct pipe_t pipe_t;
+
 handle_t    FsCreate(const wchar_t*, uint32_t);
 handle_t    FsOpen(const wchar_t*, uint32_t);
-bool    FsClose(handle_t);
 bool    FsRead(handle_t, void*, size_t, struct fileop_t*);
 bool    FsWrite(handle_t, const void*, size_t, struct fileop_t*);
 off_t   FsSeek(handle_t, off_t, unsigned);
@@ -141,13 +143,13 @@ bool    FsReadPhysical(handle_t file, page_array_t *pages, size_t bytes,
 bool    FsWritePhysical(handle_t file, page_array_t *pages, size_t bytes, 
                         struct fileop_t *op);
 bool	FsMount(const wchar_t *path, const wchar_t *filesys, const wchar_t *dest);
-//bool	FsCreateVirtualDir(const wchar_t *path);
 
 handle_t FsCreateFileHandle(struct process_t *proc, fsd_t *fsd, void *fsd_cookie, 
                             const wchar_t *name, uint32_t flags);
 void    FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result);
 bool    FsGuessMimeType(const wchar_t *ext, wchar_t *mimetype, size_t length);
 addr_t  RdGetFilePhysicalAddress(const wchar_t *name);
+bool    FsCreatePipeInternal(pipe_t **pipes);
 
 /*! @} */
 

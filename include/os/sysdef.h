@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.18 2002/08/29 14:03:47 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.19 2002/09/01 16:24:38 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -52,21 +52,21 @@
 
 #define SYS_FsCreate            0x400
 #define SYS_FsOpen              0x401
-#define SYS_FsClose             0x402
-#define SYS_FsRead              0x403
-#define SYS_FsWrite             0x404
-#define SYS_FsSeek              0x405
-#define SYS_FsOpenDir           0x406
-#define SYS_FsQueryFile         0x407
-#define SYS_FsRequestSync       0x408
-#define SYS_FsIoCtl             0x409
-#define SYS_FsReadDir           0x40a
-#define SYS_FsQueryHandle       0x40b
-#define SYS_FsCreateDir         0x40c
-#define SYS_FsChangeDir         0x40d
-#define SYS_FsMount             0x40e
-#define SYS_FsDismount          0x40f
-#define SYS_FsCreatePipe        0x410
+/*efine SYS_FsClose             0x402*/
+#define SYS_FsRead              0x402
+#define SYS_FsWrite             0x403
+#define SYS_FsSeek              0x404
+#define SYS_FsOpenDir           0x405
+#define SYS_FsQueryFile         0x406
+#define SYS_FsRequest           0x407
+#define SYS_FsIoCtl             0x408
+#define SYS_FsReadDir           0x409
+#define SYS_FsQueryHandle       0x40a
+#define SYS_FsCreateDir         0x40b
+#define SYS_FsChangeDir         0x40c
+#define SYS_FsMount             0x40d
+#define SYS_FsDismount          0x40e
+#define SYS_FsCreatePipe        0x40f
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
@@ -135,13 +135,13 @@ SYS_END_GROUP(3)
 SYS_BEGIN_GROUP(4)
 SYSCALL(handle_t, FsCreate, 8, (const wchar_t*, uint32_t))
 SYSCALL(handle_t, FsOpen, 8, (const wchar_t*, uint32_t))
-SYSCALL(bool, FsClose, 4, (handle_t))
+/*SYSCALL(bool, FsClose, 4, (handle_t))*/
 SYSCALL(bool, FsRead, 16, (handle_t, void*, size_t, struct fileop_t *))
 SYSCALL(bool, FsWrite, 16, (handle_t, const void*, size_t, struct fileop_t *))
 SYSCALL(off_t, FsSeek, 12, (handle_t, off_t, unsigned))
 SYSCALL(handle_t, FsOpenDir, 4, (const wchar_t*))
 SYSCALL(bool, FsQueryFile, 16, (const wchar_t*, uint32_t, void *, size_t))
-SYSCALL(bool, FsRequestSync, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
+SYSCALL(bool, FsRequest, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
 SYSCALL(bool, FsIoCtl, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
 SYSCALL(bool, FsReadDir, 12, (handle_t, struct dirent_t *, size_t))
 SYSCALL(bool, FsQueryHandle, 16, (handle_t, uint32_t, void *, size_t))
@@ -171,6 +171,7 @@ SYSCALL(bool, HndSetInheritable, 8, (handle_t, bool))
 SYS_END_GROUP(6)
 
 /* 7 */
+#if 0
 SYS_BEGIN_GROUP(7)
 SYSCALL(handle_t, WndCreate, 12, (handle_t, const struct wndattr_t *, unsigned))
 SYSCALL(bool, WndClose, 4, (handle_t))
@@ -186,6 +187,7 @@ SYSCALL(bool, WndHasFocus, 4, (handle_t))
 SYSCALL(bool, WndSetCapture, 8, (handle_t, bool))
 SYSCALL(bool, WndGetClip, 12, (handle_t, struct MGLrect *, size_t*))
 SYS_END_GROUP(7)
+#endif
 
 /*! @} */
 

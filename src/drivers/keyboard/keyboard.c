@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.17 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.18 2002/09/01 16:24:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -329,7 +329,8 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 	    TtySwitchConsoles(key - KEY_F1);
         else if (key == KEY_F12)
             __asm__("int3");
-	else if (key)
+
+        if (key)
 	{
 	    *keyb->write = key;
 	    keyb->write++;
@@ -498,7 +499,7 @@ void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     else
     {
         FsReadSync(file, keys, sizeof(keys), NULL);
-        FsClose(file);
+        HndClose(NULL, file, 'file');
     }
 
     DevRegisterIrq(1, &keyb->dev);

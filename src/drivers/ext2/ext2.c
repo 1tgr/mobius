@@ -1,4 +1,4 @@
-/* $Id: ext2.c,v 1.6 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.7 2002/09/01 16:24:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -525,7 +525,7 @@ status_t Ext2CreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **
     return ENOTIMPL;
 }
 
-status_t Ext2LookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
+status_t Ext2LookupFile(fsd_t *fsd, vnode_id_t id, uint32_t open_flags, void **cookie)
 {
     unsigned ino;
     ext2_t *ext2;

@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.18 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: test.c,v 1.19 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -92,7 +92,7 @@ void testFileIo(const wchar_t *name)
 	}
 
 	HndClose(op.event);
-	FsClose(file);
+	HndClose(file);
 }
 
 void testBlockDeviceIo(const wchar_t *name)
@@ -140,7 +140,7 @@ void testBlockDeviceIo(const wchar_t *name)
 			op.result, op.bytes);
 		HndClose(op.event);
 	}
-	FsClose(file);
+	HndClose(file);
 }
 
 void testCharDeviceIo(const wchar_t *name)
@@ -195,7 +195,7 @@ void testCharDeviceIo(const wchar_t *name)
 		}
 	}
 
-	FsClose(file);
+	HndClose(file);
 }
 
 int main(void)

@@ -1,4 +1,4 @@
-/* $Id: cppsup.cpp,v 1.1 2002/04/10 12:50:18 pavlovskii Exp $ */
+/* $Id: cppsup.cpp,v 1.2 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <stdlib.h>
 
@@ -26,4 +26,10 @@ extern "C" void *__get_eh_context(void)
 {
     static unsigned int temp[2];
     return temp;
+}
+
+extern "C" void *__pure_virtual(void)
+{
+    __asm__("int3");
+    abort();
 }

@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.17 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: video.c,v 1.18 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -365,7 +365,7 @@ int fclose(FILE *file)
 {
     if (file != NULL)
     {
-        FsClose((handle_t) file);
+        HndClose(NULL, (handle_t) file, 'file');
         return 0;
     }
     else

@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.2 2002/08/17 22:52:13 pavlovskii Exp $ */
+/* $Id: common.h,v 1.3 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 #ifndef COMMON_H__
 #define COMMON_H__
@@ -38,7 +38,7 @@ extern shell_action_t sh_actions[];
 #define PARAMSEP	    '\\'
 #define ___CASSERT(a, b)    a##b
 #define __CASSERT(a, b)	    ___CASSERT(a, b)
-#define CASSERT(exp)	    extern char __CASSERT(__ERR, __LINE__)[(exp)!=0]
+#define CASSERT(exp)	    extern char __CASSERT(__ERR, __LINE__)[(exp) ? 1 : -1]
 
 int _cputws(const wchar_t *str, size_t count);
 int _cputs(const char *str, size_t count);
@@ -51,7 +51,6 @@ struct psp_t
     uint16_t memory_top;
     uint8_t reserved;
     uint8_t cpm_call[5];
-    uint16_t com_bytes_available;
     uint32_t terminate_addr;
     uint32_t cbreak_addr;
     uint32_t error_addr;
@@ -65,9 +64,8 @@ struct psp_t
     uint8_t reserved1[20];
     uint8_t dos_dispatch[3];
     uint8_t reserved2[9];
-    uint8_t fcb1[36];
-    uint8_t fdb2[20];
-    uint8_t cmdline_length;
+    uint8_t fcbs[36];
+    uint8_t cmdline_length;         
     uint8_t cmdline[127];
 };
 #pragma pack(pop)

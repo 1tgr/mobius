@@ -61,7 +61,7 @@ tmpfile(void)
   }
   else
   {
-    FsClose(temp_fd);
+    HndClose(temp_fd);
     remove(temp_name);
     free(n_t_r);
   }

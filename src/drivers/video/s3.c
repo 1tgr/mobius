@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.7 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.8 2002/09/01 16:24:40 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -32,7 +32,6 @@ extern video_t s3_8, s3_16;
 
 static void *        TrioMem;
 static unsigned long TrioSize;
-static addr_t        TrioMem_phys;
 static long trio_memclk = 45000000; /* default (?) */
 static bool          s3_doneinit;
 
