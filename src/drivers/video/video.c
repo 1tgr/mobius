@@ -1,3 +1,5 @@
+/* $Id: video.c,v 1.3 2002/03/05 01:57:16 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <errno.h>
@@ -15,7 +17,7 @@ void swap_int(int *a, int *b)
 }
 
 extern uint8_t cupertino[];
-vga_font_t _Cupertino={ 0, 256, 12, cupertino };
+vga_font_t _Cupertino = { 0, 256, 12, cupertino };
 
 typedef struct video_drv_t video_drv_t;
 struct video_drv_t
@@ -33,8 +35,8 @@ struct
     video_t *vid;
 } drivers[] =
 {
-    { L"vga4",	  vga4Init,    NULL },
-    { NULL,	   NULL,	NULL },
+    { L"vga4",	vga4Init,   NULL },
+    { NULL,	NULL,	    NULL },
 };
 
 typedef struct modemap_t modemap_t;
@@ -70,31 +72,31 @@ static void do_line(video_t *vid, int x1, int y1, int x2, int y2, colour_t d,
     int dd;
     
     /* worker macro */
-#define DO_LINE(pri_sign, pri_c, pri_cond, sec_sign, sec_c, sec_cond)	 \
-    {									 \
+#define DO_LINE(pri_sign, pri_c, pri_cond, sec_sign, sec_c, sec_cond)	\
+    {									\
 	if (d##pri_c == 0) {						\
-	    proc(vid, x1, y1, d);				      \
-	    return;							   \
-	}								 \
+	    proc(vid, x1, y1, d);					\
+	    return;							\
+	}								\
 	\
-	i1 = 2 * d##sec_c;						  \
-	dd = i1 - (sec_sign (pri_sign d##pri_c));			 \
-	i2 = dd - (sec_sign (pri_sign d##pri_c));			 \
+	i1 = 2 * d##sec_c;						\
+	dd = i1 - (sec_sign (pri_sign d##pri_c));			\
+	i2 = dd - (sec_sign (pri_sign d##pri_c));			\
 	\
 	x = x1; 							\
 	y = y1; 							\
 	\
-	while (pri_c pri_cond pri_c##2) {				 \
-		proc(vid, x, y, d);				       \
+	while (pri_c pri_cond pri_c##2) {				\
+		proc(vid, x, y, d);					\
 	    if (dd sec_cond 0) {					\
 		sec_c sec_sign##= 1;					\
-		dd += i2;						 \
-	    }								 \
+		dd += i2;						\
+	    }								\
 	    else							\
-		dd += i1;						 \
+		dd += i1;						\
 	    \
 	    pri_c pri_sign##= 1;					\
-	}								 \
+	}								\
     }
     
     if (dx >= 0) {
@@ -159,7 +161,7 @@ void vidFillRect(video_t *vid, int x1, int y1, int x2, int y2, colour_t c)
 	vid->vidHLine(vid, x1, x2, y1, c);
 }
 
-int vidMatchMode(videomode_t *a, videomode_t *b)
+int vidMatchMode(const videomode_t *a, const videomode_t *b)
 {
     if ((b->width == 0 || a->width == b->width) &&
 	(b->height == 0 || a->height == b->height) &&
@@ -185,6 +187,9 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     for (i = 0; i < numModes; i++)
     {
 	s = vidMatchMode(&modes[i].mode, mode);
+	wprintf(L"video: mode %u = %ux%ux%u: score = %d\n", 
+	    i, modes[i].mode.width, modes[i].mode.height, modes[i].mode.bitsPerPixel,
+	    score);
 	if (s > score)
 	{
 	    best = i;
@@ -194,6 +199,8 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
 
     if (best == -1)
     {
+	wprintf(L"video: mode %ux%ux%u not found\n", 
+	    mode->width, mode->height, mode->bitsPerPixel);
 	errno = ENOTFOUND;
 	return false;
     }
@@ -239,7 +246,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
 bool vidRequest(device_t* dev, request_t* req)
 {
     video_drv_t *video = (video_drv_t*) dev;
-    request_vid_t *req_vid = (request_vid_t*) req;
+    params_vid_t *params = (params_vid_t*) (req + 1);
     size_t user_length;
     
     switch (req->code)
@@ -249,7 +256,7 @@ bool vidRequest(device_t* dev, request_t* req)
     	return true;
 
     case VID_SETMODE:
-	if (!vidSetMode(video, (videomode_t*) &req_vid->params))
+	if (!vidSetMode(video, &params->vid_setmode))
 	{
 	    req->result = errno;
 	    return false;
@@ -261,11 +268,11 @@ bool vidRequest(device_t* dev, request_t* req)
 	{
 	    vid_shape_t *buf;
 
-	    user_length = req_vid->params.vid_draw.length;
-	    req_vid->params.vid_draw.length = 0;
-	    buf = req_vid->params.vid_draw.shapes;
+	    user_length = params->vid_draw.length;
+	    params->vid_draw.length = 0;
+	    buf = params->vid_draw.shapes;
 
-	    while (req_vid->params.vid_draw.length < user_length)
+	    while (params->vid_draw.length < user_length)
 	    {
 		switch (buf->shape)
 		{
@@ -325,7 +332,7 @@ bool vidRequest(device_t* dev, request_t* req)
 		}
 
 		buf++;
-		req_vid->params.vid_draw.length += sizeof(*buf);
+		params->vid_draw.length += sizeof(*buf);
 	    }
 
 	    return true;
@@ -333,7 +340,7 @@ bool vidRequest(device_t* dev, request_t* req)
 
     case VID_TEXTOUT:
     {
-	vid_text_t *p = &req_vid->params.vid_textout;
+	vid_text_t *p = &params->vid_textout;
 	video->vid->vidTextOut(video->vid, p->x, p->y, &_Cupertino, 
 	    (const wchar_t*) p->buffer, p->length / sizeof(wchar_t), 
 	    p->foreColour, p->backColour);
@@ -342,7 +349,7 @@ bool vidRequest(device_t* dev, request_t* req)
 
     case VID_STOREPALETTE:
     {
-	vid_palette_t *p = &req_vid->params.vid_storepalette;
+	vid_palette_t *p = &params->vid_storepalette;
 	if (video->vid->vidStorePalette)
 	{
 	    video->vid->vidStorePalette(video->vid, 
@@ -381,6 +388,9 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 	do
 	{
 	    code = vid->vidEnumModes(vid, j, &mode);
+	    if (code == VID_ENUM_ERROR)
+		break;
+
 	    numModes++;
 	    modes = realloc(modes, sizeof(modemap_t) * numModes);
 	    modes[numModes - 1].vid = vid;
@@ -394,9 +404,6 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     dev->dev.driver = drv;
     dev->vid = NULL;
 
-    memset(&mode, 0, sizeof(mode));
-    mode.bitsPerPixel = 4;
-    vidSetMode(dev, &mode);
     return &dev->dev;
 }
 

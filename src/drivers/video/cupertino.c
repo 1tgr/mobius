@@ -1,3 +1,5 @@
+/* $Id: cupertino.c,v 1.2 2002/03/05 01:57:16 pavlovskii Exp $ */
+
 unsigned char cupertino[3072] = {
    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

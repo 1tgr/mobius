@@ -1,3 +1,5 @@
+/* $Id: video.h,v 1.3 2002/03/05 01:57:16 pavlovskii Exp $ */
+
 #ifndef __VGA_H
 #define __VGA_H
 
