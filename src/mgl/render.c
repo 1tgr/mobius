@@ -2,239 +2,238 @@
 #include "render.h"
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <os/syscall.h>
+
+#undef __FTERRORS_H__
+#define FT_ERRORDEF( e, v, s )	 { e, s },
+#define FT_ERROR_START_LIST	 {
+#define FT_ERROR_END_LIST	 { 0, 0 } };
+
+const struct
+{
+    int 	 err_code;
+    const char*  err_msg;
+} ft_errors[] =
+
+#include FT_ERRORS_H
+
+#define vidAddToQueue(q, s)    QueueAppend(q, s, sizeof(*s))
+
+bool vidFlushQueue(queue_t *queue, addr_t video)
+{
+    if (queue->length > 0)
+    {
+	params_vid_t params;
+	fileop_t op;
+
+	params.vid_draw.shapes = QUEUE_DATA(*queue);
+	params.vid_draw.length = queue->length;
+	if (FsRequestSync(video, VID_DRAW, &params, sizeof(params), &op))
+	    op.result = 0;
+
+	QueueClear(queue);
+	
+	if (op.result != 0)
+	{
+	    errno = op.result;
+	    return false;
+	}
+	else
+	    return true;
+    }
+    else
+	return true;
+}
+
+const char *mgliGetFtError(int error)
+{
+    unsigned i;
+    static char str[20];
+
+    for (i = 0; i < _countof(ft_errors); i++)
+	if (ft_errors[i].err_code == error)
+	    return ft_errors[i].err_msg;
+
+    sprintf(str, "unknown 0x%d", error);
+    return str;
+}
 
 void swap_MGLreal(MGLreal *a, MGLreal *b)
 {
-	MGLreal temp = *b;
-	*b = *a;
-	*a = temp;
+    MGLreal temp = *b;
+    *b = *a;
+    *a = temp;
 }
 
-bool vidFillRect(addr_t video, point_t topLeft, point_t bottomRight, pixel_t colour)
+bool vidFillRect(queue_t *queue, point_t topLeft, point_t bottomRight, 
+		 colour_t colour)
 {
-	vid_request_t req;
-	status_t hr;
-	rect_t rc;
-
-	rc.left = topLeft.x;
-	rc.top = topLeft.y;
-	rc.right = bottomRight.x;
-	rc.bottom = bottomRight.y;
-
-	req.header.code = VID_FILLRECT;
-	req.params.vid_fillrect.rect = rc;
-	req.params.vid_fillrect.colour = colour;
-	
-	hr = devUserRequestSync(video, (request_t*) &req, sizeof(req));
-	if (hr)
-	{
-		errno = hr;
-		return false;
-	}
-	else
-		return true;
+    vid_shape_t shape;
+    shape.shape = VID_SHAPE_FILLRECT;
+    shape.s.rect.rect.left = topLeft.x;
+    shape.s.rect.rect.top = topLeft.y;
+    shape.s.rect.rect.right = bottomRight.x;
+    shape.s.rect.rect.bottom = bottomRight.y;
+    shape.s.rect.colour = colour;
+    return vidAddToQueue(queue, &shape) != NULL;
 }
 
-bool vidVLine(addr_t video, int x, int y1, int y2, pixel_t colour)
+bool vidVLine(queue_t *queue, int x, int y1, int y2, colour_t colour)
 {
-	vid_request_t req;
-	status_t hr;
-
-	req.header.code = VID_VLINE;
-	req.params.vid_vline.a.x = 
-		req.params.vid_vline.b.x = x;
-	req.params.vid_vline.a.y = y1;
-	req.params.vid_vline.b.y = y2;
-	req.params.vid_vline.colour = colour;
-	
-	hr = devUserRequestSync(video, (request_t*) &req, sizeof(req));
-	if (hr)
-	{
-		errno = hr;
-		return false;
-	}
-	else
-		return true;
+    vid_shape_t shape;
+    shape.shape = VID_SHAPE_VLINE;
+    shape.s.line.a.x = shape.s.line.b.x = x;
+    shape.s.line.a.y = y1;
+    shape.s.line.b.y = y2;
+    shape.s.line.colour = colour;
+    return vidAddToQueue(queue, &shape) != NULL;
 }
 
-bool vidHLine(addr_t video, int x1, int x2, int y, pixel_t colour)
+bool vidHLine(queue_t *queue, int x1, int x2, int y, colour_t colour)
 {
-	vid_request_t req;
-	status_t hr;
-	
-	req.header.code = VID_HLINE;
-	req.params.vid_hline.a.x = x1;
-	req.params.vid_hline.b.x = x2;
-	req.params.vid_hline.a.y =
-		req.params.vid_hline.b.y = y;
-	req.params.vid_hline.colour = colour;
-	
-	hr = devUserRequestSync(video, (request_t*) &req, sizeof(req));
-	if (hr)
-	{
-		errno = hr;
-		return false;
-	}
-	else
-		return true;
+    vid_shape_t shape;
+    shape.shape = VID_SHAPE_HLINE;
+    shape.s.line.a.x = x1;
+    shape.s.line.b.x = x2;
+    shape.s.line.a.y = shape.s.line.b.y = y;
+    shape.s.line.colour = colour;
+    return vidAddToQueue(queue, &shape) != NULL;
 }
 
-bool vidLine(addr_t video, point_t from, point_t to, pixel_t colour)
+bool vidLine(queue_t *queue, point_t from, point_t to, colour_t colour)
 {
-	vid_request_t req;
-	status_t hr;
-	
-	req.header.code = VID_LINE;
-	req.params.vid_line.a = from;
-	req.params.vid_line.b = to;
-	req.params.vid_line.colour = colour;
-	
-	hr = devUserRequestSync(video, (request_t*) &req, sizeof(req));
-	if (hr)
-	{
-		errno = hr;
-		return false;
-	}
-	else
-		return true;
+    vid_shape_t shape;
+    shape.shape = VID_SHAPE_LINE;
+    shape.s.line.a = from;
+    shape.s.line.b = to;
+    shape.s.line.colour = colour;
+    return vidAddToQueue(queue, &shape) != NULL;
 }
 
-bool vidPutPixel(addr_t video, int x, int y, pixel_t colour)
+bool vidPutPixel(queue_t *queue, int x, int y, colour_t colour)
 {
-	vid_request_t req;
-	status_t hr;
-	
-	req.header.code = VID_PUTPIXEL;
-	req.params.vid_putpixel.point.x = x;
-	req.params.vid_putpixel.point.y = y;
-	req.params.vid_putpixel.colour = colour;
-	
-	hr = devUserRequestSync(video, (request_t*) &req, sizeof(req));
-	if (hr)
-	{
-		errno = hr;
-		return false;
-	}
-	else
-		return true;
-}
-
-/*
-static pixel_t dm[] = 
-{
-	0,	12,	3,	15,
-	8,	4,	11,	7,
-	2,	14,	1,	13,
-	10,	6,	9,	5
-};
-
-static pixel_t dither(int x, int y, pixel_t level)
-{
-     return level > dm[(x % 4) + 4 * (y % 4)];
-}
-*/
-
-pixel_t vidColourMatch(addr_t video, int x, int y, MGLcolour clr)
-{
-	//return dither(x, y, clr) ? 15 : 0;
-	return clr % 16;
+    vid_shape_t shape;
+    shape.shape = VID_SHAPE_PUTPIXEL;
+    shape.s.pix.point.x = x;
+    shape.s.pix.point.y = y;
+    shape.s.pix.colour = colour;
+    return vidAddToQueue(queue, &shape) != NULL;
 }
 
 void glFillRect(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 {
-	point_t topLeft, bottomRight;
+    point_t topLeft, bottomRight;
 
-	CCV;
+    CCV;
 
-	if (right < left)
-		swap_MGLreal(&left, &right);
-	if (bottom < top)
-		swap_MGLreal(&top, &bottom);
+    if (right < left)
+	swap_MGLreal(&left, &right);
+    if (bottom < top)
+	swap_MGLreal(&top, &bottom);
 
-	if (!mgliMapToSurface(left, top, &topLeft) ||
-		!mgliMapToSurface(right, bottom, &bottomRight))
-		return;
+    if (!mgliMapToSurface(left, top, &topLeft) ||
+	!mgliMapToSurface(right, bottom, &bottomRight))
+	return;
 
-	vidFillRect(current->video, topLeft, bottomRight, 
-		vidColourMatch(current->video, 0, 0, current->colour));
+    vidFillRect(&current->render_queue, topLeft, bottomRight, current->colour);
 }
 
-void glClear()
+void glClear(void)
 {
-	point_t topLeft, bottomRight;
-	FT_UInt glyph_index;
-	int x, y;
-	
-	CCV;
+    point_t topLeft, bottomRight;
+    FT_UInt glyph_index;
+    int x, y;
+    FT_Error error;
+    
+    CCV;
 
-	topLeft.x = topLeft.y = 0;
-	bottomRight.x = current->surf_width;
-	bottomRight.y = current->surf_height;
-	vidFillRect(current->video, topLeft, bottomRight, 
-		vidColourMatch(current->video, 0, 0, current->clear_colour));
+    topLeft.x = topLeft.y = 0;
+    bottomRight.x = current->surf_width;
+    bottomRight.y = current->surf_height;
+    vidFillRect(&current->render_queue, topLeft, bottomRight, current->clear_colour);
 
-	glyph_index = FT_Get_Char_Index(current->ft_face, 'A');
-	wprintf(L"glyph_index = %d\n", glyph_index);
-	if (FT_Load_Glyph(current->ft_face, glyph_index, FT_LOAD_DEFAULT) == 0)
+    /*FT_Set_Pixel_Sizes(current->ft_face, 0, 20);
+
+    glyph_index = FT_Get_Char_Index(current->ft_face, 'a');
+    wprintf(L"glyph_index = %d\n", glyph_index);
+    error = FT_Load_Glyph(current->ft_face, glyph_index, FT_LOAD_DEFAULT);
+    if (error)
+	wprintf(L"FT_Load_Glyph: %S\n", mgliGetFtError(error));
+    else
+    {
+	FT_GlyphSlot slot = current->ft_face->glyph; 
+	error = FT_Render_Glyph(current->ft_face->glyph, 0);
+	if (error)
+	    wprintf(L"FT_Render_Glyph: %S\n", mgliGetFtError(error));
+	else
 	{
-		FT_GlyphSlot slot = current->ft_face->glyph; 
-		FT_Render_Glyph(current->ft_face->glyph, 0);
-		for (x = 0; x < slot->bitmap.rows; x++)
-			for (y = 0; y < slot->bitmap.width; y++)
-				vidPutPixel(current->video, x, y, 
-					slot->bitmap.buffer[x + y * slot->bitmap.width]);
+	    for (x = 0; x < slot->bitmap.rows; x++)
+		for (y = 0; y < slot->bitmap.width; y++)
+		    vidPutPixel(current->video, x, y, 
+			slot->bitmap.buffer[x + y * slot->bitmap.width]);
 	}
+    }*/
 }
 
 void glMoveTo(MGLreal x, MGLreal y)
 {
-	CCV;
-	current->pos.x = x;
-	current->pos.y = y;
+    CCV;
+    current->pos.x = x;
+    current->pos.y = y;
 }
 
 void glLineTo(MGLreal x, MGLreal y)
 {
-	point_t to, from;
+    point_t to, from;
 
-	CCV;
+    CCV;
 
-	mgliMapToSurface(x, y, &to);
-	mgliMapToSurface(current->pos.x, current->pos.y, &from);
+    mgliMapToSurface(x, y, &to);
+    mgliMapToSurface(current->pos.x, current->pos.y, &from);
 
-	if (from.x == to.x)
-		vidVLine(current->video, from.x, from.y, to.y, 
-			vidColourMatch(current->video, 0, 0, current->colour));
-	else if (from.y == to.y)
-		vidHLine(current->video, from.x, to.x, from.y, 
-			vidColourMatch(current->video, 0, 0, current->colour));
-	else
-		vidLine(current->video, from, to, 
-			vidColourMatch(current->video, 0, 0, current->colour));
+    if (from.x == to.x)
+	vidVLine(&current->render_queue, from.x, from.y, to.y, current->colour);
+    else if (from.y == to.y)
+	vidHLine(&current->render_queue, from.x, to.x, from.y, current->colour);
+    else
+	vidLine(&current->render_queue, from, to, current->colour);
 
-	current->pos.x = x;
-	current->pos.y = y;
+    current->pos.x = x;
+    current->pos.y = y;
 }
 
 void glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 {
-	point_t topLeft, bottomRight;
-	pixel_t c;
+    point_t topLeft, bottomRight;
+    
+    CCV;
 
-	CCV;
+    if (right < left)
+	swap_MGLreal(&left, &right);
+    if (bottom < top)
+	swap_MGLreal(&top, &bottom);
 
-	if (right < left)
-		swap_MGLreal(&left, &right);
-	if (bottom < top)
-		swap_MGLreal(&top, &bottom);
+    if (!mgliMapToSurface(left, top, &topLeft) ||
+	!mgliMapToSurface(right, bottom, &bottomRight))
+	return;
 
-	if (!mgliMapToSurface(left, top, &topLeft) ||
-		!mgliMapToSurface(right, bottom, &bottomRight))
-		return;
+    vidHLine(&current->render_queue, 
+	topLeft.x, bottomRight.x, topLeft.y, current->colour);
+    vidHLine(&current->render_queue, 
+	topLeft.x, bottomRight.x, bottomRight.y, current->colour);
+    vidVLine(&current->render_queue, 
+	topLeft.x, topLeft.y, bottomRight.y, current->colour);
+    vidVLine(&current->render_queue, 
+	bottomRight.x, topLeft.y, bottomRight.y, current->colour);
+}
 
-	c = vidColourMatch(current->video, 0, 0, current->colour);
-	vidHLine(current->video, topLeft.x, bottomRight.x, topLeft.y, c);
-	vidHLine(current->video, topLeft.x, bottomRight.x, bottomRight.y, c);
-	vidVLine(current->video, topLeft.x, topLeft.y, bottomRight.y, c);
-	vidVLine(current->video, bottomRight.x, topLeft.y, bottomRight.y, c);
+void glPutPixel(MGLreal x, MGLreal y)
+{
+    point_t pt;
+
+    CCV;
+
+    mgliMapToSurface(x, y, &pt);
+    vidPutPixel(&current->render_queue, pt.x, pt.y, current->colour);
 }

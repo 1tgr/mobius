@@ -1,20 +1,21 @@
-#include <os/os.h>
+#include <os/syscall.h>
 #include <gl/mgl.h>
 #include <stdlib.h>
-#include <os/mouse.h>
-#include <os/fs.h>
+#include <os/rtl.h>
+/*#include <os/mouse.h>
+#include <os/fs.h>*/
 
 mglrc_t *rc;
-addr_t mouse;
+/*marshal_t mouse;*/
 
 int main(void)
 {
-	//int i;
-	mouse_packet_t pkt;
+	int i;
+	/*mouse_packet_t pkt;*/
 	size_t length;
 	MGLreal x, y;
 
-	srand(sysUpTime());
+	srand(SysUpTime());
 	rc = mglCreateRc(NULL);
 	glSetClearColour(0x000000);
 	glClear();
@@ -29,34 +30,46 @@ int main(void)
 	glSetColour(0x000005);
 	glRectangle(250, 250, 750, 750);
 	
-	glSetColour(0x00000e);
+	for (i = 0; i < 16; i++)
+	{
+		glSetColour(i);
+		glFillRect(i * 50, 0, (i + 1) * 50, 50);
+	}
+
+	glSetColour(0x000000);
 	glMoveTo(100, 100);
 	glLineTo(200, 100);
 	glLineTo(200, 200);
 	glLineTo(100, 100);
 
 	glSetColour(0x000005);
-	/*for (i = 0; i < 100; i++)
+	for (i = 0; i < 100; i++)
 	{
 		glMoveTo(rand() % 1280, rand() % 960);
 		glLineTo(rand() % 1280, rand() % 960);
-	}*/
+	}
 
-	mouse = fsOpen(L"/devices/ps2mouse");
+	glFlush();
+
+	/*mouse = fsOpen(L"/devices/ps2mouse");
 	length = sizeof(pkt);
 	x = 640;
 	y = 480;
-	glMoveTo(x, y);
 	while (fsRead(mouse, &pkt, &length))
 	{
 		if (pkt.buttons)
 			break;
+
 		x += pkt.dx;
 		y += pkt.dy;
-		glLineTo(x, y);
+
+		//glFillRect(x - 1, y - 1, x + 1, y + 1);
+		//glFlush();
+		wprintf(L"%d, %d\t", x, y);
 	}
 
-	fsClose(mouse);
+	fsClose(mouse);*/
+	ConReadKey();
 	mglDeleteRc(rc);
 	return 0;
 }

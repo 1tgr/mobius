@@ -110,8 +110,16 @@ SOURCE=.\rc.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\rect.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\render.c
 # End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
 # Begin Group "Header Files"
 
@@ -144,10 +152,6 @@ SOURCE=.\mgl.h
 
 SOURCE=.\render.h
 # End Source File
-# End Group
-# Begin Group "Resource Files"
-
-# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
 # Begin Source File
 

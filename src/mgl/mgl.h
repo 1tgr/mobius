@@ -3,17 +3,13 @@
 
 #include <gl/mgl.h>
 #include <os/video.h>
+#include <os/queue.h>
 #include <freetype/freetype.h>
-
-typedef struct MGLpoint MGLpoint;
-struct MGLpoint
-{
-	MGLreal x, y;
-};
+#include "render.h"
 
 struct mglrc_t
 {
-	addr_t video;
+	handle_t video;
 	unsigned surf_width, surf_height;
 	MGLreal gl_width, gl_height;
 	MGLreal scale_x, scale_y;
@@ -21,6 +17,7 @@ struct mglrc_t
 	MGLpoint pos;
 	FT_Library ft_library;
 	FT_Face ft_face;
+	queue_t render_queue;
 };
 
 extern mglrc_t *current;

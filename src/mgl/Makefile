@@ -1,19 +1,27 @@
-TARGET=	$(BIN)/mgl.dll
-OBJS=	init.o rc.o render.o
+TARGET_D=	$(BIN)/mgl.dll
+TARGET_S=	$(LIB)/mgl_s.lib
+OBJS=	rc.o render.o rect.o mgl.res.o
 EXP=	mgl.exp
 IMP=	$(LIB)/mgl.lib
 CFLAGS=	-g
-LIBS=	$(LIB)/freetype.lib $(LIB)/libc_s.lib $(LIB)/kernelu.lib
+#LIBS=	$(LIB)/freetype_s.lib $(LIB)/libc.lib $(LIB)/kernelu.lib
+LIBS=	$(LIB)/libc.lib $(LIB)/libsys.lib
+BASE=	mgl
 
 include ../make.actions
 
-all:	$(TARGET) $(IMP)
+all:	$(TARGET_D) $(IMP)
 	make -C test
 
-$(TARGET):	$(OBJS) $(EXP) $(LIBS) mgl.res.o Makefile
-	ld -o $(TARGET) -g \
-		$(OBJS) $(EXP) ../crt0dll.o mgl.res.o \
-		$(LIBS) \
-		--image-base 0x10050000 --entry _DllMainCRTStartup@12
+$(IMP):	$(EXP:.exp=.def)
+	dlltool -d $< -l $@ -D $(<:.def=.dll)
+
+$(TARGET_S):	$(OBJS)
+	ar rcs $@ $(OBJS)
+
+$(TARGET_D):	 dllmain.o $(TARGET_S) $(EXP) $(LIBS) .base
+	$(LD) --dll -o $@ --entry _DllMainCRTStartup \
+		--image-base `cat .base` \
+		dllmain.o $(EXP) $(TARGET_S) $(LIBS)
 
 include $(OBJS:.o=.d)
