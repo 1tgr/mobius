@@ -86,11 +86,27 @@ CFG=video - Win32 Debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\video.c
+SOURCE=.\cupertino.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\video4.c
+SOURCE=.\vga.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\vga4.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\vga8.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\vgamodes.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\video.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -98,16 +114,24 @@ SOURCE=.\video4.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\video.h
+SOURCE=.\vgamodes.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\include\os\video.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\video.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Source File
+
+SOURCE=.\Makefile
+# End Source File
 # End Target
 # End Project

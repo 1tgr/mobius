@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.4 2002/03/05 02:46:44 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.5 2002/03/05 14:23:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -8,12 +8,9 @@
 #include "video.h"
 #include "vgamodes.h"
 
-size_t wcsto437(char *mbstr, const wchar_t *wcstr, size_t count);
-
 /*! Physical address of the VGA frame buffer */
-uint8_t *video_base = PHYSICAL(0xa0000);
-int maskbit[640], y80[480], xconv[640], startmasks[8], endmasks[8];
-semaphore_t sem_lock;
+static uint8_t *video_base = PHYSICAL(0xa0000);
+static int maskbit[640], y80[480], xconv[640], startmasks[8], endmasks[8];
 
 uint8_t vga4Dither(int x, int y, colour_t clr)
 {
@@ -24,13 +21,13 @@ void vga4Close(video_t *vid)
 {
 }
 
-const struct
+struct
 {
     videomode_t mode;
     const uint8_t *regs;
 } vga4_modes[] =
 {
-    /* cookie, width, height, bpp, bpl, regs */
+    /* width, height, bpp, bpl, regs, cookie */
     { { 80,	25,	4,  0,	    0x03, },  mode03h },
   /*{ { 320,    200,    2,  8192,   0x04, },	mode04h },
     { { 640,    200,    1,  8192,   0x06, },	mode06h },*/
@@ -40,86 +37,22 @@ const struct
     { { 640,    350,    4,  28000,  0x10, },	mode10h },
   /*{ { 640,    480,    1,  38400,  0x11, },	mode11h },*/
     { { 640,    480,    4,  38400,  0x12, },	mode12h },
-  /*{ { 320,    200,    8,  64000,  0x13, },	mode13h },*/
 };
 
 int vga4EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
     if (index < _countof(vga4_modes))
     {
+	vga4_modes[index].mode.bytesPerLine = 
+	    (vga4_modes[index].mode.width * vga4_modes[index].mode.bitsPerPixel) / 8;
 	*mode = vga4_modes[index].mode;
-	mode->bytesPerLine = (mode->width * mode->bitsPerPixel) / 8;
 	return index == _countof(vga4_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
     }
     else
 	return VID_ENUM_ERROR;
 }
 
-bool vga4SetMode(video_t *vid, videomode_t *mode)
-{
-    const uint8_t *regs;
-    unsigned i;
-    volatile uint8_t a;
-    
-    regs = NULL;
-    for (i = 0; i < _countof(vga4_modes); i++)
-	if (vga4_modes[i].mode.cookie == mode->cookie)
-	{
-	    regs = vga4_modes[i].regs;
-	    break;
-	}
-    
-    if (regs == NULL)
-	return false;
-
-    SemAcquire(&sem_lock);
-    /* Send MISC regs */
-    out(VGA_MISC_WRITE, *regs++);
-    out(VGA_INSTAT_READ, *regs++);
-    
-    /* Send SEQ regs*/
-    for (i = 0; i < 5; i++)
-    {
-	out(VGA_SEQ_INDEX, i);
-	out(VGA_SEQ_DATA, *regs++);
-    }
-    
-    /* Clear Protection bits */
-    out16(VGA_CRTC_INDEX, 0xe11);
-    
-    /* Send CRTC regs */
-    for (i = 0; i < 25; i++)
-    {
-	out(VGA_CRTC_INDEX, i);
-	out(VGA_CRTC_DATA, *regs++);
-    }
-
-    /* Send GRAPHICS regs */
-    for (i = 0; i < 9; i++)
-    {
-	out(VGA_GC_INDEX, i);
-	out(VGA_GC_DATA, *regs++);
-    }
-    
-    a = in(VGA_INSTAT_READ);
-    
-    /* Send ATTRCON regs */
-    for (i = 0; i < 21; i++)
-    {
-	a = in(VGA_AC_INDEX);
-	out(VGA_AC_INDEX, i);
-	out(VGA_AC_WRITE, *regs++);
-    }
-    
-    out(VGA_AC_WRITE, 0x20);
-    SemRelease(&sem_lock);
-    
-    /* Clear the screen when we change modes */
-    vid->vidFillRect(vid, 0, 0, mode->width, mode->height, 0);
-    return true;
-}
-
-void vga4PreCalc()
+void vga4PreCalc(void)
 {
     unsigned long j;
 
@@ -159,6 +92,30 @@ void vga4PreCalc()
 	xconv[j] = j >> 3;
 }
 
+bool vga4SetMode(video_t *vid, videomode_t *mode)
+{
+    const uint8_t *regs;
+    unsigned i;
+    
+    regs = NULL;
+    for (i = 0; i < _countof(vga4_modes); i++)
+	if (vga4_modes[i].mode.cookie == mode->cookie)
+	{
+	    regs = vga4_modes[i].regs;
+	    break;
+	}
+    
+    if (regs == NULL)
+	return false;
+
+    /*vgaWriteRegs(regs);*/
+    
+    /* Clear the screen when we change modes */
+    vga4PreCalc();
+    vid->vidFillRect(vid, 0, 0, mode->width, mode->height, 0);
+    return true;
+}
+
 void vga4PutPixel(video_t *vid, int x, int y, colour_t clr)
 {
     uint8_t *offset;
@@ -168,7 +125,7 @@ void vga4PutPixel(video_t *vid, int x, int y, colour_t clr)
     pix = vga4Dither(x, y, clr);
     offset = video_base + xconv[x] + y80[y];
 
-    SemAcquire(&sem_lock);
+    SemAcquire(&sem_vga);
     out16(VGA_GC_INDEX, 0x08 | (maskbit[x] << 8));
     if (pix)
     {
@@ -184,14 +141,14 @@ void vga4PutPixel(video_t *vid, int x, int y, colour_t clr)
 	*offset = 0;
     }
 
-    SemRelease(&sem_lock);
+    SemRelease(&sem_vga);
 }
 
 void vga4GetByte(addr_t offset,
 		 uint8_t *b, uint8_t *g,
 		 uint8_t *r, uint8_t *i)
 {
-    SemAcquire(&sem_lock);
+    SemAcquire(&sem_vga);
     out16(VGA_GC_INDEX, 0x0304);
     *i = video_base[offset];
     out16(VGA_GC_INDEX, 0x0204);
@@ -200,7 +157,7 @@ void vga4GetByte(addr_t offset,
     *g = video_base[offset];
     out16(VGA_GC_INDEX, 0x0004);
     *b = video_base[offset];
-    SemRelease(&sem_lock);
+    SemRelease(&sem_vga);
 }
 
 colour_t vga4GetPixel(video_t *vid, int x, int y)
@@ -239,7 +196,7 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     /* leftpix = number of pixels to left of middle */
     leftpix = midx - x1;
 
-    SemAcquire(&sem_lock);
+    SemAcquire(&sem_vga);
     if (leftpix > 0)
     {
 	/* leftmask = pixels set to left of middle */
@@ -294,7 +251,7 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 	*offset = 0;
     }
 
-    SemRelease(&sem_lock);
+    SemRelease(&sem_vga);
 }
 
 void vga4TextOut(video_t *vid, 
@@ -312,7 +269,7 @@ void vga4TextOut(video_t *vid,
     if (len == -1)
 	len = wcslen(str);
 
-    SemAcquire(&sem_lock);
+    SemAcquire(&sem_vga);
     for (; len > 0; str++, len--)
     {
 	ch[0] = 0;
@@ -369,25 +326,7 @@ void vga4TextOut(video_t *vid,
 	x += 8;
     }
 
-    SemRelease(&sem_lock);
-}
-
-void vga4StorePalette(video_t *vid, const rgb_t *entries, unsigned first,
-		      unsigned count)
-{
-    unsigned Index;
-
-    /* start with palette entry 0 */
-    SemAcquire(&sem_lock);
-    out(VGA_DAC_WRITE_INDEX, first);
-    for (Index = 0; Index < count; Index++)
-    {
-	out(VGA_DAC_DATA, entries[Index].red >> 2); /* red */
-	out(VGA_DAC_DATA, entries[Index].green >> 2); /* green */
-	out(VGA_DAC_DATA, entries[Index].blue >> 2); /* blue */
-    }
-
-    SemRelease(&sem_lock);
+    SemRelease(&sem_vga);
 }
 
 video_t vga4 =
@@ -402,12 +341,10 @@ video_t vga4 =
     NULL,	     /* line */
     NULL,	     /* fillrect */
     vga4TextOut,
-    vga4StorePalette
+    vgaStorePalette
 };
 
-video_t *vga4Init(videomode_t *mode)
+video_t *vga4Init(void)
 {
-    vga4PreCalc();
-    vga4SetMode(&vga4, mode);
     return &vga4;
 }

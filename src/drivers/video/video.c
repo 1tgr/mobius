@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.3 2002/03/05 01:57:16 pavlovskii Exp $ */
+/* $Id: video.c,v 1.4 2002/03/05 14:23:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -26,16 +26,18 @@ struct video_drv_t
     video_t *vid;
 };
 
-video_t *vga4Init();
+video_t *vga4Init(void);
+video_t *vga8Init(void);
 
 struct
 {
     const wchar_t *name;
-    video_t *(*init)();
+    video_t *(*init)(void);
     video_t *vid;
 } drivers[] =
 {
     { L"vga4",	vga4Init,   NULL },
+    { L"vga8",	vga8Init,   NULL },
     { NULL,	NULL,	    NULL },
 };
 

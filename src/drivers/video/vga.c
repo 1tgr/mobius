@@ -1,0 +1,72 @@
+/* $Id: vga.c,v 1.1 2002/03/05 14:23:24 pavlovskii Exp $ */
+
+#include <kernel/arch.h>
+#include "video.h"
+
+semaphore_t sem_vga;
+
+void vgaWriteRegs(const uint8_t *regs)
+{
+    unsigned i;
+    volatile uint8_t a;
+
+    SemAcquire(&sem_vga);
+    /* Send MISC regs */
+    out(VGA_MISC_WRITE, *regs++);
+    out(VGA_INSTAT_READ, *regs++);
+    
+    /* Send SEQ regs*/
+    for (i = 0; i < 5; i++)
+    {
+	out(VGA_SEQ_INDEX, i);
+	out(VGA_SEQ_DATA, *regs++);
+    }
+    
+    /* Clear Protection bits */
+    out16(VGA_CRTC_INDEX, 0xe11);
+    
+    /* Send CRTC regs */
+    for (i = 0; i < 25; i++)
+    {
+	out(VGA_CRTC_INDEX, i);
+	out(VGA_CRTC_DATA, *regs++);
+    }
+
+    /* Send GRAPHICS regs */
+    for (i = 0; i < 9; i++)
+    {
+	out(VGA_GC_INDEX, i);
+	out(VGA_GC_DATA, *regs++);
+    }
+    
+    a = in(VGA_INSTAT_READ);
+    
+    /* Send ATTRCON regs */
+    for (i = 0; i < 21; i++)
+    {
+	a = in(VGA_AC_INDEX);
+	out(VGA_AC_INDEX, i);
+	out(VGA_AC_WRITE, *regs++);
+    }
+    
+    out(VGA_AC_WRITE, 0x20);
+    SemRelease(&sem_vga);
+}
+
+void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first,
+		     unsigned count)
+{
+    unsigned Index;
+
+    /* start with palette entry 0 */
+    SemAcquire(&sem_vga);
+    out(VGA_DAC_WRITE_INDEX, first);
+    for (Index = 0; Index < count; Index++)
+    {
+	out(VGA_DAC_DATA, entries[Index].red >> 2); /* red */
+	out(VGA_DAC_DATA, entries[Index].green >> 2); /* green */
+	out(VGA_DAC_DATA, entries[Index].blue >> 2); /* blue */
+    }
+
+    SemRelease(&sem_vga);
+}

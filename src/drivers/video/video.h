@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.3 2002/03/05 01:57:16 pavlovskii Exp $ */
+/* $Id: video.h,v 1.4 2002/03/05 14:23:24 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -61,6 +61,13 @@ struct video_t
 #define VID_ENUM_CONTINUE	1
 #define VID_ENUM_ERROR		0
 #define VID_ENUM_STOP		-1
+
+void vgaWriteRegs(const uint8_t *regs);
+void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first,
+		     unsigned count);
+size_t wcsto437(char *mbstr, const wchar_t *wcstr, size_t count);
+
+extern semaphore_t sem_vga;
 
 #ifdef __cplusplus
 }
