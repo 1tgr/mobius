@@ -44,6 +44,7 @@ protected:
 
     uint16_t *buf_top;
     uint16_t attribs;
+    uint16_t default_attribs;
     unsigned x, y, width, height, save_x, save_y;
     unsigned escape, esc[3], esc_param;
     const char *writebuf;
@@ -79,7 +80,7 @@ tty::tty()
     m_info.device_class = 0;
     info = &m_info;
     flags = DEVICE_IO_DIRECT;
-    attribs = 0x0700 | id << 12;
+    default_attribs = attribs = 0x0700 | id << 12;
     x = 0;
     y = 0;
     width = 80;
@@ -260,7 +261,9 @@ void tty::doEscape(char code, unsigned num, const unsigned *esc)
         break;
 
     case 'm':    /* ESC[Ps;...Psm - set graphics mode */
-        for (i = 0; i < num; i++)
+        if (num == 0)
+            attribs = default_attribs;
+        else for (i = 0; i < num; i++)
         {
             if (esc[i] < 8)
             {
