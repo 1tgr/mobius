@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.12 2002/03/13 14:26:25 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.13 2002/04/20 12:30:05 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -19,6 +19,19 @@ addr_t mem_temp_end = MEM_TEMP_START;
 uint8_t *locked_pages;
 
 bool mem_ready;
+
+/*
+ * Mike Rieker's page states, i386-style:
+ *
+ * Mask = 111110011011 = 0xf9b
+ * PAGEDOUT, page is set to 'no-access'     AVAIL=000 RW=0 P=0 00000xx00x00 = 0x000
+ * READINPROG, page is set to 'no-access'   AVAIL=001 RW=0 P=0 00100xx00x00 = 0x200
+ * WRITEINPROG, page is set to 'read-only'  AVAIL=010 RW=0 P=1 01000xx00x01 = 0x401
+ * READFAILED, page is set to 'no-access'   AVAIL=011 RW=0 P=0 01100xx00x00 = 0x600
+ * WRITEFAILED, page is set to 'read-only'  AVAIL=100 RW=0 P=1 10000xx00x01 = 0x801
+ * VALID_CLEAN, page is set to 'read-only'  AVAIL=101 RW=0 P=1 10100xx00x01 = 0xa01
+ * VALID_DIRTY, page is set to 'read/write' AVAIL=110 RW=1 P=1 11000xx00x11 = 0xc02
+ */
 
 static addr_t MemAllocPool(page_pool_t *pool)
 {
@@ -124,7 +137,7 @@ addr_t MemAllocLowSpan(size_t pages)
 /*!
  * \brief    Creates a virtual-to-physical mapping in the current address space
  */
-bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
+bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
 {
     addr_t *pde;
     
@@ -165,12 +178,76 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
 }
 
 /*!
+ * \brief    Updates the state of a page in virtual memory
+ */
+bool MemSetPageState(const void *virt, uint16_t state)
+{
+    addr_t v, *pde;
+    
+    v = PAGE_ALIGN((addr_t) virt);
+    pde = ADDR_TO_PDE(virt);
+
+    /*if (mem_ready && virt < 0x400000)
+	wprintf(L"MemMap: mapping %lx => %lx pde = %lx\n",
+	    virt, phys, *pde);*/
+
+    if (*pde == NULL)
+    {
+	addr_t pt;
+
+	pt = MemAlloc();
+
+	if (pt == NULL)
+	    return false;
+
+	*pde = pt | PRIV_WR | PRIV_USER | PRIV_PRES;
+
+	/*__asm__("mov %%cr3, %0" : "=r" (pt));
+	__asm__("mov %0, %%cr3" : : "r" (pt));*/
+    }
+
+    *ADDR_TO_PTE(v) = (*ADDR_TO_PTE(v) & ~PAGE_STATEMASK) | state;
+    __asm__("invlpg %0"
+	:
+	: "m" (v));
+
+    return true;
+}
+
+/*!
  * \brief    Returns the physical address associated with a virtual page
  */
 uint32_t MemTranslate(const void *address)
 {
+    uint32_t ret;
+
+    do
+    {
+        if (*ADDR_TO_PDE((addr_t) address))
+	    ret = *ADDR_TO_PTE((addr_t) address);
+        else
+	    ret = 0;
+
+        /* If page is not present, try to simulate a page fault (safely) */
+        if ((ret & PRIV_PRES) == 0)
+        {
+            if (!i386HandlePageFault((addr_t) address, false))
+                return 0;
+        }
+        else
+            break;
+    } while (true);
+
+    return ret;
+}
+
+/*!
+ * \brief    Returns the state of a virtual page
+ */
+uint16_t MemGetPageState(const void *address)
+{
     if (*ADDR_TO_PDE((addr_t) address))
-	return *ADDR_TO_PTE((addr_t) address);
+	return *ADDR_TO_PTE((addr_t) address) & PAGE_STATEMASK;
     else
 	return 0;
 }
@@ -188,14 +265,23 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 	return PHYSICAL(*phys);
 
     ptr = (void*) mem_temp_end;
+    //wprintf(L"MemMapTemp: %u pages ", num_pages);
     for (i = 0; i < num_pages; i++)
     {
+        //wprintf(L"%x=%x ", mem_temp_end, phys[i]);
 	if (!MemMap(mem_temp_end, phys[i], mem_temp_end + PAGE_SIZE, priv))
+        {
+            /*wprintf(L"failed\n");*/
 	    return NULL;
+        }
 
 	mem_temp_end += PAGE_SIZE;
     }
 
+    MemMap(mem_temp_end, 0, mem_temp_end + PAGE_SIZE, 0);
+    mem_temp_end += PAGE_SIZE;
+
+    //wprintf(L"done\n");
     return ptr;
 }
 
@@ -279,6 +365,92 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
     return true;
 }
 
+page_array_t *MemCopyPageArray(unsigned num_pages, size_t mod_first_page, 
+                               const addr_t *pages)
+{
+    page_array_t *array;
+    unsigned i;
+
+    array = malloc(sizeof(page_array_t) + sizeof(addr_t) * (num_pages - 1));
+    if (array == NULL)
+        return NULL;
+
+    array->num_pages = num_pages;
+    array->mod_first_page = mod_first_page;
+
+    for (i = 0; i < num_pages; i++)
+    {
+        if (pages == NULL)
+            array->pages[i] = NULL;
+        else
+        {
+            array->pages[i] = pages[i];
+            MemLockPages(pages[i], 1, true);
+        }
+    }
+
+    return array;
+}
+
+#define ADDRESS_AND_SIZE_TO_SPAN_PAGES(Va,Size) \
+   (((((Size) - 1) / PAGE_SIZE) + \
+   (((((uint32_t)(Size-1)&(PAGE_SIZE-1)) + ((addr_t) (Va) & (PAGE_SIZE -1)))) / PAGE_SIZE)) + 1L)
+
+page_array_t *MemCreatePageArray(const void *buf, size_t bytes)
+{
+    page_array_t *array;
+    unsigned num_pages, mod_first_page;
+    addr_t *ptr, user_addr, phys;
+
+    num_pages = ADDRESS_AND_SIZE_TO_SPAN_PAGES(buf, bytes);
+    user_addr = PAGE_ALIGN((addr_t) buf);
+    mod_first_page = (addr_t) buf - user_addr;
+
+    array = malloc(sizeof(page_array_t) + sizeof(addr_t) * (num_pages - 1));
+    if (array == NULL)
+        return NULL;
+
+    array->mod_first_page = mod_first_page;
+    array->num_pages = num_pages;
+    for (ptr = array->pages; num_pages > 0; num_pages--, user_addr += PAGE_SIZE)
+    {
+        phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
+        if (phys == NULL)
+        {
+            wprintf(L"MemCreatePageArray: buffer = %p: virt = %x is not mapped\n", 
+                buf, user_addr);
+            assert(phys != NULL);
+        }
+
+        MemLockPages(phys, 1, true);
+        *ptr++ = phys;
+    }
+
+    return array;
+}
+
+void MemDeletePageArray(page_array_t *array)
+{
+    addr_t *ptr;
+    unsigned i;
+
+    ptr = array->pages;
+    for (i = 0; i < array->num_pages; i++, ptr++)
+	MemLockPages(*ptr, 1, false);
+
+    free(array);
+}
+
+void *MemMapPageArray(page_array_t *array, uint16_t state)
+{
+    uint8_t *ptr;
+    ptr = MemMapTemp(array->pages, array->num_pages, state);
+    if (ptr == NULL)
+        return NULL;
+    else
+        return ptr + array->mod_first_page;
+}
+
 /*!
  * \brief Initializes the physical memory manager
  *
@@ -323,9 +495,14 @@ bool MemInit(void)
     /* One page of PTEs at one page per PTE = 4MB */
     assert(kernel_startup.kernel_data < PAGE_SIZE * PAGE_SIZE / sizeof(uint32_t));
 
+    mod = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+    phys = mod[kernel_startup.multiboot_info->mods_count - 1].mod_end;
+    phys = PAGE_ALIGN_UP(phys);
+    
     /* Page address stack goes after the bss */
     /*pages = (addr_t*) ebss;*/
-    pages = DEMANGLE_PTR(addr_t*, 0x5000);
+    /*pages = DEMANGLE_PTR(addr_t*, 0x5000);*/
+    pages = DEMANGLE_PTR(addr_t*, phys);
     /*memset(pages, 0, num_pages * sizeof(addr_t));*/
 	
     /* Page lock counts go after the stack */
@@ -348,7 +525,8 @@ bool MemInit(void)
     pool_low.free_pages = 0;
 
     /* Memory from BDA=>ROMs */
-    entry = 0x5000 + PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages);
+    /*entry = 0x5000 + PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages);*/
+    entry = 0x5000;
     assert(entry <= 0xA0000);
     MemFreePoolRange(&pool_low, entry, 0xA0000);
     /* Memory from top of ROMs to top of 'low memory' */
@@ -358,6 +536,9 @@ bool MemInit(void)
     MemLockPages(kernel_startup.kernel_phys, 
 	PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE, 
 	true);
+    MemLockPages(phys, 
+        PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages) / PAGE_SIZE,
+        true);
     mod = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
     for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
 	MemLockPages(mod[i].mod_start, 
@@ -380,7 +561,7 @@ bool MemInit(void)
 	}
     }*/
 
-    for (i = NUM_LOW_PAGES; i < num_pages; i++)
+    for (i = num_pages - 1; i >= NUM_LOW_PAGES; i--)
 	if (locked_pages[i] == 0)
 	    MemFreePool(&pool_all, i * PAGE_SIZE);
 

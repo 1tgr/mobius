@@ -1,10 +1,12 @@
-/* $Id: io.c,v 1.7 2002/03/27 22:06:00 pavlovskii Exp $ */
+/* $Id: io.c,v 1.8 2002/04/20 12:29:42 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
+
+#include <os/syscall.h>
 #include <errno.h>
 
 /*#define DEBUG*/
@@ -83,6 +85,7 @@ struct syncrequest_t
 {
     device_t dev;
     semaphore_t lock;
+    //handle_t event;
     bool is_completed;
 };
 
@@ -90,8 +93,9 @@ void IoSyncRequestFinishIo(device_t *dev, request_t *req)
 {
     syncrequest_t *sync;
     sync = (syncrequest_t*) dev;
-    /*TRACE1("IoSyncRequestFinish: sync = %p\n", sync);*/
+    TRACE1("IoSyncRequestFinish: sync = %p\n", sync);
     SemAcquire(&sync->lock);
+    //EvtSignal(NULL, sync->event);
     sync->is_completed = true;
     SemRelease(&sync->lock);
 }
@@ -117,7 +121,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
         if (/*req->event*/req->result == SIOPENDING)
         {
             /*mal_verify(1);*/
-            if (!sync.is_completed /*!EvtIsSignalled(NULL, req->event)*/)
+            if (!sync.is_completed)
             {
                 semaphore_t temp;
                 SemInit(&temp);
@@ -128,20 +132,21 @@ bool IoRequestSync(device_t *dev, request_t *req)
                 if (true || current == &thr_idle)
                 {
                     TRACE0("IoRequestSync: busy-waiting\n");
-                    while (!sync.is_completed/*!EvtIsSignalled(NULL, req->event)*/)
+                    while (!sync.is_completed)
                         ArchProcessorIdle();
                 }
 #if 0
                 else
                 {
                     wprintf(L"IoRequestSync: doing proper wait\n");
-                    ThrWaitHandle(current, req->event, 'evnt');
-                    
-                    while (!EvtIsSignalled(NULL, req->event))
+                    ThrWaitHandle(current, sync.event, 'evnt');
+                    __asm__("int $0x30" : : "a" (SYS_SysYield), "c" (0), "d" (0));
+
+                    /*while (!EvtIsSignalled(NULL, sync.event))
                     {
                         ArchProcessorIdle();
                         wprintf(L"X");
-                    }
+                    }*/
 
                     /*assert(false && "Reached this bit");*/
                 }
@@ -164,14 +169,24 @@ bool IoRequestSync(device_t *dev, request_t *req)
 size_t IoReadSync(device_t *dev, uint64_t ofs, void *buf, size_t size)
 {
     request_dev_t req;
+    page_array_t *array;
+    size_t ret;
+
+    array = MemCreatePageArray(buf, size);
+    if (array == NULL)
+        return (size_t) -1;
+
     req.header.code = DEV_READ;
     req.params.dev_read.offset = ofs;
-    req.params.dev_read.buffer = buf;
+    req.params.dev_read.pages = array;
     req.params.dev_read.length = size;
 
     /*TRACE1("IoReadSync: dev = %p\n", dev);*/
     if (IoRequestSync(dev, &req.header))
-        return req.params.dev_read.length;
+        ret = req.params.dev_read.length;
     else
-        return (size_t) -1;
+        ret = (size_t) -1;
+
+    MemDeletePageArray(array);
+    return ret;
 }

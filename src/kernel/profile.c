@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.3 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.4 2002/04/20 12:30:03 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -55,7 +55,7 @@ static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
         else
         {
 	    search(root, key);
-	    if (found)
+	    if (root->found)
 	    {
 	        value = item(root);
 	        return value->u.subkey;
@@ -74,7 +74,7 @@ static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
 	else
 	{
 	    search(root, key);
-	    if (found)
+	    if (root->found)
 	    {
 		value = item(root);
 		return ProOpenSubkey(value->u.subkey, ch);
@@ -227,7 +227,7 @@ bool ProGetBoolean(const wchar_t *key, const wchar_t *value, bool _default)
     }
 
     search(k, value);
-    if (found)
+    if (k->found)
     {
 	v = item(k);
 	if (_wcsicmp(v->u.value, L"true") == 0 || 
@@ -261,7 +261,7 @@ const wchar_t *ProGetString(const wchar_t *key, const wchar_t *value, const wcha
     }
 
     search(k, value);
-    if (found)
+    if (k->found)
     {
 	v = item(k);
 	return v->u.value;
@@ -287,7 +287,7 @@ bool ProEnumValues(const wchar_t *keyname, void *param,
     }
 
     start(k);
-    while (!off)
+    while (!k->off)
     {
 	v = item(k);
 	

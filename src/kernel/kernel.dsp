@@ -134,6 +134,10 @@ SOURCE=.\clip.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\cppsup.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\debug.c
 # End Source File
 # Begin Source File

@@ -8,7 +8,7 @@ OBJS=	start.o main.o thread.o \
 	rtlsup.o debug.o profile.o winmgr.o \
 	queue.o clip.o
 LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
-DEFINES=-Di386 -DKERNEL
+DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
 DEF=	kernel.def
 IMP=	$(LIB)/kernel.lib
 EXP=	kernel.exp

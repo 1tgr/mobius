@@ -4,11 +4,13 @@ EXPORTS
 	ArchDbgBreak
 	ArchDbgDumpContext
 	ArchMaskIrq
+	ArchMicroDelay
 	ArchProcessorIdle
 	ArchSetupContext
 	ArchStartup
 	CcCreateFileCache
 	CcDeleteFileCache
+	CcIsBlockDirty
 	CcIsBlockValid
 	CcRequestBlock
 	CcReleaseBlock
@@ -73,10 +75,14 @@ EXPORTS
 	MemAllocLow
 	MemAllocLowSpan
 	MemAllocPageDir
+	MemCreatePageArray
+	MemCopyPageArray
+	MemDeletePageArray
 	MemFree
 	MemFreeLow
 	MemLockPages
 	MemMap
+	MemMapPageArray
 	MemMapTemp
 	MemTranslate
 	MemUnmapTemp
@@ -131,24 +137,26 @@ EXPORTS
 	ThrWaitHandle
 	VmmAlloc
 	VmmArea
-	VmmCommit
 	VmmDoMapFile
 	VmmFree
-	VmmInvalidate
 	VmmMap
 	VmmMapFile
+	VmmPageFault
 	VmmUncommit
 	_HndAlloc
 	_HndInit
 	__builtin_delete
 	__builtin_new
+	__builtin_vec_delete
+	__builtin_vec_new
 	__dj_assert
 	__get_eh_context
-	free
-	malloc
-	realloc
-	_wcsdup
+	__free
+	__malloc
+	__realloc
+	__wcsdup
 	_cputws
+	__divdi3
 	_geterrno
 	_stricmp
 	_wcsicmp
@@ -175,7 +183,6 @@ EXPORTS
 	memmove
 	memset
 	qsort
-	realloc
 	__sbrk
 	sbrk_virtual
 	sprintf

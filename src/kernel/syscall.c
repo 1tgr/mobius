@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.13 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.14 2002/04/20 12:30:04 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -13,6 +13,8 @@
 
 #include <errno.h>
 #include <wchar.h>
+#include <stdio.h>
+#include <malloc.h>
 
 int Hello(int a, int b)
 {
@@ -242,4 +244,22 @@ bool SysShutdown(unsigned type)
         errno = ENOTIMPL;
         return false;
     }
+}
+
+void KeLeakBegin(void)
+{
+    mal_leaktrace(1);
+    wprintf(L"/");
+}
+
+void KeLeakEnd(void)
+{
+    mal_dumpleaktrace(stderr);
+    wprintf(L"\\");
+    mal_leaktrace(0);
+}
+
+void SysYield(void)
+{
+    ScNeedSchedule(true);
 }

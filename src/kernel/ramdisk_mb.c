@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.7 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.8 2002/04/20 12:30:03 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -156,7 +156,7 @@ bool RdFsRequest(device_t* dev, request_t* req)
     case FS_READ:
         fd = HndLock(NULL, req_fs->params.fs_read.file, 'file');
         assert(fd != NULL);
-    
+
         if (fd->mod != NULL)
         {
             /* Normal file */
@@ -167,15 +167,17 @@ bool RdFsRequest(device_t* dev, request_t* req)
 
             ptr = (uint8_t*) PHYSICAL(fd->mod->mod_start) + (uint32_t) fd->file.pos;
             /*wprintf(L"RdFsRequest: read %x (%S) at %x => %x = %08x\n",
-                fd->ram->offset,
-                fd->ram->name,
+                fd->mod->mod_start,
+                PHYSICAL(fd->mod->string),
                 (uint32_t) fd->file.pos, 
                 (addr_t) ptr,
                 *(uint32_t*) ptr);*/
 
-            memcpy((void*) req_fs->params.fs_read.buffer, 
+            memcpy(MemMapPageArray(req_fs->params.fs_read.pages, 
+                    PRIV_PRES | PRIV_KERN | PRIV_WR), 
                 ptr,
                 req_fs->params.fs_read.length);
+            MemUnmapTemp();
             fd->file.pos += req_fs->params.fs_read.length;
         }
         else
@@ -192,7 +194,8 @@ bool RdFsRequest(device_t* dev, request_t* req)
             len = req_fs->params.fs_read.length;
 
             req_fs->params.fs_read.length = 0;
-            buf = req_fs->params.fs_read.buffer;
+            buf = MemMapPageArray(req_fs->params.fs_read.pages, 
+                PRIV_PRES | PRIV_KERN | PRIV_WR);
             while (req_fs->params.fs_read.length < len)
             {
                 size_t temp;
@@ -220,6 +223,8 @@ bool RdFsRequest(device_t* dev, request_t* req)
                 if (fd->file.pos >= kernel_startup.multiboot_info->mods_count)
                     break;
             }
+
+            MemUnmapTemp();
         }
 
         HndUnlock(NULL, req_fs->params.fs_read.file, 'file');

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.11 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.12 2002/04/20 12:30:03 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -277,7 +277,7 @@ void ProcExitProcess(int code)
 	}
 }
 
-bool ProcPageFault(process_t *proc, addr_t addr)
+bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 {
 	vm_area_t *area;
 	module_t *mod;
@@ -317,8 +317,13 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 	}
 
 	FOREACH (area, proc->area)
-		if (addr >= (addr_t) area->start &&
-			addr < (addr_t) area->start + PAGE_SIZE * area->pages)
+        {
+            /*wprintf(L"%s: Area at %x->%x belongs to %s\n",
+                proc->exe,
+                area->start, area->start + PAGE_SIZE * area->pages,
+                area->owner->exe);*/
+                if (addr >= area->start &&
+                    addr < area->start + PAGE_SIZE * area->pages->num_pages)
 		{
 #ifdef DEBUG
 			nest--;
@@ -326,10 +331,13 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 				_cputws(L"  ", 2);
 			wprintf(L"(%u) VMM area\n", nest);
 #endif
-			return VmmCommit(area, NULL, -1);
+			//return VmmCommit(area, NULL, -1);
+                        return VmmPageFault(area, addr, is_writing);
 		}
+        }
 
-	FOREACH (mod, proc->mod)
+
+	/*FOREACH (mod, proc->mod)
 		if (PePageFault(proc, mod, addr))
 		{
 #ifdef DEBUG
@@ -339,7 +347,7 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 			wprintf(L"(%u) PE section\n", nest);
 #endif
 			return true;
-		}
+		}*/
 
 #ifdef DEBUG
 	nest--;

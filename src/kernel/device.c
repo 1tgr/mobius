@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.22 2002/04/03 23:52:54 pavlovskii Exp $ */
+/* $Id: device.c,v 1.23 2002/04/20 12:29:42 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -73,7 +73,7 @@ static bool DevFsRequest(device_t *dev, request_t *req)
     request_fs_t *req_fs = (request_fs_t*) req;
     device_file_t *file;
     device_info_t *info;
-    request_dev_t *req_dev;
+    request_dev_t *req_dev, req_ioctl;
     size_t len;
     dirent_t *buf;
     dirent_device_t *buf_dev;
@@ -214,7 +214,7 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 		req_fs->params.fs_write.buffer,
 		req_fs->params.fs_write.length);*/
 
-	if (file->dev != NULL)
+        if (file->dev != NULL)
 	{
 	    /* Normal device file */
 	    req_dev = malloc(sizeof(request_dev_t));
@@ -225,11 +225,24 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 		return false;
 	    }
 
-	    req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
-	    req_dev->header.param = req;
-	    req_dev->params.dev_read.buffer = req_fs->params.buffered.buffer;
-	    req_dev->params.dev_read.length = req_fs->params.buffered.length;
-	    req_dev->params.dev_read.offset = file->file.pos;
+            if (file->dev->flags & DEVICE_IO_DIRECT)
+            {
+                req_dev->header.code = req->code == 
+                    FS_WRITE ? DEV_WRITE_DIRECT : DEV_READ_DIRECT;
+	        req_dev->header.param = req;
+	        req_dev->params.dev_read_direct.buffer = 
+                    MemMapPageArray(req_fs->params.buffered.pages, PRIV_PRES | PRIV_KERN | PRIV_WR);
+	        req_dev->params.dev_read_direct.length = req_fs->params.buffered.length;
+	        req_dev->params.dev_read_direct.offset = file->file.pos;
+            }
+            else
+            {
+                req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
+	        req_dev->header.param = req;
+                req_dev->params.dev_read.pages = req_fs->params.buffered.pages;
+	        req_dev->params.dev_read.length = req_fs->params.buffered.length;
+	        req_dev->params.dev_read.offset = file->file.pos;
+            }
 
 	    /*wprintf(L"DevFsRequest: req_dev = %p req_fs = %p length = %u\n",
 		req_dev, req_fs, req_dev->params.buffered.length);*/
@@ -239,8 +252,9 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 		req->result = req_dev->header.result;
 		file->file.pos += req_dev->params.buffered.length;
 		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-		free(req_dev);
-		return false;
+
+                free(req_dev);
+                return false;
 	    }
 	    else
 	    {
@@ -263,7 +277,8 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 	    len = req_fs->params.fs_read.length;
 
 	    req_fs->params.fs_read.length = 0;
-	    buf = req_fs->params.fs_read.buffer;
+	    buf = MemMapPageArray(req_fs->params.fs_read.pages, 
+                PRIV_PRES | PRIV_KERN | PRIV_WR);
 	    while (req_fs->params.fs_read.length < len)
 	    {
 		wcscpy(buf->name, info->name);
@@ -279,6 +294,7 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 		    break;
 	    }
 
+            MemUnmapTemp();
 	    HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 	    return true;
 	}
@@ -291,7 +307,7 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 	    return false;
 	}
 
-	req_dev = malloc(sizeof(request_t) + 
+        req_dev = malloc(sizeof(request_t) + 
 	    req_fs->params.fs_passthrough.params_size);
 	req_dev->header.code = req_fs->params.fs_passthrough.code;
 	
@@ -308,7 +324,26 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 
 	free(req_dev);
 	HndUnlock(NULL, req_fs->params.fs_passthrough.file, 'file');
-	return ret;
+        return ret;
+
+    case FS_IOCTL:
+        file = HndLock(NULL, req_fs->params.fs_ioctl.file, 'file');
+	if (file == NULL)
+	{
+	    req->result = EHANDLE;
+	    return false;
+	}
+
+        req_ioctl.header.code = DEV_IOCTL;
+        req_ioctl.params.dev_ioctl.code = req_fs->params.fs_ioctl.code;
+        req_ioctl.params.dev_ioctl.params = req_fs->params.fs_ioctl.buffer;
+        req_ioctl.params.dev_ioctl.size = req_fs->params.fs_ioctl.length;
+
+	ret = IoRequestSync(file->dev, &req_ioctl.header);
+	req->result = req_ioctl.header.result;
+
+	HndUnlock(NULL, req_fs->params.fs_ioctl.file, 'file');
+        return ret;
     }
 
     req->result = ENOTIMPL;
@@ -338,6 +373,7 @@ static device_t dev_fsd =
     NULL,
     NULL,
     NULL,
+    0,
     &devfs_vtbl,
 };
 
@@ -415,12 +451,10 @@ bool DevRegisterIrq(uint8_t irq, device_t *dev)
  *    \return	 A pointer to an \p asyncio_t structure
  */
 asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
-			   void *user_buffer,
+			   page_array_t *pages,
 			   size_t user_buffer_length)
 {
     asyncio_t *io;
-    unsigned pages;
-    addr_t *ptr, user_addr, phys;
 
     if (req != NULL)
     {
@@ -432,10 +466,34 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
         req->original = NULL;
     }
 
+    /*user_addr = PAGE_ALIGN((addr_t) user_buffer);
     pages = PAGE_ALIGN_UP(user_buffer_length) / PAGE_SIZE;
+    mod = (addr_t) user_buffer % PAGE_SIZE;
+    if (mod > 0 &&
+        mod + user_buffer_length >= PAGE_SIZE)
+        pages++;
+
     io = malloc(sizeof(asyncio_t) + sizeof(addr_t) * pages);
     if (io == NULL)
+        return NULL;*/
+    io = malloc(sizeof(asyncio_t));
+    if (io == NULL)
         return NULL;
+
+    /*io->pages = MemCreatePageArray(user_buffer, user_buffer_length);
+    if (io->pages == NULL)
+    {
+        free(io);
+        return NULL;
+    }*/
+
+    io->pages = MemCopyPageArray(pages->num_pages, pages->mod_first_page, 
+        pages->pages);
+    if (io->pages == NULL)
+    {
+        free(io);
+        return NULL;
+    }
 
     io->owner = current;
 
@@ -457,19 +515,24 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
     io->req_size = size;
     io->dev = dev;
     io->length = user_buffer_length;
-    io->length_pages = pages;
+    //io->length_pages = pages;
     io->extra = NULL;
-    io->mod_buffer_start = (unsigned) user_buffer % PAGE_SIZE;
+    /*io->mod_buffer_start = mod;
     ptr = (addr_t*) (io + 1);
-    user_addr = PAGE_ALIGN((addr_t) user_buffer);
     for (; pages > 0; pages--, user_addr += PAGE_SIZE)
     {
         phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
-        assert(phys != NULL);
+        if (phys == NULL)
+        {
+            wprintf(L"buffer = %p: virt = %x is not mapped\n", 
+                user_buffer, user_addr);
+            assert(phys != NULL);
+        }
+
         MemLockPages(phys, 1, true);
         *ptr++ = phys;
-    }
-
+    }*/
+    
     /*req->event = io->req->event = EvtAlloc(NULL);*/
     LIST_ADD(dev->io, io);
     return io;
@@ -532,13 +595,12 @@ static void DevFinishIoApc(void *ptr)
  */
 void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 {
-    addr_t *ptr;
-    unsigned i;
-
-    ptr = (addr_t*) (io + 1);
+    /*ptr = (addr_t*) (io + 1);
     for (i = 0; i < io->length_pages; i++, ptr++)
-	MemLockPages(*ptr, 1, false);
-    
+	MemLockPages(*ptr, 1, false);*/
+    MemDeletePageArray(io->pages);
+    io->pages = NULL;
+
     LIST_REMOVE(dev->io, io);
     /*LIST_ADD(io->owner->fio, io);*/
     /*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
@@ -782,6 +844,7 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
  */
 void *DevMapBuffer(asyncio_t *io)
 {
-    return MemMapTemp((addr_t*) (io + 1), io->length_pages, 
-	PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+    /*return MemMapTemp((addr_t*) (io + 1), io->length_pages, 
+	PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);*/
+    return MemMapPageArray(io->pages, PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
 }

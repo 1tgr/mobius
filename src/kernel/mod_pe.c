@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.8 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.9 2002/04/20 12:30:03 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -100,7 +100,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     new_base = base;
     while ((area = VmmArea(proc, (const void*) new_base)))
     {
-        new_base = (addr_t) area->start + area->pages * PAGE_SIZE;
+        new_base = area->start + area->pages->num_pages * PAGE_SIZE;
         wprintf(L"%s: clashed with %08x, adjusting base to %08x\n", 
             file, area->start, new_base);
     }
@@ -114,7 +114,13 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     mod->file = fd;
     mod->sizeof_headers = pe.OptionalHeader.SizeOfHeaders;
     mod->imported = false;
-    
+
+    VmmMap(PAGE_ALIGN_UP(mod->length) / PAGE_SIZE,
+        mod->base,
+        mod,
+        VM_AREA_IMAGE,
+        0);
+
     /*wprintf(L"%s: %x..%x (pbase = %x)\n",
         file, mod->base, mod->base + mod->length, 
         pe.OptionalHeader.ImageBase);*/
@@ -248,6 +254,84 @@ static bool PeDoImports(process_t* proc,
     }
     
     return true;
+}
+
+bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
+                        size_t *bytes, uint32_t *flags)
+{
+    if (addr >= mod->base && 
+        addr <= mod->base + mod->sizeof_headers)
+    {
+        /* Map headers as a special case */
+        *off = 0;
+        *bytes = mod->sizeof_headers;
+        *flags = 3 | MEM_READ;
+    }
+    else
+    {
+        IMAGE_PE_HEADERS *pe;
+        IMAGE_SECTION_HEADER *first_scn, *scn;
+        int i;
+        addr_t scn_base;
+
+        pe = PeGetHeaders(mod->base);
+        first_scn = IMAGE_FIRST_SECTION(pe);
+
+        scn = NULL;
+        for (i = 0; i < pe->FileHeader.NumberOfSections; i++)
+        {
+            if ((first_scn[i].Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) &&
+                scn == NULL)
+                scn = first_scn + i;
+            else if (addr >= mod->base + first_scn[i].VirtualAddress &&
+                addr < mod->base + first_scn[i].VirtualAddress + first_scn[i].Misc.VirtualSize)
+            {
+                scn = first_scn + i;
+                break;
+            }
+        }
+
+        if (scn == NULL)
+        {
+            wprintf(L"%x: section not found\n", addr);
+            return false;
+        }
+
+        scn_base = mod->base + scn->VirtualAddress;
+        /*size = (scn->Misc.VirtualSize + PAGE_SIZE - 1) & -PAGE_SIZE;*/
+        /*wprintf(L"%x: section %d: %.8S %d bytes\n", addr, i, scn->Name, size);*/
+
+        *flags = 3 | MEM_ZERO;
+        if (scn->Characteristics & IMAGE_SCN_MEM_READ)
+            *flags |= MEM_READ;
+        if (scn->Characteristics & IMAGE_SCN_MEM_WRITE)
+            *flags |= MEM_WRITE;
+
+        if ((scn->Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) == 0)
+            *off = scn->PointerToRawData + addr - scn_base;
+        else
+            *off = -1;
+
+        if (*off < scn->PointerToRawData + scn->SizeOfRawData)
+            *bytes = min(PAGE_SIZE, scn->PointerToRawData + scn->SizeOfRawData - *off);
+        else
+        {
+            *flags |= MEM_ZERO;
+            *bytes = -1;
+        }
+    }
+
+    return true;
+}
+
+void PeInitImage(module_t *mod)
+{
+    IMAGE_PE_HEADERS *pe;
+
+    pe = PeGetHeaders(mod->base);
+    if (!mod->imported &&
+        !PeDoImports(current->process, mod, pe->OptionalHeader.DataDirectory))
+        wprintf(L"%s: imports failed\n", mod->name);
 }
 
 bool PePageFault(process_t* proc, module_t* mod, addr_t addr)

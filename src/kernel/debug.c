@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.8 2002/04/03 23:52:54 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.9 2002/04/20 12:29:42 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -530,7 +530,7 @@ void DbgDumpVmm(process_t *proc)
 			' ',
 			ary[i],
 			ary[i]->start,
-			ary[i]->start + ary[i]->pages * PAGE_SIZE,
+			ary[i]->start + ary[i]->pages->num_pages * PAGE_SIZE,
 			ary[i]->pages);
 
 	free(ary);

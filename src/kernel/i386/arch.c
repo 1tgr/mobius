@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.16 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.17 2002/04/20 12:30:04 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -384,7 +384,7 @@ void ArchDbgDumpContext(const context_t* ctx)
 {
     context_v86_t *v86;
     v86 = (context_v86_t*) ctx;
-    if (ctx != NULL)
+    while (ctx != NULL)
     {
         wprintf(L"---- Context at %p: ----\n", ctx);
         wprintf(L"  EAX %08x\t  EBX %08x\t  ECX %08x\t  EDX %08x\n",
@@ -478,23 +478,67 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
 
 void ArchReboot(void)
 {
-    unsigned char temp;
+    uint8_t temp;
     disable();
 
     /* flush the keyboard controller */
     do
     {
 	temp = in(0x64);
-	if ((temp & 0x01) != 0)
-	{
-	    (void) in(0x60);
-	    continue;
-	}
-    } while((temp & 0x02) != 0);
+	if (temp & 1)
+	    in(0x60);
+    } while(temp & 2);
 
     /* pulse the CPU reset line */
     out(0x64, 0xFE);
 
-    /* ...and if that didn't work, just halt */
     ArchProcessorIdle();
+}
+
+static unsigned short ctc(void)
+{
+    union
+    {
+        unsigned char byte[2];
+        signed short word;
+    } ret_val;
+
+    semaphore_t sem = { 0 };
+
+    SemAcquire(&sem);
+    disable();
+    out(0x43, 0x00);               /* latch channel 0 value */
+    ret_val.byte[0] = in(0x40);    /* read LSB */
+    ret_val.byte[1] = in(0x40);    /* read MSB */
+    SemRelease(&sem);
+    return -ret_val.word;          /* convert down count to up count */
+}
+
+void ArchMicroDelay(unsigned microseconds)
+{
+    unsigned short curr, prev;
+    union
+    {
+        unsigned short word[2];
+        unsigned long dword;
+    } end;
+
+    prev = ctc();
+    end.dword = prev + ((unsigned long)microseconds * 500) / 419;
+    for (;;)
+    {
+        curr = ctc();
+        if (end.word[1] == 0)
+        {
+            if (curr >= end.word[0])
+                break;
+        }
+        if (curr < prev)                /* timer overflowed */
+        {
+            if (end.word[1] == 0)
+                break;
+            (end.word[1])--;
+        }
+        prev = curr;
+    }
 }

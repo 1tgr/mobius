@@ -210,7 +210,8 @@ static void PortStartIo(void *param)
                         port, port->name, remote, remote->name,
                         port->u.client.readptr, port->u.client.writeptr, bytes);
 
-                    buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+                    //buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+                    buf = DevMapBuffer(io) + io->length;
                     memcpy(buf, port->u.client.readptr, bytes);
                     io->length += bytes;
                     port->u.client.readptr += bytes;
@@ -249,7 +250,8 @@ static void PortStartIo(void *param)
                         port, port->name, remote, remote->name,
                         remote->u.client.readptr, remote->u.client.writeptr, bytes);
 
-                    buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+                    //buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+                    buf = DevMapBuffer(io) + io->length;
                     memcpy(remote->u.client.writeptr, buf, bytes);
                     io->length += bytes;
                     remote->u.client.writeptr += bytes;
@@ -467,9 +469,20 @@ bool PortFsRequest(device_t *dev, request_t *req)
             return false;
         }
 
-        io = DevQueueRequest(dev, &req_fs->header, sizeof(request_fs_t),
-            req_fs->params.fs_read.buffer,
+        /*array = MemCreatePageArray(req_fs->params.fs_read.buffer, 
             req_fs->params.fs_read.length);
+        if (array == NULL)
+        {
+            req->result = errno;
+            HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+            return false;
+        }*/
+
+        io = DevQueueRequest(dev, &req_fs->header, sizeof(request_fs_t),
+            req_fs->params.fs_read.pages,
+            req_fs->params.fs_read.length);
+
+        /*MemDeletePageArray(array);*/
 
         if (io == NULL)
         {
@@ -548,6 +561,7 @@ static device_t port_dev =
     NULL,
     NULL, NULL,
     NULL,
+    0,
     &portfs_vtbl,
 };
 

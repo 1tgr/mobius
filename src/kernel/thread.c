@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.14 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.15 2002/04/20 12:30:04 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -394,7 +394,8 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     else
     {
         proc->stack_end -= 0x100000;
-        stack = (addr_t) VmmAlloc(0x100000, proc->stack_end, 3 | MEM_READ | MEM_WRITE);
+        stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
+            3 | MEM_READ | MEM_WRITE);
         wprintf(L"ThrCreateThread: user stack at %x\n", stack);
         stack += 0x100000;
         /*stack = proc->stack_end;

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.23 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.24 2002/04/20 12:30:04 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -110,6 +110,29 @@ uint32_t i386_lpeek32(addr_t off)
     return value;
 }
 
+bool i386HandlePageFault(addr_t cr2, bool is_writing)
+{
+    if (!ProcPageFault(current->process, cr2, is_writing))
+    {
+        if (cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
+            kernel_pagedir[PAGE_DIRENT(cr2)] &&
+            (*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
+        {
+            cr2 = PAGE_ALIGN(cr2);
+            wprintf(L"Mapping kernel page at %x for process %u...", 
+                cr2, current->process->id);
+            *ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
+            invalidate_page((void*) cr2);
+            wprintf(L"done\n");
+            return true;
+        }
+        else
+            return false;
+    }
+
+    return true;
+}
+
 uint32_t i386Isr(context_t ctx)
 {
     thread_t *old_current;
@@ -173,24 +196,10 @@ uint32_t i386Isr(context_t ctx)
         else if (ctx.intr == 13 &&
             ctx.eflags & EFLAG_VM)
             handled = i386V86Gpf((context_v86_t*) &ctx);
-        else if (ctx.intr == 14 &&
-            (ctx.error & PF_PROTECTED) == 0)
-        {
-            handled = ProcPageFault(current->process, cr2);
-            if (!handled &&
-                cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
-                kernel_pagedir[PAGE_DIRENT(cr2)] &&
-                (*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
-            {
-                cr2 = PAGE_ALIGN(cr2);
-                wprintf(L"Mapping kernel page at %x for process %u...", 
-                    cr2, current->process->id);
-                *ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
-                invalidate_page((void*) cr2);
-                wprintf(L"done\n");
-                handled = true;
-            }
-        }
+        else if (ctx.intr == 14 /*&&
+            (ctx.error & PF_PROTECTED) == 0*/)
+            handled = i386HandlePageFault(cr2, 
+                (ctx.error & (PF_PROTECTED | PF_WRITE)) == (PF_PROTECTED | PF_WRITE));
         else if (ctx.intr == 0x30)
         {
             i386DispatchSysCall(&ctx);
