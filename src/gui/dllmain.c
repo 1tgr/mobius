@@ -1,0 +1,3 @@
+void DllMainCRTStartup(void)
+{
+}
