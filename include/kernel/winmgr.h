@@ -1,4 +1,4 @@
-/* $Id: winmgr.h,v 1.1 2002/04/04 00:15:56 pavlovskii Exp $ */
+/* $Id: winmgr.h,v 1.2 2002/04/10 12:32:37 pavlovskii Exp $ */
 
 #ifndef __KERNEL_WINMGR_H
 #define __KERNEL_WINMGR_H
@@ -7,6 +7,12 @@
 extern "C"
 {
 #endif
+
+/*!
+ *  \ingroup    kernel
+ *  \defgroup   winmgr  Kernel-Mode Window Manager
+ *  @{
+ */
 
 #include <os/gui.h>
 #include <os/video.h>
@@ -43,7 +49,8 @@ bool        WndiGetPosition(window_t *wnd, MGLrect *pos);
 void        WndiHasMessage(window_t *wnd);
 void        WndiPostMessage(window_t *wnd, const msg_t *msg);
 void        WndiInvalidate(window_t *wnd, const MGLrect *rect);
-void        WndiInvalidateTree(window_t *wnd, const MGLrect *rect);
+void        WndiInvalidateTree(window_t *wnd, window_t *except, 
+                               const MGLrect *rect);
 wchar_t *   WndiGetTitle(window_t *wnd);
 void        WndiSetFocus(window_t *wnd);
 window_t *  WndLockWindow(struct process_t *proc, handle_t hnd);
@@ -53,8 +60,11 @@ handle_t    WndiGetHandle(struct process_t *proc, window_t *wnd);
 window_t *  WndiWindowAtPoint(window_t *root, MGLreal x, MGLreal y);
 bool        WndiHasFocus(window_t *wnd);
 void        WndiUpdateClip(window_t *wnd);
+int         ClipIntersect(const MGLrect* pos, const MGLrect *Clip);
 
 extern window_t wnd_root, *wnd_focus, *wnd_capture;
+
+/*! @} */
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,8 @@
-# $Id: menu.lst,v 1.11 2002/04/04 00:08:42 pavlovskii Exp $
+# $Id: menu.lst,v 1.12 2002/04/10 12:32:37 pavlovskii Exp $
 
 title	The M”bius
 kernel	/boot/kernel.exe
+module	/boot/system.pro
 module	/boot/tty.drv
 module	/boot/keyboard.drv
 module	/boot/shell.exe
@@ -25,6 +26,9 @@ module	/boot/vidtest.exe
 module	/boot/mgl.dll
 module	/boot/mgltest.exe
 module	/boot/tetris.exe
+module	/boot/gui.dll
+module	/boot/guitest.exe
+module	/boot/desktop.exe
 
 title	Reinstall loader to hard disk
 install	(hd0,0)/boot/grub/stage1 (hd0,0) (hd0,0)/boot/grub/stage2 (hd0,0)/menu.lst

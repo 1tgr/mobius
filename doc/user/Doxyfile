@@ -1,4 +1,4 @@
-# Doxyfile 1.2.5
+﻿# Doxyfile 1.2.5
 
 # This file describes the settings to be used by doxygen for a project
 #
@@ -285,7 +285,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces. 
 
-INPUT                  = ..\..\src\mgl ..\..\src\libsys ..\..\src\libc ..\..\include\os ..\..\include\gl ..\..\src\gui ..\..\include\gui
+INPUT                  = ..\..\src\mgl ..\..\src\libsys ..\..\include\os ..\..\include\gl ..\..\src\gui ..\..\include\gui
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
@@ -604,7 +604,10 @@ INCLUDE_FILE_PATTERNS  =
 # or name=definition (no spaces). If the definition and the = are 
 # omitted =1 is assumed. 
 
-PREDEFINED             = __DOXYGEN__
+PREDEFINED             = __DOXYGEN__ \
+	"SYSCALL(type, name, argbytes)=type name();" \
+	SYS_BEGIN_GROUP(n)= \
+	SYS_END_GROUP(n)=
 
 # If the MACRO_EXPANSION and EXPAND_PREDEF_ONLY tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 

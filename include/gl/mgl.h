@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.5 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.6 2002/04/10 12:32:37 pavlovskii Exp $ */
 
 #ifndef __GL_MGL_H
 #define __GL_MGL_H
@@ -50,8 +50,8 @@ void        glBevel(const MGLrect *rect, MGLcolour colour, int border,
      (uint8_t) (r) << 16 | \
      (uint8_t) (a) << 24)
 #define MGL_COLOR4(r,g,b,a)    MGL_COLOUR4(r,g,b,a)
-#define MGL_COLOUR(r,g,b)    MGL_COLOUR4(r,g,b,0xff)
-#define MGL_COLOR(r,g,b)    MGL_COLOR4(r,g,b,0xff)
+#define MGL_COLOUR(r,g,b)    MGL_COLOUR4(r,g,b,0)
+#define MGL_COLOR(r,g,b)    MGL_COLOR4(r,g,b,0)
 
 void        RectSet(MGLrect* r, MGLreal left, MGLreal top, MGLreal right, MGLreal bottom);
 void        RectSetEmpty(MGLrect* r);

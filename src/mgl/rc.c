@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.6 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.7 2002/04/10 12:33:02 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -130,7 +130,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     if (params.vid_getmode.flags & VIDEO_MODE_TEXT)
     {
         memset(&params, 0, sizeof(params));
-        params.vid_setmode.bitsPerPixel = 8;
+        //params.vid_setmode.bitsPerPixel = 8;
         rc->did_set_mode = true;
         //params.vid_setmode.height = 200;
         if (!FsRequestSync(rc->video, VID_SETMODE, &params, sizeof(params), &op) ||
@@ -332,11 +332,11 @@ void mglSetClip(mglrc_t *rc, const MGLclip *clip)
     for (i = 0; i < rc->vid_clip.num_rects; i++)
     {
         mglMapToSurface(clip->rects[i].left, clip->rects[i].top, &pt);
-        rc->vid_clip.rects[i].left = pt.x;
-        rc->vid_clip.rects[i].top = pt.y;
+        rc->vid_clip.rects[i].left = max(pt.x, 0);
+        rc->vid_clip.rects[i].top = max(pt.y, 0);
 
         mglMapToSurface(clip->rects[i].right, clip->rects[i].bottom, &pt);
-        rc->vid_clip.rects[i].right = pt.x;
-        rc->vid_clip.rects[i].bottom = pt.y;
+        rc->vid_clip.rects[i].right = min(pt.x, rc->surf_width);
+        rc->vid_clip.rects[i].bottom = min(pt.y, rc->surf_height);
     }
 }

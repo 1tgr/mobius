@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.14 2002/03/04 18:52:25 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.15 2002/04/10 12:32:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -755,7 +755,7 @@ void AtaDriveFinishIo(device_t *dev, request_t *req)
 	L"\treq->param = %p, req->param->from = %p\n", 
 	dev, req, req->from, 
 	req->param, ((request_t*) req->param)->from);
-    if (req->param != req)
+    //if (req->param != req)
 	IoNotifyCompletion(req->param);
 }
 
@@ -813,10 +813,14 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
     partition_t *parts;
 
     parts = (partition_t*) (bytes + 0x1be);
-    TRACE1("bytes = %p\n", bytes);
+    TRACE1("AtaPartitionDevice: bytes = %p\n", bytes);
     if (!IoReadSync(dev, 0, bytes, sizeof(bytes)))
+    {
+        TRACE0("AtaPartitionDevice: IoReadSync failed\n");
 	return;
+    }
 
+    TRACE0("AtaPartitionDevice: read finished\n");
     wcscpy(name, base_name);
     suffix = name + wcslen(base_name);
     suffix[1] = '\0';
@@ -901,7 +905,7 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 
     DevRegisterIrq(AT_IRQ0, &ctrl->dev);
     ArchMaskIrq(1 << AT_IRQ0, 0);
-    
+
     for (i = 0; i < DRIVES_PER_CONTROLLER; i++)
     {
 	ctrl->drives[i].ctrl = ctrl;
@@ -1044,6 +1048,7 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
     if (/*num_bios_drives > 0*/ true)
     {
 	ctrl = malloc(sizeof(ata_ctrl_t));
+        memset(ctrl, 0, sizeof(ata_ctrl_t));
 	ctrl->dev.vtbl = &ata_controller_vtbl;
 	ctrl->dev.driver = drv;
 	ctrl->dev.cfg = cfg;

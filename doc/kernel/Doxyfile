@@ -604,7 +604,11 @@ INCLUDE_FILE_PATTERNS  =
 # or name=definition (no spaces). If the definition and the = are 
 # omitted =1 is assumed. 
 
-PREDEFINED             = __DOXYGEN__
+PREDEFINED             = __DOXYGEN__ \
+    "SYSCALL(type, name, argbytes)=type name();" \
+    SYS_BEGIN_GROUP(n)= \
+    SYS_END_GROUP(n)=
+
 
 # If the MACRO_EXPANSION and EXPAND_PREDEF_ONLY tags are set to YES then 
 # this tag can be used to specify a list of macro names that should be expanded. 

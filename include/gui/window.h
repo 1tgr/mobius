@@ -1,4 +1,4 @@
-/* $Id: window.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: window.h,v 1.3 2002/04/10 12:32:37 pavlovskii Exp $ */
 
 #ifndef __GUI_WINDOW_H
 #define __GUI_WINDOW_H
@@ -26,7 +26,7 @@ namespace os
         Window *m_parent;
         std::list<Window*> m_children;
 
-        //! Window constructore
+        //! Window constructor
         /*!
          *  Constructs a \p Window object without creating a window
          */
@@ -37,6 +37,12 @@ namespace os
          *  Creates a window
          */
         Window(Window *parent, const wchar_t *title, const MGLrect &pos);
+
+        //! Window constructor
+        /*!
+         *  Binds a Window object to a window handle
+         */
+        Window(handle_t hnd);
 
         //! Creates the underlying window
         /*!
@@ -68,6 +74,8 @@ namespace os
 
         //! Gets the on-screen position of the window
         bool GetPosition(MGLrect *rect) const;
+        //! Sets the on-screen position of the window
+        void SetPosition(const MGLrect &rect);
 
         //! Gets the window's title
         bool GetTitle(wchar_t *title, size_t max) const;

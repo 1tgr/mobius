@@ -1,4 +1,4 @@
-/* $Id: render.c,v 1.5 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: render.c,v 1.6 2002/04/10 12:33:03 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
@@ -189,14 +189,18 @@ void glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 	!mglMapToSurface(right, bottom, &bottomRight))
 	return;
 
+    /* Top */
     vidHLine(&current->render_queue, 
 	topLeft.x, bottomRight.x, topLeft.y, current->colour);
+    /* Bottom */
     vidHLine(&current->render_queue, 
 	topLeft.x, bottomRight.x, bottomRight.y, current->colour);
+    /* Left */
     vidVLine(&current->render_queue, 
-	topLeft.x, topLeft.y, bottomRight.y, current->colour);
+	topLeft.x, topLeft.y + 1, bottomRight.y, current->colour);
+    /* Right */
     vidVLine(&current->render_queue, 
-	bottomRight.x, topLeft.y, bottomRight.y, current->colour);
+	bottomRight.x, topLeft.y, bottomRight.y + 1, current->colour);
 }
 
 /*! \brief  Sets a single pixel */

@@ -1,11 +1,11 @@
-/* $Id: clip.c,v 1.1 2002/04/03 23:52:54 pavlovskii Exp $ */
+/* $Id: clip.c,v 1.2 2002/04/10 12:32:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/winmgr.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-static int clipIntersect(const MGLrect* pos, const MGLrect *Clip)
+int ClipIntersect(const MGLrect* pos, const MGLrect *Clip)
 {
     int ThisX2, ThisY2;
     int X2, Y2;
@@ -142,7 +142,7 @@ static void clipDoClip(window_t* wnd, window_t* Next)
         {
             int ISect;
 
-            ISect = clipIntersect(rects + j, OldClip);
+            ISect = ClipIntersect(rects + j, OldClip);
             switch(ISect)
             //
             // simple overlap: the clip is reduced in size along one side;
@@ -373,7 +373,13 @@ void WndiUpdateClip(window_t* wnd)
     /* create one clip equal to entire window */
     wnd->clip.rects = malloc(sizeof(MGLrect) * 1);
     /* xxx - check if out of memory */
-    WndiGetPosition(wnd, wnd->clip.rects);
+
+    if (wnd->invalid_rect.right - wnd->invalid_rect.left != 0 &&
+        wnd->invalid_rect.bottom - wnd->invalid_rect.top != 0)
+        *wnd->clip.rects = wnd->invalid_rect;
+    else
+        WndiGetPosition(wnd, wnd->clip.rects);
+
     //printf("win::clip (1)\n");
     /* clip it against the screen */
     /*if (!surfClip(&wnd->clip.rects->SrcX, &wnd->clip.rects->SrcY,

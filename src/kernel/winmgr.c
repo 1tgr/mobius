@@ -1,4 +1,4 @@
-/* $Id: winmgr.c,v 1.1 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: winmgr.c,v 1.2 2002/04/10 12:33:02 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -61,76 +61,22 @@ void WndiPostMessage(window_t *wnd, const msg_t *msg)
     WndiHasMessage(wnd);
 }
 
-bool RectIntersect(MGLrect *ret, const MGLrect *r1, const MGLrect *r2)
-{
-    MGLreal intLeft = 0, intBottom = 0, intWidth = 0, intHeight = 0;
-    bool emptyIntersection = false;
-
-    // check on horizontal overlap
-    if (r1->left <= r2->left)
-    {
-        intLeft = r2->left;
-        if (r1->right < r2->left)
-            emptyIntersection = true;
-        else
-            intWidth = min(r1->right, r2->right) - r2->left;
-    }
-    else
-    {
-        intLeft = r1->left;
-        if (r2->right < r1->left)
-            emptyIntersection = true;
-        else
-            intWidth = min(r2->right, r1->right) - r1->left;
-    }
-
-    // check on vertical overlap
-    if (r1->bottom <= r2->bottom)
-    {
-        intBottom = r2->bottom;
-        if (r1->top < r2->left)
-            emptyIntersection = true;
-        else
-            intHeight = min(r1->top, r2->top) - r2->bottom;
-    }
-    else
-    {
-        intBottom = r1->bottom;
-        if (r2->top < r1->bottom)
-            emptyIntersection = true;
-        else
-            intHeight = min(r2->top, r1->top) - r1->bottom;
-    }
-
-    if (emptyIntersection)
-        intLeft = intBottom = intWidth = intHeight = 0;
-
-    if (ret != NULL)
-    {
-        ret->left = intLeft;
-        ret->top = intBottom - intHeight;
-        ret->right = intLeft + intWidth;
-        ret->bottom = intBottom;
-    }
-
-    return !emptyIntersection;
-}
-
 void WndiInvalidate(window_t *wnd, const MGLrect *rect)
 {
     MGLrect pos, r;
     bool was_empty;
+    int isect;
 
     WndiGetPosition(wnd, &pos);
     if (rect == NULL)
         r = pos;
-    else if (!RectIntersect(&r, rect, &pos))
+    else
     {
-        /*wprintf(L"WndiInvalidate(%s): rect = (%d,%d), (%d,%d) pos = (%d,%d), (%d,%d)\n",
-            WndiGetTitle(wnd),
-            rect->left, rect->top, rect->right, rect->bottom,
-            pos.left, pos.top, pos.right, pos.bottom);*/
-        return;
+        r = *rect;
+        isect = ClipIntersect(rect, &pos);
+        if ((isect & 0xf0) == 0x50 ||
+            (isect & 0x0f) == 0x05)
+            return;
     }
 
     was_empty = wnd->invalid_rect.right - wnd->invalid_rect.left == 0 &&
@@ -160,13 +106,16 @@ void WndiInvalidate(window_t *wnd, const MGLrect *rect)
     }
 }
 
-void WndiInvalidateTree(window_t *wnd, const MGLrect *rect)
+void WndiInvalidateTree(window_t *wnd, window_t *except, const MGLrect *rect)
 {
     window_t *child;
 
-    WndiInvalidate(wnd, rect);
-    for (child = wnd->child_first; child != NULL; child = child->next)
-        WndiInvalidateTree(child, rect);
+    if (wnd != except)
+    {
+        WndiInvalidate(wnd, rect);
+        for (child = wnd->child_first; child != NULL; child = child->next)
+            WndiInvalidateTree(child, except, rect);
+    }
 }
 
 wchar_t *WndiGetTitle(window_t *wnd)
@@ -317,6 +266,7 @@ bool WndClose(handle_t hnd)
     msg_t *msg;
     unsigned i;
     MGLrect rect;
+    wndattr_hdr_t *attr, *next;
 
     TRACE1("WndClose(%d)\n", hnd);
     wnd = WndLockWindow(NULL, hnd);
@@ -364,7 +314,14 @@ bool WndClose(handle_t hnd)
             msg[i].window = NULL;
 
     WndiGetPosition(wnd, &rect);
-    WndiInvalidateTree(&wnd_root, &rect);
+    WndiInvalidateTree(&wnd_root, wnd, &rect);
+
+    for (attr = wnd->attr_first; attr != NULL; attr = next)
+    {
+        next = attr->next;
+        free(attr);
+    }
+
     WndUnlockWindow(NULL, hnd);
     return HndClose(NULL, hnd, 'wndo');
 }
@@ -451,9 +408,9 @@ bool WndGetMessage(msg_t *msg)
 
                 wnd = WndLockWindow(NULL, msg->window);
                 assert(wnd != NULL);
+                WndiUpdateClip(wnd);
                 wnd->invalid_rect.left = wnd->invalid_rect.top = 
                     wnd->invalid_rect.right = wnd->invalid_rect.bottom = 0;
-                WndiUpdateClip(wnd);
                 msg->p.params[0] = wnd->clip.num_rects;
 
                 /*wprintf(L"Clipping for %p(%s):\n", wnd, WndiGetTitle(wnd));
@@ -525,10 +482,35 @@ bool WndGetAttribute(handle_t hnd, uint32_t id, uint32_t type, void *buf, size_t
     return true;
 }
 
+void WndiDisplaceWindow(window_t *wnd, MGLreal dx, MGLreal dy)
+{
+    MGLrect *rect;
+    window_t *child;
+    wndattr_hdr_t *attr;
+
+    WndiInvalidate(wnd, NULL);
+    for (child = wnd->child_first; child != NULL; child = child->next)
+    {
+        attr = WndiGetAttribute(child, WND_ATTR_POSITION, WND_TYPE_RECT);
+        if (attr != NULL)
+        {
+            rect = WndiGetAttributeData(attr, MGLrect*);
+            WndiInvalidateTree(&wnd_root, child, rect);
+            rect->left += dx;
+            rect->top += dy;
+            rect->right += dx;
+            rect->bottom += dy;
+        }
+
+        WndiDisplaceWindow(child, dx, dy);
+    }
+}
+
 bool WndSetAttribute(handle_t hnd, uint32_t id, uint32_t type, const void *buf, size_t size)
 {
     wndattr_hdr_t *attr, *prev, *next;
     window_t *wnd;
+    MGLreal dx, dy;
 
 #ifdef DEBUG
     wprintf(L"WndSetAttribute(%d, %x, %x, %p, %u)\n", hnd, id, type, buf, size);
@@ -555,8 +537,19 @@ bool WndSetAttribute(handle_t hnd, uint32_t id, uint32_t type, const void *buf, 
         attr->id = id;
         attr->type = type;
         LIST_ADD(wnd->attr, attr);
+        dx = dy = 0;
     }
-
+    else if (id == WND_ATTR_POSITION && type == WND_TYPE_RECT)
+    {
+        const MGLrect *old, *new;
+        old = WndiGetAttributeData(attr, const MGLrect*);
+        new = (const MGLrect*) buf;
+        dx = new->left - old->left;
+        dy = new->top - old->top;
+        if (dx != 0 || dy != 0)
+            WndiInvalidateTree(&wnd_root, wnd, old);
+    }
+    
     prev = attr->prev;
     next = attr->next;
 
@@ -586,6 +579,10 @@ bool WndSetAttribute(handle_t hnd, uint32_t id, uint32_t type, const void *buf, 
     
     TRACE2("WndSetAttribute: attrib = %x size = %u\n",
         *WndiGetAttributeData(attr, uint32_t*), size);
+
+    if (id == WND_ATTR_POSITION && type == WND_TYPE_RECT &&
+        (dx != 0 || dy != 0))
+        WndiDisplaceWindow(wnd, dx, dy);
 
     WndUnlockWindow(NULL, hnd);
     return true;

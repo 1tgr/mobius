@@ -130,6 +130,10 @@ SOURCE=.\cache.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\clip.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\debug.c
 # End Source File
 # Begin Source File

@@ -1,4 +1,4 @@
-/* $Id: frame.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: frame.h,v 1.3 2002/04/10 12:32:37 pavlovskii Exp $ */
 
 #ifndef __GUI_FRAME_H
 #define __GUI_FRAME_H
@@ -13,6 +13,9 @@ namespace os
     {
     protected:
         MGLrect m_margins;
+        bool m_isMoving;
+        MGLpoint m_lastMovePoint;
+        MGLrect m_dragRect;
 
     public:
         Frame(const wchar_t *text, const MGLrect &pos);
@@ -20,6 +23,17 @@ namespace os
         void OnFocus();
         void OnBlur();
         void OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y);
+        void OnMouseUp(uint32_t buttons, MGLreal x, MGLreal y);
+        void OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y);
+
+    protected:
+        enum FrameRegion
+        {
+            rgnTitle,
+            rgnClient,
+        };
+
+        virtual FrameRegion HitTest(MGLreal x, MGLreal y);
     };
 };
 
