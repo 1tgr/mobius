@@ -1,3 +1,5 @@
+/* $Id: wcscpy.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+
 #include <string.h>
 
 wchar_t *wcscpy(wchar_t *strDestination, const wchar_t *strSource)

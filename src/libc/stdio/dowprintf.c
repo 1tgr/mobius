@@ -1,3 +1,5 @@
+/* $Id: dowprintf.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+
 #ifdef TEST
 typedef enum { false, true } bool;
 #define _countof(a)	(sizeof(a) / sizeof((a)[0]))

@@ -1,3 +1,5 @@
+/* $Id: doprintf.c,v 1.3 2001/11/06 01:29:38 pavlovskii Exp $ */
+
 #include <stddef.h>
 #include <string.h>
 #include <printf.h> /* fnptr. Also include stdarg.h for va_list, va_arg() */

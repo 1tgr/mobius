@@ -1,3 +1,5 @@
+/* $Id: djmd.S,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 # This routine moves %ecx bytes from %ds:%esi to %es:%edi.  It clobbers
