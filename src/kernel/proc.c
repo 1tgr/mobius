@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.26 2002/09/13 23:06:40 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.27 2002/12/18 23:16:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -279,6 +279,7 @@ bool ProcFirstTimeInit(process_t *proc)
 
     proc->info = info;
     info->id = proc->id;
+    info->module_first = info->module_last = NULL;
 
     /* 
      * Kernel modules need to be duplicated first, in case this is the first 
