@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.10 2002/03/04 23:50:35 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -15,8 +15,8 @@
 
 int Hello(int a, int b)
 {
-	wprintf(L"Hello, world! %d %d\n", a, b);
-	return 42;
+    wprintf(L"Hello, world! %d %d\n", a, b);
+    return 42;
 }
 
 extern uint16_t con_attribs;
@@ -24,181 +24,191 @@ int _cputws(const wchar_t *str, size_t count);
 
 int DbgWrite(const wchar_t *str, size_t count)
 {
-	uint16_t old_attr;
-	int ret;
-	old_attr = con_attribs;
-	con_attribs = ~con_attribs & 0xff00;
-	ret = _cputws(str, count);
-	con_attribs = old_attr;
-	return ret;
+    uint16_t old_attr;
+    int ret;
+    old_attr = con_attribs;
+    con_attribs = ~con_attribs & 0xff00;
+    ret = _cputws(str, count);
+    con_attribs = old_attr;
+    return ret;
 }
 
 void ThrExitThread(int code)
 {
-	wprintf(L"Thread %u exited with code %d\n", current->id, code);
-	ThrDeleteThread(current);
-	ScNeedSchedule(true);
+    wprintf(L"Thread %u exited with code %d\n", current->id, code);
+    ThrDeleteThread(current);
+    ScNeedSchedule(true);
 }
 
 unsigned SysUpTime(void)
 {
-	return sc_uptime;
+    return sc_uptime;
 }
 
 bool SysThrWaitHandle(handle_t hnd)
 {
-	if (ThrWaitHandle(current, hnd, 0))
-	{
-		ScNeedSchedule(true);
-		return true;
-	}
-	else
-		return false;
+    if (ThrWaitHandle(current, hnd, 0))
+    {
+	ScNeedSchedule(true);
+	return true;
+    }
+    else
+	return false;
 }
 
 void SysThrSleep(unsigned ms)
 {
-	ThrSleep(current, ms);
+    ThrSleep(current, ms);
 }
 
 bool SysGetInfo(sysinfo_t *info)
 {
-	info->page_size = PAGE_SIZE;
-	info->pages_total = pool_all.num_pages + pool_low.num_pages;
-	info->pages_free = pool_all.free_pages + pool_low.free_pages;
-	info->pages_physical = PAGE_ALIGN_UP(kernel_startup.memory_size) / PAGE_SIZE;
-	info->pages_kernel = PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE;
-	return true;
+    info->page_size = PAGE_SIZE;
+    info->pages_total = pool_all.num_pages + pool_low.num_pages;
+    info->pages_free = pool_all.free_pages + pool_low.free_pages;
+    info->pages_physical = PAGE_ALIGN_UP(kernel_startup.memory_size) / PAGE_SIZE;
+    info->pages_kernel = PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE;
+    return true;
 }
 
 bool SysGetTimes(systimes_t *times)
 {
-	times->quantum = SCHED_QUANTUM;
-	times->uptime = sc_uptime;
-	times->current_cputime = current->cputime;
-	return true;
+    times->quantum = SCHED_QUANTUM;
+    times->uptime = sc_uptime;
+    times->current_cputime = current->cputime;
+    return true;
 }
 
 #ifdef i386
 handle_t ThrCreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority, void (*handler)(void))
 {
-	thread_t *thr;
-	thr = i386CreateV86Thread(entry, stack_top, priority, handler);
-	if (thr != NULL)
-		return HndDuplicate(current->process, &thr->hdr);
-	else
-		return NULL;
+    thread_t *thr;
+    thr = i386CreateV86Thread(entry, stack_top, priority, handler);
+    if (thr != NULL)
+	return HndDuplicate(current->process, &thr->hdr);
+    else
+	return NULL;
 }
 
 bool ThrGetV86Context(context_v86_t* ctx)
 {
-	if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
-	{
-		errno = EBUFFER;
-		return false;
-	}
+    if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
+    {
+	errno = EBUFFER;
+	return false;
+    }
 
-	if (current->v86_in_handler)
-	{
-		*ctx = current->v86_context;
-		if (current->v86_if)
-			ctx->eflags |= EFLAG_IF;
-		else
-			ctx->eflags &= ~EFLAG_IF;
-		return true;
-	}
+    if (current->v86_in_handler)
+    {
+	*ctx = current->v86_context;
+	if (current->v86_if)
+	    ctx->eflags |= EFLAG_IF;
 	else
-	{
-		errno = EINVALID;
-		return false;
-	}
+	    ctx->eflags &= ~EFLAG_IF;
+	return true;
+    }
+    else
+    {
+	errno = EINVALID;
+	return false;
+    }
 }
 
 bool ThrSetV86Context(const context_v86_t* ctx)
 {
-	if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
-	{
-		errno = EBUFFER;
-		return false;
-	}
+    if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
+    {
+	errno = EBUFFER;
+	return false;
+    }
 
-	if (current->v86_in_handler)
-	{
-		current->v86_context = *ctx;
-		return true;
-	}
-	else
-	{
-		errno = EINVALID;
-		return false;
-	}
+    if (current->v86_in_handler)
+    {
+	current->v86_context = *ctx;
+	return true;
+    }
+    else
+    {
+	errno = EINVALID;
+	return false;
+    }
 }
 
 bool ThrContinueV86(void)
 {
-	context_t *ctx;
-	context_v86_t *v86;
-	uint32_t kernel_esp;
+    context_t *ctx;
+    context_v86_t *v86;
+    uint32_t kernel_esp;
 
-	if (current->v86_in_handler)
-	{
-		ctx = ThrGetUserContext(current);
-		kernel_esp = ctx->kernel_esp;
-		kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
-		/*current->kernel_esp = */ctx->kernel_esp = kernel_esp;
+    if (current->v86_in_handler)
+    {
+	ctx = ThrGetUserContext(current);
+	kernel_esp = ctx->kernel_esp;
+	kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
+	/*current->kernel_esp = */ctx->kernel_esp = kernel_esp;
 
-		/*v86 = (context_v86_t*) ThrGetUserContext(current);*/
-		v86 = (context_v86_t*) (kernel_esp - 4);
-		*v86 = current->v86_context;
+	/*v86 = (context_v86_t*) ThrGetUserContext(current);*/
+	v86 = (context_v86_t*) (kernel_esp - 4);
+	*v86 = current->v86_context;
 
-		current->v86_if = (v86->eflags & EFLAG_IF) == EFLAG_IF;
+	current->v86_if = (v86->eflags & EFLAG_IF) == EFLAG_IF;
 
-		TRACE2("ThrContinueV86: continuing: new esp = %x, old esp = %x\n",
-			kernel_esp, v86->kernel_esp);
-		v86->eflags |= EFLAG_IF | EFLAG_VM;
-		/*v86->kernel_esp = kernel_esp;*/
-		/*ArchDbgDumpContext((context_t*) v86);*/
-		current->v86_in_handler = false;
-		__asm__("mov %0,%%eax\n"
-			"jmp _isr_switch_ret" : : "g" (kernel_esp));
-		return true;
-	}
-	else
-	{
-		errno = EINVALID;
-		return false;
-	}
+	TRACE2("ThrContinueV86: continuing: new esp = %x, old esp = %x\n",
+	    kernel_esp, v86->kernel_esp);
+	v86->eflags |= EFLAG_IF | EFLAG_VM;
+	/*v86->kernel_esp = kernel_esp;*/
+	/*ArchDbgDumpContext((context_t*) v86);*/
+	current->v86_in_handler = false;
+	__asm__("mov %0,%%eax\n"
+	    "jmp _isr_switch_ret" : : "g" (kernel_esp));
+	return true;
+    }
+    else
+    {
+	errno = EINVALID;
+	return false;
+    }
 }
 
 #else
 handle_t ThrCreateV86Thread(uint32_t entry, uint32_t stack_top, unsigned priority, void (*handler)(void))
 {
-	errno = ENOTIMPL;
-	return NULL;
+    errno = ENOTIMPL;
+    return NULL;
 }
 #endif
+
+handle_t SysThrCreateThread(void (*entry)(void*), void *param, unsigned priority)
+{
+    thread_t *thr;
+    thr = ThrCreateThread(current->process, false, entry, true, param, priority);
+    if (thr == NULL)
+	return NULL;
+    else
+	return HndDuplicate(current->process, &thr->hdr);
+}
 
 /*
  * These are the user-mode equivalents of the handle.c event functions.
  * To save one layer of indirection, they patch straight through to the 
- *	HndXXX equivalents.
+ *    HndXXX equivalents.
  */
 handle_t SysEvtAlloc(void)
 {
-	return HndAlloc(NULL, 0, 'evnt');
+    return HndAlloc(NULL, 0, 'evnt');
 }
 
 void SysEvtSignal(handle_t evt)
 {
-	HndSignal(NULL, evt, 0, true);
+    HndSignal(NULL, evt, 0, true);
 }
 
 bool SysEvtIsSignalled(handle_t evt)
 {
-	return HndIsSignalled(NULL, evt, 0);
+    return HndIsSignalled(NULL, evt, 0);
 }
 
 bool SysHndClose(handle_t hnd)
 {
-	return HndClose(NULL, hnd, 0);
+    return HndClose(NULL, hnd, 0);
 }

@@ -110,6 +110,7 @@ EXPORTS
 	ThrDeleteThread
 	ThrExitThread
 	ThrGetContext
+	ThrGetCurrent
 	ThrGetUserContext
 	ThrInsertQueue
 	ThrPause

@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.10 2002/03/04 18:52:25 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.11 2002/03/04 23:50:17 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -10,7 +10,7 @@
 
 #include <kernel/device>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <errno.h>

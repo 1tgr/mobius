@@ -5,6 +5,7 @@ EXPORTS
 	SysGetTimes
 	SysUpTime
 	ThrContinueV86
+	ThrCreateThread
 	ThrCreateV86Thread
 	ThrExitThread
 	ThrGetThreadInfo

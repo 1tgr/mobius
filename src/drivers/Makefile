@@ -1,4 +1,4 @@
-DIRS=	ata fat tty fdc keyboard cmos
+DIRS=	ata fat tty fdc keyboard cmos video
 
 all:
 	for dir in $(DIRS); do make -C $$dir; done

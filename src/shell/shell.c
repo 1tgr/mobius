@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.11 2002/03/04 19:27:37 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.12 2002/03/04 23:50:36 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,6 +32,48 @@ void _pwerror(const wchar_t *text)
 
     wprintf(L"%s: %s\n", text, str);	    
 }
+
+void ShCtrlCThread(void *param)
+{
+    handle_t keyboard;
+    fileop_t op;
+    uint32_t key;
+
+    keyboard = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+    op.event = keyboard;
+    while (FsRead(keyboard, &key, sizeof(key), &op))
+    {
+	if (op.result == SIOPENDING)
+	    ThrWaitHandle(op.event);
+
+	if (op.result != 0)
+	    break;
+
+	if (key == (KBD_BUCKY_CTRL | 'c'))
+	{
+	    printf("ShCtrlCThread: exiting\n");
+	    ProcExitProcess(0);
+	}
+    }
+
+    _pwerror(L"ShCtrlCThread");
+    FsClose(keyboard);
+    ThrExitThread(0);
+}
+
+/*void ShCtrlCThread(void *param)
+{
+    char ch;
+    for (;;)
+    {
+	do
+	{
+	    ch = ShReadKey();
+	} while (ch == 0);
+	_cputs(&ch, 1);
+	fflush(stdout);
+    }
+}*/
 
 void ShCmdHelp(const wchar_t *command, wchar_t *params)
 {
@@ -637,13 +679,14 @@ bool ShInternalCommand(const wchar_t *command, wchar_t *params)
 
 int main(void)
 {
-    wchar_t str[256], *space;
+    wchar_t str[256], *buf, *space;
     process_info_t *proc;
     shell_line_t *line;
     /*char inbuf[256], *outptr;
     const char *inptr;
     size_t inbytes, outbytes, len;*/
     
+    ThrCreateThread(ShCtrlCThread, NULL, 16);
     proc = ProcGetProcessInfo();
     if (ResLoadString(proc->base, 4096, str, _countof(str)))
     	_cputws(str, wcslen(str));
@@ -673,26 +716,30 @@ int main(void)
 
 	line = ShReadLine();
 	if (line == NULL)
+	{
+	    _pwerror(L"ShReadLine");
 	    break;
+	}
 	
-	space = wcschr(line->text, PARAMSEP);
+	buf = _wcsdup(line->text);
+	space = wcschr(buf, PARAMSEP);
 	if (space)
 	{
 	    memmove(space + 1, space, (wcslen(space) + 1) * sizeof(wchar_t));
 	    *space = ' ';
 	}
 
-	space = wcschr(line->text, ' ');
+	space = wcschr(buf, ' ');
 	if (space)
 	{
 	    *space = '\0';
 	    space++;
 	}
 	else
-	    space = line->text + wcslen(line->text);
+	    space = buf + wcslen(buf);
 
-	if (!ShInternalCommand(line->text, space))
-	    wprintf(L"%s: invalid command\n", line->text);
+	if (!ShInternalCommand(buf, space))
+	    wprintf(L"%s: invalid command\n", buf);
     }
 
     /*iconv_close(sh_iconv);*/

@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.9 2002/03/04 18:56:31 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.10 2002/03/04 23:50:35 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -69,6 +69,11 @@ unsigned sc_uptime, sc_need_schedule;
 semaphore_t sc_sem;
 
 handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
+
+thread_t *ThrGetCurrent(void)
+{
+    return current;
+}
 
 thread_queuent_t *ThrFindInQueue(thread_queue_t *queue, thread_t *thr)
 {

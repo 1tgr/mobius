@@ -160,6 +160,10 @@ SOURCE=..\..\include\os\syscall.h
 SOURCE=..\..\include\os\sysdef.h
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=..\..\include\os\video.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 

@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.8 2002/02/26 15:46:22 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.9 2002/03/04 23:50:18 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -95,8 +95,8 @@ void *HndLock(struct process_t *proc, handle_t hnd, uint32_t tag)
 	ptr = HndGetPtr(proc, hnd, tag);
 	if (ptr == NULL)
 		return NULL;
-	else if (ptr->locks > 0 && ptr->locked_by != current)
-		return NULL;
+	/*else if (ptr->locks > 0 && ptr->locked_by != current)
+		return NULL;*/
 	else
 	{
 		ptr->locks++;

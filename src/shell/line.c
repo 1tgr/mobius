@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.1 2002/03/04 19:27:37 pavlovskii Exp $ */
+/* $Id: line.c,v 1.2 2002/03/04 23:50:36 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -14,33 +14,27 @@
 
 uint32_t ShReadKey(void)
 {
-    static handle_t keyb, keyb_event;
+    handle_t keyb;
     fileop_t op;
     uint32_t key;
 
-    if (keyb == NULL)
-    {
-	keyb = ProcGetProcessInfo()->std_in;
-	if (keyb == NULL)
-	    return -1;
-    }
+    keyb = ProcGetProcessInfo()->std_in;
 
-    if (keyb_event == NULL)
-    {
-	keyb_event = EvtAlloc();
-	if (keyb_event == NULL)
-	    return -1;
-    }
-    
-    op.event = keyb_event;
+    op.event = keyb;
     if (!FsRead(keyb, &key, sizeof(key), &op))
-	return false;
+    {
+	errno = op.result;
+	return -1;
+    }
 
     if (op.result == SIOPENDING)
 	ThrWaitHandle(op.event);
 
     if (op.result != 0 || op.bytes == 0)
+    {
+	errno = op.result;
 	return -1;
+    }
     
     return key;
 }
