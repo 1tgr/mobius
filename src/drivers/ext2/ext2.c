@@ -1,9 +1,10 @@
-/* $Id: ext2.c,v 1.2 2002/05/19 12:17:59 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.3 2002/08/05 15:16:36 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/cache.h>
+#include "ext2.h"
 
 #include <kernel/debug.h>
 
@@ -470,7 +471,7 @@ static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
         hash = (ino + i) % _countof(ext2->inode_hash);
 
         if (all_inodes[i].i_links_count == 0)
-            wprintf(L"Ext2LoadInode: skipped unused inode %u at hash = %x\n",
+            TRACE2("Ext2LoadInode: skipped unused inode %u at hash = %x\n",
                 ino + i, hash);
         else
         {
@@ -581,8 +582,16 @@ void Ext2Dismount(fsd_t *fsd)
 void Ext2GetFsInfo(fsd_t *fsd, fs_info_t *info)
 {
     ext2_t *ext2;
+
     ext2 = (ext2_t*) fsd;
-    info->cache_block_size = ext2->block_size;
+    if (info->flags & FS_INFO_CACHE_BLOCK_SIZE)
+        info->cache_block_size = ext2->block_size;
+    if (info->flags & FS_INFO_SPACE_TOTAL)
+        info->space_total = ext2->super_block.s_blocks_count 
+            << (10 + ext2->super_block.s_log_block_size);
+    if (info->flags & FS_INFO_SPACE_FREE)
+        info->space_free = ext2->super_block.s_free_blocks_count
+            << (10 + ext2->super_block.s_log_block_size);
 }
 
 status_t Ext2CreateFile(fsd_t *fsd, const wchar_t *path, 
@@ -877,9 +886,7 @@ bool Ext2ReadFile(fsd_t *fsd, file_t *file, page_array_t *pages,
     }
 
     e2io->file = file;
-    e2io->pages = MemCopyPageArray(pages->num_pages, 
-        pages->mod_first_page, 
-        pages->pages);
+    e2io->pages = MemCopyPageArray(pages);
 
     if (e2io->pages == NULL)
     {
@@ -977,15 +984,8 @@ static const fsd_vtbl_t ext2_vtbl =
 
 fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
 {
-    const wchar_t *ch;
     ext2_t *ext2;
     size_t size;
-
-    ch = wcsrchr(dest, '/');
-    if (ch == NULL)
-        ch = dest;
-    else
-        ch++;
 
     ext2 = malloc(sizeof(ext2_t));
     if (ext2 == NULL)
@@ -993,7 +993,7 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
 
     memset(ext2, 0, sizeof(ext2_t));
     ext2->fsd.vtbl = &ext2_vtbl;
-    ext2->dev = IoOpenDevice(ch);
+    ext2->dev = IoOpenDevice(dest);
     if (ext2->dev == NULL)
     {
         free(ext2);
