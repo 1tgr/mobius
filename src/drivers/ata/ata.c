@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.18 2002/05/05 13:30:30 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.19 2002/08/17 17:24:46 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -110,7 +110,13 @@
 #define SECTOR_SIZE             512
 #define ATAPI_SECTOR_SIZE       2048
 #define DRIVES_PER_CONTROLLER   2
-#define IDE_BASE_NAME           L"ide"
+//#define IDE_BASE_NAME           L"ide"
+
+static const wchar_t *ata_drive_names[DRIVES_PER_CONTROLLER] =
+{
+    L"master",
+    L"slave"
+};
 
 #define waitfor(ctrl, mask, value)    \
     ((in(ctrl->base + REG_STATUS) & (mask)) == (value) \
@@ -133,6 +139,7 @@ struct ata_drive_t
     bool is_atapi;
     unsigned rw_multiple;
     unsigned retries;
+    device_config_t cfg;
 };
 
 typedef struct ata_ctrl_t ata_ctrl_t;
@@ -140,7 +147,7 @@ struct ata_ctrl_t
 {
     device_t dev;
     uint16_t base;
-    semaphore_t sem;
+    spinlock_t sem;
     ata_drive_t drives[DRIVES_PER_CONTROLLER];
     uint8_t command;
     uint8_t status;
@@ -199,7 +206,7 @@ struct ata_identify_t
 
 #pragma pack(pop)
 
-CASSERT(offsetof(ata_identify_t, pio) == 49 * 2);
+CASSERT(sizeof(ata_identify_t) == 512);
 
 typedef struct ata_part_t ata_part_t;
 struct ata_part_t
@@ -208,6 +215,7 @@ struct ata_part_t
     uint32_t start_sector;
     uint32_t sector_count;
     device_t *drive;
+    device_config_t cfg;
 };
 
 typedef struct ata_command_t ata_command_t;
@@ -297,9 +305,9 @@ bool AtaWaitForStatus(ata_ctrl_t *ctrl, unsigned mask, unsigned value)
     time_end = SysUpTime() + 5000;
     do
     {
-	status = in(ctrl->base + REG_STATUS);
-	if ((status & mask) == value)
-	    return true;
+        status = in(ctrl->base + REG_STATUS);
+        if ((status & mask) == value)
+            return true;
     } while (SysUpTime() < time_end);
 
     AtaNeedReset(ctrl);    /* Controller gone deaf. */
@@ -315,35 +323,35 @@ bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
     ldh = drive->ldhpref;
     if (drive->ldhpref & LDH_LBA)
     {
-	sector = (cmd->block >>  0) & 0xFF;
-	cyl_lo = (cmd->block >>  8) & 0xFF;
-	cyl_hi = (cmd->block >> 16) & 0xFF;
-	ldh |= ((cmd->block >> 24) & 0xF);
+        sector = (cmd->block >>  0) & 0xFF;
+        cyl_lo = (cmd->block >>  8) & 0xFF;
+        cyl_hi = (cmd->block >> 16) & 0xFF;
+        ldh |= ((cmd->block >> 24) & 0xF);
     }
     else if (drive->pheads && drive->psectors)
     {
-	unsigned secspcyl, cylinder, head;
+        unsigned secspcyl, cylinder, head;
 
-	secspcyl = drive->pheads * drive->psectors;
-	cylinder = cmd->block / secspcyl;
-	head = (cmd->block % secspcyl) / drive->psectors;
-	sector = (cmd->block % drive->psectors) + 1;
-	cyl_lo = cylinder;
-	cyl_hi = cylinder >> 8;
-	ldh |= head;
+        secspcyl = drive->pheads * drive->psectors;
+        cylinder = cmd->block / secspcyl;
+        head = (cmd->block % secspcyl) / drive->psectors;
+        sector = (cmd->block % drive->psectors) + 1;
+        cyl_lo = cylinder;
+        cyl_hi = cylinder >> 8;
+        ldh |= head;
     }
     else
-	sector = cyl_lo = cyl_hi = 0;
+        sector = cyl_lo = cyl_hi = 0;
 
     if (ctrl->need_reset)
-	AtaReset(ctrl);
+        AtaReset(ctrl);
 
     /* Output the command block to the winchester controller and return status */
 
     if (!waitfor(ctrl, STATUS_BSY, 0))
     {
-	wprintf(L"AtaIssueCommand: controller not ready\n");
-	return false;
+        wprintf(L"AtaIssueCommand: controller not ready\n");
+        return false;
     }
     
     /* Select drive. */
@@ -351,8 +359,8 @@ bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
 
     if (!waitfor(ctrl, STATUS_BSY, 0))
     {
-	wprintf(L"AtaIssueCommand: drive not ready\n");
-	return false;
+        wprintf(L"AtaIssueCommand: drive not ready\n");
+        return false;
     }
 
     out(ctrl->base + REG_CTL, /*ctrl->pheads >= 8 ? */CTL_EIGHTHEADS/* : 0*/);
@@ -361,11 +369,11 @@ bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
     out(ctrl->base + REG_SECTOR, sector);
     out(ctrl->base + REG_CYL_LO, cyl_lo);
     out(ctrl->base + REG_CYL_HI, cyl_hi);
-    SemAcquire(&ctrl->sem);
+    SpinAcquire(&ctrl->sem);
     out(ctrl->base + REG_COMMAND, cmd->command);
     ctrl->command = cmd->command;
     ctrl->status = STATUS_BSY;
-    SemRelease(&ctrl->sem);
+    SpinRelease(&ctrl->sem);
 
     return true;
 }
@@ -377,16 +385,16 @@ bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
 
     if (!waitfor(ctrl, STATUS_BSY, 0))
     {
-	wprintf(L"AtaIssuePacket: controller not ready\n");
-	return false;
+        wprintf(L"AtaIssuePacket: controller not ready\n");
+        return false;
     }
 
     out(ctrl->base + REG_LDH, LDH_LBA | drive->ldhpref);
 
     if (!waitfor(ctrl, STATUS_BSY, 0))
     {
-	wprintf(L"AtaIssuePacket: drive not ready\n");
-	return false;
+        wprintf(L"AtaIssuePacket: drive not ready\n");
+        return false;
     }
 
     out(ctrl->base + REG_PRECOMP, 0);
@@ -396,11 +404,11 @@ bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
     out(ctrl->base + REG_CYL_HI, 0x80);
     drive->retries = 0;
 
-    SemAcquire(&ctrl->sem);
+    SpinAcquire(&ctrl->sem);
     ctrl->command = CMD_PACKET;
     ctrl->status = STATUS_BSY;
     out(ctrl->base + REG_COMMAND, CMD_PACKET);
-    SemRelease(&ctrl->sem);
+    SpinRelease(&ctrl->sem);
 
     if (!waitfor(ctrl, STATUS_BSY | STATUS_DRQ, STATUS_DRQ))
     {
@@ -409,7 +417,7 @@ bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
     }
 
     for (i = 0; i < 6; i++)
-	out16(ctrl->base + REG_DATA, ((uint16_t*) pkt)[i]);
+        out16(ctrl->base + REG_DATA, ((uint16_t*) pkt)[i]);
 
     return true;
 }
@@ -427,26 +435,26 @@ int AtaWaitForInterrupt(volatile ata_ctrl_t *ctrl, unsigned timeout)
     /* Wait for an interrupt that sets w_status to "not busy". */
     while (ctrl->status & STATUS_BSY)
     {
-	ArchProcessorIdle();
-	wprintf(L"%02x\b\b", ctrl->status);
-	if (SysUpTime() > time_end)
-	    return wfiTimeout;
+        ArchProcessorIdle();
+        wprintf(L"%02x\b\b", ctrl->status);
+        if (SysUpTime() > time_end)
+            return wfiTimeout;
     }
 
     /* Check status. */
-    SemAcquire((semaphore_t*) &ctrl->sem);
+    SpinAcquire((spinlock_t*) &ctrl->sem);
     if ((ctrl->status & (STATUS_BSY | STATUS_RDY | STATUS_WF | STATUS_ERR))
-			    == STATUS_RDY)
+                            == STATUS_RDY)
     {
-	r = wfiOk;
-	ctrl->status |= STATUS_BSY;    /* assume still busy with I/O */
+        r = wfiOk;
+        ctrl->status |= STATUS_BSY;    /* assume still busy with I/O */
     }
     else if ((ctrl->status & STATUS_ERR) && (in(ctrl->base + REG_ERROR) & ERROR_BB))
-	r = wfiBadSector;    /* sector marked bad, retries won't help */
+        r = wfiBadSector;    /* sector marked bad, retries won't help */
     else
-	r = wfiGeneric;        /* any other error */
+        r = wfiGeneric;        /* any other error */
     
-    SemRelease((semaphore_t*) &ctrl->sem);
+    SpinRelease((spinlock_t*) &ctrl->sem);
     return r;
 }
 
@@ -457,13 +465,13 @@ int AtaIssueSimpleCommand(ata_drive_t *drive, ata_command_t *cmd, unsigned timeo
 
     if (AtaIssueCommand(drive, cmd))
     {
-	r = AtaWaitForInterrupt(drive->ctrl, timeout);
+        r = AtaWaitForInterrupt(drive->ctrl, timeout);
 
-	if (r == wfiTimeout)
-	    AtaReset(drive->ctrl);
+        if (r == wfiTimeout)
+            AtaReset(drive->ctrl);
     }
     else
-	r = wfiGeneric;
+        r = wfiGeneric;
 
     drive->ctrl->command = CMD_IDLE;
     return r;
@@ -503,13 +511,13 @@ void AtaServiceCtrlRequest(ata_ctrl_t *ctrl)
     if (io)
     {
         req = (ata_ctrlreq_t*) io->req;
-	switch (req->header.code)
-	{
-	case ATA_COMMAND:
-            extra = io->extra;
-	    if (!AtaIssueCommand(req->params.ata_command.drive, 
-		&req->params.ata_command.cmd))
-		goto failure;
+        extra = io->extra;
+        switch (req->header.code)
+        {
+        case ATA_COMMAND:
+            if (!AtaIssueCommand(req->params.ata_command.drive, 
+                &req->params.ata_command.cmd))
+                goto failure;
 
             extra->bytes_this_mult = 0;
             if (req->params.ata_command.cmd.command == CMD_WRITE)
@@ -531,23 +539,27 @@ void AtaServiceCtrlRequest(ata_ctrl_t *ctrl)
 
             break;
 
-	case ATAPI_PACKET:
-	    if (!AtapiIssuePacket(req->params.atapi_packet.drive,
-		req->params.atapi_packet.packet))
-		DevFinishIo(&ctrl->dev, io, EHARDWARE);
-	    break;
+        case ATAPI_PACKET:
+            if (!AtapiIssuePacket(req->params.atapi_packet.drive,
+                req->params.atapi_packet.packet))
+            {
+                result = EHARDWARE;
+                goto failure;
+            }
+            break;
 
-	default:
-	    wprintf(L"AtaServiceCtrlRequest: invalid code (%4.4S)\n",
-		&req->header.code);
-	    DevFinishIo(&ctrl->dev, io, EINVALID);
-	    break;
-	}
+        default:
+            wprintf(L"AtaServiceCtrlRequest: invalid code (%4.4S)\n",
+                &req->header.code);
+            result = EINVALID;
+            goto failure;
+        }
     }
 
     return;
 
 failure:
+    free(extra);
     DevFinishIo(&ctrl->dev, io, result);
 }
 
@@ -574,36 +586,36 @@ unsigned AtapiReadAndDiscard(ata_ctrl_t *ctrl, uint8_t *Buffer, unsigned Want)
     {
         w = in16(ctrl->base + REG_DATA);
         if (ptr != NULL)
-	    *ptr++ = w;
+            *ptr++ = w;
     }
     
     if (Got > Count)
     {
-	/* read only 16-bit words where possible */
-	for (Count = Got - Count; Count > 1; Count -= 2)
-	    in16(ctrl->base + REG_DATA);
+        /* read only 16-bit words where possible */
+        for (Count = Got - Count; Count > 1; Count -= 2)
+            in16(ctrl->base + REG_DATA);
 
-	/* if the byte count is odd, read the odd byte last */
-	if (Count != 0)
-	    in(ctrl->base + REG_DATA);
+        /* if the byte count is odd, read the odd byte last */
+        if (Count != 0)
+            in(ctrl->base + REG_DATA);
     }
     else if (Count < Want)
-	/* unexpectedly short read: decrease Want */
-	Want = Got;
+        /* unexpectedly short read: decrease Want */
+        Want = Got;
 
     return Want;
 }
 
 /*
-    ATA_REG_STAT & 0x08 (DRQ)	 ATA_REG_REASON        "phase"
-    0				 0		      ATAPI_PH_ABORT
-    0				 1		      bad
-    0				 2		      bad
-    0				 3		      ATAPI_PH_DONE
-    8				 0		      ATAPI_PH_DATAOUT
-    8				 1		      ATAPI_PH_CMDOUT
-    8				 2		      ATAPI_PH_DATAIN
-    8				 3		      bad
+    ATA_REG_STAT & 0x08 (DRQ)    ATA_REG_REASON        "phase"
+    0                            0                    ATAPI_PH_ABORT
+    0                            1                    bad
+    0                            2                    bad
+    0                            3                    ATAPI_PH_DONE
+    8                            0                    ATAPI_PH_DATAOUT
+    8                            1                    ATAPI_PH_CMDOUT
+    8                            2                    ATAPI_PH_DATAIN
+    8                            3                    bad
 b0 of ATA_REG_REASON is C/nD (0=data, 1=command)
 b1 of ATA_REG_REASON is IO (0=out to drive, 1=in from drive)
 */
@@ -634,13 +646,13 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io,
     if (ctrl->status & STATUS_ERR)
     {
         count = AtapiTransferCount(ctrl);
-	wprintf(L"AtapiPacketInterrupt: error: count = %u, status = %x, retries = %u, error = %x\n", 
+        wprintf(L"AtapiPacketInterrupt: error: count = %u, status = %x, retries = %u, error = %x\n", 
             count, ctrl->status, ap->drive->retries, in(ctrl->base + REG_ERROR));
 
         ap->drive->retries++;
         if (ap->drive->retries >= 3)
         {
-	    req_ctrl->header.result = EHARDWARE;
+            req_ctrl->header.result = EHARDWARE;
             return true;
         }
         else
@@ -653,10 +665,10 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io,
     switch (Phase)
     {
     case ATAPI_PH_ABORT:
-	/* drive aborted the command */
-	wprintf(L"error: drive aborted cmd\n");
-	req_ctrl->header.result = EHARDWARE;
-	return true;
+        /* drive aborted the command */
+        wprintf(L"error: drive aborted cmd\n");
+        req_ctrl->header.result = EHARDWARE;
+        return true;
 
     case ATAPI_PH_DONE:
         if (ap->count == 0)
@@ -668,7 +680,7 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io,
         /* fall through */
 
     case ATAPI_PH_DATAIN:
-	/* read data, advance pointers */
+        /* read data, advance pointers */
         ap->drive->retries = 0;
 
         count = AtapiTransferCount(ctrl);
@@ -676,7 +688,7 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io,
         {
             buffer = MemMapPageArray(io->pages, PRIV_KERN | PRIV_PRES | PRIV_WR);
             wprintf(L"buffer = %p io->length = %u count = %u\n", buffer, io->length, count);
-	    count = AtapiReadAndDiscard(ctrl, buffer + io->length, 0xFFFFu);
+            count = AtapiReadAndDiscard(ctrl, buffer + io->length, 0xFFFFu);
             //wprintf(L"ATAPI_PH_DATAIN: %u bytes\n", count);
             MemUnmapTemp();
         }
@@ -688,29 +700,29 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io,
 
         io->length += count;
 
-	/* XXX - count had better be a multiple of 2048... */
-	count /= ATAPI_SECTOR_SIZE;
-	ap->count -= count;
-	ap->block += count;
+        /* XXX - count had better be a multiple of 2048... */
+        count /= ATAPI_SECTOR_SIZE;
+        ap->count -= count;
+        ap->block += count;
 
-	if (Phase == ATAPI_PH_DONE)
-	{
-	    wprintf(L"finished, %u bytes read\n", io->length);
-	    return true;
-	}
-	else
-	{
-	    wprintf(L"%u ", ap->block);
-	    return false;
-	}
+        if (Phase == ATAPI_PH_DONE)
+        {
+            wprintf(L"finished, %u bytes read\n", io->length);
+            return true;
+        }
+        else
+        {
+            wprintf(L"%u ", ap->block);
+            return false;
+        }
 
-	break;
+        break;
 
     default:
-	/* ATAPI_PH_DATAOUT or ATAPI_PH_CMDOUT or something completely bogus */
-	wprintf(L"error: bad phase %u\n", Phase);
-	req_ctrl->header.result = EINVALID;
-	return true;
+        /* ATAPI_PH_DATAOUT or ATAPI_PH_CMDOUT or something completely bogus */
+        wprintf(L"error: bad phase %u\n", Phase);
+        req_ctrl->header.result = EINVALID;
+        return true;
     }
 }
 
@@ -729,32 +741,32 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
     io = ctrl->dev.io_first;
     if (io != NULL)
     {
-	bool finish;
+        bool finish;
 
         extra = io->extra;
-	req_ctrl = (ata_ctrlreq_t*) io->req;
-	finish = false;
-	req_ctrl->header.result = 0;
+        req_ctrl = (ata_ctrlreq_t*) io->req;
+        finish = false;
+        req_ctrl->header.result = 0;
         if (ctrl->status & STATUS_ERR)
         {
             wprintf(L"AtaCtrlIsr: drive error %x\n", in(ctrl->base + REG_ERROR));
             req_ctrl->header.result = EHARDWARE;
             finish = true;
         }
-	else if (req_ctrl->header.code == ATA_COMMAND)
-	{
-	    total = req_ctrl->params.ata_command.cmd.count * SECTOR_SIZE;
+        else if (req_ctrl->header.code == ATA_COMMAND)
+        {
+            total = req_ctrl->params.ata_command.cmd.count * SECTOR_SIZE;
             mult = min(req_ctrl->params.ata_command.drive->rw_multiple, 
                 total - io->length);
 
 #ifdef DEBUG
-            if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
+            //if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
                 wprintf(L"ATA: count = %u(%u) length = %u length_pages = %u phys = %x ",
-		    req_ctrl->params.ata_command.cmd.count,
+                    req_ctrl->params.ata_command.cmd.count,
                     mult,
-		    total,
+                    total,
                     io->pages->num_pages,
-		    io->pages->pages[PAGE_ALIGN(io->length) / PAGE_SIZE]);
+                    io->pages->pages[PAGE_ALIGN(io->length) / PAGE_SIZE]);
 #endif
 
             if (req_ctrl->params.ata_command.cmd.command == CMD_READ)
@@ -775,9 +787,9 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
             {
                 /* This chunk too us to the end of the request */
 
-                if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
+                //if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
                     TRACE0("finished\n");
-	        finish = true;
+                finish = true;
                 req_ctrl->header.result = 0;
             }
             else
@@ -785,14 +797,14 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
                 size_t bytes_to_go;
 
                 bytes_to_go = req_ctrl->params.ata_command.cmd.count * SECTOR_SIZE - io->length;
-                if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
+                //if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
                     TRACE1("%u bytes to go\n", bytes_to_go);
                 finish = false;
 
                 if (extra->bytes_this_mult >= req_ctrl->params.ata_command.drive->rw_multiple)
                 {
                     /* Finished all the sectors in this chunk: queue the next lot */
-                    if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
+                    //if (req_ctrl->params.ata_command.cmd.command == CMD_WRITE)
                         TRACE0("AtaCtrlIsr: requeueing command\n");
                     AtaServiceCtrlRequest(ctrl);
                 }
@@ -802,22 +814,23 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
                     AtaDoWrite(ctrl, req_ctrl, io);
                 }
             }
-	}
-	else if (req_ctrl->header.code == ATAPI_PACKET)
-	    finish = AtapiPacketInterrupt(ctrl, io, req_ctrl);
-	else
-	{
-	    TRACE1("AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
-	    assert(req_ctrl->header.code == ATA_COMMAND ||
-		req_ctrl->header.code == ATAPI_PACKET);
-	}
+        }
+        else if (req_ctrl->header.code == ATAPI_PACKET)
+            finish = AtapiPacketInterrupt(ctrl, io, req_ctrl);
+        else
+        {
+            TRACE1("AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
+            assert(req_ctrl->header.code == ATA_COMMAND ||
+                req_ctrl->header.code == ATAPI_PACKET);
+        }
 
-	if (finish)
-	{
-	    ctrl->command = CMD_IDLE;
-	    DevFinishIo(dev, io, req_ctrl->header.result);
+        if (finish)
+        {
+            ctrl->command = CMD_IDLE;
+            free(extra);
+            DevFinishIo(dev, io, req_ctrl->header.result);
             AtaServiceCtrlRequest(ctrl);
-	}
+        }
     }
     else
         wprintf(L"AtaCtrlIsr: no requests queued, status = %x\n", ctrl->status);
@@ -835,34 +848,34 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
     switch (req->code)
     {
     case DEV_REMOVE:
-	free(ctrl);
-	return true;
+        free(ctrl);
+        return true;
 
     case ATAPI_PACKET:
-	req_ctrl = (ata_ctrlreq_t*) req;
-	io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
-	    req_ctrl->params.atapi_packet.pages, 
-	    ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
+        req_ctrl = (ata_ctrlreq_t*) req;
+        io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
+            req_ctrl->params.atapi_packet.pages, 
+            ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
         io->length = 0;
         extra = malloc(sizeof(ata_ioextra_t));
         extra->bytes_this_mult = 0;
         io->extra = extra;
-	if (ctrl->command == CMD_IDLE)
-	    AtaServiceCtrlRequest(ctrl);
-	return true;
+        if (ctrl->command == CMD_IDLE)
+            AtaServiceCtrlRequest(ctrl);
+        return true;
 
     case ATA_COMMAND:
-	req_ctrl = (ata_ctrlreq_t*) req;
-	io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
-	    req_ctrl->params.ata_command.pages,
-	    SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count);
+        req_ctrl = (ata_ctrlreq_t*) req;
+        io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
+            req_ctrl->params.ata_command.pages,
+            SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count);
         io->length = 0;
         extra = malloc(sizeof(ata_ioextra_t));
         extra->bytes_this_mult = 0;
         io->extra = extra;
-	if (ctrl->command == CMD_IDLE)
-	    AtaServiceCtrlRequest(ctrl);
-	return true;
+        if (ctrl->command == CMD_IDLE)
+            AtaServiceCtrlRequest(ctrl);
+        return true;
     }
 
     req->result = ENOTIMPL;
@@ -885,78 +898,78 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
     case DEV_READ:
     case DEV_WRITE:
         ctrl_req = malloc(sizeof(ata_ctrlreq_t));
-	if (drive->is_atapi)
-	{
-	    uint8_t Pkt[12];
-	    uint16_t Count;
-	    addr_t block;
+        if (drive->is_atapi)
+        {
+            uint8_t Pkt[12];
+            uint16_t Count;
+            addr_t block;
 
-	    if (req->code != DEV_READ)
-	    {
-		req->result = EINVALID;
-		return false;
-	    }
+            if (req->code != DEV_READ)
+            {
+                req->result = EINVALID;
+                return false;
+            }
 
-	    memset(Pkt, 0, sizeof(Pkt));
+            memset(Pkt, 0, sizeof(Pkt));
 
-	    block = req_dev->params.dev_read.offset / ATAPI_SECTOR_SIZE;
-	    /* convert general block device command code into ATAPI packet commands */
-	    Pkt[0] = ATAPI_CMD_READ10;
-	    Pkt[2] = block >> 24;
-	    Pkt[3] = block >> 16;
-	    Pkt[4] = block >> 8;
-	    Pkt[5] = block;
+            block = req_dev->params.dev_read.offset / ATAPI_SECTOR_SIZE;
+            /* convert general block device command code into ATAPI packet commands */
+            Pkt[0] = ATAPI_CMD_READ10;
+            Pkt[2] = block >> 24;
+            Pkt[3] = block >> 16;
+            Pkt[4] = block >> 8;
+            Pkt[5] = block;
 
-	    Count = req_dev->params.dev_read.length / ATAPI_SECTOR_SIZE;
-	    /*Pkt[6] = Count >> 16;*/
-	    Pkt[7] = Count >> 8;
-	    Pkt[8] = Count;
+            Count = req_dev->params.dev_read.length / ATAPI_SECTOR_SIZE;
+            /*Pkt[6] = Count >> 16;*/
+            Pkt[7] = Count >> 8;
+            Pkt[8] = Count;
 
             wprintf(L"AtaDriveRequest(DEV_READ): atapi packet: block = %u count = %u\n",
                 block, Count);
             ctrl_req->header.code = ATAPI_PACKET;
-	    ctrl_req->params.atapi_packet.drive = drive;
-	    ctrl_req->params.atapi_packet.count = Count;
-	    ctrl_req->params.atapi_packet.block = block;
-	    memcpy(ctrl_req->params.atapi_packet.packet, Pkt, sizeof(Pkt));
-	    ctrl_req->params.atapi_packet.pages = 
-		req_dev->params.dev_read.pages;
-	}
-	else
-	{
-	    ata_command_t cmd;
+            ctrl_req->params.atapi_packet.drive = drive;
+            ctrl_req->params.atapi_packet.count = Count;
+            ctrl_req->params.atapi_packet.block = block;
+            memcpy(ctrl_req->params.atapi_packet.packet, Pkt, sizeof(Pkt));
+            ctrl_req->params.atapi_packet.pages = 
+                req_dev->params.dev_read.pages;
+        }
+        else
+        {
+            ata_command_t cmd;
 
-	    /*cmd.precomp = drive->precomp;*/
+            /*cmd.precomp = drive->precomp;*/
             if (req->code == DEV_WRITE)
                 wprintf(L"AtaDriveRequest: DEV_WRITE(%lx)\n",
                     (uint32_t) req_dev->params.dev_read.offset / SECTOR_SIZE);
 
-	    cmd.count = req_dev->params.dev_read.length / SECTOR_SIZE;
-	    cmd.block = req_dev->params.dev_read.offset / SECTOR_SIZE;
-	    cmd.command = (req->code == DEV_WRITE) ? CMD_WRITE : CMD_READ;
+            cmd.count = req_dev->params.dev_read.length / SECTOR_SIZE;
+            cmd.block = req_dev->params.dev_read.offset / SECTOR_SIZE;
+            cmd.command = (req->code == DEV_WRITE) ? CMD_WRITE : CMD_READ;
 
-	    ctrl_req->header.code = ATA_COMMAND;
-	    ctrl_req->params.ata_command.drive = drive;
-	    ctrl_req->params.ata_command.cmd = cmd;
-	    ctrl_req->params.ata_command.pages = 
-		req_dev->params.dev_read.pages;
-	}
+            ctrl_req->header.code = ATA_COMMAND;
+            ctrl_req->params.ata_command.drive = drive;
+            ctrl_req->params.ata_command.cmd = cmd;
+            ctrl_req->params.ata_command.pages = 
+                req_dev->params.dev_read.pages;
+        }
 
-	/*ctrl_req->header.original = req;*/
-	ctrl_req->header.param = req;
+        /*ctrl_req->header.original = req;*/
+        ctrl_req->header.param = req;
         cb.type = IO_CALLBACK_DEVICE;
         cb.u.dev = dev;
-	if (IoRequest(&cb, &drive->ctrl->dev, &ctrl_req->header))
-	{
-	    /* Be sure to mirror SIOPENDING result to originator */
-	    req->result = ctrl_req->header.result;
-	    return true;
-	}
-	else
-	{
-	    req->result = ctrl_req->header.result;
-	    return false;
-	}
+        if (IoRequest(&cb, &drive->ctrl->dev, &ctrl_req->header))
+        {
+            /* Be sure to mirror SIOPENDING result to originator */
+            req->result = ctrl_req->header.result;
+            return true;
+        }
+        else
+        {
+            req->result = ctrl_req->header.result;
+            return false;
+        }
     }
 
     req->result = ENOTIMPL;
@@ -965,17 +978,25 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 
 void AtaDriveFinishIo(device_t *dev, request_t *req)
 {
-    assert(req->original != NULL);
+    request_t *originator;
+
     assert(req->param != NULL);
-    IoNotifyCompletion(req->param);
+
+    originator = req->param;
+    TRACE3("AtaDriveFinishIo(%p): callback = %u/%p\n",
+        originator,
+        originator->callback.type,
+        originator->callback.u.function);
+
+    IoNotifyCompletion(originator);
     free(req);
 }
 
 static const device_vtbl_t ata_drive_vtbl =
 {
-    AtaDriveRequest,	/* request */
-    NULL,		/* isr */
-    AtaDriveFinishIo,	/* finishio */
+    AtaDriveRequest,    /* request */
+    NULL,               /* isr */
+    AtaDriveFinishIo,   /* finishio */
 };
 
 /******************************************************************************
@@ -991,10 +1012,10 @@ bool AtaPartitionRequest(device_t *dev, request_t *req)
     {
     case DEV_WRITE:
     case DEV_READ:
-    	req_dev->params.dev_read.offset += part->start_sector * SECTOR_SIZE;
+        req_dev->params.dev_read.offset += part->start_sector * SECTOR_SIZE;
 
     default:
-	return part->drive->vtbl->request(part->drive, req);
+        return part->drive->vtbl->request(part->drive, req);
     }
 }
 
@@ -1004,21 +1025,21 @@ static const device_vtbl_t ata_partition_vtbl =
     NULL
 };
 
-void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
+void AtaPartitionDevice(ata_drive_t *drive)
 {
-    wchar_t name[20], *suffix;
+    wchar_t name[5];
     unsigned i;
     ata_part_t *part;
 
     /*union
     {
-	uint8_t bytes[512];
-	struct
-	{
-	    uint8_t pad[512 - sizeof(partition_t) * 4 - 2];
-	    partition_t parts[4];
-	    uint16_t _55aa;
-	} ptab;
+        uint8_t bytes[512];
+        struct
+        {
+            uint8_t pad[512 - sizeof(partition_t) * 4 - 2];
+            partition_t parts[4];
+            uint16_t _55aa;
+        } ptab;
     } sec0;*/
 
     uint8_t bytes[512];
@@ -1026,35 +1047,56 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 
     parts = (partition_t*) (bytes + 0x1be);
     TRACE1("AtaPartitionDevice: bytes = %p\n", bytes);
-    if (!IoReadSync(dev, 0, bytes, sizeof(bytes)))
+    if (IoReadSync(&drive->dev, 0, bytes, sizeof(bytes)) == sizeof(bytes) &&
+        bytes[510] == 0x55 &&
+        bytes[511] == 0xaa)
     {
-        TRACE0("AtaPartitionDevice: IoReadSync failed\n");
-	return;
+        TRACE0("AtaPartitionDevice: read finished\n");
+
+        for (i = 0; i < 4; i++)
+            if (parts[i].system != 0)
+            {
+                part = malloc(sizeof(ata_part_t));
+                memset(part, 0, sizeof(ata_part_t));
+
+                part->dev.vtbl = &ata_partition_vtbl;
+                part->dev.driver = drive->dev.driver;
+
+                part->start_sector = parts[i].start_sector_abs;
+                part->sector_count = parts[i].sector_count;
+                part->drive = &drive->dev;
+                wprintf(L"partition %c: start = %lu, count = %lu\n",
+                    i + 'a', part->start_sector, part->sector_count);
+
+                swprintf(name, L"%u", i);
+
+                part->cfg.parent = &drive->dev;
+                part->cfg.device_class = 0x0081;
+                DevAddDevice(&part->dev, name, &part->cfg);
+            }
     }
+    else
+    {
+        TRACE0("AtaPartitionDevice: read failed\n");
 
-    TRACE0("AtaPartitionDevice: read finished\n");
-    wcscpy(name, base_name);
-    suffix = name + wcslen(base_name);
-    suffix[1] = '\0';
-    
-    for (i = 0; i < 4; i++)
-	if (parts[i].system != 0)
-	{
-	    part = malloc(sizeof(ata_part_t));
-	    memset(part, 0, sizeof(ata_part_t));
-	    
-	    part->dev.vtbl = &ata_partition_vtbl;
-	    part->dev.driver = dev->driver;
-	    
-	    part->start_sector = parts[i].start_sector_abs;
-	    part->sector_count = parts[i].sector_count;
-	    part->drive = dev;
-	    wprintf(L"partition %c: start = %lu, count = %lu\n",
-		i + 'a', part->start_sector, part->sector_count);
+        part = malloc(sizeof(ata_part_t));
+        memset(part, 0, sizeof(ata_part_t));
 
-	    suffix[0] = i + 'a';
-	    DevAddDevice(&part->dev, name, NULL);
-	}
+        part->dev.vtbl = &ata_partition_vtbl;
+        part->dev.driver = drive->dev.driver;
+
+        part->start_sector = 0;
+        part->sector_count = drive->pcylinders 
+            * drive->pheads 
+            * drive->psectors;
+        part->drive = &drive->dev;
+        wprintf(L"partition a: start = %lu, count = %lu\n",
+            part->start_sector, part->sector_count);
+
+        part->cfg.parent = &drive->dev;
+        part->cfg.device_class = 0x0081;
+        DevAddDevice(&part->dev, L"0", &part->cfg);
+    }
 }
 
 /******************************************************************************
@@ -1067,9 +1109,9 @@ void _swab(const char *src, char *dest, int n)
     n &= -2;
     for (; n > 0; n -= 2, src += 2, dest += 2)
     {
-	temp = dest[0];
-	dest[0] = src[1];
-	dest[1] = temp;
+        temp = dest[0];
+        dest[0] = src[1];
+        dest[1] = temp;
     }
 }
 
@@ -1081,11 +1123,11 @@ void AtaFormatString(char *dest, const char *src, size_t count)
     _swab(src, dest, count);
     ch = dest;
     for (j = 0; j < count; j++)
-	if (dest[j] != ' ')
-	    ch = dest + j + 1;
+        if (dest[j] != ' ')
+            ch = dest + j + 1;
     if (ch != NULL &&
-	ch < dest + count)
-	*ch = '\0';
+        ch < dest + count)
+        *ch = '\0';
 }
 
 static const device_vtbl_t ata_controller_vtbl =
@@ -1094,8 +1136,8 @@ static const device_vtbl_t ata_controller_vtbl =
     AtaCtrlIsr
 };
 
-ata_ctrl_t *AtaInitController(driver_t *drv, uint16_t base, uint8_t irq, 
-                              device_config_t *cfg)
+void AtaInitController(driver_t *drv, const wchar_t *name, uint16_t base, 
+                       uint8_t irq, device_config_t *cfg)
 {
 #define id_byte(n)    (((uint8_t*) tmp_buf) + (n))
 #define id_word(n)    (tmp_buf + (n))
@@ -1108,19 +1150,18 @@ ata_ctrl_t *AtaInitController(driver_t *drv, uint16_t base, uint8_t irq,
     uint16_t *ptr;
     ata_command_t cmd;
     uint32_t size;
-    wchar_t name[50];
-    device_t *dev;
+    wchar_t drive_name[50];
 
     ctrl = malloc(sizeof(ata_ctrl_t));
     if (ctrl == NULL)
-        return NULL;
+        return;
 
     memset(ctrl, 0, sizeof(ata_ctrl_t));
     ctrl->dev.vtbl = &ata_controller_vtbl;
     ctrl->dev.driver = drv;
     ctrl->dev.cfg = cfg;
     ctrl->base = base;
-    SemInit(&ctrl->sem);
+    SpinInit(&ctrl->sem);
     num_controllers++;
 
     wprintf(L"AtaInitController: initialising controller on %x\n", ctrl->base);
@@ -1131,77 +1172,78 @@ ata_ctrl_t *AtaInitController(driver_t *drv, uint16_t base, uint8_t irq,
     out(ctrl->base + REG_CYL_LO, ~r);
     if (in(ctrl->base + REG_CYL_LO) == r)
     {
-	wprintf(L"Controller at %x not found: %x\n", base, r);
-	/*return false;*/
+        wprintf(L"Controller at %x not found: %x\n", base, r);
+        /*return false;*/
     }
 
     DevRegisterIrq(irq, &ctrl->dev);
     ArchMaskIrq(1 << irq, 0);
+    DevAddDevice(&ctrl->dev, name, cfg);
 
     for (i = 0; i < DRIVES_PER_CONTROLLER; i++)
     {
-	ctrl->drives[i].ctrl = ctrl;
-	ctrl->drives[i].ldhpref = ldh_init(i);
+        ctrl->drives[i].ctrl = ctrl;
+        ctrl->drives[i].ldhpref = ldh_init(i);
 
-	wprintf(L"Drive %u: ", i);
+        wprintf(L"Drive %u: ", i);
 
-	cmd.command = ATA_IDENTIFY;
-	ctrl->drives[i].is_atapi = false;
-	if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd, 
+        cmd.command = ATA_IDENTIFY;
+        ctrl->drives[i].is_atapi = false;
+        if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd, 
             ATA_TIMEOUT_IDENTIFY) != wfiOk)
-	{
-	    cmd.command = ATAPI_IDENTIFY;
-	    wprintf(L"trying ATAPI: ");
+        {
+            cmd.command = ATAPI_IDENTIFY;
+            wprintf(L"trying ATAPI: ");
 
-	    if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd,
+            if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd,
                 ATA_TIMEOUT_IDENTIFY) != wfiOk)
-	    {
-		wprintf(L"not detected\n");
-		continue;
-	    }
+            {
+                wprintf(L"not detected\n");
+                continue;
+            }
 
-	    ctrl->drives[i].is_atapi = true;
-	}
+            ctrl->drives[i].is_atapi = true;
+        }
 
-	/* Device information. */
-	ptr = (uint16_t*) &id;
-	for (j = 0; j < 256; j++)
-	    ptr[j] = in16(ctrl->base + REG_DATA);
-	
-	AtaFormatString(id.model, id.model, sizeof(id.model));
-	AtaFormatString(id.serial, id.serial, sizeof(id.serial));
-	
-	/* Preferred CHS translation mode. */
-	ctrl->drives[i].pcylinders = id.cylinders;
-	ctrl->drives[i].pheads = id.heads;
-	ctrl->drives[i].psectors = id.sectors;
-	ctrl->drives[i].precomp = 0;
-	size = (uint32_t) ctrl->drives[i].pcylinders 
-	    * ctrl->drives[i].pheads 
-	    * ctrl->drives[i].psectors;
+        /* Device information. */
+        ptr = (uint16_t*) &id;
+        for (j = 0; j < 256; j++)
+            ptr[j] = in16(ctrl->base + REG_DATA);
+        
+        AtaFormatString(id.model, id.model, sizeof(id.model));
+        AtaFormatString(id.serial, id.serial, sizeof(id.serial));
+        
+        /* Preferred CHS translation mode. */
+        ctrl->drives[i].pcylinders = id.cylinders;
+        ctrl->drives[i].pheads = id.heads;
+        ctrl->drives[i].psectors = id.sectors;
+        ctrl->drives[i].precomp = 0;
+        size = (uint32_t) ctrl->drives[i].pcylinders 
+            * ctrl->drives[i].pheads 
+            * ctrl->drives[i].psectors;
 
-	if (id.pio & 0x0200 && size > 512L*1024*2)
-	{
-	    /* Drive is LBA capable and is big enough to trust it to
-	     * not make a mess of it.
-	     */
-	    wprintf(L"LBA ");
-	    ctrl->drives[i].ldhpref |= LDH_LBA;
-	    size = id.capacity;
-	}
+        if (id.pio & 0x0200 && size > 512L*1024*2)
+        {
+            /* Drive is LBA capable and is big enough to trust it to
+             * not make a mess of it.
+             */
+            wprintf(L"LBA ");
+            ctrl->drives[i].ldhpref |= LDH_LBA;
+            size = id.capacity;
+        }
 
-	if (ctrl->drives[i].lcylinders == 0)
-	{
-	    /* No BIOS parameters?  Then make some up. */
-	    ctrl->drives[i].lcylinders = ctrl->drives[i].pcylinders;
-	    ctrl->drives[i].lheads = ctrl->drives[i].pheads;
-	    ctrl->drives[i].lsectors = ctrl->drives[i].psectors;
-	    while (ctrl->drives[i].lcylinders > 1024)
-	    {
-		ctrl->drives[i].lheads *= 2;
-		ctrl->drives[i].lcylinders /= 2;
-	    }
-	}
+        if (ctrl->drives[i].lcylinders == 0)
+        {
+            /* No BIOS parameters?  Then make some up. */
+            ctrl->drives[i].lcylinders = ctrl->drives[i].pcylinders;
+            ctrl->drives[i].lheads = ctrl->drives[i].pheads;
+            ctrl->drives[i].lsectors = ctrl->drives[i].psectors;
+            while (ctrl->drives[i].lcylinders > 1024)
+            {
+                ctrl->drives[i].lheads *= 2;
+                ctrl->drives[i].lcylinders /= 2;
+            }
+        }
 
         /* xxx - handle id.mult_support later */
         if (ctrl->drives[i].is_atapi)
@@ -1215,34 +1257,32 @@ ata_ctrl_t *AtaInitController(driver_t *drv, uint16_t base, uint8_t irq,
                 ctrl->drives[i].rw_multiple = SECTOR_SIZE;
         }
 
-	wprintf(L"CHS = %u:%u:%u size = %luMB \"%.40S\" \"%.20S\" mult_support = %u\n",
-	    ctrl->drives[i].pcylinders,
-	    ctrl->drives[i].pheads,
-	    ctrl->drives[i].psectors,
-	    size / 2048,
-	    id.model,
-	    id.serial,
+        wprintf(L"CHS = %u:%u:%u size = %luMB \"%.40S\" \"%.20S\" mult_support = %u\n",
+            ctrl->drives[i].pcylinders,
+            ctrl->drives[i].pheads,
+            ctrl->drives[i].psectors,
+            size / 2048,
+            id.model,
+            id.serial,
             id.mult_support & 0xff);
 
-	swprintf(name, IDE_BASE_NAME L"%u", 
-	    (num_controllers - 1) * DRIVES_PER_CONTROLLER + i);
-	swprintf(ctrl->drives[i].info.description, L"%.40S %.20S (%uMB)", 
-	    id.model, id.serial,
-	    size / 2048);
-	ctrl->drives[i].info.device_class = 0;
+        wcscpy(drive_name, ata_drive_names[i]);
+        swprintf(ctrl->drives[i].info.description, L"%.40S %.20S (%uMB)", 
+            id.model, id.serial,
+            size / 2048);
+        ctrl->drives[i].info.device_class = 0;
 
-	ctrl->drives[i].dev.vtbl = &ata_drive_vtbl;
-	ctrl->drives[i].dev.driver = ctrl->dev.driver;
-	ctrl->drives[i].dev.info = &ctrl->drives[i].info;
-	ctrl->drives[i].ctrl = ctrl;
-	dev = &ctrl->drives[i].dev;
-	DevAddDevice(dev, name, NULL);
+        ctrl->drives[i].dev.vtbl = &ata_drive_vtbl;
+        ctrl->drives[i].dev.driver = ctrl->dev.driver;
+        /*ctrl->drives[i].dev.info = &ctrl->drives[i].info;*/
+        ctrl->drives[i].ctrl = ctrl;
 
-	if (!ctrl->drives[i].is_atapi)
-	    AtaPartitionDevice(dev, name);
+        ctrl->drives[i].cfg.device_class = 0x0180;
+        ctrl->drives[i].cfg.parent = &ctrl->dev;
+
+        DevAddDevice(&ctrl->drives[i].dev, drive_name, &ctrl->drives[i].cfg);
+        AtaPartitionDevice(&ctrl->drives[i]);
     }
-
-    return ctrl;
 }
 
 #pragma pack(push, 1)
@@ -1257,8 +1297,8 @@ typedef struct
 } bios_params_t;
 #pragma pack(pop)
 
-device_t* AtaAddController(driver_t *drv, const wchar_t *name, 
-			   device_config_t *cfg)
+void AtaAddController(driver_t *drv, const wchar_t *name, 
+                      device_config_t *cfg)
 {
     /*if (cfg == NULL)
         wprintf(L"ata: no PnP configuration present\n");
@@ -1292,16 +1332,10 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 
     uint16_t ports[] = { REG_BASE0, REG_BASE1 };
     uint8_t irqs[] = { AT_IRQ0, AT_IRQ1 };
-    ata_ctrl_t *ctrl;
 
-    if (num_controllers >= 2)
-        return NULL;
-    else
-    {
-        ctrl = AtaInitController(drv, ports[num_controllers], 
+    if (num_controllers < 2)
+        AtaInitController(drv, name, ports[num_controllers], 
             irqs[num_controllers], cfg);
-        return &ctrl->dev;
-    }
 }
 
 bool DrvInit(driver_t *drv)
