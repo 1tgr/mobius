@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.7 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.8 2002/01/06 22:46:08 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -341,6 +341,8 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
 		return false;
 	}
 
+	assert(fsd->vtbl != NULL);
+	assert(fsd->vtbl->request != NULL);
 	if (!FsMountDevice(path, fsd))
 	{
 		DevClose(fsd);

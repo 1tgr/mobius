@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.9 2002/01/06 18:36:15 pavlovskii Exp $ */
+/* $Id: device.c,v 1.10 2002/01/06 22:46:08 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -63,9 +63,9 @@ bool DevFsRequest(device_t *dev, request_t *req)
 			return false;
 		}
 
-		wprintf(L"DevFsRequest: open %s => %p", 
+		/*wprintf(L"DevFsRequest: open %s => %p", 
 			req_fs->params.fs_open.name,
-			info->dev);
+			info->dev);*/
 
 		req_fs->params.fs_open.file = HndAlloc(NULL, sizeof(device_file_t), 'file');
 		file = HndLock(NULL, req_fs->params.fs_open.file, 'file');
@@ -75,7 +75,7 @@ bool DevFsRequest(device_t *dev, request_t *req)
 			return false;
 		}
 
-		wprintf(L"=> %lu\n", req_fs->params.fs_open.file);
+		/*wprintf(L"=> %lu\n", req_fs->params.fs_open.file);*/
 		file->file.fsd = dev;
 		file->file.pos = 0;
 		file->file.flags = req_fs->params.fs_open.flags;
@@ -92,12 +92,12 @@ bool DevFsRequest(device_t *dev, request_t *req)
 			return false;
 		}
 
-		if (req->code == FS_READ)
+		/*if (req->code == FS_READ)
 			wprintf(L"DevFsRequest: read from %lu => %p buf = %p len = %lu\n",
 				req_fs->params.fs_read.file,
 				file->dev,
 				req_fs->params.fs_read.buffer,
-				req_fs->params.fs_read.length);
+				req_fs->params.fs_read.length);*/
 		/*else
 			wprintf(L"DevFsRequest: write to %lu => %p buf = %p len = %lu\n",
 				req_fs->params.fs_write.file,
@@ -319,17 +319,14 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	io->mod_buffer_start = (unsigned) user_buffer % PAGE_SIZE;
 	ptr = (addr_t*) (io + 1);
 	user_addr = PAGE_ALIGN((addr_t) user_buffer);
-	wprintf(L"DevQueueRequest: ");
 	for (; pages > 0; pages--, user_addr += PAGE_SIZE)
 	{
 		phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
-		wprintf(L"0x%x ", phys);
 		assert(phys != NULL);
 		MemLockPages(phys, 1, true);
 		*ptr++ = phys;
 	}
 
-	wprintf(L"\n");
 	req->event = io->req->event = EvtAlloc(NULL);
 	LIST_ADD(dev->io, io);
 	return io;

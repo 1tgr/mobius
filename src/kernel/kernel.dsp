@@ -93,6 +93,14 @@ SOURCE=.\i386\arch.c
 # End Source File
 # Begin Source File
 
+SOURCE=".\i386\gdb-stub.c"
+# End Source File
+# Begin Source File
+
+SOURCE=.\i386\gdb.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\i386\i386.c
 # End Source File
 # Begin Source File

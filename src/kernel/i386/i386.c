@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.6 2002/01/06 01:56:15 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.7 2002/01/06 22:46:09 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -206,7 +206,7 @@ uint32_t i386Isr(context_t ctx)
 			/*ArchDbgDumpContext(&ctx);*/
 
 			if (current->process == &proc_idle)
-				ArchProcessorIdle();
+				i386TrapToDebugger(&ctx);
 			else
 				ProcExitProcess(-ctx.intr);
 		}

@@ -1,12 +1,14 @@
-/* $Id: cache.c,v 1.3 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.4 2002/01/06 22:46:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/cache.h>
 #include <kernel/driver.h>
+#include <kernel/memory.h>
 #include <stdlib.h>
 #include <wchar.h>
 #include <string.h>
 
+#if 0
 typedef struct cache_t cache_t;
 struct cache_t
 {
@@ -131,4 +133,95 @@ device_t* CcInstallBlockCache(device_t* dev, uint32_t block_size)
 	
 	wprintf(L"CcInstallBlockCache: cached %d blocks\n", cache->cache_size);
 	return &cache->dev;
+}
+#endif
+
+typedef struct cache_page_t cache_page_t;
+struct cache_page_t
+{
+	addr_t phys;
+	bool is_valid;
+};
+
+cache_t *CcCreateFileCache(void)
+{
+	cache_t *cc;
+	cc = malloc(sizeof(cache_t));
+	SemInit(&cc->lock);
+	cc->num_pages = 0;
+	cc->pages = NULL;
+	wprintf(L"CcCreateFileCache: %p\n", cc);
+	return cc;
+}
+
+void CcDeleteFileCache(cache_t *cc)
+{
+	unsigned i;
+
+	wprintf(L"CcDeleteFileCache(%p): %u pages\n", cc, cc->num_pages);
+	SemAcquire(&cc->lock);
+	for (i = 0; i < cc->num_pages; i++)
+		if (cc->pages[i].phys != -1)
+			MemFree(cc->pages[i].phys);
+
+	free(cc->pages);
+	free(cc);
+}
+
+void *CcRequestPage(cache_t *cc, uint64_t offset)
+{
+	unsigned page, i;
+
+	SemAcquire(&cc->lock);
+	page = PAGE_ALIGN(offset) / PAGE_SIZE;
+	wprintf(L"CcRequestPage(%p): num_pages = %u offset = %u page = %u\n",
+		cc, cc->num_pages, (uint32_t) offset, page);
+	if (page > cc->num_pages)
+	{
+		cc->pages = realloc(cc->pages, sizeof(cache_page_t) * (page + 1));
+		assert(cc->pages != NULL);
+
+		for (i = cc->num_pages; i < page + 1; i++)
+		{
+			cc->pages[page].phys = -1;
+			cc->pages[page].is_valid = false;
+		}
+
+		cc->num_pages = page + 1;
+		cc->pages[page].phys = MemAlloc();
+		wprintf(L"CcRequestPage: new page: phys = %x\n", 
+			cc->pages[page].phys);
+	}
+	
+	assert(cc->pages[page].phys != -1);
+	MemLockPages(cc->pages[page].phys, 1, true);
+	SemRelease(&cc->lock);
+	return MemMapTemp(&cc->pages[page].phys, 1, 
+		PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+}
+
+bool CcIsPageValid(cache_t *cc, uint64_t offset)
+{
+	unsigned page;
+
+	page = PAGE_ALIGN(offset) / PAGE_SIZE;
+	if (page > cc->num_pages)
+		return false;
+	else
+		return cc->pages[page].is_valid;
+}
+
+void CcReleasePage(cache_t *cc, uint64_t offset, bool isValid)
+{
+	unsigned page;
+
+	page = PAGE_ALIGN(offset) / PAGE_SIZE;
+	if (page > cc->num_pages)
+		return;
+	
+	SemAcquire(&cc->lock);
+	cc->pages[page].is_valid = isValid;
+	MemLockPages(cc->pages[page].phys, 1, false);
+	MemUnmapTemp();
+	SemRelease(&cc->lock);
 }

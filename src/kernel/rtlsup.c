@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.5 2002/01/06 22:46:09 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -64,56 +64,60 @@ void __dj_assert(const char *test, const char *file, int line)
 	/*__asm__("cli;hlt");*/
 }
 
-int _cputws(const wchar_t *str, size_t count)
-{
-	uint16_t *mem = (uint16_t*) PHYSICAL(0xb8000);
-
-	for (; *str && count > 0; count--, str++)
-	{
-		switch (*str)
-		{
-		case '\n':
-			con_y++;
-		case '\r':
-			con_x = 0;
-			break;
-
-		case '\b':
-			if (con_x > 0)
-				con_x--;
-			break;
-
-		case '\t':
-			con_x = (con_x + 4) & ~3;
-			break;
-
-		default:
-			mem[con_x + con_y * 80] = 
-				(uint16_t) (uint8_t) *str | con_attribs;
-			con_x++;
-		}
-
-		if (con_x >= 80)
-		{
-			con_x = 0;
-			con_y++;
-		}
-
-		while (con_y >= 25)
-		{
-			unsigned i;
-
-			memmove(mem, mem + 80, 80 * 24 * 2);
-			for (i = 0; i < 80; i++)
-				mem[80 * 24 + i] = ' ' | con_attribs;
-
-			con_y--;
-		}
-	}
-
-	TextUpdateCursor();
-	return 0;
+#define DEFINE_PUTS(name, ct) \
+int name(const ct *str, size_t count) \
+{ \
+	uint16_t *mem = (uint16_t*) PHYSICAL(0xb8000); \
+\
+	for (; *str && count > 0; count--, str++) \
+	{ \
+		switch (*str) \
+		{ \
+		case '\n': \
+			con_y++; \
+		case '\r': \
+			con_x = 0; \
+			break; \
+ \
+		case '\b': \
+			if (con_x > 0) \
+				con_x--; \
+			break; \
+ \
+		case '\t': \
+			con_x = (con_x + 4) & ~3; \
+			break; \
+ \
+		default: \
+			mem[con_x + con_y * 80] =  \
+				(uint16_t) (uint8_t) *str | con_attribs; \
+			con_x++; \
+		} \
+ \
+		if (con_x >= 80) \
+		{ \
+			con_x = 0; \
+			con_y++; \
+		} \
+ \
+		while (con_y >= 25) \
+		{ \
+			unsigned i; \
+ \
+			memmove(mem, mem + 80, 80 * 24 * 2); \
+			for (i = 0; i < 80; i++) \
+				mem[80 * 24 + i] = ' ' | con_attribs; \
+ \
+			con_y--; \
+		} \
+	} \
+ \
+	TextUpdateCursor(); \
+	return 0; \
 }
+
+DEFINE_PUTS(_cputws, wchar_t);
+DEFINE_PUTS(_cputs, char);
 
 wchar_t *ProcGetCwd()
 {

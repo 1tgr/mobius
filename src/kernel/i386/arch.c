@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.5 2002/01/06 22:46:09 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -164,6 +164,7 @@ bool ArchInit(void)
 		/*break;
 	}*/
 
+	i386InitSerialDebug();
 	return true;
 }
 

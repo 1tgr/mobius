@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.4 2002/01/06 22:46:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -203,9 +203,9 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 {
 	uint32_t *pebp = (uint32_t*) _ebp;
 	module_t* mod;
-	SYMENT sym;
+	/*SYMENT sym;
 	char *strings, *name;
-	addr_t addr;
+	addr_t addr;*/
 
 	wprintf(L"ebp\t\t\tReturn To\tModule\n");
 	do
@@ -263,6 +263,7 @@ void DbgDumpThreads(void)
 	}
 }
 
+#if 0
 void DbgSwitchThreads(thread_t* t, context_t* ctx)
 {
 	static const wchar_t *msg1[] =
@@ -313,6 +314,7 @@ void DbgSwitchThreads(thread_t* t, context_t* ctx)
 			fault_addr);
 	}
 }
+#endif
 
 /*wint_t getwchar()
 {
