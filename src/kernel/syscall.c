@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.19 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.20 2002/09/03 13:13:31 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -212,7 +212,7 @@ bool SysVmmFree(void *base)
  * To save one layer of indirection, they patch straight through to the 
  *    HndXXX equivalents.
  */
-handle_t SysEvtAlloc(void)
+handle_t EvtCreate(void)
 {
     return HndAlloc(NULL, 0, 'evnt');
 }
@@ -230,6 +230,33 @@ bool SysEvtIsSignalled(handle_t evt)
 bool SysHndClose(handle_t hnd)
 {
     return HndClose(NULL, hnd, 0);
+}
+
+handle_t MuxCreate(void)
+{
+    handle_t ret;
+
+    ret = HndAlloc(NULL, 0, 'mutX');
+    if (ret == NULL)
+        return NULL;
+
+    HndSignal(NULL, ret, 'mutX', true);
+    return ret;
+}
+
+bool MuxAcquire(handle_t mux)
+{
+    if (!ThrWaitHandle(current(), mux, 'mutX'))
+        return false;
+
+    KeYield();
+    return true;
+}
+
+bool MuxRelease(handle_t mux)
+{
+    HndSignal(NULL, mux, 'mutX', true);
+    return true;
 }
 
 bool SysShutdown(unsigned type)

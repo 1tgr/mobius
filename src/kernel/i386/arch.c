@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.24 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.25 2002/09/03 13:13:31 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -71,7 +71,7 @@ void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
         sizeof(arch_df_tss) - 1, 
         ACS_TSS, 
         ATTR_BIG);
-    
+
     gdtr->base = (addr_t) gdt/* + startup->kernel_phys*/;
     gdtr->limit = sizeof(arch_gdt) - 1;
     __asm__("lgdt (%0)" : : "r" (gdtr));
@@ -83,7 +83,7 @@ void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
         "mov %0,%%gs\n"
         "mov %0,%%fs" : : "r" (KERNEL_FLAT_DATA));
     __asm__("add %0, %%esp" : : "g" (scode - KERNEL_PHYS) : "esp");
-    
+
     __asm__("ljmp %0,$_KernelMain"
         :
         : "i" (KERNEL_BASED_CODE));

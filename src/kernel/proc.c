@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.22 2002/08/31 00:32:11 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.23 2002/09/03 13:13:31 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -318,6 +318,7 @@ void ProcExitProcess(int code)
     proc = current()->process;
 
     SpinAcquire(&proc->sem_lock);
+    wprintf(L"The process %s has exited with code %d\n", proc->exe, code);
     proc->exit_code = code;
 
     for (thr = thr_first; thr; thr = tnext)
@@ -368,8 +369,8 @@ void ProcExitProcess(int code)
     free(handles);*/
     SpinRelease(&proc->sem_lock);
 
-    wprintf(L"ProcExitProcess(%p): finished, copies = %u, sem_lock = %u\n", 
-        proc, proc->hdr.copies, proc->sem_lock.locks);
+    /*wprintf(L"ProcExitProcess(%p): finished, copies = %u, sem_lock = %u\n", 
+        proc, proc->hdr.copies, proc->sem_lock.locks);*/
 }
 
 int ProcGetExitCode(handle_t hnd)
