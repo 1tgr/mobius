@@ -1,0 +1,74 @@
+<h1>Memory Management</h1>
+
+<h2>Introduction</h2>
+<p>This document describes the methods of memory management in The M&ouml;bius.
+The M&ouml;bius runs in a fully 32-bit environment with one flat 4GB address
+space per process. The size and layout of physical memory is handled by the 
+kernel; in most cases, on current architectures, there will be less than 4GB
+of physical memory total. However, although the current kernel does not support
+36-bit physical address extensions, the design does not put a practical limit
+on the amount of physical memory that can be installed in a M&ouml;bius 
+system.</p>
+
+<h2>User Mode</h2>
+<p>The organisation of memory by the kernel is virtually transparent from user
+mode. As far as the kernel is concerned, all user memory is managed in units of
+one page (4KB on the i386). There are three main ways of making memory accessible 
+from user mode:</p>
+
+<ul>
+<li>Allocate it at load time in an EXE or DLL</li>
+<li>Allocate it at run time using <samp>VmmFree</samp></li>
+<li>Map it from another process using <samp>xxx - 
+memory_sharing_function</samp></li>
+</ul>
+
+<p>User-addressable memory covers most of the lower 2GB of the address space, 
+from address 0x00001000 to 0x80000000. Note that the bottom 4KB is never mapped,
+and addresses in this range are never valid. This helps trap null pointer 
+accesses. Memory that has been requested can be in one of three states:</p>
+
+<ul>
+<li><b>Uncommited:</b> the memory has never been referenced. No physical storage
+(RAM or swap space) is set aside. The memory will have to be committed before
+it can be used.</li>
+<li><b>Committed:</b> the memory has been read from or written to at least once,
+and it is currently resident in RAM. The memory is available for use 
+immediately.</li>
+<li><b>Paged out:</b> the memory has been committed but it is no longer present in
+RAM. Its contents have either been written to the swap file or the associated 
+memory-mapped file, or, in the case of unmodified memory-mapped pages (which can be
+reloaded from the original file) have been discarded. The memory will have to be
+read from disk before it can be used.</li>
+</ul>
+
+<p>Freshly-allocated memory starts out in the uncommitted state. Note that the
+kernel maintains two extra states for committed memory: <b>clean</b> and 
+<b>dirty</b>. Memory starts out as clean and becomes dirty once it is modified.
+Clean pages can easily be regenerated (e.g. by loading from disk) and can be 
+discarded, but dirty pages must be saved when they are swapped out.</p>
+
+<p>Modules (EXEs and DLLs) are loaded into the process's address space by the
+kernel; a module's headers are loaded at the base address and the section data
+follow according to the layout specified in the headers. If a part of the memory
+required by a module is not available (e.g. it clashes with some other memory
+block), the module may be relocated. xxx - this is not currently implemented. 
+The application's EXE image is the first to be loaded into memory, so in practice
+relocation is not necessary for the EXE.</p>
+
+<p>Memory can be allocated at run-time with the <samp>VmmAlloc</samp> function,
+and freed with <samp>VmmFree</samp>. <samp>VmmAlloc</samp> will only allocate
+integral numbers of pages; it is up to the application programmer to split
+pages up if finer allocations are needed. There is a <samp>malloc</samp> 
+implementation in <samp>libc</samp> that uses <samp>VmmAlloc</samp>, although 
+programmers may use a different heap allocation routine if desired. 
+<samp>VmmAlloc</samp> returns the base address of the allocated memory: it is
+possible to request a specific address for allocations, and if that address
+clashes, <samp>VmmAlloc</samp> will adjust it and return the adjusted 
+base.</p>
+
+<p class="note"><b>Note:</b> Although <samp>VmmFree</samp> accepts a 
+<samp>void*</samp> parameter, it will only accept addresses within blocks that
+were allocated using <samp>VmmAlloc</samp>.</p>
+
+<p>xxx - implement memory sharing and write about it</p>

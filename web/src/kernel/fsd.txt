@@ -1,0 +1,23 @@
+<h1>File System Driver Interface</h1>
+
+<pre>struct fsd_t
+{
+    const fsd_vtbl_t *vtbl;
+};
+
+fsd_t *FsdMount(const wchar_t *dest);
+
+struct fsd_vtbl_t
+{
+    status_t lookup(const wchar_t *path, void **cookie);
+    status_t get_file_info(void *cookie, uint32_t type, void *buf);
+    status_t set_file_info(void *cookie, uint32_t type, const void *buf);
+    void free_cookie(void *cookie);
+
+    status_t read(file_t *file, page_array_t *pages, size_t length, fileop_t *op);
+    status_t write(file_t *file, page_array_t *pages, size_t length, fileop_t *op);
+
+    status_t opendir(const wchar_t *path, void **dir_cookie);
+    status_t readdir(void *dir_cookie, uint32_t type, void *buf);
+    void free_dir_cookie(void *dir_cookie);
+};</pre>

@@ -1,0 +1,97 @@
+<h1>Inter-Process Communication (IPC)</h1>
+
+<h2>Introduction</h2>
+<p>This document describes the forms of inter-process communication available
+to M&ouml;bius applications programmers, and provides an overview of the 
+functionality and implementation of each.</p>
+<p>The M&ouml;bius provides three main forms of IPC:</p>
+
+<ul>
+<li>ports,</li>
+<li>shared memory, and</li>
+<li>GUI messages</li>
+</ul>
+
+<p class="note">Although the overall design of these features is unlikely to
+change in future releases, the implementation and minor design points are. 
+The IPC implementation has also not been fully tested in current releases.</p>
+
+<h2>Ports</h2>
+<p><b>Source:</b> kernel/port.c, console/console.c</p>
+<p>Ports in The M&ouml;bius are most similar to sockets in other operating systems.
+Ports are separated into <b>server</b> and <b>client</b> ports.</p>
+
+<ul>
+<li><b>Client</b> ports, once connected to a server port, can be read from and
+written to like any other file. They are created by creating or opening a file in 
+the ports directory (by default, <samp>/System/Ports</samp>). It is the 
+responsibility of the client task to keep track of client port handles, as with 
+any other file object.</li>
+<li><b>Server</b> ports can neither be read from nor written to. Server ports
+start out as unconnected client ports; they gain their server status when the
+server task calls <samp>PortListen</samp>. Server ports are kept track of by the
+port file system, and their names are stored in a global list. A server port handle
+become signalled each time a client connects to it.</li>
+</ul>
+
+<p>A typical client-server interaction using ports is as follows.</p>
+<ol>
+<li>The server creates a server port by creating a file in the <samp>/System/Ports</samp> 
+directory with a name that is known to the client.</li>
+<li>The server calls <samp>PortListen</samp> on the handle returned from <samp>FsCreate</samp>.
+<li>The server calls <samp>ThrWaitHandle</samp> on the port handle to wait for a connection.</li>
+<li>The client opens the server port by opening the correct file in the <samp>/System/Ports</samp> 
+directory. The port is automatically connected to the server.</li>
+<li>The server completes its wait; it knows that a client has attempted to connect. It calls
+<samp>PortAccept</samp> to accept the connection, which creates another client port. The server's
+client port and the client's client port are connected together so that writes from one go to the
+other. The server's server port continues to accept new connections, if necessary.</li>
+<li>The client and server are now free to read from and write to their respective client ports.
+Once each has finished it will call <samp>FsClose</samp>, as normal, to close the handle.</li>
+</ol>
+
+<p>Client ports maintain an internal buffer. When the remote task writes to a port connected to
+a port owned by the local task, it copies data into the local task's buffer until the buffer is
+full. The data in the local task's buffer can then be read by the local task using <samp>FsRead</samp>
+or <samp>FsReadSync</samp>.</p>
+
+<p>Ports support asynchronous I/O, as do most types of file object in The M&ouml;bius. Reads will block
+until there are as many bytes in the port's buffer as required by the read; write will block if
+the write would go past the end of the buffer. Client-to-server connections are also asynchronous, 
+even though they are made using the synchronous <samp>FsOpen</samp>. Assuming that the parameters
+are correct (i.e. the server port exists), <samp>FsOpen</samp> will signal the server port and
+return immediately without error. However, it could be some time before the server task can service
+the request and call <samp>PortAccept</samp>. Therefore, the first read or write request on a client
+port will block until the port is fully connected. If the connection failed, the first read or write
+request will fail because of that (and not because of some I/O error). If a guaranteed connect
+is required then it is possible to call <samp>FsOpen</samp> followed by a zero-byte 
+<samp>FsRead</samp> to verify the connection. If either calls fail then the connection has failed;
+otherwise, the client is free to send and receive data through the port.</p>
+
+<h2>Shared Memory</h2>
+<p><b>Source:</b> kernel/vmm.c</p>
+<p>Although the required framework is present in the kernel, shared memory is not currently made 
+available to user applications.</p>
+
+<h2>GUI Messages</h2>
+<p><b>Source:</b> kernel/winmgr.c, gui/window.cpp</p>
+<p>Messages are the main method of inter-process and inter-thread communication in the M&ouml;buis
+GUI. Messages are fixed-length structures containing a 32-bit <b>code</b>, a target 
+<b>window handle</b> and three general-purpose 32-bit <b>parameters</b>.</p>
+
+<p>Messages are received in the message loops of GUI threads, and are generated either in the
+kernel window manager, in response to external events such as user input or window invalidation,
+or by other threads or processes. Each GUI thread has a kernel message queue, which expands to
+contain any messages sent to a window owned by the thread but not handled. Messages are removed
+from the queue when handled.</p>
+
+<p>Normally the GUI programmer would not need to deal with messages directly: system-defined 
+messages are handled by <samp>Window::HandleMessage</samp> and directed to the appropriate
+virtual member function. However, messages can make a handy form of inter-thread or inter-process
+notification: <samp>Window::PostMessage</samp> can be used to post messages to a window in the
+same process, and <samp>xxx - some_function_i_havent_written_yet</samp> can post messages between
+processes. To handle a custom message, or redefine the behaviour of an existing one, override
+<samp>Window::HandleMessage</samp>.</p>
+
+<p>xxx - should be possible to post messages to threads as well.</p>
+

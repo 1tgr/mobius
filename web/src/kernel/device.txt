@@ -1,0 +1,250 @@
+<head>
+<!-- ht ignores <head> blocks on included pages -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Language" content="uk">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title>Device Driver Book</title>
+</head>
+
+<h1>Device Driver Book</h1>
+<p>Your driver starts execution at the <samp>DrvEntry </samp> routine. It is 
+passed one parameter by the device manager (<samp>driver_t*</samp>), which 
+identifies your device driver. Here you need to set the entry point(s) for your 
+own device enumeration functions:</p>
+<ul>
+  <li><samp>add_device</samp> for adding block and character devices</li>
+  <li><samp>mount_fs</samp> for mounting file systems</li>
+</ul>
+<p>You'd normally only initialize one of these, depending on what kind of driver 
+you were writing.</p>
+<h2>Block and Character Devices</h2>
+See Also: <samp>driver_t::add_device</samp>, <samp>device_vtbl_t::request</samp>, 
+<samp>device_vtbl_t::isr</samp>, <samp>device_vtbl_t::finishio</samp>
+<p>Block and character devices (or just devices) are created through the <samp>add_device</samp> 
+function of the driver object. <samp>add_device</samp> is called by the bus 
+driver that hosts your device; usually this will be either the PCI or ISA 
+drivers, although bus drivers include things like ATA controllers and serial 
+port enumerators.</p>
+<p>In your <samp>add_device</samp> you first need to deduce what kind of device 
+you're supposed to be creating (if you support multiple devices in one driver). 
+For PCI devices you can look at the <samp>device_config_t::vendor_id</samp> and <samp>device_config_t::device_id</samp> 
+fields; identification of other devices depends on the bus driver, and the 
+device information might be encoded in the <samp>device_config_t</samp> 
+structure, in the name, or elsewhere.</p>
+<p>To create your device object you need to allocate a <samp>device_t</samp> 
+structure, usually with <samp>malloc</samp>(although some drivers, particularly 
+those for software devices such as <samp>tty</samp>, keep a static array of 
+devices). Note that most drivers define their own structure with a <samp>device_t</samp> 
+structure as the first field and pass the address of that field to the device 
+manager. Once you've allocated your device object you need to:</p>
+<ul>
+  <li>Set up the <samp>vtbl</samp> pointer to your driver's virtual function 
+    table</li>
+  <li>Reset the hardware device to a known configuration</li>
+  <li>Register any IRQs used by the device using <samp>DevRegisterIrq</samp></li>
+  <li>Return a pointer to the <samp>device_t</samp> structure</li>
+</ul>
+<p>The device manager uses virtual function tables to allow you to write drivers 
+as C++ classes (just inherit from <samp>device_t</samp> or, better, 
+kernel::device and implement three virtual functions). In C you need to define a 
+<samp>const</samp> global instance of <samp>device_vtbl_t</samp> and initialize 
+it with function pointers for your device class.</p>
+<p class="note"><b>Note:</b> The device manager will complain if either the 
+<samp>vtbl</samp> or <samp>vtbl-&gt;request</samp> pointers are <samp>NULL</samp>; 
+both of these are required for every driver.</p>
+<p>Once you've returned from your <samp>add_device</samp> function, your device 
+is entered into the device manager's namespace (and into the <samp>/System/Devices</samp> 
+directory) and is available for use by applications.</p>
+<p>Your device will receive I/O requests through its <samp>request</samp> function. 
+This is the core of the device's code and it is responsible for dispatching 
+requests issued via <samp>IoRequest</samp>(and, by extension, <samp>IoReadSync</samp>, 
+<samp>FsWrite</samp> and the others). Requests are represented by the <samp>request_t</samp> 
+structure passed to the request function. This is identical to the pointer 
+passed to <samp>IoRequest</samp>(the request function runs in the same context 
+as the originator) and it is really only a pointer to the header of a larger 
+structure. The various types of requests can be distinguished by the <samp>request_t::code</samp> 
+field; each request code has different information (&quot;parameters&quot;) 
+stored after the request header.</p>
+<p>The two main codes you'll see are <samp>DEV_READ</samp> and <samp>DEV_WRITE</samp>. 
+Not surprisingly, these are invoked when something needs to read from or write 
+to your device; when invoked from user mode, these code via <samp>FsRead</samp> and 
+<samp>FsWrite</samp>. Both <samp>DEV_READ</samp> and <samp>DEV_WRITE</samp> have 
+similar parameters: the <samp>request_dev_t</samp> structure defines both the 
+parameters and the header, and <samp>request_dev_t::params::buffered</samp> can 
+be used for each. You are provided with three pieces of information: a buffer, 
+the length of the buffer, and an offset.
+<ul>
+  <li>The buffer is the address passed to <samp>FsRead</samp> or <samp>FsWrite</samp> and 
+    could be in user or kernel space. It will be accessible from inside the <samp>request</samp> 
+    function but not necessarily anywhere else.</li>
+  <li>The extent of the buffer is defined by the length. Do not write anywhere 
+    outside the valid extent of the buffer.</li>
+  <li>The offset is used for block devices (such as hard drives), and can be 
+    ignored for character devices (such as mice). It is specified as a 64-bit 
+    number relative to the start of the device.</li>
+</ul>
+<p class="note"><b>Note:</b> If your device can't handle the length or offset given (for 
+example, disk drivers generally read in 512-byte blocks on boundaries of 512 
+bytes), feel free to set <samp>request_t::result</samp> appropriately and return 
+<samp>false</samp>.</p>
+<p>You've got all the parameters you need now. If the operation is going to be 
+quick then you can handle it there and then and copy the results into the 
+buffer. If you don't read as many bytes as requested, update the length field 
+before returning. If the operation fails you need to set request_t::result to an 
+appropriate error code and return <samp>false</samp> from the request function; 
+for success you just need to return <samp>true</samp>.</p>
+<p>If the operation is going to take some time (any interrupt-driven I/O falls 
+into this category) then you need to use asynchronous I/O. Each device has an 
+internal queue of asynchronous requests, which the device manager maintains. In 
+the case of async I/O, all the request function does is validate the parameters 
+and queue the request using <samp>DevQueueRequest</samp>. If the hardware device 
+is idle the driver needs to start processing the request it just queued, usually 
+in a common <samp>startio</samp> routine. Here the driver needs to get the 
+hardware to start the I/O operation, with the expectation that it will trigger a 
+hardware interrupt when it has finished. Once the hardware has started, but 
+before it finishes, the request function can return.</p>
+<p>Apart from queueing the request, the <samp>DevQueueRequest</samp> function 
+does two main things:
+<ul>
+  <li>Sets <samp>request_t::result</samp> to <samp>SIOPENDING</samp>, which 
+    tells the originator that the driver has queued an asynchronous request.
+  <li>Locks the user buffer</li>
+</ul>
+<p>The locking part is important. The M&ouml;bius is both multi-tasking and 
+protected; there can be many processes running at once, each of which has its 
+own address space, and any of which can call your driver. In addition to this, 
+your hardware could interrupt at any time, with the result that your interrupt 
+handler could be called from any context. By locking the user buffer, the device 
+manager makes sure that it is all present in physical memory and that it will 
+not be paged out until the operation has finished. <samp>DevQueueRequest</samp> returns 
+a pointer to an asyncio_t structure, which is followed by an array of physical 
+addresses (one for each page of the user buffer).</p>
+<p class="note"><b>Note:</b> Although most of the <samp>asyncio_t</samp> structure is opaque, 
+you can modify the asyncio_t::length and asyncio_t::extra fields as your request 
+is processed. A lot of drivers record the number of bytes transferred in the <samp>length</samp> 
+field, and the <samp>extra</samp> field can point to anything in kernel memory.</p>
+<p>Now that the request has been queued, and your request function has returned, 
+the kernel is free to keep on scheduling other threads; if it wants, the 
+originator (which might be a user process, a file system driver or something 
+else) can keep on working until your driver has finished.</p>
+<p>When your hardware triggers an interrupt your <samp>isr</samp> function will 
+be called (assuming you called <samp>DevRegisterIrq</samp> in <samp>add_device</samp>). 
+Remember that it will be called in an arbitrary context: don't modify any user 
+memory and don't take too long. Here you need to check which request this 
+interrupt applies to (if you're handling requests sequentially it will always be 
+the first one, at <samp>device_t::io_first</samp>) and retrieve the results from 
+the hardware. You'll probably need to access the request's user buffer at this 
+point. Remember that <samp>DevQueueRequest</samp> locked it: now you can call <samp>DevMapBuffer</samp> to 
+access that buffer. <samp>DevMapBuffer</samp> maps the original buffer's physical 
+memory pages into a temporary region of kernel address space. Due to the nature 
+of the 32-bit paged architecture it can only map whole pages, whereas the 
+originator is free to specify buffers aligned to single bytes. So you need to 
+add <samp>asyncio_t::mod_buffer_start</samp> to the address returned by <samp>DevMapBuffer</samp> to 
+get the real start address; don't access any memory before that point because 
+it's almost certainly not yours. Call <samp>DevUnmapBuffer</samp> when you're 
+finished with the memory.</p>
+<p>If this request has finished (it might be finished after one IRQ, or the 
+device might give you several IRQs before the operation is finished, as floppy 
+drives do) then you need to call <samp>DevFinishIo</samp>. This effectively 
+performs the reverse of <samp>DevQueueRequest</samp>: it unlocks the user buffer 
+and frees any internal memory allocated. It also signals the originator's <samp>finishio</samp> routine, 
+if the originator was a device (e.g. the <samp>devfs</samp> file system that 
+maintains the <samp>/System/Devices</samp> directory). This allows nested 
+hierarchies of devices to be created: the originator is able to go off and 
+continue its own request, which will notify the next higher originator, and so 
+on (until user mode is reached).</p>
+<h2>File Systems</h2>
+<p>See Also: <samp>driver_t::mount_fs</samp></p>
+<p>File system drivers follow much the same lines as regular device drivers: 
+they define the <samp>mount_fs</samp> entry point in the <samp>driver_t</samp> 
+structure, which the device manager calls when a file system managed by that FSD 
+is mounted.</p>
+<p>At mount time the FSD receives two pieces of information: the VFS path where 
+the volume is being mounted and the physical device on which the volume resides. 
+The path is a more-or-less gratuitous piece of information; however, the FSD 
+needs to take note of the device pointer because that is the device that the FSD 
+will be talking to.</p>
+<p>In the <samp>mount_fs</samp> routine, the FSD needs to validate the device 
+(i.e. check that it is the correct type of file system) and load any file system 
+structure data that will be needed. For example, the FAT driver loads the boot 
+sector, a copy of the FAT and the root directory entries here. <samp>mount_fs</samp> 
+returns a pointer to a <samp>device_t</samp> (just like <samp>add_device</samp>) 
+which is allocated by the FSD and can contain extra information beyond the 
+standard fields. The device manager and VFS will use the same <samp>device_t</samp> 
+later when making requests.</p>
+<p>Requests are received through the file system device's <samp>request</samp> routine 
+as normal; there is a separate set of <samp>FS_XXX</samp> request codes and FS 
+devices are not obliged to support other sets of codes such as <samp>DEV_XXX</samp>.</p>
+<p>The other basic object in the file system world is the <samp>file_t</samp> ; 
+this contains information the VFS needs for each file (a pointer to the 
+associated FSD, the current file pointer and the file access mode) as well as 
+any information the FSD might need to keep. Again, <samp>file_t</samp>'s are 
+allocated and freed by the FSD and only the first set of standard fields need be 
+present. User-mode file handles map directly to <samp>file_t</samp> structures; 
+in addition, all <samp>FS_XXX</samp> requests deal in file handles so it is up 
+to the FSD to validate the <samp>file_t</samp> pointer in the calling process's 
+handle table (a matter of calling the <samp>HndLock</samp> and <samp>HndUnlock</samp> functions).</p>
+<p>The two places where files are allocated are in the implementation of the <samp>FS_CREATE</samp> 
+and <samp>FS_OPEN</samp> requests. These provide virtually the same parameters 
+(path relative to the FS device's mount point and access mode); as the names 
+suggest, <samp>FS_CREATE</samp> creates a new file and <samp>FS_OPEN</samp> 
+opens an existing one. Each return a new file handle. The FSD needs to set the <samp>file_t.flags</samp> 
+member as well (this is not done automatically by <samp>FsCreate</samp> and <samp>FsOpen</samp>).</p>
+<p>File accesses take place via the <samp>FS_READ</samp> and <samp>FS_WRITE</samp> 
+requests; the file's access mode is checked by <samp>FsRead</samp> and <samp>FsWrite</samp> before 
+the request reaches the FSD, so all the FSD needs to do is lock the file handle, 
+read the data, and unlock the handle. Read and write requests can take place at 
+arbitrary file offsets and with no restriction to the number of bytes, so the 
+FSD needs to (a) check the file pointer on entry (and perform a seek if 
+necessary) and (b) handle different numbers of bytes correctly.</p>
+<p>There are two areas where the read/write length can matter:
+<ol>
+  <li>The operation would take the file pointer beyond the end of the file.</li>
+  <li>The number of bytes is different to the file system's cluster size and/or 
+    the device's sector size.</li>
+</ol>
+<p>(1) relates to how the FSD handles the end-of-file condition. It needs to 
+check how far the file pointer is from the end of the file; if it could transfer 
+at least one byte, it needs to do so and update the number of bytes transferred, 
+which will be passed back to the caller along with a success status (assuming 
+the transfer didn't fail for some other reason). If the file pointer is already 
+at or beyond the end of the file, the FSD needs to report zero bytes transferred 
+and give an <samp>EEOF</samp> error code. In other words: an EOF while reading or 
+writing results in fewer bytes being transferred but is not an error, whereas 
+reading or writing when the file pointer is already at the end results in zero 
+bytes transferred and an <samp>EEOF</samp> error.</p>
+<p>(2) relates to the fact that typical disk devices can only transfer data in 
+multiples of one sector, and that file systems typically align file data to 
+cluster boundaries (with clusters being a whole number of sectors each). The 
+easiest (and best) way to look after this is to use the file cache. This way, 
+the FSD reads data into and writes data from the system's cache, which can be a 
+whole number of clusters long, and merely copies data between the cache and the 
+user buffer when necessary.</p>
+<p>The general cacheing scheme is as follows.</p>
+<ul>
+  <li>On <samp>FS_OPEN</samp> or <samp>FS_CREATE</samp>, call <samp>CcCreateFileCache</samp> to 
+    create a new cache object. Typically you will use the file system's cluster 
+    size as the block size, although you are free to use whatever block size is 
+    most convenient.</li>
+  <li>On <samp>FS_READ</samp>, call <samp>CcIsBlockValid</samp> to check whether 
+    the requested block (cluster) is already present in memory. If not, you need 
+    to request that block's memory address using <samp>CcRequestBlock</samp> and 
+    read into there (remembering to call <samp>CcReleaseBlock</samp> afterwards 
+    -- cache blocks are reference counted; <samp>CcRequestBlock</samp> also locks 
+    the block down into physical memory in anticipation of a call to <samp>DevMapBuffer</samp> by 
+    the disk driver). Once the read has completed, repeat the process; the block 
+    will now be valid and you will be able to <samp>memcpy</samp> from the cache 
+    into the user buffer. Handle <samp>FS_WRITE</samp> similarly to <samp>FS_READ</samp>, 
+    except that you will usually only <samp>memcpy</samp> into the cache block; 
+    flushing (i.e. writing the cache block to disk) will happen later.</li>
+  <li>On <samp>FS_CLOSE</samp>, free the cache using <samp>CcDeleteFileCache</samp>. 
+    The cache manager will callback the FSD to get it to flush any dirtied 
+    pages.</li>
+</ul>
+<p>The cache manager will sometimes need to clear out cached pages (for example, 
+when clearing out unneeded pages prior to allocation). Physical memory for cache 
+blocks is only allocated when it is valid (so cacheing a huge file will only 
+result in the relevant parts being kept in memory), but it will still be 
+necessary for the cache manager to request that the FSD flushes some cache 
+pages. The mechanism for this has not been implemented yet.</p>
