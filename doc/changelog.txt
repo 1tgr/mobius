@@ -1,4 +1,4 @@
-$Id: changelog.txt,v 1.2 2002/08/17 17:51:19 pavlovskii Exp $
+$Id: changelog.txt,v 1.3 2002/08/19 20:02:11 pavlovskii Exp $
 
 Changelog for the Möbius Operating System
 =========================================
@@ -11,6 +11,9 @@ SDK release 4, ??
 -- Implemented graphical startup screen with RLE-compressed bitmap banner
 -- Got RTL8139 to respond to pings in under 10ms by removing some trace output
 -- Added RTL8139 and NE2000 drivers to CVS
+-- Added document describing the kernel debugger
+-- Implemented DevCancelIo, which allows the kernel to cancel pending I/O 
+	requests (e.g. when a thread exits)
 
 To do before the next kernel release
 ====================================
@@ -18,16 +21,26 @@ To do before the next kernel release
 -- Fix bad device queued I/O pointer bug (sometimes rtl8139 gets an invalid I/O
 	queued just after startup)
 -- Put more locks around important data structures
+-- Get VMM to store vm_area_t structures better (e.g. binary tree)
+-- Generalise text output in the kernel to allow TTY driver to output to a 
+	graphical console
+x- Provide a way of cancelling I/O requests before they complete
 
 -- Implement shared memory regions as handle objects
 -- Allow handle objects to be shared throughout the system, and be given names
 -- Put long file name support into FAT FSD
 -- Have interrupts enabled in more kernel code (they should only be disabled 
 	in interrupt handlers, ideally)
+-- Classify driver request codes as user and/or kernel. Only allow user ones 
+	through FsPassthrough. Retire FsIoCtl.
 
 -- Design and implement network stack
 -- Merge the vnode concept with the file_t structure
 x- Put in some graphical gimmicks so the OS looks nice
+-- Enforce some driver load order in system.pro. Currently PCI requires ATA 
+	loaded first unless all PCI drivers load from ramdisk. This mean that,
+	if PCI loads ATA, ATA must arrive first in bus enumeration, which 
+	won't happen.
 
 SDK release 3, 16th August 2002
 ===============================
