@@ -1,3 +1,5 @@
+/* $Id: mobel_pe.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+
 #include <dos.h>
 #include <string.h>
 #include <bios.h>

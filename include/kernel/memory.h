@@ -1,3 +1,4 @@
+/* $Id: memory.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 #ifndef __KERNEL_MEMORY_H
 #define __KERNEL_MEMORY_H
 

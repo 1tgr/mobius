@@ -1,3 +1,5 @@
+/* $Id: mobel.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+
 #ifndef MOBEL_H__
 #define MOBEL_H__
 

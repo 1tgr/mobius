@@ -1,3 +1,5 @@
+/* $Id: disk.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+
 #include <bios.h>
 #include "mobel.h"
 

@@ -1,3 +1,4 @@
+/* $Id: defs.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 

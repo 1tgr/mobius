@@ -1,3 +1,4 @@
+/* $Id: io.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_io_h_

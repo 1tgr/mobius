@@ -1,3 +1,4 @@
+/* $Id: fs.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 #ifndef __OS_FS_H
 #define __OS_FS_H
 

@@ -1,3 +1,4 @@
+/* $Id: types.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 

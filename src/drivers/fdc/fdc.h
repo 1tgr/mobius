@@ -1,3 +1,5 @@
+/* $Id: fdc.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+
 /*
  * fdc.h
  * 

@@ -1,3 +1,4 @@
+/* $Id: sysdef.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
 #ifdef KERNEL
 /* The kernel uses different names for some functions... */
 #define ThrWaitHandle	SysThrWaitHandle
