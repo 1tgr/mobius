@@ -74,3 +74,4 @@ EXPORTS
     VmmMapSharedArea
     VmmOpenSharedArea
     VmmReserveArea
+    VmmShare

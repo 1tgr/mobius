@@ -1,3 +1,5 @@
+ROOT=	../..
+
 EXP=    libsys.exp
 DEF=    libsys.def
 
@@ -22,14 +24,14 @@ OBJS=	dllmain.o syscall.o port.o misc.o \
 	../libc/string/strncmp.o
 BASE=	libsys
 
-include ../make.conf
+include $(ROOT)/coreos/make.conf
 
 TARGET_D=       $(BIN)/libsys.dll
 TARGET_S=       $(LIB)/libsys_s.lib
 IMP=            $(LIB)/libsys.lib
 LIBS=           $(LIB)/librtl_s.lib 
 
-include ../make.actions
+include $(ROOT)/coreos/make.actions
 
 sysdef.i:	sysdef.c
 	gcc -E $< -o $@ -I$(INCLUDE)
