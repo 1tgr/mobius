@@ -1,3 +1,5 @@
+/* $Id: device.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+
 #include <kernel/driver.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
@@ -391,7 +393,7 @@ void DevRunHandlers(void)
 		assert(io->dev);
 		assert(io->dev->finishio);
 
-		LIST_REMOVE(io->fio, io);
+		LIST_REMOVE(io->owner->fio, io);
 		io->dev->finishio(io->dev, io);
 		free(io->req);
 		free(io);

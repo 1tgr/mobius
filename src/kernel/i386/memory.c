@@ -1,3 +1,5 @@
+/* $Id: memory.c,v 1.2 2001/11/05 22:41:07 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>

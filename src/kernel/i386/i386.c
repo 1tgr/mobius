@@ -1,3 +1,5 @@
+/* $Id: i386.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
@@ -108,7 +110,6 @@ uint32_t i386Isr(context_t ctx)
 	if (ctx.error == (uint32_t) -1)
 	{
 		irq_t *irq;
-		request_dev_t req;
 
 		ArchMaskIrq(0, 1 << ctx.intr);
 		
@@ -125,10 +126,13 @@ uint32_t i386Isr(context_t ctx)
 		irq = irq_first[ctx.intr];
 		while (irq)
 		{
-			req.header.code = DEV_ISR;
+			assert(irq->dev->isr);
+			/*req.header.code = DEV_ISR;
 			req.header.result = 0;
 			req.params.dev_irq.irq = ctx.intr;
 			if (irq->dev->request(irq->dev, (request_t*) &req))
+				break;*/
+			if (irq->dev->isr(irq->dev, ctx.intr))
 				break;
 			irq = irq->next;
 		}

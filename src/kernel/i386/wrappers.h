@@ -1,3 +1,5 @@
+/* $Id: wrappers.h,v 1.2 2001/11/05 22:41:07 pavlovskii Exp $ */
+
 #ifndef __WRAPPERS_H
 #define __WRAPPERS_H
 

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <printf.h> /* fnptr. Also include stdarg.h for va_list, va_arg() */
 #include <wchar.h>
+#include <stdlib.h>
 
 /*****************************************************************************
 	name:   doPrintf

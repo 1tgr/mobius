@@ -1,3 +1,5 @@
+/* $Id: scdsptch.c,v 1.2 2001/11/05 22:41:07 pavlovskii Exp $ */
+
 #include <kernel/i386.h>
 #include <kernel/memory.h>
 

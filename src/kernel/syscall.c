@@ -1,3 +1,5 @@
+/* $Id: syscall.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>

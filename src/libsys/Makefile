@@ -8,7 +8,7 @@ include ../make.actions
 TARGET_D=       $(BIN)/libsys.dll
 TARGET_S=       $(LIB)/libsys_s.lib
 IMP=            $(LIB)/libsys.lib
-LIBS=           $(LIB)/libc_s.lib
+LIBS=           
 include ../make.actions
 
 all:	$(TARGET_D) $(TARGET_S) $(IMP)

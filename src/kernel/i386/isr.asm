@@ -1,3 +1,5 @@
+; $Id: isr.asm,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $
+
 [bits		32]
 
 [section	.text]

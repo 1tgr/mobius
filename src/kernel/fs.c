@@ -1,3 +1,5 @@
+/* $Id: fs.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+
 #include <kernel/fs.h>
 #include <kernel/driver.h>
 
