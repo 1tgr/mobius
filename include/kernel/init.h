@@ -23,6 +23,11 @@ bool	MemInit(void);
 bool	ProcInit(void);
 bool	RdInit(void);
 
+#include <kernel/fs.h>
+fsd_t *  RdMountFs(driver_t* driver, const wchar_t *dest);
+fsd_t *  DevMountFs(driver_t *driver, const wchar_t *dest);
+fsd_t *  PortMountFs(driver_t *driver, const wchar_t *dest);
+
 /*! @} */
 
 #ifdef __cplusplus

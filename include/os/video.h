@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.4 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: video.h,v 1.5 2002/05/05 13:46:33 pavlovskii Exp $ */
 
 #ifndef __OS_VIDEO_H
 #define __OS_VIDEO_H
@@ -86,6 +86,7 @@ struct videomode_t
     uint8_t bitsPerPixel;
     uint32_t bytesPerLine;
     uint32_t flags;
+    wchar_t framebuffer[20];
 };
 
 #define VIDEO_MODE_GRAPHICS 0

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.15 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.16 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -11,6 +11,7 @@ extern "C"
 #include <kernel/handle.h>
 #include <os/device.h>
 #include <kernel/memory.h>
+#include <kernel/io.h>
 
 #ifndef __DEVICE_T_DEFINED
 typedef struct device_t device_t;
@@ -213,7 +214,8 @@ struct request_t
     uint32_t code;
     status_t result;
     request_t *original;
-    struct device_t *from;
+    /*struct device_t *from;*/
+    io_callback_t callback;
     void *param;
 };
 
@@ -336,6 +338,8 @@ struct device_config_t
 
 #define DEV_CFG_RESOURCES(cfg)    ((device_resource_t*) ((cfg) + 1))
 
+struct fsd_t;
+
 typedef struct driver_t driver_t;
 /*!
  *    \brief    Device driver structure
@@ -379,8 +383,7 @@ struct driver_t
      *    \return    A pointer to a file system device object
      */
 
-    device_t * (*mount_fs)(driver_t *driver, const wchar_t *path, 
-        device_t *dev);
+    struct fsd_t * (*mount_fs)(driver_t *driver, const wchar_t *dest);
 };
 
 typedef struct device_vtbl_t device_vtbl_t;

@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.9 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.10 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 

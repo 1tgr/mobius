@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.5 2002/03/04 18:56:08 pavlovskii Exp $ */
+/* $Id: types.h,v 1.6 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 
@@ -42,7 +42,19 @@ typedef void *va_list;
 
 #ifdef __MOBIUS__
 typedef addr_t handle_t;
-typedef uint32_t status_t;
+typedef int32_t status_t;
+#endif
+
+#ifdef _POSIX_SOURCE
+
+typedef unsigned gid_t;
+typedef unsigned uid_t;
+typedef unsigned pid_t;
+typedef unsigned dev_t;
+typedef unsigned ino_t;
+typedef unsigned mode_t;
+typedef unsigned nlink_t;
+
 #endif
 	
 #endif

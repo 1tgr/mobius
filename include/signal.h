@@ -1,4 +1,4 @@
-/* $Id: signal.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: signal.h,v 1.3 2002/05/05 13:46:33 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_signal_h_
@@ -10,24 +10,18 @@ extern "C" {
 
 #ifndef __dj_ENFORCE_ANSI_FREESTANDING
 
-#include <sys/djtypes.h>
+#include <sys/types.h>
 
-/* 256 software interrupts + 32 exceptions = 288 */
-
-#define SIGABRT	288
-#define SIGFPE	289
-#define SIGILL	290
-#define SIGSEGV	291
-#define SIGTERM	292
-#define SIGINT  295
+#define SIGABRT	1
+#define SIGFPE	2
+#define SIGILL	3
+#define SIGSEGV	4
+#define SIGTERM	5
+#define SIGINT  6
 
 #define SIG_DFL ((void (*)(int))(0))
 #define SIG_ERR	((void (*)(int))(1))
 #define SIG_IGN	((void (*)(int))(-1))
-
-__DJ_pid_t
-#undef __DJ_pid_t
-#define __DJ_pid_t
 
 typedef int sig_atomic_t;
 
@@ -38,14 +32,14 @@ void	(*signal(int _sig, void (*_func)(int)))(int);
 
 #define SA_NOCLDSTOP	1
 
-#define SIGALRM	293
-#define SIGHUP	294
+#define SIGALRM	7
+#define SIGHUP	8
 /* SIGINT is ansi */
-#define SIGKILL	296
-#define SIGPIPE	297
-#define SIGQUIT	298
-#define SIGUSR1	299
-#define SIGUSR2	300
+#define SIGKILL	9
+#define SIGPIPE	10
+#define SIGQUIT	11
+#define SIGUSR1	12
+#define SIGUSR2	13
 
 #define SIG_BLOCK	1
 #define SIG_SETMASK	2
@@ -61,7 +55,10 @@ struct sigaction {
   sigset_t sa_mask;
 };
 
+#ifdef _POSIX_SOURCE
 int	kill(pid_t _pid, int _sig);
+#endif
+
 int	sigaction(int _sig, const struct sigaction *_act, struct sigaction *_oact);
 int	sigaddset(sigset_t *_set, int _signo);
 int	sigdelset(sigset_t *_set, int _signo);

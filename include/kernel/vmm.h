@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.4 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.5 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -36,6 +36,7 @@ struct page_array_t;
 struct vm_area_t
 {
     vm_area_t *prev, *next;
+    vm_area_t *shared_prev, *shared_next;
     process_t *owner;
 
     addr_t start;
@@ -43,6 +44,7 @@ struct vm_area_t
     semaphore_t mtx_allocate;
     fileop_t pagingop;
     struct page_array_t *pages, *read_pages;
+    wchar_t *name;
     
     unsigned type;
 
@@ -67,6 +69,7 @@ void*       VmmAlloc(size_t pages, addr_t start, uint32_t flags);
 /*void*     VmmShare(vm_area_t* area, process_t* proc, addr_t start, uint32_t flags);*/
 /* create a mapped file vm area */
 void*       VmmMapFile(addr_t start, size_t pages, handle_t file, uint32_t flags);
+bool        VmmShare(void *base, const wchar_t *name);
 
 void        VmmFree(vm_area_t* area);
 bool        VmmPageFault(vm_area_t* area, addr_t start, bool is_writing);

@@ -1,4 +1,4 @@
-/* $Id: syscall.h,v 1.7 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: syscall.h,v 1.8 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __OS_SYSCALL_H
 #define __OS_SYSCALL_H
 
@@ -20,6 +20,7 @@ struct wndattr_t;
 struct msg_t;
 struct MGLrect;
 struct wndinput_t;
+struct dirent_t;
 
 #include <os/sysdef.h>
 

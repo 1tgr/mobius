@@ -4,7 +4,7 @@
 #ifndef __dj_include_libc_file_h__
 #define __dj_include_libc_file_h__
 
-#include <fcntl.h>
+/*#include <fcntl.h>*/
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +14,7 @@ extern "C" {
 
 #ifndef __STRICT_ANSI__
 
-#ifndef _POSIX_SOURCE
+/*#ifndef _POSIX_SOURCE*/
 
 #define _IOREAD   000010
 #define _IOWRT    000020
@@ -56,11 +56,11 @@ static __inline__ int __putc_raw(int const x,FILE *const p)
    return(_flsbuf((unsigned char)x,p));
 }
 
-static __inline__ int __is_text_file(FILE *const p)
+/*static __inline__ int __is_text_file(FILE *const p)
 {
    return(!((p)->_flag & (_IOSTRG | _IOTERM))
 	  && (__file_handle_modes[(p)->_file]&O_TEXT));
-}
+}*/
 
 static __inline__ int __getc(FILE *const p)
 {
@@ -78,8 +78,8 @@ static __inline__ int __getc(FILE *const p)
   }
 #endif
   __c = __getc_raw(p);
-  if (__c=='\r' && __is_text_file(p))
-    return __getc_raw(p);
+  /*if (__c=='\r' && __is_text_file(p))
+    return __getc_raw(p);*/
   return __c;
 }
 
@@ -97,8 +97,8 @@ static __inline__ int __putc(const int x,FILE *const p)
       (p)->_flag |= _IONTERM;
   }
 #endif
-  if(x=='\n' && __is_text_file(p))
-    __putc_raw('\r',p);
+  /*if(x=='\n' && __is_text_file(p))
+    __putc_raw('\r',p);*/
   return __putc_raw(x,p);
 }
 
@@ -109,7 +109,7 @@ static __inline__ int __putc(const int x,FILE *const p)
 #undef  ferror
 #define ferror(f)	(((f)->_flag&_IOERR)!=0)
 
-#endif /* !_POSIX_SOURCE */
+/*#endif*/ /* !_POSIX_SOURCE */
 #endif /* !__STRICT_ANSI__ */
 #endif /* !__dj_ENFORCE_ANSI_FREESTANDING */
 

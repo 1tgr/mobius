@@ -1,4 +1,4 @@
-/* $Id: locale.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: locale.h,v 1.3 2002/05/05 13:46:33 pavlovskii Exp $ */
 /* Copyright (C) 1997 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_locale_h_
@@ -10,13 +10,23 @@ extern "C" {
 
 #ifndef __dj_ENFORCE_ANSI_FREESTANDING
 
-#define LC_ALL		0x1f
 #define LC_COLLATE	0x01
 #define LC_CTYPE	0x02
 #define LC_MONETARY	0x04
 #define LC_NUMERIC	0x08
 #define LC_TIME		0x10
 #define NULL		0
+
+#ifdef _POSIX_SOURCE
+
+#define LC_ALL		0x2f
+#define LC_MESSAGES	0x20
+
+#else
+
+#define LC_ALL		0x1f
+
+#endif
 
 struct lconv {
   char *currency_symbol;

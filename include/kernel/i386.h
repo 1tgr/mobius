@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.11 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.12 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -377,12 +377,19 @@ static __inline uint16_t in16(uint16_t port)
 	return ret;
 }
 
-static __inline void ins16(uint16_t port, void *buf, size_t length)
+/*static __inline void ins16(uint16_t port, void *buf, size_t length)
 {
 	__asm__ __volatile__ ("rep insw" 
 		: 
 		: "D" (buf), "c" (length / 2), "d" (port));
 }
+
+static __inline void outs16(uint16_t port, const void *buf, size_t length)
+{
+	__asm__ __volatile__ ("rep outsw" 
+		: 
+		: "D" (buf), "c" (length / 2), "d" (port));
+}*/
 
 static __inline uint32_t in32(uint16_t port)
 {

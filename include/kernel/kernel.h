@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.6 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -74,6 +74,8 @@ void	MtxRelease(semaphore_t *sem);
 
 #define FOREACH(item, list) \
 	for (item = list##_first; item != NULL; item = item->next)
+
+#define KeYield() __asm__("int $0x30" : : "a" (0x108), "c" (0), "d" (0))
 
 /*! @} */
 

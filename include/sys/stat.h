@@ -1,4 +1,4 @@
-/* $Id: stat.h,v 1.1 2002/03/05 02:10:21 pavlovskii Exp $ */
+/* $Id: stat.h,v 1.2 2002/05/05 13:46:33 pavlovskii Exp $ */
 
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_sys_stat_h_
@@ -42,7 +42,6 @@ extern "C" {
 struct stat {
   time_t	st_atime;
   time_t	st_ctime;
-#if 0
   dev_t		st_dev;
   gid_t		st_gid;
   ino_t		st_ino;
@@ -53,7 +52,6 @@ struct stat {
   off_t		st_blksize;
   uid_t		st_uid;
   dev_t		st_rdev; /* unused */
-#endif
 };
 
 int	chmod(const char *_path, unsigned _mode);
@@ -63,7 +61,7 @@ int	mkfifo(const char *_path, unsigned _mode);
 int	stat(const char *_path, struct stat *_buf);
 unsigned	umask(unsigned _cmask);
 
-#ifndef _POSIX_SOURCE
+/*#ifndef _POSIX_SOURCE*/
 
 /* POSIX.1 doesn't mention these at all */
 
@@ -116,7 +114,7 @@ extern unsigned short   _djstat_flags;
 
 extern unsigned short   _djstat_fail_bits;
 
-#endif /* !_POSIX_SOURCE */
+/*#endif*/ /* !_POSIX_SOURCE */
 #endif /* !__STRICT_ANSI__ */
 #endif /* !__dj_ENFORCE_ANSI_FREESTANDING */
 

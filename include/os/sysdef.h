@@ -1,15 +1,15 @@
-/* $Id: sysdef.h,v 1.12 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.13 2002/05/05 13:46:33 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
-#define ThrWaitHandle	SysThrWaitHandle
-#define ThrSleep	SysThrSleep
-#define ThrCreateThread	SysThrCreateThread
-#define EvtAlloc	SysEvtAlloc
-#define EvtSignal	SysEvtSignal
-#define EvtIsSignalled	SysEvtIsSignalled
-#define HndClose	SysHndClose
-#define VmmFree		SysVmmFree
+#define ThrWaitHandle   SysThrWaitHandle
+#define ThrSleep        SysThrSleep
+#define ThrCreateThread SysThrCreateThread
+#define EvtAlloc        SysEvtAlloc
+#define EvtSignal       SysEvtSignal
+#define EvtIsSignalled  SysEvtIsSignalled
+#define HndClose        SysHndClose
+#define VmmFree         SysVmmFree
 #endif
 
 #ifndef SYS_BEGIN_GROUP
@@ -21,51 +21,54 @@
 #endif
 
 /*!
- *    \ingroup	  libsys
- *    \defgroup    sys	  Syscall Interface
+ *    \ingroup    libsys
+ *    \defgroup    sys    Syscall Interface
  *    @{
  */
 
-#define SYS_DbgWrite		0x100
-#define SYS_Hello		0x101
-#define SYS_SysUpTime		0x102
-#define SYS_SysGetInfo		0x103
-#define SYS_SysGetTimes 	0x104
+#define SYS_DbgWrite            0x100
+#define SYS_Hello               0x101
+#define SYS_SysUpTime           0x102
+#define SYS_SysGetInfo          0x103
+#define SYS_SysGetTimes         0x104
 #define SYS_SysShutdown         0x105
 #define SYS_KeLeakBegin         0x106
 #define SYS_KeLeakEnd           0x107
 #define SYS_SysYield            0x108
 
-#define SYS_ThrExitThread	0x200
-#define SYS_ThrWaitHandle	0x201
-#define SYS_ThrSleep		0x202
-#define SYS_ThrCreateV86Thread	0x203
-#define SYS_ThrGetV86Context	0x204
-#define SYS_ThrSetV86Context	0x205
-#define SYS_ThrContinueV86	0x206
-#define SYS_ThrCreateThread	0x207
+#define SYS_ThrExitThread       0x200
+#define SYS_ThrWaitHandle       0x201
+#define SYS_ThrSleep            0x202
+#define SYS_ThrCreateV86Thread  0x203
+#define SYS_ThrGetV86Context    0x204
+#define SYS_ThrSetV86Context    0x205
+#define SYS_ThrContinueV86      0x206
+#define SYS_ThrCreateThread     0x207
 
-#define SYS_ProcExitProcess	0x300
-#define SYS_ProcSpawnProcess	0x301
+#define SYS_ProcExitProcess     0x300
+#define SYS_ProcSpawnProcess    0x301
 
-#define SYS_FsCreate		0x400
-#define SYS_FsOpen		0x401
-#define SYS_FsClose		0x402
-#define SYS_FsRead		0x403
-#define SYS_FsWrite		0x404
-#define SYS_FsSeek		0x405
-#define SYS_FsOpenSearch	0x406
-#define SYS_FsQueryFile 	0x407
-#define SYS_FsRequestSync	0x408
+#define SYS_FsCreate            0x400
+#define SYS_FsOpen              0x401
+#define SYS_FsClose             0x402
+#define SYS_FsRead              0x403
+#define SYS_FsWrite             0x404
+#define SYS_FsSeek              0x405
+/*efine SYS_FsOpenSearch        0x406*/
+#define SYS_FsOpenDir           0x406
+#define SYS_FsQueryFile         0x407
+#define SYS_FsRequestSync       0x408
 #define SYS_FsIoCtl             0x409
+#define SYS_FsReadDir           0x40a
 
-#define SYS_VmmAlloc		0x500
-#define SYS_VmmFree		0x501
+#define SYS_VmmAlloc            0x500
+#define SYS_VmmFree             0x501
+#define SYS_VmmMapShared        0x502
 
-#define SYS_EvtAlloc		0x600
-#define SYS_HndClose		0x601
-#define SYS_EvtSignal		0x602
-#define SYS_EvtIsSignalled	0x603
+#define SYS_EvtAlloc            0x600
+#define SYS_HndClose            0x601
+#define SYS_EvtSignal           0x602
+#define SYS_EvtIsSignalled      0x603
 
 #define SYS_WndCreate           0x700
 #define SYS_WndClose            0x701
@@ -124,16 +127,19 @@ SYSCALL(bool, FsClose, 4, handle_t)
 SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t*)
 SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
 SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
-SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
+/*SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)*/
+SYSCALL(handle_t, FsOpenDir, 4, const wchar_t*)
 SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)
 SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void*, size_t, struct fileop_t*)
 SYSCALL(bool, FsIoCtl, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
+SYSCALL(bool, FsReadDir, 12, handle_t, struct dirent_t *, size_t)
 SYS_END_GROUP(4)
 
 /* 5 */
 SYS_BEGIN_GROUP(5)
 SYSCALL(void *, VmmAlloc, 12, size_t, addr_t, uint32_t)
 SYSCALL(bool, VmmFree, 4, void*)
+SYSCALL(void *, VmmMapShared, 12, const wchar_t *, addr_t, uint32_t)
 SYS_END_GROUP(5)
 
 /* 6 */

@@ -11,30 +11,31 @@ extern "C" {
 
 #ifndef __STRICT_ANSI__
 
-#ifndef _POSIX_SOURCE
+#ifdef _POSIX_DECORATE_NAMES
 
 /* POSIX functions (for when compiling an ANSI function) */
 
-#define access __access
-#define chdir __chdir
-#define close __close
-#define dup __dup
-#define dup2 __dup2
+#define access  __access
+#define chdir   __chdir
+#define close   __close
+#define dup     __dup
+#define dup2    __dup2
 #define fnmatch __fnmatch
-#define getcwd __getcwd
-#define glob __glob
-#define isatty __isatty
-#define lseek __lseek
-#define mkdir __mkdir
-#define open __open
-#define wopen __wopen
-#define read __read
-#define tzset __tzset
-#define write __write
+#define getcwd  __getcwd
+#define glob    __glob
+#define isatty  __isatty
+#define lseek   __lseek
+#define mkdir   __mkdir
+#define open    __open
+#define wopen   __wopen
+#define read    __read
+#define sbrk    __sbrk
+#define tzset   __tzset
+#define write   __write
 
 /* DJGPP functions (for compiling POSIX or ANSI functions) */
 
-#define crlf2nl __crlf2nl
+/*#define crlf2nl __crlf2nl
 #define dosmemget __dosmemget
 #define dosmemput __dosmemput
 #define filelength __filelength
@@ -56,9 +57,12 @@ extern "C" {
 #define spawnve __spawnve
 #define spawnvpe __spawnvpe
 #define stricmp __stricmp
-#define sync __sync
+#define sync __sync*/
 
 #endif /* !_POSIX_SOURCE */
+
+#define _DLL_GLOBAL(type, name) type *__##name(void) { return &name; }
+
 #endif /* !__STRICT_ANSI__ */
 #endif /* !__dj_ENFORCE_ANSI_FREESTANDING */
 

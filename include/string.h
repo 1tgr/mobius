@@ -1,4 +1,4 @@
-/* $Id: string.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: string.h,v 1.4 2002/05/05 13:46:33 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_string_h_
@@ -40,6 +40,10 @@ size_t	strxfrm(char *_s1, const char *_s2, size_t _n);
 int	_stricmp(const char *_s1, const char *_s2);
 #ifndef strdup
 char *	strdup(const char * _s);
+#endif
+
+#ifdef _POSIX_SOURCE
+#include <posix/strings.h>
 #endif
 
 #ifdef __cplusplus
