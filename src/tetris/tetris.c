@@ -1,7 +1,8 @@
-/* $Id: tetris.c,v 1.3 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: tetris.c,v 1.4 2002/03/27 22:08:38 pavlovskii Exp $ */
 
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
+#include <stddef.h>
 #include <errno.h>
 #include <os/keyboard.h>
 #include <os/syscall.h>
@@ -29,21 +30,21 @@
 #define	DIR_LT2			{ -2, 0 }
 #define	DIR_RT2			{ +2, 0 }
 /* ANSI colors */
-#define	COLOR_BLACK		0
-#define	COLOR_RED		1
-#define	COLOR_GREEN		2
-#define	COLOR_YELLOW	3
-#define	COLOR_BLUE		4
-#define	COLOR_MAGENTA	5
-#define	COLOR_CYAN		6
-#define	COLOR_WHITE		7
+#define	COLOR_BLACK		0x000000
+#define	COLOR_RED		0x800000
+#define	COLOR_GREEN		0x008000
+#define	COLOR_YELLOW	        0x808000
+#define	COLOR_BLUE		0x000080
+#define	COLOR_MAGENTA	        0x800080
+#define	COLOR_CYAN		0x008080
+#define	COLOR_WHITE		0x808080
 
 typedef struct
 {	short int DeltaX, DeltaY; } vector;
 
 typedef struct
 {	char Plus90, Minus90;	/* pointer to shape rotated +/- 90 degrees */
-	char Color;		/* shape color */
+	MGLcolour Color;	/* shape color */
 	vector Dir[4]; } shape;	/* drawing instructions for this shape */
 
 shape Shapes[]=
@@ -74,7 +75,8 @@ shape Shapes[]=
 	{ 18, 16, COLOR_WHITE, { DIR_DN, DIR_UP, DIR_RT, DIR_LT2 }},
 	{ 15, 17, COLOR_WHITE, { DIR_RT, DIR_LT, DIR_DN, DIR_UP2 }}};
 
-char Dirty[SCN_HT], Screen[SCN_WID][SCN_HT];
+char Dirty[SCN_HT];
+MGLcolour Screen[SCN_WID][SCN_HT];
 //////////////////////////////////////////////////////////////////////////////
 //			ANSI GRAPHIC OUTPUT
 //////////////////////////////////////////////////////////////////////////////
@@ -100,7 +102,14 @@ void refresh(void)
 
 			if (Screen[XPos][YPos] != 0)
 			{
-			    glSetColour(Screen[XPos][YPos] | 8);
+                            int r, g, b;
+                            r = MGL_RED(Screen[XPos][YPos]);
+                            g = MGL_GREEN(Screen[XPos][YPos]);
+                            b = MGL_BLUE(Screen[XPos][YPos]);
+                            r = min(r + 0x40, 255);
+                            g = min(g + 0x40, 255);
+                            b = min(b + 0x40, 255);
+			    glSetColour(MGL_COLOUR(r, g, b));
 			    glMoveTo((XPos + 1) * 48, YPos * 48);
 			    glLineTo(XPos * 48, YPos * 48);
 			    glLineTo(XPos * 48, (YPos + 1) * 48);
@@ -120,13 +129,12 @@ void refresh(void)
 	action:	draws one graphic block in display buffer at
 		position (XPos, YPos)
 *****************************************************************************/
-void blockDraw(unsigned XPos, unsigned YPos, char Color)
+void blockDraw(unsigned XPos, unsigned YPos, MGLcolour Color)
 {	if(XPos >= SCN_WID)
 		XPos=SCN_WID - 1;
 	if(YPos >= SCN_HT)
 		YPos=SCN_HT - 1;
-	Color &= 7;
-
+	
 	Screen[XPos][YPos]=Color;
 	Dirty[YPos]=1; }	/* this row has been modified */
 /*****************************************************************************
@@ -137,7 +145,7 @@ void blockDraw(unsigned XPos, unsigned YPos, char Color)
 		empty)
 *****************************************************************************/
 char blockHit(unsigned XPos, unsigned YPos)
-{	return(Screen[XPos][YPos]); }
+{	return Screen[XPos][YPos] != 0; }
 //////////////////////////////////////////////////////////////////////////////
 //			SHAPE DRAW & HIT DETECT
 //////////////////////////////////////////////////////////////////////////////

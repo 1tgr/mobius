@@ -1,4 +1,4 @@
-/* $Id: render.c,v 1.3 2002/03/06 19:31:41 pavlovskii Exp $ */
+/* $Id: render.c,v 1.4 2002/03/27 22:08:38 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
@@ -138,8 +138,8 @@ void glFillRect(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
     if (bottom < top)
 	swap_MGLreal(&top, &bottom);
 
-    if (!mgliMapToSurface(left, top, &topLeft) ||
-	!mgliMapToSurface(right, bottom, &bottomRight))
+    if (!mglMapToSurface(left, top, &topLeft) ||
+	!mglMapToSurface(right, bottom, &bottomRight))
 	return;
 
     vidFillRect(&current->render_queue, topLeft, bottomRight, current->colour);
@@ -198,8 +198,8 @@ void glLineTo(MGLreal x, MGLreal y)
 
     CCV;
 
-    mgliMapToSurface(x, y, &to);
-    mgliMapToSurface(current->pos.x, current->pos.y, &from);
+    mglMapToSurface(x, y, &to);
+    mglMapToSurface(current->pos.x, current->pos.y, &from);
 
     if (from.x == to.x)
 	vidVLine(&current->render_queue, from.x, from.y, to.y, current->colour);
@@ -224,8 +224,8 @@ void glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
     if (bottom < top)
 	swap_MGLreal(&top, &bottom);
 
-    if (!mgliMapToSurface(left, top, &topLeft) ||
-	!mgliMapToSurface(right, bottom, &bottomRight))
+    if (!mglMapToSurface(left, top, &topLeft) ||
+	!mglMapToSurface(right, bottom, &bottomRight))
 	return;
 
     vidHLine(&current->render_queue, 
@@ -245,7 +245,7 @@ void glPutPixel(MGLreal x, MGLreal y)
 
     CCV;
 
-    mgliMapToSurface(x, y, &pt);
+    mglMapToSurface(x, y, &pt);
     vidPutPixel(&current->render_queue, pt.x, pt.y, current->colour);
 }
 
@@ -272,9 +272,20 @@ void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
     if (len == (size_t) -1)
 	len = wcslen(str);
 
-    mgliMapToSurface(rc->left, rc->top, &topLeft);
-    mgliMapToSurface(rc->right, rc->bottom, &bottomRight);
-    while (len > 0)
+    mglMapToSurface(rc->left, rc->top, &topLeft);
+    mglMapToSurface(rc->right, rc->bottom, &bottomRight);
+
+    params.vid_textout.rect.left = topLeft.x;
+    params.vid_textout.rect.top = topLeft.y;
+    params.vid_textout.rect.right = bottomRight.x;
+    params.vid_textout.rect.bottom = bottomRight.y;
+    params.vid_textout.buffer = str;
+    params.vid_textout.length = len * sizeof(wchar_t);
+    params.vid_textout.foreColour = current->colour;
+    params.vid_textout.backColour = -1;
+    FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
+
+    /*while (len > 0)
     {
 	while (*str == '\n' && len > 0)
 	{
@@ -303,10 +314,10 @@ void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
 	    FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
 	}
 
-	topLeft.y += 8;
+	topLeft.y = params.vid_textout.y;
 	len -= chunk;
 	str += chunk;
-    }
+    }*/
 }
 
 void glFillPolygon(const MGLpoint *points, unsigned num_points)
@@ -316,12 +327,14 @@ void glFillPolygon(const MGLpoint *points, unsigned num_points)
     params_vid_t params;
     fileop_t op;
 
+    CCV;
+
     pts = malloc(sizeof(point_t) * num_points);
     if (pts == NULL)
 	return;
 
     for (i = 0; i < num_points; i++)
-    	mgliMapToSurface(points[i].x, points[i].y, pts + i);
+    	mglMapToSurface(points[i].x, points[i].y, pts + i);
     
     glFlush();
     params.vid_fillpolygon.points = pts;

@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.2 2002/03/27 22:08:38 pavlovskii Exp $ */
 
 #ifndef __INTERNAL_MGL_H
 #define __INTERNAL_MGL_H
@@ -22,9 +22,9 @@ struct mglrc_t
 	queue_t render_queue;
 };
 
-extern mglrc_t *current;
+bool	    mglMapToSurface(MGLreal x, MGLreal y, point_t *pt);
 
-bool	mgliMapToSurface(MGLreal x, MGLreal y, point_t *pt);
+extern mglrc_t *current;
 
 #define CCV \
 	if (current == NULL) \

@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.4 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.5 2002/03/27 22:08:38 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -9,7 +9,7 @@
 
 mglrc_t *current;
 
-static bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first, unsigned count)
+/*static bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first, unsigned count)
 {
     params_vid_t params;
     fileop_t op;
@@ -38,7 +38,7 @@ const rgb_t palette[16 + 50] =
     { 0, 255, 255, 0 },
     { 255, 255, 255, 0 },
 
-    /* banner colours */
+    // banner colours
     { 61, 35, 190, 0 },
     { 56, 34, 194, 0 },
     { 58, 34, 192, 0 },
@@ -89,22 +89,19 @@ const rgb_t palette[16 + 50] =
     { 163, 65, 100, 0 },
     { 166, 66, 97, 0 },
     { 130, 56, 129, 0 },
-};
+};*/
 
 /*! \brief  Creates a rendering context */
 mglrc_t *mglCreateRc(const wchar_t *server)
 {
     mglrc_t *rc;
-    handle_t file;
-    const wchar_t *font = L"helb____.ttf";
-    int error;
     params_vid_t params;
     fileop_t op;
 
     if (server == NULL)
 	server = SYS_DEVICES L"/video";
 
-    wprintf(L"mglCreateRc: %s\n", server);
+    printf("mglCreateRc: %S\n", server);
 
     rc = malloc(sizeof(*rc));
     if (rc == NULL)
@@ -113,53 +110,11 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     memset(rc, 0, sizeof(*rc));
 
     rc->video = FsOpen(server, 0);
-    if (rc->video == NULL /*||
-	FT_Init_FreeType(&rc->ft_library) ||
-	FT_New_Face(rc->ft_library,
-	    "rezn000.ttf",
-	    0,
-	    &rc->ft_face)*/)
+    if (rc->video == NULL)
     {
 	mglDeleteRc(rc);
 	return NULL;
     }
-     
-    rc->ft_face = NULL;
-    /*wprintf(L"Loading %s...", font);
-    file = fsOpen(font);
-    if (file)
-    {
-	void *buffer;
-	size_t length;
-
-	length = fsGetLength(file);
-	buffer = malloc(length);
-
-	wprintf(L"%u bytes\n", length);
-
-	if (buffer != NULL)
-	{
-	    fsRead(file, buffer, &length);
-	    error = FT_New_Memory_Face(rc->ft_library, buffer, length, 0, 
-		&rc->ft_face);
-	    if (error == FT_Err_Unknown_File_Format)
-		wprintf(L"Unknown font file format\n");
-	    else if (error)
-		wprintf(L"Error reading font file (error code: %u)\n", error);
-	    
-	    free(buffer);
-	}
-
-	fsClose(file);
-    }
-    else
-	_pwerror(font);
-    
-    if (rc->ft_face == NULL)
-    {
-	mglDeleteRc(rc);
-	return NULL;
-    }*/
 
     memset(&params, 0, sizeof(params));
     params.vid_setmode.bitsPerPixel = 8;
@@ -182,13 +137,13 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     rc->colour = 0xffffff;
     rc->clear_colour = 0;
 
-    if (params.vid_setmode.bitsPerPixel == 4)
+    /*if (params.vid_setmode.bitsPerPixel == 4)
     {
 	vidStorePalette(rc->video, palette, 0, 8);
 	vidStorePalette(rc->video, palette + 8, 56, 8);
     }
     else if (params.vid_setmode.bitsPerPixel == 8)
-    	vidStorePalette(rc->video, palette, 0, _countof(palette));
+    	vidStorePalette(rc->video, palette, 0, _countof(palette));*/
     
     if (current == NULL)
 	mglUseRc(rc);
@@ -199,7 +154,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
 /*! \brief  Deletes a rendering context */
 bool mglDeleteRc(mglrc_t *rc)
 {
-    wprintf(L"mglDeleteRc: %p\n", rc);
+    printf("mglDeleteRc: %p\n", rc);
     if (rc)
     {
 	vidFlushQueue(&rc->render_queue, rc->video);
@@ -230,7 +185,7 @@ bool mglDeleteRc(mglrc_t *rc)
 /*! \brief  Makes another rendering context current */
 bool mglUseRc(mglrc_t *rc)
 {
-    wprintf(L"mglUseRc: %p\n", rc);
+    printf("mglUseRc: %p\n", rc);
 
     if (rc == NULL)
     {
@@ -258,7 +213,7 @@ bool mglGetDimensions(mglrc_t *rc, MGLrect *rect)
     return true;
 }
 
-bool mgliMapToSurface(MGLreal x, MGLreal y, point_t *pt)
+bool mglMapToSurface(MGLreal x, MGLreal y, point_t *pt)
 {
     if (current)
     {

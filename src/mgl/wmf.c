@@ -1,4 +1,4 @@
-/* $Id: wmf.c,v 1.2 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: wmf.c,v 1.3 2002/03/27 22:08:38 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/defs.h>
@@ -17,7 +17,7 @@
 
 #include "wmfdefs.h"
 
-extern rgb_t palette[16 + 50];
+//extern rgb_t palette[16 + 50];
 
 #undef WMF_FUNCTION
 #define WMF_FUNCTION(name, code)    { #name, WMF_##name, code },
@@ -57,7 +57,7 @@ bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
     return true;
 }
 
-MGLcolour WmfGetMglColour(uint32_t clr)
+/*MGLcolour WmfGetMglColour(uint32_t clr)
 {
     unsigned i, best, dist, bestindex;
     uint8_t r, g, b;
@@ -80,6 +80,13 @@ MGLcolour WmfGetMglColour(uint32_t clr)
     }
 
     return bestindex;
+}*/
+
+MGLcolour WmfGetMglColour(uint32_t clr)
+{
+    uint8_t *wclr;
+    wclr = (uint8_t*) &clr;
+    return MGL_COLOUR(wclr[0], wclr[1], wclr[2]);
 }
 
 wmf_t *WmfOpen(const wchar_t *name)

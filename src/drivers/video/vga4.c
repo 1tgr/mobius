@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.8 2002/03/06 19:36:53 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.9 2002/03/27 22:08:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -11,7 +11,6 @@
 /*! Physical address of the VGA frame buffer */
 static uint8_t *video_base = PHYSICAL(0xa0000);
 static int maskbit[640], y80[480], xconv[640], startmasks[8], endmasks[8];
-static videomode_t vga4_mode;
 
 void swap_int(int *a, int *b);
 
@@ -30,29 +29,29 @@ struct
     const uint8_t *regs;
 } vga4_modes[] =
 {
-    /* width,	height,	bpp,	bpl,	cookie,		regs */
-    { {  80,	 25,	4,	0,	0x03, },	mode03h },
-    { { 320,	200,	4,	0,	0x0d, },	mode0Dh },
-    { { 640,	200,	4,	0,	0x0e, },	mode0Eh },
-    { { 640,	350,	4,	0,	0x10, },	mode10h },
-    { { 640,	480,	4,	0,	0x12, },	mode12h },
+    /* cookie,  width,  height, bpp,    bpl,    flags,                  regs */
+    { { 0x03,    80,     25,    4,      0,      VIDEO_MODE_TEXT, },     mode03h },
+    { { 0x0d,   320,    200,    4,      0,      VIDEO_MODE_GRAPHICS, }, mode0Dh },
+    { { 0x0e,   640,    200,    4,      0,      VIDEO_MODE_GRAPHICS, }, mode0Eh },
+    { { 0x10,   640,    350,    4,      0,      VIDEO_MODE_GRAPHICS, }, mode10h },
+    { { 0x12,   640,    480,    4,      0,      VIDEO_MODE_GRAPHICS, }, mode12h },
 
-  /*{ { 320,	200,	2,	0,	0x04, },	mode04h },
-    { { 640,	200,	1,	0,	0x06, },	mode06h },
-    { { 640,	350,	1,	0,	0x0f, },	mode0Fh },
-    { { 640,	480,	1,	0,	0x11, },	mode11h },*/
+  /*{ { 320,        200,        2,        0,        0x04, },        mode04h },
+    { { 640,        200,        1,        0,        0x06, },        mode06h },
+    { { 640,        350,        1,        0,        0x0f, },        mode0Fh },
+    { { 640,        480,        1,        0,        0x11, },        mode11h },*/
 };
 
 int vga4EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
     if (index < _countof(vga4_modes))
     {
-	vga4_modes[index].mode.bytesPerLine = vga4_modes[index].mode.width / 8;
-	*mode = vga4_modes[index].mode;
-	return index == _countof(vga4_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
+        vga4_modes[index].mode.bytesPerLine = vga4_modes[index].mode.width / 8;
+        *mode = vga4_modes[index].mode;
+        return index == _countof(vga4_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
     }
     else
-	return VID_ENUM_ERROR;
+        return VID_ENUM_ERROR;
 }
 
 void vga4PreCalc(void)
@@ -79,20 +78,20 @@ void vga4PreCalc(void)
     
     for (j = 0; j < 80; j++)
     {
-	maskbit[j * 8] = 128;
-	maskbit[j * 8 + 1] = 64;
-	maskbit[j * 8 + 2] = 32;
-	maskbit[j * 8 + 3] = 16;
-	maskbit[j * 8 + 4] = 8;
-	maskbit[j * 8 + 5] = 4;
-	maskbit[j * 8 + 6] = 2;
-	maskbit[j * 8 + 7] = 1;
+        maskbit[j * 8] = 128;
+        maskbit[j * 8 + 1] = 64;
+        maskbit[j * 8 + 2] = 32;
+        maskbit[j * 8 + 3] = 16;
+        maskbit[j * 8 + 4] = 8;
+        maskbit[j * 8 + 5] = 4;
+        maskbit[j * 8 + 6] = 2;
+        maskbit[j * 8 + 7] = 1;
     }
     
     for (j = 0; j < 480; j++)
-	y80[j] = j * vga4_mode.bytesPerLine;
+        y80[j] = j * video_mode.bytesPerLine;
     for (j = 0; j < 640; j++)
-	xconv[j] = j >> 3;
+        xconv[j] = j >> 3;
 }
 
 bool vga4SetMode(video_t *vid, videomode_t *mode)
@@ -102,19 +101,30 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
     
     regs = NULL;
     for (i = 0; i < _countof(vga4_modes); i++)
-	if (vga4_modes[i].mode.cookie == mode->cookie)
-	{
-	    regs = vga4_modes[i].regs;
-	    break;
-	}
+        if (vga4_modes[i].mode.cookie == mode->cookie)
+        {
+            regs = vga4_modes[i].regs;
+            break;
+        }
     
     if (regs == NULL)
-	return false;
+        return false;
 
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+        //vid->text_memory = vgaSaveTextMemory();
+        
     vgaWriteRegs(regs);
-    vga4_mode = vga4_modes[i].mode;
+    video_mode = vga4_modes[i].mode;
     vga4PreCalc();
-    vid->vidFillRect(vid, 0, 0, vga4_mode.width, vga4_mode.height, 0);
+
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+    //{
+        //vgaRestoreTextMemory(vid->text_memory);
+        //vid->text_memory = NULL;
+    //}
+    //else
+        vid->vidFillRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
+        
     return true;
 }
 
@@ -131,24 +141,24 @@ void vga4PutPixel(video_t *vid, int x, int y, colour_t clr)
     out16(VGA_GC_INDEX, 0x08 | (maskbit[x] << 8));
     if (pix)
     {
-	out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
-	a = *offset;
-	*offset = 0xff;
+        out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
+        a = *offset;
+        *offset = 0xff;
     }
 
     if (~pix)
     {
-	out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
-	a = *offset;
-	*offset = 0;
+        out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
+        a = *offset;
+        *offset = 0;
     }
 
     SemRelease(&sem_vga);
 }
 
 void vga4GetByte(addr_t offset,
-		 uint8_t *b, uint8_t *g,
-		 uint8_t *r, uint8_t *i)
+                 uint8_t *b, uint8_t *g,
+                 uint8_t *r, uint8_t *i)
 {
     SemAcquire(&sem_vga);
     out16(VGA_GC_INDEX, 0x0304);
@@ -190,7 +200,7 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     volatile uint8_t a;
 
     if (x2 < x1)
-	swap_int(&x1, &x2);
+        swap_int(&x1, &x2);
 
     pix = vga4Dither(x1, y, clr);
     offset = video_base + xconv[x1] + y80[y];
@@ -203,19 +213,19 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     SemAcquire(&sem_vga);
     if (leftpix > 0)
     {
-	/* leftmask = pixels set to left of middle */
-	leftmask = 0xff >> (8 - leftpix);
-	/*leftmask = startmasks[leftpix];*/
+        /* leftmask = pixels set to left of middle */
+        leftmask = 0xff >> (8 - leftpix);
+        /*leftmask = startmasks[leftpix];*/
 
-	out16(VGA_GC_INDEX, 0x08 | (leftmask << 8));
-	out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
-	a = *offset;
-	*offset = 0xff;
-	out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
-	a = *offset;
-	*offset = 0;
+        out16(VGA_GC_INDEX, 0x08 | (leftmask << 8));
+        out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
+        a = *offset;
+        *offset = 0xff;
+        out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
+        a = *offset;
+        *offset = 0;
 
-	offset++;
+        offset++;
     }
 
     /* rightx = end of middle region */
@@ -223,117 +233,120 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     /* midpix = number of pixels in middle */
     if (rightx > midx)
     {
-	midpix = rightx - midx;
-	out16(VGA_GC_INDEX, 0xff08);
-	if (pix)
-	{
-	    out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
-	    memset(offset, 0xff, midpix / 8);
-	}
+        midpix = rightx - midx;
+        out16(VGA_GC_INDEX, 0xff08);
+        if (pix)
+        {
+            out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
+            memset(offset, 0xff, midpix / 8);
+        }
 
-	if (~pix)
-	{
-	    out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
-	    memset(offset, 0, midpix / 8);
-	}
+        if (~pix)
+        {
+            out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
+            memset(offset, 0, midpix / 8);
+        }
 
-	offset += midpix / 8;
+        offset += midpix / 8;
     }
     
     /* rightpix = number of pixels to right of middle */
     rightpix = x2 - rightx;
     if (rightpix > 0)
     {
-	/* rightmask = pixels set to right of middle */
-	rightmask = 0xff << (8 - rightpix);
-	/*rightmask = endmasks[rightpix];*/
+        /* rightmask = pixels set to right of middle */
+        rightmask = 0xff << (8 - rightpix);
+        /*rightmask = endmasks[rightpix];*/
 
-	out16(VGA_GC_INDEX, 0x08 | (rightmask << 8));
-	out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
-	a = *offset;
-	*offset = 0xff;
-	out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
-	a = *offset;
-	*offset = 0;
+        out16(VGA_GC_INDEX, 0x08 | (rightmask << 8));
+        out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
+        a = *offset;
+        *offset = 0xff;
+        out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
+        a = *offset;
+        *offset = 0;
     }
 
     SemRelease(&sem_vga);
 }
 
+#if 0
 void vga4TextOut(video_t *vid, 
-		 int x, int y, vga_font_t *font, const wchar_t *str, 
-		 size_t len, colour_t afg, colour_t abg)
+                 int *x, int *y, vga_font_t *font, const wchar_t *str, 
+                 size_t len, colour_t afg, colour_t abg)
 {
     int ay;
     uint8_t *data, fg, bg, *offset;
     volatile int a;
     unsigned char ch[2];
 
-    fg = vga4Dither(x, y, afg);
-    bg = vga4Dither(x, y, abg);
+    fg = vga4Dither(*x, *y, afg);
+    bg = vga4Dither(*x, *y, abg);
 
     if (len == -1)
-	len = wcslen(str);
+        len = wcslen(str);
 
     SemAcquire(&sem_vga);
     for (; len > 0; str++, len--)
     {
-	ch[0] = 0;
-	wcsto437(ch, str, 1);
-	if (ch[0] < font->First || ch[0] > font->Last)
-	    ch[0] = '?';
+        ch[0] = 0;
+        wcsto437(ch, str, 1);
+        if (ch[0] < font->First || ch[0] > font->Last)
+            ch[0] = '?';
 
-	data = font->Bitmaps + font->Height * (ch[0] - font->First);
-	offset = video_base + xconv[x] + y80[y];
-	
-	for (ay = 0; ay < font->Height; ay++)
-	{
-	    if (afg != (colour_t) -1)
-	    {
-		/* draw letter */
-		out16(VGA_GC_INDEX, 0x08 | (data[ay] << 8));
-		if (fg)
-		{
-		    out16(VGA_SEQ_INDEX, 0x02 | (fg << 8));
-		    a = *offset;
-		    *offset = 0xff;
-		}
+        data = font->Bitmaps + font->Height * (ch[0] - font->First);
+        offset = video_base + xconv[*x] + y80[*y];
+        
+        for (ay = 0; ay < font->Height; ay++)
+        {
+            if (afg != (colour_t) -1)
+            {
+                /* draw letter */
+                out16(VGA_GC_INDEX, 0x08 | (data[ay] << 8));
+                if (fg)
+                {
+                    out16(VGA_SEQ_INDEX, 0x02 | (fg << 8));
+                    a = *offset;
+                    *offset = 0xff;
+                }
 
-		if (~fg)
-		{
-		    out16(VGA_SEQ_INDEX, 0x02 | (~fg << 8));
-		    a = *offset;
-		    *offset = 0;
-		}
-	    }
+                if (~fg)
+                {
+                    out16(VGA_SEQ_INDEX, 0x02 | (~fg << 8));
+                    a = *offset;
+                    *offset = 0;
+                }
+            }
 
-	    if (abg != (colour_t) -1)
-	    {
-		/* draw background */
-		out16(VGA_GC_INDEX, 0x08 | (~data[ay] << 8));
-		if (bg)
-		{
-		    out16(VGA_SEQ_INDEX, 0x02 | (bg << 8));
-		    a = *offset;
-		    *offset = 0xff;
-		}
+            if (abg != (colour_t) -1)
+            {
+                /* draw background */
+                out16(VGA_GC_INDEX, 0x08 | (~data[ay] << 8));
+                if (bg)
+                {
+                    out16(VGA_SEQ_INDEX, 0x02 | (bg << 8));
+                    a = *offset;
+                    *offset = 0xff;
+                }
 
-		if (~bg)
-		{
-		    out16(VGA_SEQ_INDEX, 0x02 | (~bg << 8));
-		    a = *offset;
-		    *offset = 0;
-		}
-	    }
+                if (~bg)
+                {
+                    out16(VGA_SEQ_INDEX, 0x02 | (~bg << 8));
+                    a = *offset;
+                    *offset = 0;
+                }
+            }
 
-	    offset += vga4_mode.bytesPerLine;
-	}
+            offset += video_mode.bytesPerLine;
+        }
 
-	x += 8;
+        *x += 8;
     }
 
+    *y += font->Height;
     SemRelease(&sem_vga);
 }
+#endif
 
 video_t vga4 =
 {
@@ -343,11 +356,11 @@ video_t vga4 =
     vga4PutPixel,
     vga4GetPixel,
     vga4HLine,
-    NULL,	     /* vline */
-    NULL,	     /* line */
-    NULL,	     /* fillrect */
-    vga4TextOut,
-    NULL,	     /* fillpolygon */
+    NULL,             /* vline */
+    NULL,             /* line */
+    NULL,             /* fillrect */
+    NULL, //vga4TextOut,
+    NULL,             /* fillpolygon */
     vgaStorePalette
 };
 

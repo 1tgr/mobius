@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.3 2002/03/07 15:51:52 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.4 2002/03/27 22:08:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -10,94 +10,145 @@
 
 /*! Physical address of the VGA frame buffer */
 static uint8_t *video_base = PHYSICAL(0xa0000);
-static videomode_t vga8_mode;
+static rgb_t vga8_palette[256];
 
 void swap_int(int *a, int *b);
 
-uint8_t vga8Dither(int x, int y, colour_t clr)
+static uint8_t vga8Dither(int x, int y, colour_t clr)
 {
-    return (uint8_t) clr;
+    uint8_t r, g, b;
+    r = COLOUR_RED(clr);
+    g = COLOUR_GREEN(clr);
+    b = COLOUR_BLUE(clr);
+
+    if (r / 16 == g / 16 && g / 16 == b / 16)
+        return r / 16;
+    else
+    {
+        r = (r * 6) / 256;
+        g = (g * 6) / 256;
+        b = (b * 6) / 256;
+        return ((r * 36) | (g * 6) | b) + 40;
+    }
 }
 
-void vga8Close(video_t *vid)
+static void vga8Close(video_t *vid)
 {
 }
 
-struct
+static struct
 {
     videomode_t mode;
     const uint8_t *regs;
 } vga8_modes[] =
 {
-    /* width, height, bpp, bpl, cookie, regs */
-    { { 320,    200,    8,  0,  0x13, },	mode13h },
+    /*  cookie, width,  height, bpp, bpl,   flags,                  regs */
+    { { 0x13,   320,    200,    8,   0,     VIDEO_MODE_GRAPHICS, },	mode13h },
 };
 
-int vga8EnumModes(video_t *vid, unsigned index, videomode_t *mode)
+static int vga8EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
     if (index < _countof(vga8_modes))
     {
-	vga8_modes[index].mode.bytesPerLine = 
-	    (vga8_modes[index].mode.width * vga8_modes[index].mode.bitsPerPixel) / 8;
-	*mode = vga8_modes[index].mode;
-	return index == _countof(vga8_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
+        vga8_modes[index].mode.bytesPerLine = 
+            (vga8_modes[index].mode.width * vga8_modes[index].mode.bitsPerPixel) / 8;
+        *mode = vga8_modes[index].mode;
+        return index == _countof(vga8_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
     }
     else
-	return VID_ENUM_ERROR;
+        return VID_ENUM_ERROR;
 }
 
-bool vga8SetMode(video_t *vid, videomode_t *mode)
+static bool vga8SetMode(video_t *vid, videomode_t *mode)
 {
     const uint8_t *regs;
     unsigned i;
     
     regs = NULL;
     for (i = 0; i < _countof(vga8_modes); i++)
-	if (vga8_modes[i].mode.cookie == mode->cookie)
-	{
-	    regs = vga8_modes[i].regs;
-	    break;
-	}
+        if (vga8_modes[i].mode.cookie == mode->cookie)
+        {
+            regs = vga8_modes[i].regs;
+            break;
+        }
     
     if (regs == NULL)
-	return false;
+        return false;
 
-    vga8_mode = vga8_modes[i].mode;
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+        //vid->text_memory = vgaSaveTextMemory();
+
+    video_mode = vga8_modes[i].mode;
     vgaWriteRegs(regs);
-    vid->vidFillRect(vid, 0, 0, vga8_mode.width, vga8_mode.height, 0);
+
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+    //{
+        //vgaRestoreTextMemory(vid->text_memory);
+        //vid->text_memory = NULL;
+    //}
+    //else
+        vid->vidFillRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
+        
+#define SC(x) ((((x)%6) * 252) / 5)
+    for (i = 0; i < 16; i++)
+    {
+        vga8_palette[i].red = i * 16;
+        vga8_palette[i].green = i * 16;
+        vga8_palette[i].blue = i * 16;
+    }
+
+    for (; i < 40; i++)
+        vga8_palette[i].red = 
+            vga8_palette[i].green = 
+            vga8_palette[i].blue = 255;
+
+    for (; i < 256; i++)
+    {
+        vga8_palette[i].red = SC((i - 40) / 36);
+        vga8_palette[i].green = SC((i - 40) / 6);
+        vga8_palette[i].blue = SC(i - 40);
+    }
+#undef SC
+
+    vgaStorePalette(vid, vga8_palette, 0, _countof(vga8_palette));
     return true;
 }
 
-void vga8PutPixel(video_t *vid, int x, int y, colour_t clr)
+static void vga8PutPixel(video_t *vid, int x, int y, colour_t clr)
 {
-    video_base[x + y * vga8_mode.bytesPerLine] = vga8Dither(x, y, clr);
+    video_base[x + y * video_mode.bytesPerLine] = vga8Dither(x, y, clr);
 }
 
-colour_t vga8GetPixel(video_t *vid, int x, int y)
+static colour_t vga8GetPixel(video_t *vid, int x, int y)
 {
-    return video_base[x + y * vga8_mode.bytesPerLine];
+    uint8_t index;
+    index = video_base[x + y * video_mode.bytesPerLine];
+    return MAKE_COLOUR(vga8_palette[index].red, 
+        vga8_palette[index].green, 
+        vga8_palette[index].blue);
 }
 
-void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
+static void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
     if (x2 < x1)
 	swap_int(&x1, &x2);
 
-    memset(video_base + x1 + y * vga8_mode.bytesPerLine, 
+    memset(video_base + x1 + y * video_mode.bytesPerLine, 
 	vga8Dither(x1, y, clr),
 	x2 - x1);
 }
 
-void vga8TextOut(video_t *vid, 
-		 int x, int y, vga_font_t *font, const wchar_t *str, 
+#if 0
+static void vga8TextOut(video_t *vid, 
+		 int *x, int *y, vga_font_t *font, const wchar_t *str, 
 		 size_t len, colour_t afg, colour_t abg)
 {
     int ay, i;
     uint8_t *data, fg, bg, *offset;
     unsigned char ch[2];
 
-    fg = vga8Dither(x, y, afg);
-    bg = vga8Dither(x, y, abg);
+    fg = vga8Dither(*x, *y, afg);
+    bg = vga8Dither(*x, *y, abg);
 
     if (len == -1)
 	len = wcslen(str);
@@ -111,7 +162,7 @@ void vga8TextOut(video_t *vid,
 	    ch[0] = '?';
 
 	data = font->Bitmaps + font->Height * (ch[0] - font->First);
-	offset = video_base + x + y * vga8_mode.bytesPerLine;
+	offset = video_base + *x + *y * video_mode.bytesPerLine;
 	
 	for (ay = 0; ay < font->Height; ay++)
 	{
@@ -125,16 +176,18 @@ void vga8TextOut(video_t *vid,
 		    if ((data[ay] & (1 << i)) == 0)
 			offset[8 - i] = bg;
 
-	    offset += vga8_mode.bytesPerLine;
+	    offset += video_mode.bytesPerLine;
 	}
 
-	x += 8;
+	*x += 8;
     }
 
+    *y += font->Height;
     SemRelease(&sem_vga);
 }
+#endif
 
-video_t vga8 =
+static video_t vga8 =
 {
     vga8Close,
     vga8EnumModes,
@@ -145,7 +198,7 @@ video_t vga8 =
     NULL,	     /* vline */
     NULL,	     /* line */
     NULL,	     /* fillrect */
-    vga8TextOut,
+    NULL, //vga8TextOut,
     NULL,	     /* fillpolygon */
     vgaStorePalette
 };

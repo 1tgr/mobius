@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.6 2002/03/20 01:10:33 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.7 2002/03/27 22:08:39 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -12,6 +12,7 @@
 
 handle_t vid;
 volatile bool key_pressed;
+videomode_t mode;
 
 bool VidFillRect(const rect_t *rect, colour_t clr)
 {
@@ -33,15 +34,17 @@ bool VidFillRect(const rect_t *rect, colour_t clr)
     return true;
 }
 
-void KeyboardThread(void *param)
+void KeyboardThread(void)
 {
     params_vid_t params;
     wchar_t ch;
     uint32_t key;
     fileop_t op;
 
-    params.vid_textout.x = 0;
-    params.vid_textout.y = 0;
+    params.vid_textout.rect.left = 0;
+    params.vid_textout.rect.top = 20;
+    params.vid_textout.rect.right = mode.width;
+    params.vid_textout.rect.bottom = mode.height;
     
     do
     {
@@ -51,7 +54,7 @@ void KeyboardThread(void *param)
         {
             params.vid_textout.buffer = &ch;
             params.vid_textout.length = sizeof(ch);
-            params.vid_textout.foreColour = 15;
+            params.vid_textout.foreColour = 0;
             params.vid_textout.backColour = (colour_t) -1;
             if (!FsRequestSync(vid, VID_TEXTOUT, &params, sizeof(params), &op))
             {
@@ -59,7 +62,9 @@ void KeyboardThread(void *param)
                 _pwerror(L"VID_TEXTOUT");
             }
 
-            params.vid_textout.x += 8;
+            params.vid_textout.rect.left = params.vid_textout.rect.right;
+            params.vid_textout.rect.right = mode.width;
+            params.vid_textout.rect.bottom = mode.height;
         }
     } while (key != 27);
 
@@ -75,7 +80,6 @@ int main(int argc, char **argv)
     wchar_t str[] = L"Hello from vidtest!";
     rect_t rc;
     int dx, dy;
-    videomode_t mode;
     
     vid = FsOpen(SYS_DEVICES L"/video", FILE_READ | FILE_WRITE);
     if (vid == NULL)
@@ -130,8 +134,10 @@ int main(int argc, char **argv)
 
     params.vid_textout.buffer = str;
     params.vid_textout.length = wcslen(str) * sizeof(wchar_t);
-    params.vid_textout.x = 100;
-    params.vid_textout.y = 100;
+    params.vid_textout.rect.left = 100;
+    params.vid_textout.rect.top = 100;
+    params.vid_textout.rect.right = mode.width;
+    params.vid_textout.rect.bottom = mode.height;
     params.vid_textout.foreColour = 0;
     params.vid_textout.backColour = 1;
     if (!FsRequestSync(vid, VID_TEXTOUT, &params, sizeof(params), &op))
@@ -154,7 +160,7 @@ int main(int argc, char **argv)
     ThrCreateThread(KeyboardThread, NULL, 10);
     while (!key_pressed)
     {
-        VidFillRect(&rc, 0);
+        VidFillRect(&rc, rand() % (1 << mode.bitsPerPixel));
 
         if (rc.left <= 0 && dx < 0)
             dx = -dx;

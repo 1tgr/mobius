@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.5 2002/03/06 19:36:53 pavlovskii Exp $ */
+/* $Id: video.h,v 1.6 2002/03/27 22:08:39 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -18,6 +18,7 @@ extern "C"
 #define VGA_MISC_WRITE		0x3C2
 #define VGA_SEQ_INDEX		0x3C4
 #define VGA_SEQ_DATA		0x3C5
+#define VGA_PALETTE_MASK        0x3C6
 #define VGA_DAC_READ_INDEX	0x3C7
 #define VGA_DAC_WRITE_INDEX	0x3C8
 #define VGA_DAC_DATA		0x3C9
@@ -52,12 +53,12 @@ struct video_t
     void (*vidVLine)(video_t *vid, int x, int y1, int y2, colour_t c);
     void (*vidLine)(video_t *vid, int x1, int y1, int x2, int y2, colour_t d);
     void (*vidFillRect)(video_t *vid, int x1, int y1, int x2, int y2, colour_t c);
-    void (*vidTextOut)(video_t *vid, int x, int y, vga_font_t *font, 
-	const wchar_t *str, size_t len, colour_t fg, colour_t bg);
+    void (*vidTextOut)(video_t *vid, rect_t *rect, const wchar_t *str, size_t len, 
+        colour_t fg, colour_t bg);
     void (*vidFillPolygon)(video_t *vid, const point_t *points, 
-	unsigned num_points, colour_t colour);
+        unsigned num_points, colour_t colour);
     void (*vidStorePalette)(video_t *vid, const rgb_t *entries, unsigned first,
-	unsigned count);
+        unsigned count);
 };
 
 #define VID_ENUM_CONTINUE	1
@@ -65,11 +66,13 @@ struct video_t
 #define VID_ENUM_STOP		-1
 
 void vgaWriteRegs(const uint8_t *regs);
-void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first,
-		     unsigned count);
+void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first, unsigned count);
+void *vgaSaveTextMemory(void);
+void vgaRestoreTextMemory(void *buf);
 size_t wcsto437(char *mbstr, const wchar_t *wcstr, size_t count);
 
 extern semaphore_t sem_vga;
+extern videomode_t video_mode;
 
 #ifdef __cplusplus
 }

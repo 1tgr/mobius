@@ -4,7 +4,6 @@ OBJS=	rc.o render.o rect.o wmf.o mgl.res.o dllmain.o
 DEF=	mgl.def
 IMP=	$(LIB)/mgl.lib
 CFLAGS=	-g
-#LIBS=	$(LIB)/freetype_s.lib $(LIB)/libc.lib $(LIB)/kernelu.lib
 LIBS=	$(LIB)/libc.lib $(LIB)/libsys.lib
 BASE=	mgl
 
