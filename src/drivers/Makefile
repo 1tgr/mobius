@@ -8,3 +8,6 @@ all:
 
 clean:
 	for dir in $(DIRS); do make -C $$dir clean; done
+
+base:
+	for dir in $(DIRS); do make -C $$dir .base; done

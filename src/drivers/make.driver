@@ -61,6 +61,6 @@ $(IMP): $(DEF)
 
 clean:
 	rm .base
-	rm $(OBJS)
+	rm $(OBJS) $(EXP)
 	rm $(TARGET)
 	rm $(OBJS:.o=.d)
