@@ -1,7 +1,8 @@
-/* $Id: vga8.c,v 1.8 2002/04/10 12:21:35 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.9 2002/05/05 13:29:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
+#include <kernel/vmm.h>
 
 #include <wchar.h>
 
@@ -10,7 +11,7 @@
 #include "bpp8.h"
 
 /*! Physical address of the VGA frame buffer */
-static uint8_t *video_base = PHYSICAL(0xa0000);
+static uint8_t *video_base;
 
 void swap_int(int *a, int *b);
 
@@ -24,8 +25,8 @@ static struct
     const uint8_t *regs;
 } vga8_modes[] =
 {
-    /*  cookie, width,  height, bpp, bpl,   flags,                  regs */
-    { { 0x13,   320,    200,    8,   0,     VIDEO_MODE_GRAPHICS, },	mode13h },
+    /*  cookie, width,  height, bpp, bpl,   flags,               framebuffer,   regs */
+    { { 0x13,   320,    200,    8,   0,     VIDEO_MODE_GRAPHICS, L"fb_vga", },	mode13h },
 };
 
 static int vga8EnumModes(video_t *vid, unsigned index, videomode_t *mode)
@@ -77,7 +78,7 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
     clip.num_rects = 1;
     clip.rects = &rect;
     vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
-        
+
     bpp8GeneratePalette(bpp8_palette);
     vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
     return true;
@@ -201,5 +202,13 @@ static video_t vga8 =
 
 video_t *vga8Init(device_config_t *cfg)
 {
+    if (video_base == NULL)
+    {
+        video_base = VmmMap(0x20000 / PAGE_SIZE, NULL, (void*) 0xa0000,
+            VM_AREA_MAP, 0 | MEM_READ | MEM_WRITE);
+        VmmShare(video_base, L"fb_vga");
+        wprintf(L"vga8: VGA frame buffer at %p\n", video_base);
+    }
+
     return &vga8;
 }

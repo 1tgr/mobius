@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.5 2002/05/05 13:29:45 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -9,6 +9,7 @@
 #include <kernel/arch.h>
 #include <kernel/driver.h>
 #include <kernel/memory.h>
+#include <kernel/vmm.h>
 
 #include <wchar.h>
 
@@ -1054,9 +1055,11 @@ bool s3Init(device_config_t *cfg)
         board_addr = 0xFE000000;
     }
 
-    TrioMem      = sbrk_virtual(board_size);
+    /*TrioMem      = sbrk_virtual(board_size);
     MemMap((addr_t) TrioMem, board_addr, (addr_t) TrioMem + board_size, 
-        PRIV_RD | PRIV_WR | PRIV_PRES | PRIV_KERN);
+        PRIV_RD | PRIV_WR | PRIV_PRES | PRIV_KERN);*/
+    TrioMem      = VmmMap(PAGE_ALIGN_UP(board_size) / PAGE_SIZE,
+        NULL, (void*) board_addr, VM_AREA_MAP, 0 | MEM_READ | MEM_WRITE);
     TrioMem_phys = board_addr;
     TrioSize     = board_size;
 
@@ -1065,6 +1068,7 @@ bool s3Init(device_config_t *cfg)
     wprintf(L"s3: using %ldK of video memory at %x (= %p)\n", 
         TrioSize>>10, TrioMem_phys, TrioMem);
 
+    VmmShare(TrioMem, L"fb_s3");
     s3_doneinit = true;
     return true;
 }

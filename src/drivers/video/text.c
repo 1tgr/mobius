@@ -134,7 +134,7 @@ bool vidInitText(void)
 {
     int error, pts;
     const wchar_t *font;
-    dirent_t di;
+    dirent_standard_t di;
     size_t size;
 
     FT_Init_FreeType(&ft_library);

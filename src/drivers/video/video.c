@@ -1,7 +1,8 @@
-/* $Id: video.c,v 1.14 2002/04/10 12:21:35 pavlovskii Exp $ */
+/* $Id: video.c,v 1.15 2002/05/05 13:29:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
+
 #include <errno.h>
 #include <wchar.h>
 #include <stdlib.h>
