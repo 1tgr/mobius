@@ -1,4 +1,6 @@
-/* $Id: shell.rc,v 1.6 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.7 2002/03/19 23:57:10 pavlovskii Exp $ */
+
+1 256 "poweroff.com"
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -15,6 +17,7 @@ BEGIN
     11                      "Demonstrates the shell's parser"
     12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
     13                      "Loads and runs a .COM file under the DOS emulator"
+    14                      "Turns the computer's power off"
 
     1024                    "No error"
     1025                    "Domain error"

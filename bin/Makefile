@@ -1,4 +1,4 @@
-BOOT1=	kernel.exe ata.drv ps2mouse.drv 
+BOOT1=	kernel.exe ata.drv ps2mouse.drv system.pro
 BOOT2=	fat.drv tty.drv keyboard.drv fdc.drv \
 	cmos.drv video.drv pci.drv 
 BOOT3=	shell.exe hello.exe libc.dll v86.com \

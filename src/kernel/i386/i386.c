@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.21 2002/03/14 01:27:07 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.22 2002/03/19 23:57:10 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -28,15 +28,15 @@ bool i386V86Gpf(context_v86_t *ctx);
 
 /*! \brief    Sets up a a code or data entry in the IA32 GDT or LDT
  *
- *    \param	item	Pointer to a descriptor table entry
- *    \param	base	Address of the base used for the descriptor
- *    \param	limit	 Size of the end of the code or data referenced by the 
- *	  descriptor, minus one
- *    \param	access	  Access permissions applied to the descriptor
- *    \param	attribs    Attributes applied to the descriptor
+ *    \param        item        Pointer to a descriptor table entry
+ *    \param        base        Address of the base used for the descriptor
+ *    \param        limit         Size of the end of the code or data referenced by the 
+ *          descriptor, minus one
+ *    \param        access          Access permissions applied to the descriptor
+ *    \param        attribs    Attributes applied to the descriptor
  */
 void i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit, 
-		       uint8_t access, uint8_t attribs)
+                       uint8_t access, uint8_t attribs)
 {
     item->base_l = base & 0xFFFF;
     item->base_m = (base >> 16) & 0xFF;
@@ -48,14 +48,14 @@ void i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit,
 
 /*! \brief    Sets up an interrupt, task or call gate in the IA32 IDT
  *
- *    \param	item	Pointer to an IDT entry
- *    \param	selector    The CS value referred to by the gate
- *    \param	offset	  The EIP value referred to by the gate
- *    \param	access	  Access permissions applied to the gate
- *    \param	attribs    Attributes applied to the gate
+ *    \param        item        Pointer to an IDT entry
+ *    \param        selector    The CS value referred to by the gate
+ *    \param        offset          The EIP value referred to by the gate
+ *    \param        access          Access permissions applied to the gate
+ *    \param        attribs    Attributes applied to the gate
  */
 void i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector, 
-			  uint32_t offset, uint8_t access, uint8_t param_cnt)
+                          uint32_t offset, uint8_t access, uint8_t param_cnt)
 {
     item->selector = selector;
     item->offset_l = offset & 0xFFFF;
@@ -65,37 +65,37 @@ void i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector,
 }
 
 /*! \brief Sets up the PC's programmable timer to issue interrupts at HZ 
- *	  (100 Hz) instead of the default ~18.2 Hz.
- *    \param	hz    The required clock frequency, in hertz
+ *          (100 Hz) instead of the default ~18.2 Hz.
+ *    \param        hz    The required clock frequency, in hertz
  */
 void i386PitInit(unsigned hz)
 {
     unsigned short foo = (3579545L / 3) / hz;
 
     /* reprogram the 8253 timer chip to run at 'HZ', instead of 18 Hz */
-    out(0x43, 0x36);	/* channel 0, LSB/MSB, mode 3, binary */
+    out(0x43, 0x36);        /* channel 0, LSB/MSB, mode 3, binary */
     out(0x40, foo & 0xFF);    /* LSB */
     out(0x40, foo >> 8);    /* MSB */
 }
 
 /*! \brief    Sets up the PC's programmable interrupt controllers to issue IRQs 
- *	  on interrupts master_vector...slave_vector+7.
- *    \param	master_vector	 The interrupt vector the master PIC will use
- *    \param	slave_vector	The interrupt vector the slave PIC will use
+ *          on interrupts master_vector...slave_vector+7.
+ *    \param        master_vector         The interrupt vector the master PIC will use
+ *    \param        slave_vector        The interrupt vector the slave PIC will use
  */
 void i386PicInit(uint8_t master_vector, uint8_t slave_vector)
 {
-    out(PORT_8259M, 0x11);		      /* start 8259 initialization */
+    out(PORT_8259M, 0x11);                      /* start 8259 initialization */
     out(PORT_8259S, 0x11);
     out(PORT_8259M + 1, master_vector);     /* master base interrupt vector */
-    out(PORT_8259S + 1, slave_vector);	      /* slave base interrupt vector */
-    out(PORT_8259M + 1, 1<<2);		      /* bitmask for cascade on IRQ2 */
-    out(PORT_8259S + 1, 2);		    /* cascade on IRQ2 */
-    out(PORT_8259M + 1, 1);		    /* finish 8259 initialization */
+    out(PORT_8259S + 1, slave_vector);              /* slave base interrupt vector */
+    out(PORT_8259M + 1, 1<<2);                      /* bitmask for cascade on IRQ2 */
+    out(PORT_8259S + 1, 2);                    /* cascade on IRQ2 */
+    out(PORT_8259M + 1, 1);                    /* finish 8259 initialization */
     out(PORT_8259S + 1, 1);
 
-    out(PORT_8259M + 1, 0);		    /* enable all IRQs on master */
-    out(PORT_8259S + 1, 0);		    /* enable all IRQs on slave */
+    out(PORT_8259M + 1, 0);                    /* enable all IRQs on master */
+    out(PORT_8259S + 1, 0);                    /* enable all IRQs on slave */
 }
 
 void i386_lpoke32(addr_t off, uint32_t value)
@@ -119,150 +119,150 @@ uint32_t i386Isr(context_t ctx)
     
     if (ctx.error == (uint32_t) -1)
     {
-	irq_t *irq;
-	unsigned i;
+        irq_t *irq;
+        unsigned i;
 
-	((uint16_t*) PHYSICAL(0xb8000))[1] = ~((uint16_t*) PHYSICAL(0xb8000))[1];
+        ((uint16_t*) PHYSICAL(0xb8000))[1] = ~((uint16_t*) PHYSICAL(0xb8000))[1];
 
-	ArchMaskIrq(0, 1 << ctx.intr);
-	
-	if (ctx.intr == 0)
-	{
-	    sc_uptime += SCHED_QUANTUM;
-	    current->cputime += SCHED_QUANTUM;
-	    ScNeedSchedule(true);
-	}
-	
-	irq = irq_first[ctx.intr];
-	i = 0;
-	while (irq)
-	{
-	    assert(irq->dev->vtbl->isr);
-	    if (irq->dev->vtbl->isr(irq->dev, ctx.intr))
-		break;
-	    irq = irq->next;
-	    i++;
-	    if (i > 6)
-		assert(false && "Too many interrupt handlers");
-	}
+        ArchMaskIrq(0, 1 << ctx.intr);
+        
+        if (ctx.intr == 0)
+        {
+            sc_uptime += SCHED_QUANTUM;
+            current->cputime += SCHED_QUANTUM;
+            ScNeedSchedule(true);
+        }
+        
+        irq = irq_first[ctx.intr];
+        i = 0;
+        while (irq)
+        {
+            assert(irq->dev->vtbl->isr);
+            if (irq->dev->vtbl->isr(irq->dev, ctx.intr))
+                break;
+            irq = irq->next;
+            i++;
+            if (i > 6)
+                assert(false && "Too many interrupt handlers");
+        }
 
-	out(PORT_8259M, EOI);
-	if (ctx.intr >= 8)
-	    out(PORT_8259S, EOI);
+        out(PORT_8259M, EOI);
+        if (ctx.intr >= 8)
+            out(PORT_8259S, EOI);
 
-	ArchMaskIrq(1 << ctx.intr, 0);
+        ArchMaskIrq(1 << ctx.intr, 0);
     }
     else
     {
-	addr_t cr2;
-	bool handled;
-	
-	__asm__("mov %%cr2, %0"
-	    : "=r" (cr2));
+        addr_t cr2;
+        bool handled;
+        
+        __asm__("mov %%cr2, %0"
+            : "=r" (cr2));
 
-	handled = false;
-	if (ctx.intr == 1)
-	{
-	    uint32_t dr6;
-	    __asm__("mov %%dr6, %0" : "=r" (dr6));
-	    if (dr6 & DR6_BS)
-		i386TrapToDebugger(&ctx);
-		/*wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);*/
-	    handled = true;
-	}
-	else if (ctx.intr == 13 &&
-	    ctx.eflags & EFLAG_VM)
-	    handled = i386V86Gpf((context_v86_t*) &ctx);
-	else if (ctx.intr == 14 &&
-	    (ctx.error & PF_PROTECTED) == 0)
-	{
-	    handled = ProcPageFault(current->process, cr2);
-	    if (!handled &&
-		cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
-		kernel_pagedir[PAGE_DIRENT(cr2)] &&
-		(*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
-	    {
-		cr2 = PAGE_ALIGN(cr2);
-		wprintf(L"Mapping kernel page at %x for process %u...", 
-		    cr2, current->process->id);
-		*ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
-		invalidate_page((void*) cr2);
-		wprintf(L"done\n");
-		handled = true;
-	    }
-	}
-	else if (ctx.intr == 0x30)
-	{
-	    i386DispatchSysCall(&ctx);
-	    handled = true;
-	}
+        handled = false;
+        if (ctx.intr == 1)
+        {
+            uint32_t dr6;
+            __asm__("mov %%dr6, %0" : "=r" (dr6));
+            if (dr6 & DR6_BS)
+                i386TrapToDebugger(&ctx);
+                /*wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);*/
+            handled = true;
+        }
+        else if (ctx.intr == 13 &&
+            ctx.eflags & EFLAG_VM)
+            handled = i386V86Gpf((context_v86_t*) &ctx);
+        else if (ctx.intr == 14 &&
+            (ctx.error & PF_PROTECTED) == 0)
+        {
+            handled = ProcPageFault(current->process, cr2);
+            if (!handled &&
+                cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
+                kernel_pagedir[PAGE_DIRENT(cr2)] &&
+                (*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
+            {
+                cr2 = PAGE_ALIGN(cr2);
+                wprintf(L"Mapping kernel page at %x for process %u...", 
+                    cr2, current->process->id);
+                *ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
+                invalidate_page((void*) cr2);
+                wprintf(L"done\n");
+                handled = true;
+            }
+        }
+        else if (ctx.intr == 0x30)
+        {
+            i386DispatchSysCall(&ctx);
+            handled = true;
+        }
 
-	if (!handled)
-	{
-	    /*uint8_t *eip;*/
+        if (!handled)
+        {
+            /*uint8_t *eip;*/
 
-	    TextSwitchToKernel();
+            TextSwitchToKernel();
 
-	    wprintf(L"Thread %s/%u: Interrupt %ld at %lx:%08lx: %08lx\n", 
-		current->process->exe, current->id, 
-		ctx.intr, ctx.cs, ctx.eip, cr2);
-	    
-	    if (ctx.intr == 14)
-	    {
-		wprintf(L"Page fault: ");
+            wprintf(L"Thread %s/%u: Interrupt %ld at %lx:%08lx: %08lx\n", 
+                current->process->exe, current->id, 
+                ctx.intr, ctx.cs, ctx.eip, cr2);
+            
+            if (ctx.intr == 14)
+            {
+                wprintf(L"Page fault: ");
 
-		if (ctx.error & PF_PROTECTED)
-		    wprintf(L"protection violation ");
-		else
-		    wprintf(L"page not present ");
+                if (ctx.error & PF_PROTECTED)
+                    wprintf(L"protection violation ");
+                else
+                    wprintf(L"page not present ");
 
-		if (ctx.error & PF_WRITE)
-		    wprintf(L"writing ");
-		else
-		    wprintf(L"reading ");
+                if (ctx.error & PF_WRITE)
+                    wprintf(L"writing ");
+                else
+                    wprintf(L"reading ");
 
-		if (ctx.error & PF_USER)
-		    wprintf(L"in user mode\n");
-		else
-		    wprintf(L"in kernel mode\n");
-	    }
+                if (ctx.error & PF_USER)
+                    wprintf(L"in user mode\n");
+                else
+                    wprintf(L"in kernel mode\n");
+            }
 
-	    if (dbg_hasgdb)
-		i386TrapToDebugger(&ctx);
-	    else
-	    {
-		if (ctx.eflags & EFLAG_VM)
-		    wprintf(L"Stack dump not available in V86 mode\n");
-		else
-		    DbgDumpStack(current->process, ctx.regs.ebp);
+            if (dbg_hasgdb)
+                i386TrapToDebugger(&ctx);
+            else
+            {
+                if (ctx.eflags & EFLAG_VM)
+                    wprintf(L"Stack dump not available in V86 mode\n");
+                else
+                    DbgDumpStack(current->process, ctx.regs.ebp);
 
-		ArchDbgDumpContext(&ctx);
-		/*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
+                ArchDbgDumpContext(&ctx);
+                /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-		if (current->process == &proc_idle)
-		    halt(ctx.eip);
-		else
-    		    ProcExitProcess(-ctx.intr);
-	    }
-	}
+                if (current->process == &proc_idle)
+                    halt(ctx.eip);
+                else
+                        ProcExitProcess(-ctx.intr);
+            }
+        }
     }
     
     current->ctx_last = ctx.ctx_prev;
     while (true)
     {
-	if (sc_need_schedule)
-	    ScSchedule();
-	
-	if (old_current != current)
-	{
-	    old_current->kernel_esp = ctx.kernel_esp;
-	    if (ArchAttachToThread(current, old_current != current))
-		return current->kernel_esp;
-	    else
-		ScNeedSchedule(true);
-	}
-	else
-	    return ctx.kernel_esp;
+        if (sc_need_schedule)
+            ScSchedule();
+        
+        if (old_current != current)
+        {
+            old_current->kernel_esp = ctx.kernel_esp;
+            if (ArchAttachToThread(current, old_current != current))
+                return current->kernel_esp;
+            else
+                ScNeedSchedule(true);
+        }
+        else
+            return ctx.kernel_esp;
     }
 }
 
@@ -288,7 +288,7 @@ thread_t *i386CreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority,
 
     thr = ThrCreateThread(current->process, false, NULL, false, NULL, priority);
     if (thr == NULL)
-	return NULL;
+        return NULL;
 
     /* V86 stack has a funny layout: the CPU pushes the segregs too */
     thr->kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
@@ -318,117 +318,166 @@ thread_t *i386CreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority,
     return thr;
 }
 
+#define VALID_FLAGS         0xDFF
+
 bool i386V86Gpf(context_v86_t *ctx)
 {
     uint8_t *ip;
     uint16_t *stack, *ivt;
+    uint32_t *stack32;
+    bool is_operand32, is_address32;
 
     ip = FP_TO_LINEAR(ctx->cs, ctx->eip);
     ivt = (uint16_t*) 0;
     stack = (uint16_t*) FP_TO_LINEAR(ctx->ss, ctx->esp);
+    stack32 = (uint32_t*) stack;
+    is_operand32 = is_address32 = false;
     TRACE4("i386V86Gpf: cs:ip = %04x:%04x ss:sp = %04x:%04x: ", 
-	ctx->cs, ctx->eip,
-	ctx->ss, ctx->esp);
-    switch (ip[0])
+        ctx->cs, ctx->eip,
+        ctx->ss, ctx->esp);
+
+    while (true)
     {
-    case 0x9c:	    /* PUSHF */
-	TRACE0("pushf\n");
-	ctx->esp = ((ctx->esp & 0xffff) - 2) & 0xffff;
-	stack--;
+        switch (ip[0])
+        {
+        case 0x66:            /* O32 */
+            TRACE0("o32 ");
+            is_operand32 = true;
+            ip++;
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            break;
 
-	stack[0] = (uint16_t) ctx->eflags;
-	
-	if (current->v86_if)
-	    stack[0] |= EFLAG_IF;
-	else
-	    stack[0] &= ~EFLAG_IF;
+        case 0x67:            /* A32 */
+            TRACE0("a32 ");
+            is_address32 = true;
+            ip++;
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            break;
+            
+        case 0x9c:            /* PUSHF */
+            TRACE0("pushf\n");
 
-	ctx->eip = (uint16_t) (ctx->eip + 1);
-	return true;
+            if (is_operand32)
+            {
+                ctx->esp = ((ctx->esp & 0xffff) - 4) & 0xffff;
+                stack32--;
+                stack32[0] = ctx->eflags & VALID_FLAGS;
 
-    case 0x9d:	    /* POPF */
-	TRACE0("popf\n");
-	ctx->eflags = EFLAG_IF | EFLAG_VM | stack[0];
-	current->v86_if = (stack[0] & EFLAG_IF) != 0;
-	ctx->esp = ((ctx->esp & 0xffff) + 2) & 0xffff;
-	ctx->eip = (uint16_t) (ctx->eip + 1);
-	return true;
+                if (current->v86_if)
+                    stack32[0] |= EFLAG_IF;
+                else
+                    stack32[0] &= ~EFLAG_IF;
+            }
+            else
+            {
+                ctx->esp = ((ctx->esp & 0xffff) - 2) & 0xffff;
+                stack--;
+                stack[0] = (uint16_t) ctx->eflags;
 
-    case 0xcd:	    /* INT n */
-	TRACE1("interrupt 0x%x => ", ip[1]);
-	switch (ip[1])
-	{
-	case 0x30:
-	    TRACE0("syscall\n");
-	    if (ctx->regs.eax == SYS_ThrExitThread)
-		ThrExitThread(0);
-	    return true;
+                if (current->v86_if)
+                    stack[0] |= EFLAG_IF;
+                else
+                    stack[0] &= ~EFLAG_IF;
+            }
 
-	case 0x20:
-	case 0x21:
-	    /*i386V86EmulateInt21(ctx);*/
-	    if (current->v86_in_handler)
-		return false;
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            return true;
 
-	    TRACE1("redirect to %x\n", current->v86_handler);
-	    current->v86_in_handler = true;
-	    current->v86_context = *ctx;
-	    current->kernel_esp += sizeof(context_v86_t) - sizeof(context_t);
-	    ctx->eflags = EFLAG_IF | 2;
-	    ctx->eip = current->v86_handler;
-	    ctx->cs = USER_FLAT_CODE | 3;
-	    ctx->ds = ctx->es = ctx->gs = ctx->ss = USER_FLAT_DATA | 3;
-	    ctx->fs = USER_THREAD_INFO | 3;
-	    ctx->esp = current->user_stack_top;
-	    return true;
+        case 0x9d:            /* POPF */
+            TRACE0("popf\n");
 
-	default:
-	    stack -= 3;
-	    ctx->esp = ((ctx->esp & 0xffff) - 6) & 0xffff;
+            if (is_operand32)
+            {
+                ctx->eflags = EFLAG_IF | EFLAG_VM | (stack32[0] & VALID_FLAGS);
+                current->v86_if = (stack32[0] & EFLAG_IF) != 0;
+                ctx->esp = ((ctx->esp & 0xffff) + 4) & 0xffff;
+            }
+            else
+            {
+                ctx->eflags = EFLAG_IF | EFLAG_VM | stack[0];
+                current->v86_if = (stack[0] & EFLAG_IF) != 0;
+                ctx->esp = ((ctx->esp & 0xffff) + 2) & 0xffff;
+            }
+            
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            return true;
 
-	    stack[0] = (uint16_t) (ctx->eip + 2);
-	    stack[1] = ctx->cs;
-	    stack[2] = (uint16_t) ctx->eflags;
-	    
-	    if (current->v86_if)
-		stack[2] |= EFLAG_IF;
-	    else
-		stack[2] &= ~EFLAG_IF;
+        case 0xcd:            /* INT n */
+            TRACE1("interrupt 0x%x => ", ip[1]);
+            switch (ip[1])
+            {
+            case 0x30:
+                TRACE0("syscall\n");
+                if (ctx->regs.eax == SYS_ThrExitThread)
+                    ThrExitThread(0);
+                return true;
 
-	    ctx->cs = ivt[ip[1] * 2 + 1];
-	    ctx->eip = ivt[ip[1] * 2];
-	    TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
-	    return true;
-	}
+            case 0x20:
+            case 0x21:
+                /*i386V86EmulateInt21(ctx);*/
+                if (current->v86_in_handler)
+                    return false;
 
-	break;
+                TRACE1("redirect to %x\n", current->v86_handler);
+                current->v86_in_handler = true;
+                current->v86_context = *ctx;
+                current->kernel_esp += sizeof(context_v86_t) - sizeof(context_t);
+                ctx->eflags = EFLAG_IF | 2;
+                ctx->eip = current->v86_handler;
+                ctx->cs = USER_FLAT_CODE | 3;
+                ctx->ds = ctx->es = ctx->gs = ctx->ss = USER_FLAT_DATA | 3;
+                ctx->fs = USER_THREAD_INFO | 3;
+                ctx->esp = current->user_stack_top;
+                return true;
 
-    case 0xcf:	    /* IRET */
-	TRACE0("iret => ");
-	ctx->eip = stack[0];
-	ctx->cs = stack[1];
-	ctx->eflags = EFLAG_IF | EFLAG_VM | stack[2];
-	current->v86_if = (stack[2] & EFLAG_IF) != 0;
+            default:
+                stack -= 3;
+                ctx->esp = ((ctx->esp & 0xffff) - 6) & 0xffff;
 
-	ctx->esp = ((ctx->esp & 0xffff) + 6) & 0xffff;
-	TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
-	return true;
+                stack[0] = (uint16_t) (ctx->eip + 2);
+                stack[1] = ctx->cs;
+                stack[2] = (uint16_t) ctx->eflags;
+                
+                if (current->v86_if)
+                    stack[2] |= EFLAG_IF;
+                else
+                    stack[2] &= ~EFLAG_IF;
 
-    case 0xfa:	    /* CLI */
-	TRACE0("cli\n");
-	current->v86_if = false;
-	ctx->eip = (uint16_t) (ctx->eip + 1);
-	return true;
+                ctx->cs = ivt[ip[1] * 2 + 1];
+                ctx->eip = ivt[ip[1] * 2];
+                TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
+                return true;
+            }
 
-    case 0xfb:	    /* STI */
-	TRACE0("sti\n");
-	current->v86_if = true;
-	ctx->eip = (uint16_t) (ctx->eip + 1);
-	return true;
+            break;
 
-    default:
-	wprintf(L"unhandled opcode 0x%x\n", ip[0]);
-	break;
+        case 0xcf:            /* IRET */
+            TRACE0("iret => ");
+            ctx->eip = stack[0];
+            ctx->cs = stack[1];
+            ctx->eflags = EFLAG_IF | EFLAG_VM | stack[2];
+            current->v86_if = (stack[2] & EFLAG_IF) != 0;
+
+            ctx->esp = ((ctx->esp & 0xffff) + 6) & 0xffff;
+            TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
+            return true;
+
+        case 0xfa:            /* CLI */
+            TRACE0("cli\n");
+            current->v86_if = false;
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            return true;
+
+        case 0xfb:            /* STI */
+            TRACE0("sti\n");
+            current->v86_if = true;
+            ctx->eip = (uint16_t) (ctx->eip + 1);
+            return true;
+
+        default:
+            wprintf(L"unhandled opcode 0x%x\n", ip[0]);
+            return false;
+        }
     }
 
     return false;

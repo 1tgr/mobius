@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.16 2002/03/13 14:26:25 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.17 2002/03/19 23:57:10 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -552,9 +552,10 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
     free(values);
 }
 
+uint8_t *sh_v86stack;
+
 void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 {
-    static uint8_t *stack;
     uint8_t *code;
     psp_t *psp;
     FARPTR fp_code, fp_stackend;
@@ -621,15 +622,50 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
     fp_code = i386LinearToFp(code);
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
 	
-    if (stack == NULL)
-	stack = sbrk(65536);
+    if (sh_v86stack == NULL)
+	sh_v86stack = sbrk(65536);
 
-    fp_stackend = i386LinearToFp(stack);
-    memset(stack, 0, 65536);
+    fp_stackend = i386LinearToFp(sh_v86stack);
+    memset(sh_v86stack, 0, 65536);
     
     thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
     if (doWait)
 	ThrWaitHandle(thr);
+
+    /* xxx - need to clean up HndClose() implementation before we can use this */
+    /*HndClose(thr);*/
+}
+
+void ShCmdOff(const wchar_t *cmd, wchar_t *params)
+{
+    uint8_t *code;
+    FARPTR fp_code, fp_stackend;
+    handle_t thr;
+    const void *rsrc;
+    size_t size;
+    
+    rsrc = ResFindResource(NULL, 256, 1, 0);
+    if (rsrc == NULL)
+        return;
+    
+    size = ResSizeOfResource(NULL, 256, 1, 0);
+    
+    code = sbrk((size + 0x10000) & 0xffff);
+    *(uint16_t*) code = 0x20cd;
+
+    memcpy(code + 0x100, rsrc, size);
+    
+    fp_code = i386LinearToFp(code);
+    fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
+	
+    if (sh_v86stack == NULL)
+	sh_v86stack = sbrk(65536);
+
+    fp_stackend = i386LinearToFp(sh_v86stack);
+    memset(sh_v86stack, 0, 65536);
+    
+    thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
+    ThrWaitHandle(thr);
 
     /* xxx - need to clean up HndClose() implementation before we can use this */
     /*HndClose(thr);*/
@@ -645,6 +681,7 @@ shell_command_t sh_commands[] =
     { L"exit",	    ShCmdExit,	    2 },
     { L"help",	    ShCmdHelp,	    1 },
     { L"info",	    ShCmdInfo,	    12 },
+    { L"off",       ShCmdOff,       14 },
     { L"parse",     ShCmdParse,	    11 },
     { L"poke",	    ShCmdPoke,	    7 },
     { L"r",	    ShCmdRun,	    9 },

@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.11 2002/03/05 02:46:57 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.12 2002/03/19 23:57:10 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -439,11 +439,11 @@ void ThrDeleteThread(thread_t *thr)
 	ThrRemoveQueue(thr, thr->queue);*/
     if (ThrFindInQueue(thr_priority + thr->priority, thr))
     {
-	wprintf(L"ThrDeleteThread: dequeuing running thread\n");
+	TRACE0("ThrDeleteThread: dequeuing running thread\n");
 	ThrPause(thr);
     }
     
-    wprintf(L"ThrDeleteThread: thread %u queued %u times\n",
+    TRACE2("ThrDeleteThread: thread %u queued %u times\n",
 	thr->id, thr->queued);
     assert(thr->queued == 0);
 
@@ -470,12 +470,12 @@ void ThrDeleteThread(thread_t *thr)
     thr->hdr.copies--;
     if (thr->hdr.copies == 0)
     {
-	wprintf(L"ThrDeleteThread: freeing thread %u\n", thr->id);
+	TRACE1("ThrDeleteThread: freeing thread %u\n", thr->id);
 	HndRemovePtrEntries(thr->process, &thr->hdr);
 	free(thr);
     }
     else
-	wprintf(L"ThrDeleteThread: thread %u still has %u refs\n",
+	TRACE2("ThrDeleteThread: thread %u still has %u refs\n",
 	    thr->id, thr->hdr.copies);
 
     if (thr == current)

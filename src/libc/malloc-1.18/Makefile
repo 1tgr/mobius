@@ -11,7 +11,7 @@
 # puts malloc.h in $INCDIR.
 #
 
-include ../../make.actions
+include ../../make.conf
 
 #LIBDIR=$(HOME)/lib/$(ARCH)
 #INCDIR=$(HOME)/include

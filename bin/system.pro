@@ -1,13 +1,15 @@
-# $Id: system.pro,v 1.3 2002/03/14 01:40:20 pavlovskii Exp $
+# $Id: system.pro,v 1.4 2002/03/19 23:56:59 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
-    Port=0x3f8
+    #Port=0x3f8
+    Port=0
 
     # Set to true to sync with gdb on startup and attempt to connect on 
     #	each exception.
     # Set to false to restrict kernel debugging to outputting of kernel console
     #	text on the serial port.
+    #SyncGdb=true
     SyncGdb=false
 end
 
