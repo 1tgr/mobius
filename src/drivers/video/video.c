@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.18 2002/09/01 16:24:40 pavlovskii Exp $ */
+/* $Id: video.c,v 1.19 2002/12/18 23:19:04 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -39,6 +39,7 @@ struct video_drv_t
 
 video_t *vga4Init(device_config_t *cfg);
 video_t *vga8Init(device_config_t *cfg);
+video_t *VgapInit(device_config_t *cfg);
 video_t *s3Init8(device_config_t *cfg);
 video_t *s3Init16(device_config_t *cfg);
 
@@ -50,10 +51,11 @@ struct
 } drivers[] =
 {
     //{ L"vga4",     vga4Init, NULL },
-    { L"vga8",     vga8Init, NULL },
-    { L"s3_8",     s3Init8,  NULL },
-    { L"s3_16",    s3Init16, NULL },
-    { NULL,        NULL,     NULL },
+    { L"vga8",      vga8Init, NULL },
+    //{ L"vgaplane",  VgapInit, NULL },
+    { L"s3_8",      s3Init8,  NULL },
+    { L"s3_16",     s3Init16, NULL },
+    { NULL,         NULL,     NULL },
 };
 
 typedef struct modemap_t modemap_t;
@@ -128,22 +130,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     assert(vid->vidClose != NULL);
     assert(vid->vidEnumModes != NULL);
     assert(vid->vidSetMode != NULL);
-    assert(vid->vidPutPixel != NULL);
 
-#if 0
-    if (vid->vidHLine == NULL)
-        vid->vidHLine = vidHLine;
-    if (vid->vidVLine == NULL)
-        vid->vidVLine = vidVLine;
-    if (vid->vidFillRect == NULL)
-        vid->vidFillRect = vidFillRect;
-    if (vid->vidLine == NULL)
-        vid->vidLine = vidLine;
-    if (vid->vidFillPolygon == NULL)
-        vid->vidFillPolygon = vidFillPolygon;
-    if (vid->vidTextOut == NULL)
-        vid->vidTextOut = vidTextOut;
-#endif
     if (vid->vidMoveCursor == NULL)
         vid->vidMoveCursor = vidMoveCursor;
     
@@ -157,22 +144,10 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     return true;
 }
 
-#define VID_OP(code, type) \
-    case code: \
-    { \
-        type *shape; \
-        shape = (type*) &buf->s; \
-        \
-        
-#define VID_END_OP \
-        break; \
-    }
-
 bool vidRequest(device_t* dev, request_t* req)
 {
     video_drv_t *video = (video_drv_t*) dev;
     params_vid_t *params = &((request_vid_t*) req)->params;
-    //size_t user_length;
     
     switch (req->code)
     {
@@ -192,108 +167,6 @@ bool vidRequest(device_t* dev, request_t* req)
     case VID_GETMODE:
         params->vid_getmode = video_mode;
         return true;
-
-#if 0
-    case VID_DRAW:
-        {
-            vid_shape_t *buf;
-
-            user_length = params->vid_draw.length;
-            params->vid_draw.length = 0;
-            buf = params->vid_draw.shapes;
-
-            while (params->vid_draw.length < user_length)
-            {
-                switch (buf->shape)
-                {
-                VID_OP(VID_SHAPE_FILLRECT, vid_rect_t)
-                    video->vid->vidFillRect(video->vid, 
-                        &params->vid_draw.clip,
-                        shape->rect.left, shape->rect.top, 
-                        shape->rect.right, shape->rect.bottom, 
-                        shape->colour);
-                VID_END_OP
-
-                VID_OP(VID_SHAPE_HLINE, vid_line_t)
-                    if (shape->a.x != shape->b.x)
-                    {
-                        if (shape->b.x < shape->a.x)
-                            swap_int(&shape->a.x, &shape->b.x);
-                        video->vid->vidHLine(video->vid, 
-                            &params->vid_draw.clip,
-                            shape->a.x, shape->b.x, 
-                            shape->a.y, 
-                            shape->colour);
-                    }
-                VID_END_OP
-
-                VID_OP(VID_SHAPE_VLINE, vid_line_t)
-                    if (shape->a.y != shape->b.y)
-                    {
-                        if (shape->b.y < shape->a.y)
-                            swap_int(&shape->a.y, &shape->b.y);
-                        video->vid->vidVLine(video->vid, 
-                            &params->vid_draw.clip,
-                            shape->a.x, 
-                            shape->a.y, shape->b.y, 
-                            shape->colour);
-                    }
-                VID_END_OP
-
-                VID_OP(VID_SHAPE_LINE, vid_line_t)
-                    /*if (shape->b.x < shape->a.x)
-                        swap_int(&shape->a.x, &shape->b.x);
-                    if (shape->b.y < shape->a.y)
-                        swap_int(&shape->a.y, &shape->b.y);*/
-
-                    video->vid->vidLine(video->vid,
-                        &params->vid_draw.clip,
-                        shape->a.x, shape->a.y, 
-                        shape->b.x, shape->b.y, 
-                        shape->colour);
-                VID_END_OP
-
-                VID_OP(VID_SHAPE_PUTPIXEL, vid_pixel_t)
-                    video->vid->vidPutPixel(video->vid, 
-                        &params->vid_draw.clip,
-                        shape->point.x, shape->point.y,
-                        shape->colour);
-                VID_END_OP
-
-                VID_OP(VID_SHAPE_GETPIXEL, vid_pixel_t)
-                    shape->colour = video->vid->vidGetPixel(video->vid, 
-                        shape->point.x, shape->point.y);
-                VID_END_OP
-                }
-
-                buf++;
-                params->vid_draw.length += sizeof(*buf);
-            }
-
-            return true;
-        }
-
-    case VID_TEXTOUT:
-    {
-        vid_text_t *p = &params->vid_textout;
-        video->vid->vidTextOut(video->vid, 
-            &p->clip,
-            &p->rect, 
-            p->buffer, p->length / sizeof(wchar_t), 
-            p->foreColour, p->backColour);
-        return true;
-    }
-
-    case VID_FILLPOLYGON:
-    {
-        video->vid->vidFillPolygon(video->vid,
-            &params->vid_fillpolygon.clip,
-            params->vid_fillpolygon.points, 
-            params->vid_fillpolygon.length / sizeof(point_t),
-            params->vid_fillpolygon.colour);
-        return true;
-    }
-#endif
 
     case VID_STOREPALETTE:
     {
@@ -422,6 +295,9 @@ void vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     dev = malloc(sizeof(video_drv_t));
     DevInitDevice(&dev->dev, &vid_vtbl, drv, 0);
     dev->vid = NULL;
+
+    if (cfg->device_class == 0)
+        cfg->device_class = 0x0300;
 
     DevAddDevice(&dev->dev, name, cfg);
 }

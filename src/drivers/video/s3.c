@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.8 2002/09/01 16:24:40 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.9 2002/12/18 23:19:03 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -31,7 +31,7 @@ extern video_t s3_8, s3_16;
 #define trio_inw(idx)       in16(idx)
 
 static void *        TrioMem;
-static unsigned long TrioSize;
+static unsigned long board_size;
 static long trio_memclk = 45000000; /* default (?) */
 static bool          s3_doneinit;
 
@@ -342,7 +342,8 @@ static void trio_load_video_mode (s3mode_t *mode)
 
     crt_outb(0x11, crt_inb(0x11) & 0x7f); /* unlock crt 0-7 */
 
-    crt_outb(CRT_ID_HWGC_MODE, crt_inb(CRT_ID_HWGC_MODE) | 1);
+    /* xxx -- enable hardware cursor */
+    /*crt_outb(CRT_ID_HWGC_MODE, crt_inb(CRT_ID_HWGC_MODE) | 1);*/
 
     switch (mode->mode.bitsPerPixel)
     {
@@ -620,7 +621,7 @@ void s3InitHardware(void)
     out16(S3_MULT_MISC, 0xe000);
     out16(S3_MULT_MISC_2, 0xd000);
 
-    if(TrioSize == 4096*1024) {
+    if(board_size == 4096*1024) {
         crt_outb(CRT_ID_LAW_CNTL, 0x13);
     } else {
         crt_outb(CRT_ID_LAW_CNTL, 0x12);
@@ -697,13 +698,14 @@ void s3InitHardware(void)
 
     crt_outb(CRT_ID_BACKWAD_COMP_3, 0x10);/* FIFO enabled */
     crt_outb(CRT_ID_HWGC_MODE, 0x00);     /* GFx hardware cursor off */
-    
-    cursor_off = TrioSize - 0x400;
+
+#if 0
+    cursor_off = board_size - 0x400;
     CursorBase = (uint16_t *)((char *)(TrioMem) + cursor_off);
     crt_outb(CRT_ID_HWGC_START_AD_HI, ((cursor_off / 1024) & 0xf00) >> 8);
     crt_outb(CRT_ID_HWGC_START_AD_LO,  (cursor_off / 1024) & 0x0ff);
-    wprintf(L"s3: TrioMem = %p, TrioSize = %x, CursorBase = %p\n",
-        TrioMem, TrioSize, CursorBase);
+    wprintf(L"s3: TrioMem = %p, board_size = %x, CursorBase = %p\n",
+        TrioMem, board_size, CursorBase);
 
     att_outb(0x33, 0);
     trio_video_disable(0);    
@@ -780,6 +782,7 @@ void s3InitHardware(void)
         CursorBase[i / 4 + 2] = a;
         CursorBase[i / 4 + 3] = b;
     }
+#endif
 }
 
 #undef F
@@ -814,8 +817,8 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
         vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
     }
 
-    pt.x = pt.y = 0;
-    s3MoveCursor(vid, pt);
+    //pt.x = pt.y = 0;
+    //s3MoveCursor(vid, pt);
     return true;
 }
 
@@ -1058,15 +1061,12 @@ bool s3Init(device_config_t *cfg)
         board_addr = 0xFE000000;
     }
 
-    /*TrioMem      = sbrk_virtual(board_size);
-    MemMap((addr_t) TrioMem, board_addr, (addr_t) TrioMem + board_size, 
-        PRIV_RD | PRIV_WR | PRIV_PRES | PRIV_KERN);*/
-    TrioMem      = VmmMap(PAGE_ALIGN_UP(board_size) / PAGE_SIZE,
-        NULL, (void*) board_addr, VM_AREA_MAP, 0 | MEM_READ | MEM_WRITE);
-    TrioSize     = board_size;
+    TrioMem = VmmMap(PAGE_ALIGN_UP(board_size) / PAGE_SIZE,
+        NULL, (void*) board_addr, NULL, VM_AREA_MAP, 
+        VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
 
     wprintf(L"s3: using %ldK of video memory at %x (= %p)\n", 
-        TrioSize>>10, board_addr, TrioMem);
+        board_size>>10, board_addr, TrioMem);
 
     VmmShare(TrioMem, S3_FB_NAME);
     s3_doneinit = true;

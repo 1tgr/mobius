@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.10 2002/08/17 17:45:39 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.11 2002/12/18 23:19:04 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -10,7 +10,6 @@
 #include "vgamodes.h"
 #include "bpp8.h"
 
-/*! Physical address of the VGA frame buffer */
 static uint8_t *video_base;
 
 void swap_int(int *a, int *b);
@@ -57,31 +56,31 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
             break;
         }
 
-        if (regs == NULL)
-            return false;
+    if (regs == NULL)
+        return false;
 
-        //if (video_mode.flags & VIDEO_MODE_TEXT)
-        //vid->text_memory = vgaSaveTextMemory();
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+    //vid->text_memory = vgaSaveTextMemory();
 
-        video_mode = vga8_modes[i].mode;
-        vgaWriteRegs(regs);
+    video_mode = vga8_modes[i].mode;
+    vgaWriteRegs(regs);
 
-        //if (video_mode.flags & VIDEO_MODE_TEXT)
-        //{
-        //vgaRestoreTextMemory(vid->text_memory);
-        //vid->text_memory = NULL;
-        //}
-        //else
-        rect.left = rect.top = 0;
-        rect.right = video_mode.width;
-        rect.bottom = video_mode.height;
-        clip.num_rects = 1;
-        clip.rects = &rect;
-        vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
+    //if (video_mode.flags & VIDEO_MODE_TEXT)
+    //{
+    //vgaRestoreTextMemory(vid->text_memory);
+    //vid->text_memory = NULL;
+    //}
+    //else
+    /*rect.left = rect.top = 0;
+    rect.right = video_mode.width;
+    rect.bottom = video_mode.height;
+    clip.num_rects = 1;
+    clip.rects = &rect;
+    vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);*/
 
-        bpp8GeneratePalette(bpp8_palette);
-        vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
-        return true;
+    bpp8GeneratePalette(bpp8_palette);
+    vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
+    return true;
 }
 
 static void vga8PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
@@ -186,18 +185,18 @@ static void vga8TextOut(video_t *vid,
 static video_t vga8 =
 {
     vga8Close,
-        vga8EnumModes,
-        vga8SetMode,
-        vgaStorePalette,
-        NULL,           /* movecursor */
-        vga8PutPixel,
-        vga8GetPixel,
-        vga8HLine,
-        NULL,	   /* vline */
-        NULL,	   /* line */
-        NULL,	   /* fillrect */
-        NULL, //vga8TextOut,
-        NULL,	   /* fillpolygon */
+    vga8EnumModes,
+    vga8SetMode,
+    vgaStorePalette,
+    NULL,           /* movecursor */
+    vga8PutPixel,
+    vga8GetPixel,
+    vga8HLine,
+    NULL,	   /* vline */
+    NULL,	   /* line */
+    NULL,	   /* fillrect */
+    NULL, //vga8TextOut,
+    NULL,	   /* fillpolygon */
 };
 
 video_t *vga8Init(device_config_t *cfg)
@@ -205,7 +204,7 @@ video_t *vga8Init(device_config_t *cfg)
     if (video_base == NULL)
     {
         video_base = VmmMap(0x20000 / PAGE_SIZE, NULL, (void*) 0xa0000,
-            VM_AREA_MAP, 0 | MEM_READ | MEM_WRITE);
+            NULL, VM_AREA_MAP, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
         VmmShare(video_base, L"fb_vga");
         wprintf(L"vga8: VGA frame buffer at %p\n", video_base);
     }

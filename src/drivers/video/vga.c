@@ -1,10 +1,11 @@
-/* $Id: vga.c,v 1.3 2002/08/17 17:45:39 pavlovskii Exp $ */
+/* $Id: vga.c,v 1.4 2002/12/18 23:19:04 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include "include/video.h"
 
 spinlock_t sem_vga;
 
+#if 1
 void vgaWriteRegs(const uint8_t *regs)
 {
     unsigned i;
@@ -53,6 +54,11 @@ void vgaWriteRegs(const uint8_t *regs)
     out(VGA_AC_WRITE, 0x20);
     SpinRelease(&sem_vga);
 }
+#else
+void vgaWriteRegs(const uint8_t *regs)
+{
+}
+#endif
 
 void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first, unsigned count)
 {
