@@ -1,4 +1,4 @@
-/* $Id: edit.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: edit.cpp,v 1.2 2002/04/04 00:08:43 pavlovskii Exp $ */
 
 #include <gui/edit.h>
 #include <gl/mgl.h>
@@ -70,4 +70,9 @@ void Edit::OnKeyDown(uint32_t key)
         SetTitle(text);
         Invalidate();
     }
+}
+
+void Edit::OnMouseDown(uint32_t button, MGLreal x, MGLreal y)
+{
+    SetFocus();
 }

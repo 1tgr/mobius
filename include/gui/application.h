@@ -1,3 +1,5 @@
+/* $Id: application.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+
 #ifndef __GUI_APPLICATION_H
 #define __GUI_APPLICATION_H
 

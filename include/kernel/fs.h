@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.6 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.7 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -45,7 +45,7 @@ bool	FsRead (handle_t, void*, size_t, struct fileop_t*);
 bool	FsWrite (handle_t, const void*, size_t, struct fileop_t*);
 off_t	FsSeek (handle_t, off_t, unsigned);
 
-size_t	FsReadSync(handle_t file, void *buf, size_t bytes);
+bool	FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read);
 size_t	FsWriteSync(handle_t file, const void *buf, size_t bytes);
 bool	FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev);
 bool	FsCreateVirtualDir(const wchar_t *path);

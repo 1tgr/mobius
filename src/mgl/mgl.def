@@ -1,9 +1,11 @@
 EXPORTS
+	glBevel
 	glClear
 	glDrawText
 	glFillPolygon
 	glFillRect
 	glFlush
+	glGetTextSize
 	glLineTo
 	glMoveTo
 	glPolygon
@@ -15,6 +17,8 @@ EXPORTS
 	mglDeleteRc
 	mglGetDimensions
 	mglMapToSurface
+	mglMoveCursor
+	mglSetClip
 	mglUseRc
 	RectIncludesPoint
 	RectInflate

@@ -23393,23 +23393,23 @@ c000e89c:	55                   	push   %ebp
 c000e89d:	89 e5                	mov    %esp,%ebp
 c000e89f:	83 ec 24             	sub    $0x24,%esp
 c000e8a2:	53                   	push   %ebx
-/mn/src/kernel/queue.c:9
+/mn/src/kernel/queue.c:11
 c000e8a3:	83 7d 10 00          	cmpl   $0x0,0x10(%ebp)
 c000e8a7:	75 0f                	jne    c000e8b8 <_QueueAppend+0x1c>
-/mn/src/kernel/queue.c:10
+/mn/src/kernel/queue.c:12
 c000e8a9:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e8ac:	8b 10                	mov    (%eax),%edx
 c000e8ae:	89 d0                	mov    %edx,%eax
 c000e8b0:	e9 0f 01 00 00       	jmp    c000e9c4 <_QueueAppend+0x128>
 c000e8b5:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/kernel/queue.c:12
+/mn/src/kernel/queue.c:14
 c000e8b8:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e8bb:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e8be:	83 c0 0c             	add    $0xc,%eax
 c000e8c1:	50                   	push   %eax
 c000e8c2:	e8 89 31 00 00       	call   c0011a50 <_SemAcquire>
 c000e8c7:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:14
+/mn/src/kernel/queue.c:16
 c000e8ca:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e8cd:	8b 50 08             	mov    0x8(%eax),%edx
 c000e8d0:	8b 4d 10             	mov    0x10(%ebp),%ecx
@@ -23417,7 +23417,7 @@ c000e8d3:	8d 04 11             	lea    (%ecx,%edx,1),%eax
 c000e8d6:	8b 55 08             	mov    0x8(%ebp),%edx
 c000e8d9:	3b 42 04             	cmp    0x4(%edx),%eax
 c000e8dc:	0f 86 8f 00 00 00    	jbe    c000e971 <_QueueAppend+0xd5>
-/mn/src/kernel/queue.c:18
+/mn/src/kernel/queue.c:20
 c000e8e2:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e8e5:	8b 55 08             	mov    0x8(%ebp),%edx
 c000e8e8:	8b 4a 04             	mov    0x4(%edx),%ecx
@@ -23425,7 +23425,7 @@ c000e8eb:	81 c1 00 10 00 00    	add    $0x1000,%ecx
 c000e8f1:	89 ca                	mov    %ecx,%edx
 c000e8f3:	81 e2 00 f0 ff ff    	and    $0xfffff000,%edx
 c000e8f9:	89 50 04             	mov    %edx,0x4(%eax)
-/mn/src/kernel/queue.c:19
+/mn/src/kernel/queue.c:21
 c000e8fc:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e8ff:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e902:	8b 50 04             	mov    0x4(%eax),%edx
@@ -23435,24 +23435,24 @@ c000e90b:	83 c4 10             	add    $0x10,%esp
 c000e90e:	89 c0                	mov    %eax,%eax
 c000e910:	89 c2                	mov    %eax,%edx
 c000e912:	89 55 f8             	mov    %edx,0xfffffff8(%ebp)
-/mn/src/kernel/queue.c:21
+/mn/src/kernel/queue.c:23
 c000e915:	83 7d f8 00          	cmpl   $0x0,0xfffffff8(%ebp)
 c000e919:	75 19                	jne    c000e934 <_QueueAppend+0x98>
-/mn/src/kernel/queue.c:23
+/mn/src/kernel/queue.c:25
 c000e91b:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e91e:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e921:	83 c0 0c             	add    $0xc,%eax
 c000e924:	50                   	push   %eax
 c000e925:	e8 4c 31 00 00       	call   c0011a76 <_SemRelease>
 c000e92a:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:24
+/mn/src/kernel/queue.c:26
 c000e92d:	31 c0                	xor    %eax,%eax
 c000e92f:	e9 90 00 00 00       	jmp    c000e9c4 <_QueueAppend+0x128>
-/mn/src/kernel/queue.c:27
+/mn/src/kernel/queue.c:29
 c000e934:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e937:	83 38 00             	cmpl   $0x0,(%eax)
 c000e93a:	74 2d                	je     c000e969 <_QueueAppend+0xcd>
-/mn/src/kernel/queue.c:29
+/mn/src/kernel/queue.c:31
 c000e93c:	83 c4 fc             	add    $0xfffffffc,%esp
 c000e93f:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e942:	8b 50 08             	mov    0x8(%eax),%edx
@@ -23464,25 +23464,25 @@ c000e94c:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c000e94f:	50                   	push   %eax
 c000e950:	e8 e3 86 00 00       	call   c0017038 <_memcpy>
 c000e955:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:30
+/mn/src/kernel/queue.c:32
 c000e958:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e95b:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e95e:	8b 10                	mov    (%eax),%edx
 c000e960:	52                   	push   %edx
 c000e961:	e8 06 7a 00 00       	call   c001636c <_free>
 c000e966:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:33
+/mn/src/kernel/queue.c:35
 c000e969:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e96c:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 c000e96f:	89 10                	mov    %edx,(%eax)
-/mn/src/kernel/queue.c:38
+/mn/src/kernel/queue.c:40
 c000e971:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e974:	8b 55 08             	mov    0x8(%ebp),%edx
 c000e977:	8b 00                	mov    (%eax),%eax
 c000e979:	8b 52 08             	mov    0x8(%edx),%edx
 c000e97c:	8d 0c 02             	lea    (%edx,%eax,1),%ecx
 c000e97f:	89 4d fc             	mov    %ecx,0xfffffffc(%ebp)
-/mn/src/kernel/queue.c:39
+/mn/src/kernel/queue.c:41
 c000e982:	83 c4 fc             	add    $0xfffffffc,%esp
 c000e985:	8b 45 10             	mov    0x10(%ebp),%eax
 c000e988:	50                   	push   %eax
@@ -23492,25 +23492,25 @@ c000e98d:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000e990:	50                   	push   %eax
 c000e991:	e8 a2 86 00 00       	call   c0017038 <_memcpy>
 c000e996:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:40
+/mn/src/kernel/queue.c:42
 c000e999:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e99c:	8b 55 08             	mov    0x8(%ebp),%edx
 c000e99f:	8b 4a 08             	mov    0x8(%edx),%ecx
 c000e9a2:	8b 55 10             	mov    0x10(%ebp),%edx
 c000e9a5:	8d 1c 0a             	lea    (%edx,%ecx,1),%ebx
 c000e9a8:	89 58 08             	mov    %ebx,0x8(%eax)
-/mn/src/kernel/queue.c:41
+/mn/src/kernel/queue.c:43
 c000e9ab:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e9ae:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e9b1:	83 c0 0c             	add    $0xc,%eax
 c000e9b4:	50                   	push   %eax
 c000e9b5:	e8 bc 30 00 00       	call   c0011a76 <_SemRelease>
 c000e9ba:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:42
+/mn/src/kernel/queue.c:44
 c000e9bd:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c000e9c0:	89 d0                	mov    %edx,%eax
 c000e9c2:	eb 00                	jmp    c000e9c4 <_QueueAppend+0x128>
-/mn/src/kernel/queue.c:43
+/mn/src/kernel/queue.c:45
 c000e9c4:	8b 5d d8             	mov    0xffffffd8(%ebp),%ebx
 c000e9c7:	89 ec                	mov    %ebp,%esp
 c000e9c9:	5d                   	pop    %ebp
@@ -23523,19 +23523,19 @@ c000e9cc:	55                   	push   %ebp
 c000e9cd:	89 e5                	mov    %esp,%ebp
 c000e9cf:	83 ec 14             	sub    $0x14,%esp
 c000e9d2:	53                   	push   %ebx
-/mn/src/kernel/queue.c:47
+/mn/src/kernel/queue.c:49
 c000e9d3:	83 c4 f4             	add    $0xfffffff4,%esp
 c000e9d6:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e9d9:	83 c0 0c             	add    $0xc,%eax
 c000e9dc:	50                   	push   %eax
 c000e9dd:	e8 6e 30 00 00       	call   c0011a50 <_SemAcquire>
 c000e9e2:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:48
+/mn/src/kernel/queue.c:50
 c000e9e5:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e9e8:	8b 50 08             	mov    0x8(%eax),%edx
 c000e9eb:	3b 55 10             	cmp    0x10(%ebp),%edx
 c000e9ee:	72 58                	jb     c000ea48 <_QueuePopLast+0x7c>
-/mn/src/kernel/queue.c:50
+/mn/src/kernel/queue.c:52
 c000e9f0:	8b 45 08             	mov    0x8(%ebp),%eax
 c000e9f3:	8b 55 08             	mov    0x8(%ebp),%edx
 c000e9f6:	8b 4a 08             	mov    0x8(%edx),%ecx
@@ -23543,10 +23543,10 @@ c000e9f9:	8b 55 10             	mov    0x10(%ebp),%edx
 c000e9fc:	89 cb                	mov    %ecx,%ebx
 c000e9fe:	29 d3                	sub    %edx,%ebx
 c000ea00:	89 58 08             	mov    %ebx,0x8(%eax)
-/mn/src/kernel/queue.c:51
+/mn/src/kernel/queue.c:53
 c000ea03:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
 c000ea07:	74 21                	je     c000ea2a <_QueuePopLast+0x5e>
-/mn/src/kernel/queue.c:52
+/mn/src/kernel/queue.c:54
 c000ea09:	83 c4 fc             	add    $0xfffffffc,%esp
 c000ea0c:	8b 45 10             	mov    0x10(%ebp),%eax
 c000ea0f:	50                   	push   %eax
@@ -23560,31 +23560,31 @@ c000ea1e:	8b 45 0c             	mov    0xc(%ebp),%eax
 c000ea21:	50                   	push   %eax
 c000ea22:	e8 11 86 00 00       	call   c0017038 <_memcpy>
 c000ea27:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:53
+/mn/src/kernel/queue.c:55
 c000ea2a:	83 c4 f4             	add    $0xfffffff4,%esp
 c000ea2d:	8b 45 08             	mov    0x8(%ebp),%eax
 c000ea30:	83 c0 0c             	add    $0xc,%eax
 c000ea33:	50                   	push   %eax
 c000ea34:	e8 3d 30 00 00       	call   c0011a76 <_SemRelease>
 c000ea39:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:54
+/mn/src/kernel/queue.c:56
 c000ea3c:	b8 01 00 00 00       	mov    $0x1,%eax
 c000ea41:	eb 1d                	jmp    c000ea60 <_QueuePopLast+0x94>
-/mn/src/kernel/queue.c:55
+/mn/src/kernel/queue.c:57
 c000ea43:	eb 1b                	jmp    c000ea60 <_QueuePopLast+0x94>
 c000ea45:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/kernel/queue.c:58
+/mn/src/kernel/queue.c:60
 c000ea48:	83 c4 f4             	add    $0xfffffff4,%esp
 c000ea4b:	8b 45 08             	mov    0x8(%ebp),%eax
 c000ea4e:	83 c0 0c             	add    $0xc,%eax
 c000ea51:	50                   	push   %eax
 c000ea52:	e8 1f 30 00 00       	call   c0011a76 <_SemRelease>
 c000ea57:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:59
+/mn/src/kernel/queue.c:61
 c000ea5a:	31 c0                	xor    %eax,%eax
 c000ea5c:	eb 02                	jmp    c000ea60 <_QueuePopLast+0x94>
 c000ea5e:	89 f6                	mov    %esi,%esi
-/mn/src/kernel/queue.c:61
+/mn/src/kernel/queue.c:63
 c000ea60:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
 c000ea63:	89 ec                	mov    %ebp,%esp
 c000ea65:	5d                   	pop    %ebp
@@ -23597,19 +23597,19 @@ c000ea68:	55                   	push   %ebp
 c000ea69:	89 e5                	mov    %esp,%ebp
 c000ea6b:	83 ec 14             	sub    $0x14,%esp
 c000ea6e:	53                   	push   %ebx
-/mn/src/kernel/queue.c:65
+/mn/src/kernel/queue.c:67
 c000ea6f:	83 c4 f4             	add    $0xfffffff4,%esp
 c000ea72:	8b 45 08             	mov    0x8(%ebp),%eax
 c000ea75:	83 c0 0c             	add    $0xc,%eax
 c000ea78:	50                   	push   %eax
 c000ea79:	e8 d2 2f 00 00       	call   c0011a50 <_SemAcquire>
 c000ea7e:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:66
+/mn/src/kernel/queue.c:68
 c000ea81:	8b 45 08             	mov    0x8(%ebp),%eax
 c000ea84:	8b 50 08             	mov    0x8(%eax),%edx
 c000ea87:	3b 55 10             	cmp    0x10(%ebp),%edx
 c000ea8a:	72 74                	jb     c000eb00 <_QueuePopFirst+0x98>
-/mn/src/kernel/queue.c:68
+/mn/src/kernel/queue.c:70
 c000ea8c:	8b 45 08             	mov    0x8(%ebp),%eax
 c000ea8f:	8b 55 08             	mov    0x8(%ebp),%edx
 c000ea92:	8b 4a 08             	mov    0x8(%edx),%ecx
@@ -23617,10 +23617,10 @@ c000ea95:	8b 55 10             	mov    0x10(%ebp),%edx
 c000ea98:	89 cb                	mov    %ecx,%ebx
 c000ea9a:	29 d3                	sub    %edx,%ebx
 c000ea9c:	89 58 08             	mov    %ebx,0x8(%eax)
-/mn/src/kernel/queue.c:69
+/mn/src/kernel/queue.c:71
 c000ea9f:	83 7d 0c 00          	cmpl   $0x0,0xc(%ebp)
 c000eaa3:	74 19                	je     c000eabe <_QueuePopFirst+0x56>
-/mn/src/kernel/queue.c:70
+/mn/src/kernel/queue.c:72
 c000eaa5:	83 c4 fc             	add    $0xfffffffc,%esp
 c000eaa8:	8b 45 10             	mov    0x10(%ebp),%eax
 c000eaab:	50                   	push   %eax
@@ -23631,7 +23631,7 @@ c000eab2:	8b 45 0c             	mov    0xc(%ebp),%eax
 c000eab5:	50                   	push   %eax
 c000eab6:	e8 7d 85 00 00       	call   c0017038 <_memcpy>
 c000eabb:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:71
+/mn/src/kernel/queue.c:73
 c000eabe:	83 c4 fc             	add    $0xfffffffc,%esp
 c000eac1:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eac4:	8b 50 08             	mov    0x8(%eax),%edx
@@ -23646,31 +23646,31 @@ c000ead7:	8b 10                	mov    (%eax),%edx
 c000ead9:	52                   	push   %edx
 c000eada:	e8 59 85 00 00       	call   c0017038 <_memcpy>
 c000eadf:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:72
+/mn/src/kernel/queue.c:74
 c000eae2:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eae5:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eae8:	83 c0 0c             	add    $0xc,%eax
 c000eaeb:	50                   	push   %eax
 c000eaec:	e8 85 2f 00 00       	call   c0011a76 <_SemRelease>
 c000eaf1:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:73
+/mn/src/kernel/queue.c:75
 c000eaf4:	b8 01 00 00 00       	mov    $0x1,%eax
 c000eaf9:	eb 1d                	jmp    c000eb18 <_QueuePopFirst+0xb0>
-/mn/src/kernel/queue.c:74
+/mn/src/kernel/queue.c:76
 c000eafb:	eb 1b                	jmp    c000eb18 <_QueuePopFirst+0xb0>
 c000eafd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/kernel/queue.c:77
+/mn/src/kernel/queue.c:79
 c000eb00:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eb03:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb06:	83 c0 0c             	add    $0xc,%eax
 c000eb09:	50                   	push   %eax
 c000eb0a:	e8 67 2f 00 00       	call   c0011a76 <_SemRelease>
 c000eb0f:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:78
+/mn/src/kernel/queue.c:80
 c000eb12:	31 c0                	xor    %eax,%eax
 c000eb14:	eb 02                	jmp    c000eb18 <_QueuePopFirst+0xb0>
 c000eb16:	89 f6                	mov    %esi,%esi
-/mn/src/kernel/queue.c:80
+/mn/src/kernel/queue.c:82
 c000eb18:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
 c000eb1b:	89 ec                	mov    %ebp,%esp
 c000eb1d:	5d                   	pop    %ebp
@@ -23682,37 +23682,37 @@ QueueClear():
 c000eb20:	55                   	push   %ebp
 c000eb21:	89 e5                	mov    %esp,%ebp
 c000eb23:	83 ec 08             	sub    $0x8,%esp
-/mn/src/kernel/queue.c:84
+/mn/src/kernel/queue.c:86
 c000eb26:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eb29:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb2c:	83 c0 0c             	add    $0xc,%eax
 c000eb2f:	50                   	push   %eax
 c000eb30:	e8 1b 2f 00 00       	call   c0011a50 <_SemAcquire>
 c000eb35:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:85
+/mn/src/kernel/queue.c:87
 c000eb38:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eb3b:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb3e:	8b 10                	mov    (%eax),%edx
 c000eb40:	52                   	push   %edx
 c000eb41:	e8 26 78 00 00       	call   c001636c <_free>
 c000eb46:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:86
+/mn/src/kernel/queue.c:88
 c000eb49:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb4c:	c7 00 00 00 00 00    	movl   $0x0,(%eax)
-/mn/src/kernel/queue.c:87
+/mn/src/kernel/queue.c:89
 c000eb52:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb55:	c7 40 04 00 00 00 00 	movl   $0x0,0x4(%eax)
-/mn/src/kernel/queue.c:88
+/mn/src/kernel/queue.c:90
 c000eb5c:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb5f:	c7 40 08 00 00 00 00 	movl   $0x0,0x8(%eax)
-/mn/src/kernel/queue.c:89
+/mn/src/kernel/queue.c:91
 c000eb66:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eb69:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb6c:	83 c0 0c             	add    $0xc,%eax
 c000eb6f:	50                   	push   %eax
 c000eb70:	e8 01 2f 00 00       	call   c0011a76 <_SemRelease>
 c000eb75:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:90
+/mn/src/kernel/queue.c:92
 c000eb78:	89 ec                	mov    %ebp,%esp
 c000eb7a:	5d                   	pop    %ebp
 c000eb7b:	c3                   	ret    
@@ -23722,22 +23722,22 @@ QueueInit():
 c000eb7c:	55                   	push   %ebp
 c000eb7d:	89 e5                	mov    %esp,%ebp
 c000eb7f:	83 ec 08             	sub    $0x8,%esp
-/mn/src/kernel/queue.c:94
+/mn/src/kernel/queue.c:96
 c000eb82:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb85:	c7 00 00 00 00 00    	movl   $0x0,(%eax)
-/mn/src/kernel/queue.c:95
+/mn/src/kernel/queue.c:97
 c000eb8b:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eb8e:	8b 55 08             	mov    0x8(%ebp),%edx
 c000eb91:	c7 42 08 00 00 00 00 	movl   $0x0,0x8(%edx)
 c000eb98:	c7 40 04 00 00 00 00 	movl   $0x0,0x4(%eax)
-/mn/src/kernel/queue.c:96
+/mn/src/kernel/queue.c:98
 c000eb9f:	83 c4 f4             	add    $0xfffffff4,%esp
 c000eba2:	8b 45 08             	mov    0x8(%ebp),%eax
 c000eba5:	83 c0 0c             	add    $0xc,%eax
 c000eba8:	50                   	push   %eax
 c000eba9:	e8 8a 24 ff ff       	call   c0001038 <_SemInit>
 c000ebae:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/queue.c:97
+/mn/src/kernel/queue.c:99
 c000ebb1:	89 ec                	mov    %ebp,%esp
 c000ebb3:	5d                   	pop    %ebp
 c000ebb4:	c3                   	ret    

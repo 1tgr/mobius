@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.13 2002/03/07 15:51:51 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.14 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -240,6 +240,7 @@ asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, void *us
 			    size_t user_buffer_length);
 void	    DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
 uint8_t	    DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
+device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n);
 void *	    DevMapBuffer(asyncio_t *io);
 
 void	    MemUnmapTemp(void);

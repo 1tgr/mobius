@@ -1,4 +1,4 @@
-/* $Id: mouse.h,v 1.1 2002/03/13 14:38:30 pavlovskii Exp $ */
+/* $Id: mouse.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
 
 #ifndef __OS_MOUSE_H
 #define __OS_MOUSE_H

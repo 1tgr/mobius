@@ -1352,48 +1352,48 @@ bsearch():
 80101c66:	57                   	push   %edi
 80101c67:	56                   	push   %esi
 80101c68:	53                   	push   %ebx
-/mn/src/drivers/tty/map.c:175
+/mn/src/drivers/video/../tty/map.c:175
 80101c69:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/tty/map.c:179
+/mn/src/drivers/video/../tty/map.c:179
 80101c6c:	8b 75 10             	mov    0x10(%ebp),%esi
 80101c6f:	85 f6                	test   %esi,%esi
 80101c71:	74 34                	je     80101ca7 <_bsearch+0x47>
 80101c73:	90                   	nop    
-/mn/src/drivers/tty/map.c:181
+/mn/src/drivers/video/../tty/map.c:181
 80101c74:	89 f0                	mov    %esi,%eax
-/mn/src/drivers/tty/map.c:182
+/mn/src/drivers/video/../tty/map.c:182
 80101c76:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/tty/map.c:181
+/mn/src/drivers/video/../tty/map.c:181
 80101c79:	d1 f8                	sar    %eax
 80101c7b:	0f af 45 14          	imul   0x14(%ebp),%eax
 80101c7f:	8d 1c 38             	lea    (%eax,%edi,1),%ebx
-/mn/src/drivers/tty/map.c:182
+/mn/src/drivers/video/../tty/map.c:182
 80101c82:	53                   	push   %ebx
 80101c83:	8b 45 08             	mov    0x8(%ebp),%eax
 80101c86:	50                   	push   %eax
 80101c87:	8b 55 18             	mov    0x18(%ebp),%edx
 80101c8a:	ff d2                	call   *%edx
-/mn/src/drivers/tty/map.c:183
+/mn/src/drivers/video/../tty/map.c:183
 80101c8c:	83 c4 10             	add    $0x10,%esp
 80101c8f:	85 c0                	test   %eax,%eax
 80101c91:	75 05                	jne    80101c98 <_bsearch+0x38>
-/mn/src/drivers/tty/map.c:184
+/mn/src/drivers/video/../tty/map.c:184
 80101c93:	89 d8                	mov    %ebx,%eax
 80101c95:	eb 12                	jmp    80101ca9 <_bsearch+0x49>
 80101c97:	90                   	nop    
-/mn/src/drivers/tty/map.c:186
+/mn/src/drivers/video/../tty/map.c:186
 80101c98:	85 c0                	test   %eax,%eax
 80101c9a:	7e 07                	jle    80101ca3 <_bsearch+0x43>
-/mn/src/drivers/tty/map.c:188
+/mn/src/drivers/video/../tty/map.c:188
 80101c9c:	8b 45 14             	mov    0x14(%ebp),%eax
-/mn/src/drivers/tty/map.c:189
+/mn/src/drivers/video/../tty/map.c:189
 80101c9f:	4e                   	dec    %esi
-/mn/src/drivers/tty/map.c:188
+/mn/src/drivers/video/../tty/map.c:188
 80101ca0:	8d 3c 18             	lea    (%eax,%ebx,1),%edi
-/mn/src/drivers/tty/map.c:179
+/mn/src/drivers/video/../tty/map.c:179
 80101ca3:	d1 fe                	sar    %esi
 80101ca5:	75 cd                	jne    80101c74 <_bsearch+0x14>
-/mn/src/drivers/tty/map.c:192
+/mn/src/drivers/video/../tty/map.c:192
 80101ca7:	31 c0                	xor    %eax,%eax
 80101ca9:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80101cac:	5b                   	pop    %ebx
@@ -1402,17 +1402,17 @@ bsearch():
 80101caf:	89 ec                	mov    %ebp,%esp
 80101cb1:	5d                   	pop    %ebp
 80101cb2:	c3                   	ret    
-/mn/src/drivers/tty/map.c:193
+/mn/src/drivers/video/../tty/map.c:193
 80101cb3:	90                   	nop    
 
 80101cb4 <_asciimap_search_wchar_t>:
 asciimap_search_wchar_t():
 80101cb4:	55                   	push   %ebp
 80101cb5:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/tty/map.c:196
+/mn/src/drivers/video/../tty/map.c:196
 80101cb7:	8b 45 08             	mov    0x8(%ebp),%eax
 80101cba:	8b 55 0c             	mov    0xc(%ebp),%edx
-/mn/src/drivers/tty/map.c:199
+/mn/src/drivers/video/../tty/map.c:199
 80101cbd:	89 ec                	mov    %ebp,%esp
 80101cbf:	0f b7 08             	movzwl (%eax),%ecx
 80101cc2:	0f b7 02             	movzwl (%edx),%eax
@@ -1420,7 +1420,7 @@ asciimap_search_wchar_t():
 80101cc7:	5d                   	pop    %ebp
 80101cc8:	89 c8                	mov    %ecx,%eax
 80101cca:	c3                   	ret    
-/mn/src/drivers/tty/map.c:200
+/mn/src/drivers/video/../tty/map.c:200
 80101ccb:	90                   	nop    
 
 80101ccc <_wcsto437>:

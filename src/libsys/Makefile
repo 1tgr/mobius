@@ -1,6 +1,7 @@
 EXP=    libsys.exp
 DEF=    libsys.def
-OBJS=	syscall.o port.o misc.o resource.o console.o queue.o
+OBJS=	dllmain.o syscall.o port.o misc.o \
+	resource.o console.o queue.o fs.o
 BASE=	libsys
 
 include ../make.conf

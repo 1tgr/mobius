@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.3 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: video.h,v 1.4 2002/04/04 00:08:42 pavlovskii Exp $ */
 
 #ifndef __OS_VIDEO_H
 #define __OS_VIDEO_H
@@ -31,6 +31,13 @@ struct point_t
     int x, y;
 };
 
+typedef struct clip_t clip_t;
+struct clip_t
+{
+    unsigned num_rects;
+    rect_t *rects;
+};
+
 typedef struct vid_rect_t vid_rect_t;
 struct vid_rect_t
 {
@@ -55,6 +62,7 @@ struct vid_pixel_t
 typedef struct vid_text_t vid_text_t;
 struct vid_text_t
 {
+    clip_t clip;
     const void *buffer;
     size_t length;
     rect_t rect;
@@ -109,9 +117,11 @@ struct rgb_t
 #define VID_DRAW	    REQUEST_CODE(1, 0, 'v', 'd')
 #define VID_FILLPOLYGON	    REQUEST_CODE(1, 0, 'v', 'f')
 #define VID_SETMODE	    REQUEST_CODE(0, 0, 'v', 'm')
+#define VID_GETMODE	    REQUEST_CODE(0, 0, 'v', 'M')
 #define VID_TEXTOUT	    REQUEST_CODE(0, 0, 'v', 't')
 #define VID_STOREPALETTE    REQUEST_CODE(1, 0, 'v', 'P')
 #define VID_LOADPALETTE     REQUEST_CODE(1, 0, 'v', 'Q')
+#define VID_MOVECURSOR      REQUEST_CODE(0, 0, 'v', 'c')
 
 enum
 {
@@ -138,12 +148,14 @@ struct vid_shape_t
 typedef union params_vid_t params_vid_t;
 union params_vid_t
 {
-    videomode_t vid_setmode;
+    videomode_t vid_setmode, vid_getmode;
     vid_palette_t vid_storepalette;
     vid_text_t vid_textout;
+    point_t vid_movecursor;
 
     struct
     {
+        clip_t clip;
         vid_shape_t *shapes;
         size_t length;
         uint64_t reserved;
@@ -151,6 +163,7 @@ union params_vid_t
 
     struct
     {
+        clip_t clip;
         point_t *points;
         size_t length;
         colour_t colour;

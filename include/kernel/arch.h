@@ -1,4 +1,4 @@
-/* $Id: arch.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: arch.h,v 1.6 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __KERNEL_ARCH_H
 #define __KERNEL_ARCH_H
 
@@ -29,6 +29,7 @@ void	ArchMaskIrq(uint16_t enable, uint16_t disable);
 void	ArchDbgBreak(void);
 void	ArchDbgDumpContext(const struct context_t* ctx);
 bool	ArchAttachToThread(struct thread_t *thr, bool isNewAddressSpace);
+void    ArchReboot(void);
 
 /*! @} */
 

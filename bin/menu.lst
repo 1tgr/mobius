@@ -1,4 +1,4 @@
-# $Id: menu.lst,v 1.10 2002/03/27 22:12:59 pavlovskii Exp $
+# $Id: menu.lst,v 1.11 2002/04/04 00:08:42 pavlovskii Exp $
 
 title	The M”bius
 kernel	/boot/kernel.exe
@@ -11,16 +11,16 @@ module	/boot/libc.dll
 module	/boot/fdc.drv
 module	/boot/test.txt
 #module	/boot/ata.drv
-module	/boot/cmos.drv
+#module	/boot/cmos.drv
 module	/boot/video.drv
-module	/boot/pci.drv
-module	/boot/ps2mouse.drv
+#module	/boot/pci.drv
+#module	/boot/ps2mouse.drv
 # module	/boot/libiconv.dll
 module	/boot/hello.exe
 module	/boot/test.exe
-module	/boot/v86.com
-module	/boot/ndisasm.exe
-module	/boot/nasm.exe
+#module	/boot/v86.com
+#module	/boot/ndisasm.exe
+#module	/boot/nasm.exe
 module	/boot/vidtest.exe
 module	/boot/mgl.dll
 module	/boot/mgltest.exe

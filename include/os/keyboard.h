@@ -1,21 +1,22 @@
-/* $Id: keyboard.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: keyboard.h,v 1.3 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __OS_KEYBOARD_H
 #define __OS_KEYBOARD_H
 
 /* "bucky bits"
 0x0100000 is reserved for non-ASCII keys, so start with 0x200000 */
-#define KBD_BUCKY_ALT   0x0200000  /* Alt is pressed */
-#define KBD_BUCKY_CTRL  0x0400000  /* Ctrl is pressed */
-#define KBD_BUCKY_SHIFT 0x0800000  /* Shift is pressed */
-#define KBD_BUCKY_CAPS  0x1000000  /* CapsLock is on */
-#define KBD_BUCKY_NUM   0x2000000  /* NumLock is on */
-#define KBD_BUCKY_SCRL  0x4000000  /* ScrollLock is on */
-#define KBD_BUCKY_ALTGR 0x8000000  /* AltGr is pressed */
+#define KBD_BUCKY_RELEASE   0x0100000  /* Key was released */
+#define KBD_BUCKY_ALT       0x0200000  /* Alt is pressed */
+#define KBD_BUCKY_CTRL      0x0400000  /* Ctrl is pressed */
+#define KBD_BUCKY_SHIFT     0x0800000  /* Shift is pressed */
+#define KBD_BUCKY_CAPS      0x1000000  /* CapsLock is on */
+#define KBD_BUCKY_NUM       0x2000000  /* NumLock is on */
+#define KBD_BUCKY_SCRL      0x4000000  /* ScrollLock is on */
+#define KBD_BUCKY_ALTGR     0x8000000  /* AltGr is pressed */
 #define KBD_BUCKY_ANY   (KBD_BUCKY_ALT | KBD_BUCKY_CTRL | KBD_BUCKY_SHIFT | KBD_BUCKY_ALTGR)
 
 /* "ASCII" values for non-ASCII keys. All of these are user-defined.
 function keys: */
-#define KEY_F1      0x10000
+#define KEY_F1      0x00010000
 #define KEY_F2      (KEY_F1 + 1)
 #define KEY_F3      (KEY_F2 + 1)
 #define KEY_F4      (KEY_F3 + 1)

@@ -42,12 +42,12 @@ STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/sprintf.o stdio/sscanf.o stdio/stdaux.o stdio/stderr.o \
 	stdio/stdin.o stdio/stdiohk.o stdio/stdio.o stdio/stdout.o \
 	stdio/stdprn.o stdio/swprintf.o stdio/tmpfile.o stdio/tmpnam.o \
-	stdio/ungetc.o stdio/vfprintf.o stdio/vprintf.o stdio/vsprintf.o \
+	stdio/ungetc.o \
 	stdio/wprintf.o stdio/wfopen.o
 STDLIB=	stdlib/abort.o stdlib/abs.o stdlib/atexit.o stdlib/atof.o \
-	stdlib/atoi.o stdlib/atol.o stdlib/atold.o stdlib/bsdqsort.o \
-	stdlib/bsearch.o stdlib/div.o stdlib/exit.o \
-	stdlib/labs.o stdlib/ldiv.o stdlib/llabs.o stdlib/lldiv.o \
+	stdlib/atoi.o stdlib/atol.o stdlib/atold.o \
+	stdlib/bsearch.o stdlib/cppsup.o stdlib/div.o stdlib/exit.o \
+	stdlib/labs.o stdlib/ldiv.o stdlib/llabs.o \
 	stdlib/qsort.o stdlib/rand.o stdlib/strtod.o stdlib/strtol.o \
 	stdlib/strtold.o stdlib/strtoll.o stdlib/strtoul.o stdlib/strtoull.o \
 	stdlib/wcstol.o 
@@ -65,7 +65,7 @@ STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/wcslen.o string/wcstombs.o
 TIME=	time/localtime.o time/time.o
 
-RTL=	string/djmd.o string/djmdr.o
+RTL=	string/djmd.o string/djmdr.o dllmain.o
 SYS=	sys/access.o sys/close.o sys/cputs.o sys/cputws.o \
 	sys/creatnew.o sys/float_dx.o sys/fmode.o sys/getenv.o \
 	sys/huge_val.o sys/isatty.o sys/int64.o \

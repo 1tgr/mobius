@@ -1,4 +1,4 @@
-/* $Id: render.c,v 1.4 2002/03/27 22:08:38 pavlovskii Exp $ */
+/* $Id: render.c,v 1.5 2002/04/04 00:09:00 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
@@ -10,31 +10,30 @@
 
 #include <os/syscall.h>
 
-#undef __FTERRORS_H__
-#define FT_ERRORDEF( e, v, s )	 { e, s },
-#define FT_ERROR_START_LIST	 {
-#define FT_ERROR_END_LIST	 { 0, 0 } };
-
-const struct
-{
-    int 	 err_code;
-    const char*  err_msg;
-} ft_errors[] =
-
-#include FT_ERRORS_H
-
 #define vidAddToQueue(q, s)    QueueAppend(q, s, sizeof(*s))
 
-bool vidFlushQueue(queue_t *queue, handle_t video)
+bool vidFlushQueue(queue_t *queue, mglrc_t *rc)
 {
     if (queue->length > 0)
     {
 	params_vid_t params;
 	fileop_t op;
+        rect_t temp;
+
+        if (rc->vid_clip.num_rects == 0)
+        {
+            temp.left = temp.top = 0;
+            temp.right = rc->surf_width;
+            temp.bottom = rc->surf_height;
+            params.vid_draw.clip.num_rects = 1;
+            params.vid_draw.clip.rects = &temp;
+        }
+        else
+            params.vid_draw.clip = rc->vid_clip;
 
 	params.vid_draw.shapes = QUEUE_DATA(*queue);
 	params.vid_draw.length = queue->length;
-	if (FsRequestSync(video, VID_DRAW, &params, sizeof(params), &op))
+	if (FsRequestSync(rc->video, VID_DRAW, &params, sizeof(params), &op))
 	    op.result = 0;
 
 	QueueClear(queue);
@@ -49,19 +48,6 @@ bool vidFlushQueue(queue_t *queue, handle_t video)
     }
     else
 	return true;
-}
-
-const char *mgliGetFtError(int error)
-{
-    unsigned i;
-    static char str[20];
-
-    for (i = 0; i < _countof(ft_errors); i++)
-	if (ft_errors[i].err_code == error)
-	    return ft_errors[i].err_msg;
-
-    sprintf(str, "unknown 0x%d", error);
-    return str;
 }
 
 void swap_MGLreal(MGLreal *a, MGLreal *b)
@@ -149,9 +135,6 @@ void glFillRect(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 void glClear(void)
 {
     point_t topLeft, bottomRight;
-    FT_UInt glyph_index;
-    int x, y;
-    FT_Error error;
     
     CCV;
 
@@ -159,28 +142,6 @@ void glClear(void)
     bottomRight.x = current->surf_width;
     bottomRight.y = current->surf_height;
     vidFillRect(&current->render_queue, topLeft, bottomRight, current->clear_colour);
-
-    /*FT_Set_Pixel_Sizes(current->ft_face, 0, 20);
-
-    glyph_index = FT_Get_Char_Index(current->ft_face, 'a');
-    wprintf(L"glyph_index = %d\n", glyph_index);
-    error = FT_Load_Glyph(current->ft_face, glyph_index, FT_LOAD_DEFAULT);
-    if (error)
-	wprintf(L"FT_Load_Glyph: %S\n", mgliGetFtError(error));
-    else
-    {
-	FT_GlyphSlot slot = current->ft_face->glyph; 
-	error = FT_Render_Glyph(current->ft_face->glyph, 0);
-	if (error)
-	    wprintf(L"FT_Render_Glyph: %S\n", mgliGetFtError(error));
-	else
-	{
-	    for (x = 0; x < slot->bitmap.rows; x++)
-		for (y = 0; y < slot->bitmap.width; y++)
-		    vidPutPixel(current->video, x, y, 
-			slot->bitmap.buffer[x + y * slot->bitmap.width]);
-	}
-    }*/
 }
 
 /*! \brief  Sets the current position */
@@ -257,14 +218,13 @@ wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n)
     return NULL;
 }
 
-void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
+void glDrawText(const MGLrect *rc, const wchar_t *str, int len)
 {
-    size_t chunk;
     params_vid_t params;
     point_t topLeft, bottomRight;
     fileop_t op;
-    const wchar_t *nl;
-
+    rect_t temp;
+    
     CCV;
 
     glFlush();
@@ -275,6 +235,17 @@ void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
     mglMapToSurface(rc->left, rc->top, &topLeft);
     mglMapToSurface(rc->right, rc->bottom, &bottomRight);
 
+    if (current->vid_clip.num_rects == 0)
+    {
+        temp.left = temp.top = 0;
+        temp.right = current->surf_width;
+        temp.bottom = current->surf_height;
+        params.vid_textout.clip.num_rects = 1;
+        params.vid_textout.clip.rects = &temp;
+    }
+    else
+        params.vid_textout.clip = current->vid_clip;
+
     params.vid_textout.rect.left = topLeft.x;
     params.vid_textout.rect.top = topLeft.y;
     params.vid_textout.rect.right = bottomRight.x;
@@ -284,40 +255,28 @@ void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
     params.vid_textout.foreColour = current->colour;
     params.vid_textout.backColour = -1;
     FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
+}
 
-    /*while (len > 0)
-    {
-	while (*str == '\n' && len > 0)
-	{
-	    str++;
-	    len--;
-	}
-	
-	nl = wmemchr(str, '\n', len);
-	if (nl == NULL)
-	{
-	    chunk = (bottomRight.x - topLeft.x) / 8;
-	    if (chunk > len)
-		chunk = len;
-	}
-	else
-	    chunk = nl - str;
-	
-	if (chunk > 0)
-	{
-	    params.vid_textout.x = topLeft.x;
-	    params.vid_textout.y = topLeft.y;
-	    params.vid_textout.buffer = str;
-	    params.vid_textout.length = chunk * sizeof(wchar_t);
-	    params.vid_textout.foreColour = current->colour;
-	    params.vid_textout.backColour = -1;
-	    FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
-	}
+void glGetTextSize(const wchar_t *str, int len, MGLpoint *size)
+{
+    params_vid_t params;
+    fileop_t op;
+    
+    CCV;
 
-	topLeft.y = params.vid_textout.y;
-	len -= chunk;
-	str += chunk;
-    }*/
+    if (len == (size_t) -1)
+	len = wcslen(str);
+
+    params.vid_textout.rect.left = 0;
+    params.vid_textout.rect.top = 0;
+    params.vid_textout.rect.right = current->surf_width;
+    params.vid_textout.rect.bottom = current->surf_height;
+    params.vid_textout.buffer = str;
+    params.vid_textout.length = len * sizeof(wchar_t);
+    params.vid_textout.foreColour = params.vid_textout.backColour = -1;
+    FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
+
+    mglMapToVirtual(params.vid_textout.rect.right, params.vid_textout.rect.bottom, size);
 }
 
 void glFillPolygon(const MGLpoint *points, unsigned num_points)
@@ -326,6 +285,7 @@ void glFillPolygon(const MGLpoint *points, unsigned num_points)
     unsigned i;
     params_vid_t params;
     fileop_t op;
+    rect_t temp;
 
     CCV;
 
@@ -337,6 +297,18 @@ void glFillPolygon(const MGLpoint *points, unsigned num_points)
     	mglMapToSurface(points[i].x, points[i].y, pts + i);
     
     glFlush();
+
+    if (current->vid_clip.num_rects == 0)
+    {
+        temp.left = temp.top = 0;
+        temp.right = current->surf_width;
+        temp.bottom = current->surf_height;
+        params.vid_fillpolygon.clip.num_rects = 1;
+        params.vid_fillpolygon.clip.rects = &temp;
+    }
+    else
+        params.vid_fillpolygon.clip = current->vid_clip;
+
     params.vid_fillpolygon.points = pts;
     params.vid_fillpolygon.length = num_points * sizeof(point_t);
     params.vid_fillpolygon.colour = current->colour;
@@ -363,4 +335,45 @@ void glPolygon(const MGLpoint *points, unsigned num_points)
 
     if (num_points > 0)
 	glLineTo(firstPoint.x, firstPoint.y);
+}
+
+MGLcolour clrLighter(MGLcolour clr, unsigned char diff)
+{
+    int r, g, b;
+    r = MGL_RED(clr) + diff;
+    g = MGL_GREEN(clr) + diff;
+    b = MGL_BLUE(clr) + diff;
+    return MGL_COLOUR(min(r, 255), min(g, 255), min(b, 255));
+}
+
+MGLcolour clrDarker(MGLcolour clr, unsigned char diff)
+{
+    int r, g, b;
+    r = MGL_RED(clr) - diff;
+    g = MGL_GREEN(clr) - diff;
+    b = MGL_BLUE(clr) - diff;
+    return MGL_COLOUR(max(r, 0), max(g, 0), max(b, 0));
+}
+
+void glBevel(const MGLrect *rect, MGLcolour colour, int border, unsigned char diff, bool is_extruded)
+{
+    MGLpoint pts[6];
+
+    glSetColour(is_extruded ? clrLighter(colour, diff) : clrDarker(colour, diff));
+    pts[0].x = rect->right; pts[0].y = rect->top;
+    pts[1].x = rect->left; pts[1].y = rect->top;
+    pts[2].x = rect->left; pts[2].y = rect->bottom;
+    pts[3].x = rect->left + border; pts[3].y = rect->bottom - border;
+    pts[4].x = rect->left + border; pts[4].y = rect->top + border;
+    pts[5].x = rect->right - border; pts[5].y = rect->top + border;
+    glFillPolygon(pts, _countof(pts));
+
+    glSetColour(is_extruded ? clrDarker(colour, diff) : clrLighter(colour, diff));
+    pts[0].x = rect->right; pts[0].y = rect->top;
+    pts[1].x = rect->right; pts[1].y = rect->bottom;
+    pts[2].x = rect->left; pts[2].y = rect->bottom;
+    pts[3].x = rect->left + border; pts[3].y = rect->bottom - border;
+    pts[4].x = rect->right - border; pts[4].y = rect->bottom - border;
+    pts[5].x = rect->right - border; pts[5].y = rect->top + border;
+    glFillPolygon(pts, _countof(pts));
 }

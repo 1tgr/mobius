@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.2 2002/03/27 22:08:38 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.3 2002/04/04 00:09:00 pavlovskii Exp $ */
 
 #ifndef __INTERNAL_MGL_H
 #define __INTERNAL_MGL_H
@@ -11,18 +11,21 @@
 
 struct mglrc_t
 {
-	handle_t video;
-	unsigned surf_width, surf_height;
-	MGLreal gl_width, gl_height;
-	MGLreal scale_x, scale_y;
-	MGLcolour colour, clear_colour;
-	MGLpoint pos;
-	FT_Library ft_library;
-	FT_Face ft_face;
-	queue_t render_queue;
+    handle_t video;
+    unsigned surf_width, surf_height;
+    MGLreal gl_width, gl_height;
+    MGLreal scale_x, scale_y;
+    MGLcolour colour, clear_colour;
+    MGLpoint pos;
+    FT_Library ft_library;
+    FT_Face ft_face;
+    queue_t render_queue;
+    clip_t vid_clip;
+    bool did_set_mode;
 };
 
 bool	    mglMapToSurface(MGLreal x, MGLreal y, point_t *pt);
+bool	    mglMapToVirtual(int x, int y, MGLpoint *pt);
 
 extern mglrc_t *current;
 

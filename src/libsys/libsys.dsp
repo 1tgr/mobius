@@ -94,6 +94,10 @@ SOURCE=.\dllmain.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\fs.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\libsys.def
 # End Source File
 # Begin Source File
@@ -106,11 +110,19 @@ SOURCE=.\port.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\queue.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\resource.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\syscall.S
+# End Source File
+# Begin Source File
+
+SOURCE=.\sysdef.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -137,11 +149,23 @@ SOURCE=..\..\include\os\device.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\os\gui.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\hash.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\ioctl.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\include\os\keyboard.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\mouse.h
 # End Source File
 # Begin Source File
 
@@ -154,6 +178,10 @@ SOURCE=..\..\..\include\os\port.h
 # Begin Source File
 
 SOURCE=..\..\include\os\port.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\queue.h
 # End Source File
 # Begin Source File
 

@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.11 2002/03/06 01:39:26 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.12 2002/04/04 00:08:42 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -134,7 +134,12 @@ uint32_t KbdScancodeToKey(keyboard_t* keyb, uint8_t scancode)
 	if (down && (keyb->keys & KBD_BUCKY_ALT) == 0)
 	    keyb->compose = 0;
 	else if (!down && (keyb->keys & KBD_BUCKY_ALT))
-	    key = keyb->compose;
+        {
+            if (keyb->compose != 0)
+    	        key = keyb->compose;
+            else
+                key = KBD_BUCKY_ALT | KBD_BUCKY_RELEASE;
+        }
 
 	SET(keyb->keys, KBD_BUCKY_ALT, down);
 	break;
@@ -181,39 +186,39 @@ leds:
 	break;
 
     default:
-	if (down)
+	if (code >= RAW_NUM7 && 
+	    code <= RAW_NUM0 &&
+	    code != 0x4a &&
+	    code != 0x4e)
 	{
-	    if (code >= RAW_NUM7 && 
-		code <= RAW_NUM0 &&
-		code != 0x4a &&
-		code != 0x4e)
+	    if (keyb->keys & KBD_BUCKY_ALT &&
+		keypad[code - RAW_NUM7] != -1)
 	    {
-		if (keyb->keys & KBD_BUCKY_ALT &&
-		    keypad[code - RAW_NUM7] != -1)
-		{
-		    keyb->compose *= 10;
-		    keyb->compose += keypad[code - RAW_NUM7];
-		    /*wprintf(L"pad = %d compose = %d\n",  */
-			/*keypad[code - RAW_NUM7], keyb->compose); */
-		}
-		else if (keyb->keys & KBD_BUCKY_NUM)
-		    key = '0' + keypad[code - RAW_NUM7];
-		else
-		    key = keys[code];
+		keyb->compose *= 10;
+		keyb->compose += keypad[code - RAW_NUM7];
+		/*wprintf(L"pad = %d compose = %d\n",  */
+		    /*keypad[code - RAW_NUM7], keyb->compose); */
 	    }
-	    else if (keyb->keys & KBD_BUCKY_SHIFT)
-		key = keys_shift[code];
+	    else if (keyb->keys & KBD_BUCKY_NUM)
+		key = '0' + keypad[code - RAW_NUM7];
 	    else
 		key = keys[code];
-
-	    if (keyb->keys & KBD_BUCKY_CAPS)
-	    {
-		if (iswupper(key))
-		    key = towlower(key);
-		else if (iswlower(key))
-		    key = towupper(key);
-	    }
 	}
+	else if (keyb->keys & KBD_BUCKY_SHIFT)
+	    key = keys_shift[code];
+	else
+	    key = keys[code];
+
+	if (keyb->keys & KBD_BUCKY_CAPS)
+	{
+	    if (iswupper(key))
+		key = towlower(key);
+	    else if (iswlower(key))
+		key = towupper(key);
+	}
+	
+        if (!down)
+            key |= KBD_BUCKY_RELEASE;
     }
     
     return key | keyb->keys;
@@ -269,29 +274,6 @@ void KbdStartIo(keyboard_t* keyb)
     }
 }
 
-void KbdReboot(void)
-{
-    unsigned char temp;
-    disable();
-
-    /* flush the keyboard controller */
-    do
-    {
-	temp = in(KEYB_CTRL);
-	if ((temp & 0x01) != 0)
-	{
-	    (void) in(KEYB_PORT);
-	    continue;
-	}
-    } while((temp & 0x02) != 0);
-
-    /* pulse the CPU reset line */
-    out(KEYB_CTRL, 0xFE);
-
-    /* ...and if that didn't work, just halt */
-    ArchProcessorIdle();
-}
-
 bool KbdIsr(device_t *dev, uint8_t irq)
 {
     keyboard_t* keyb = (keyboard_t*) dev;
@@ -303,8 +285,8 @@ bool KbdIsr(device_t *dev, uint8_t irq)
     {
 	key = KbdScancodeToKey(keyb, scancode);
 
-	if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
-	    KbdReboot();
+	/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
+	    KbdReboot();*/
 	
 	if (key >= KEY_F1 && key <= KEY_F12)
 	    TtySwitchConsoles(key - KEY_F1);
@@ -444,7 +426,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     out(port, 0x01 | 0x04 | 0x20 | 0x40);
 
     out(ctrl, 0xAE); /*enable keyboard	 */
-#elif 0
+#elif 1
     /* Reset keyboard and disable scanning until further down */
     TRACE0("Disable...");
     kbdHwWriteRead(keyb, keyb->port, KEYB_RESET_DISABLE, KEYB_ACK);

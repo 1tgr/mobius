@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.5 2002/03/27 22:08:38 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.6 2002/04/04 00:09:00 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -6,6 +6,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include "mgl.h"
+
+/*!
+ *  \ingroup    mgl
+ */
 
 mglrc_t *current;
 
@@ -116,15 +120,26 @@ mglrc_t *mglCreateRc(const wchar_t *server)
 	return NULL;
     }
 
-    memset(&params, 0, sizeof(params));
-    params.vid_setmode.bitsPerPixel = 8;
-    //params.vid_setmode.height = 200;
-    if (!FsRequestSync(rc->video, VID_SETMODE, &params, sizeof(params), &op) ||
-	op.result != 0)
+    if (!FsRequestSync(rc->video, VID_GETMODE, &params, sizeof(params), &op))
     {
-	errno = op.result;
-	mglDeleteRc(rc);
-	return NULL;
+        errno = op.result;
+        mglDeleteRc(rc);
+        return NULL;
+    }
+
+    if (params.vid_getmode.flags & VIDEO_MODE_TEXT)
+    {
+        memset(&params, 0, sizeof(params));
+        params.vid_setmode.bitsPerPixel = 8;
+        rc->did_set_mode = true;
+        //params.vid_setmode.height = 200;
+        if (!FsRequestSync(rc->video, VID_SETMODE, &params, sizeof(params), &op) ||
+	    op.result != 0)
+        {
+	    errno = op.result;
+	    mglDeleteRc(rc);
+	    return NULL;
+        }
     }
 
     QueueInit(&rc->render_queue);
@@ -157,9 +172,10 @@ bool mglDeleteRc(mglrc_t *rc)
     printf("mglDeleteRc: %p\n", rc);
     if (rc)
     {
-	vidFlushQueue(&rc->render_queue, rc->video);
+	vidFlushQueue(&rc->render_queue, rc);
+        free(rc->vid_clip.rects);
 
-	if (rc->video)
+	if (rc->video && rc->did_set_mode)
 	{
 	    params_vid_t params;
 	    fileop_t op;
@@ -228,6 +244,21 @@ bool mglMapToSurface(MGLreal x, MGLreal y, point_t *pt)
     }
 }
 
+bool mglMapToVirtual(int x, int y, MGLpoint *pt)
+{
+    if (current)
+    {
+	pt->x = (int) (x * current->gl_width) / current->surf_width;
+	pt->y = (int) (y * current->gl_height) / current->surf_height;
+	return true;
+    }
+    else
+    {
+	errno = EINVALID;
+	return false;
+    }
+}
+
 /*! \brief  Changes the colour of the current rendering context */
 MGLcolour glSetColour(MGLcolour clr)
 {
@@ -268,7 +299,44 @@ void glFlush(void)
 {
     CCV;
 
-    vidFlushQueue(&current->render_queue, current->video);
+    vidFlushQueue(&current->render_queue, current);
 }
 
-/*! @} */
+void mglMoveCursor(MGLpoint pt)
+{
+    params_vid_t params;
+    fileop_t op;
+
+    CCV;
+
+    memset(&params, 0, sizeof(params));
+    mglMapToSurface(pt.x, pt.y, &params.vid_movecursor);
+    FsRequestSync(current->video, VID_MOVECURSOR, &params, sizeof(params), &op);
+}
+
+void mglSetClip(mglrc_t *rc, const MGLclip *clip)
+{
+    unsigned i;
+    point_t pt;
+
+    if (rc == NULL)
+    {
+        CCV;
+        rc = current;
+    }
+
+    free(rc->vid_clip.rects);
+    rc->vid_clip.rects = malloc(sizeof(rect_t) * clip->num_rects);
+    rc->vid_clip.num_rects = clip->num_rects;
+
+    for (i = 0; i < rc->vid_clip.num_rects; i++)
+    {
+        mglMapToSurface(clip->rects[i].left, clip->rects[i].top, &pt);
+        rc->vid_clip.rects[i].left = pt.x;
+        rc->vid_clip.rects[i].top = pt.y;
+
+        mglMapToSurface(clip->rects[i].right, clip->rects[i].bottom, &pt);
+        rc->vid_clip.rects[i].right = pt.x;
+        rc->vid_clip.rects[i].bottom = pt.y;
+    }
+}

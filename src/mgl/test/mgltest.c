@@ -1,4 +1,4 @@
-/* $Id: mgltest.c,v 1.4 2002/03/27 22:08:38 pavlovskii Exp $ */
+/* $Id: mgltest.c,v 1.5 2002/04/04 00:09:00 pavlovskii Exp $ */
 
 #include <gl/mgl.h>
 #include <gl/wmf.h>
@@ -66,7 +66,7 @@ int wmain(int argc, wchar_t **argv)
     const wchar_t *str;
     wmf_t *wmf;
     MGLrect dims;
-    int i, r, g, b;
+    int i;
     
     if (argc >= 2)
 	str = argv[1];
@@ -88,25 +88,22 @@ int wmain(int argc, wchar_t **argv)
     WmfDraw(wmf);
     WmfClose(wmf);
 
-#define SC(x) ((((x)%6) * 252) / 5)
     mglGetDimensions(NULL, &dims);
     
-    for (i = 0; i < 216; i++) 
-    {
-        r = SC((i - 40) / 36);
-        g = SC((i - 40) / 6);
-        b = SC(i - 40);
-        glSetColour(MGL_COLOUR(r, g, b));
-        //glSetColour(i);
-        glFillRect((i * dims.right) / 216, 0, 
-            ((i + 1) * dims.right) / 216, 100);
-    }
-
     for (i = 0; i < 256; i++) 
     {
+        glSetColour(MGL_COLOUR(255 - i, 0, 0));
+        glFillRect((i * dims.right) / 256, 0, 
+            ((i + 1) * dims.right) / 256, 30);
+        glSetColour(MGL_COLOUR(0, i, 0));
+        glFillRect((i * dims.right) / 256, 30, 
+            ((i + 1) * dims.right) / 256, 60);
+        glSetColour(MGL_COLOUR(0, 0, 255 - i));
+        glFillRect((i * dims.right) / 256, 60, 
+            ((i + 1) * dims.right) / 256, 90);
         glSetColour(MGL_COLOUR(i, i, i));
-        glFillRect((i * dims.right) / 256, 100, 
-            ((i + 1) * dims.right) / 256, 200);
+        glFillRect((i * dims.right) / 256, 90, 
+            ((i + 1) * dims.right) / 256, 180);
     }
       
     glSetColour(0);

@@ -1,4 +1,4 @@
-/* $Id: guitest.cpp,v 1.1 2002/04/03 23:26:02 pavlovskii Exp $ */
+/* $Id: guitest.cpp,v 1.2 2002/04/04 00:08:43 pavlovskii Exp $ */
 
 #include <gui/application.h>
 #include <gui/dialog.h>
@@ -11,21 +11,37 @@
 #include <os/syscall.h>
 #include <os/rtl.h>
 
-class TestApplication : public os::Application
+class TestDialog : public os::Dialog
 {
 public:
-    os::Dialog m_dialog;
     os::Button m_button;
     os::Edit m_edit;
 
+    TestDialog();
+    void OnCommand(unsigned id);
+};
+
+TestDialog::TestDialog() : 
+    os::Dialog(L"A Dialog", MGLrect(100, 100, 400, 400)),
+    m_button(this, L"Button", MGLrect(150, 150, 350, 200), 1),
+    m_edit(this, L"Edit", MGLrect(150, 225, 350, 275), 1)
+{
+}
+
+void TestDialog::OnCommand(unsigned id)
+{
+    PostMessage(MSG_QUIT);
+}
+
+class TestApplication : public os::Application
+{
+public:
+    TestDialog m_dialog;
+    
     TestApplication(const wchar_t *name);
 };
 
-TestApplication::TestApplication(const wchar_t *name) : 
-    Application(name),
-    m_dialog(L"A Dialog", MGLrect(100, 100, 400, 400)),
-    m_button(&m_dialog, L"Button", MGLrect(150, 150, 350, 200), 1),
-    m_edit(&m_dialog, L"Edit", MGLrect(150, 225, 350, 275), 1)
+TestApplication::TestApplication(const wchar_t *name) : Application(name)
 {
 }
 

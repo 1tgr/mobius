@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.7 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.8 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -92,6 +92,7 @@ struct thread_info_t
     int status;
     /*! \brief    Parameter passed to \p ThrCreateThread */
     void *param;
+    handle_t msgqueue_event;
 };
 
 typedef struct fileop_t fileop_t;
@@ -227,6 +228,13 @@ struct context_v86_t
 #endif
 
 #endif
+
+/* \brief Flags for \p SysShutdown */
+
+#define SHUTDOWN_HALT       0
+#define SHUTDOWN_REBOOT     1
+#define SHUTDOWN_POWEROFF   2
+#define SHUTDOWN_FLUSH      3
 
 /*! @} */
 

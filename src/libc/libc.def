@@ -1,7 +1,12 @@
 NAME	libc
 EXPORTS
 	__access
+	__builtin_delete
+	__builtin_new
+	__builtin_vec_delete
+	__builtin_vec_new
 	__close
+	__get_eh_context
 	__get_stderr
 	__get_stdin
 	__get_stdout

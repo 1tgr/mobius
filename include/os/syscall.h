@@ -1,4 +1,4 @@
-/* $Id: syscall.h,v 1.6 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: syscall.h,v 1.7 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __OS_SYSCALL_H
 #define __OS_SYSCALL_H
 
@@ -16,6 +16,10 @@ struct process_info_t;
 struct sysinfo_t;
 struct systimes_t;
 struct context_v86_t;
+struct wndattr_t;
+struct msg_t;
+struct MGLrect;
+struct wndinput_t;
 
 #include <os/sysdef.h>
 

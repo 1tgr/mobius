@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.11 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.12 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -23,6 +23,7 @@ typedef struct thread_t thread_t;
 
 #include <kernel/handle.h>
 #include <kernel/arch.h>
+#include <os/queue.h>
 
 typedef struct thread_apc_t thread_apc_t;
 struct thread_apc_t
@@ -55,6 +56,7 @@ struct thread_t
     unsigned cputime;
     addr_t user_stack_top;
     void *param;
+    queue_t msgqueue;
 
     bool v86_if;
     addr_t v86_handler;

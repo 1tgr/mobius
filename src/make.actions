@@ -10,9 +10,9 @@ $(TARGET_S):	$(OBJS)
 	ar rcs $(TARGET_S) $(OBJS)
 
 # DLL
-$(TARGET_D):	$(TARGET_S) $(LIBS) $(EXP) .base
+$(TARGET_D):	$(OBJS) $(LIBS) $(EXP) .base
 	$(LD) --dll -o $(TARGET_D) --image-base `cat .base` \
-	    --entry _DllMainCRTStartup $(EXP) $(TARGET_S) $(LIBS) 
+		--entry _DllMainCRTStartup $(EXP) $(OBJS) $(LIBS)
 
 # Normal EXE
 $(TARGET):	$(OBJS) $(LIBS)

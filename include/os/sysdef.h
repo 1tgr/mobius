@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.10 2002/03/27 22:12:59 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.11 2002/04/04 00:08:42 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -31,6 +31,7 @@
 #define SYS_SysUpTime		0x102
 #define SYS_SysGetInfo		0x103
 #define SYS_SysGetTimes 	0x104
+#define SYS_SysShutdown         0x105
 
 #define SYS_ThrExitThread	0x200
 #define SYS_ThrWaitHandle	0x201
@@ -63,6 +64,20 @@
 #define SYS_EvtSignal		0x602
 #define SYS_EvtIsSignalled	0x603
 
+#define SYS_WndCreate           0x700
+#define SYS_WndClose            0x701
+#define SYS_WndPostMessage      0x702
+#define SYS_WndInvalidate       0x703
+#define SYS_WndGetMessage       0x704
+#define SYS_WndGetAttribute     0x705
+#define SYS_WndSetAttribute     0x706
+#define SYS_WndOwnRoot          0x707
+#define SYS_WndQueueInput       0x708
+#define SYS_WndSetFocus         0x709
+#define SYS_WndHasFocus         0x70a
+#define SYS_WndSetCapture       0x70b
+#define SYS_WndGetClip          0x70c
+
 /* 0 */
 SYS_BEGIN_GROUP(0)
 SYS_END_GROUP(0)
@@ -74,6 +89,7 @@ SYSCALL(int, Hello, 8, int, int)
 SYSCALL(unsigned, SysUpTime, 0, void)
 SYSCALL(bool, SysGetInfo, 4, struct sysinfo_t *)
 SYSCALL(bool, SysGetTimes, 4, struct systimes_t *)
+SYSCALL(bool, SysShutdown, 4, unsigned)
 SYS_END_GROUP(1)
 
 /* 2 */
@@ -121,6 +137,23 @@ SYSCALL(bool, HndClose, 4, handle_t)
 SYSCALL(void, EvtSignal, 4, handle_t)
 SYSCALL(bool, EvtIsSignalled, 4, handle_t)
 SYS_END_GROUP(6)
+
+/* 7 */
+SYS_BEGIN_GROUP(7)
+SYSCALL(handle_t, WndCreate, 12, handle_t, const struct wndattr_t *, unsigned)
+SYSCALL(bool, WndClose, 4, handle_t)
+SYSCALL(bool, WndPostMessage, 8, handle_t, const struct msg_t *)
+SYSCALL(bool, WndInvalidate, 8, handle_t, const struct MGLrect *)
+SYSCALL(bool, WndGetMessage, 4, struct msg_t*)
+SYSCALL(bool, WndGetAttribute, 20, handle_t, uint32_t, uint32_t, void *, size_t*)
+SYSCALL(bool, WndSetAttribute, 20, handle_t, uint32_t, uint32_t, const void *, size_t)
+SYSCALL(handle_t, WndOwnRoot, 0, void)
+SYSCALL(bool, WndQueueInput, 4, const struct wndinput_t*)
+SYSCALL(bool, WndSetFocus, 4, handle_t)
+SYSCALL(bool, WndHasFocus, 4, handle_t)
+SYSCALL(bool, WndSetCapture, 8, handle_t, bool)
+SYSCALL(bool, WndGetClip, 12, handle_t, struct MGLrect *, size_t*)
+SYS_END_GROUP(7)
 
 /*! @} */
 

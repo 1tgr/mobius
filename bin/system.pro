@@ -1,9 +1,9 @@
-# $Id: system.pro,v 1.4 2002/03/19 23:56:59 pavlovskii Exp $
+# $Id: system.pro,v 1.5 2002/04/04 00:08:42 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
-    #Port=0x3f8
-    Port=0
+    Port=0x3f8
+    #Port=0
 
     # Set to true to sync with gdb on startup and attempt to connect on 
     #	each exception.
@@ -26,7 +26,7 @@ key Devices
     tty6=tty
     pci=pci
     cmos=cmos
-    ps2mouse=ps2mouse   
+    ps2mouse=ps2mouse
 end
 
 key PCI
@@ -72,4 +72,4 @@ key PCI
 end
 
 # Program to use as the OS shell
-Shell=/System/Boot/shell.exe
+Shell=/System/Boot/desktop.exe

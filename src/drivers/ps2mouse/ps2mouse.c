@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include <os/mouse.h>
+#include <os/syscall.h>
 
 /*!
  *  \ingroup	drivers
@@ -115,7 +116,7 @@ uint8_t kbdWriteRead(uint16_t port, uint8_t data, const char* expect)
 	RetVal = kbdRead();
 	if ((uint8_t) *expect != RetVal)
 	{
-	    TRACE2("[keyboard] error: expected 0x%x, got 0x%x\n",
+	    TRACE2("[mouse] error: expected 0x%x, got 0x%x\n",
 		*expect, RetVal);
 	    return RetVal;
 	}
@@ -149,10 +150,8 @@ void ps2StartIo(Ps2Mouse* ctx)
     
     for (io = ctx->dev.io_first; io != NULL; io = next)
     {
-	wprintf(L"ps2mouse: io = %p ", io);
 	pkt = (mouse_packet_t*) ((uint8_t*) DevMapBuffer(io) + io->mod_buffer_start + io->length);
-	wprintf(L"pkt = %p\n", pkt);
-
+	
 	pkt->dx = dx;
 	pkt->dy = dy;
 	pkt->buttons = but;
@@ -175,8 +174,8 @@ bool ps2Isr(device_t *dev, uint8_t irq)
     if ((in(KEYB_CTRL) & 0x01) != 0)
     {
 	Ps2Mouse *mouse;
-	mouse = (Ps2Mouse*) dev;
-	mouse->data[mouse->bytes++] = in(KEYB_PORT);
+        mouse = (Ps2Mouse*) dev;
+        mouse->data[mouse->bytes++] = in(KEYB_PORT);
 	if (mouse->bytes >= 3 + mouse->has_wheel)
 	{
 	    ps2StartIo(mouse);
@@ -238,11 +237,19 @@ static const device_vtbl_t ps2_vtbl =
     NULL,	/* finishio */
 };
 
+void msleep(unsigned ms)
+{
+    unsigned end;
+    end = SysUpTime() + ms;
+    while (SysUpTime() <= end)
+        ;
+}
+
 device_t* ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
     /* These strings nicked from gpm (I_imps2): I don't know how they work... */
     static uint8_t s1[] = { 0xF3, 0xC8, 0xF3, 0x64, 0xF3, 0x50, 0 };
-    /*static uint8_t s2[] = { 0xF6, 0xE6, 0xF4, 0xF3, 0x64, 0xE8, 0x03, 0 };*/
+    static uint8_t s2[] = { 0xF6, 0xE6, 0xF4, 0xF3, 0x64, 0xE8, 0x03, 0 };
     Ps2Mouse* ctx;
     const uint8_t* ch;
     uint8_t id;
@@ -255,40 +262,43 @@ device_t* ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     /* enable the aux port */
     kbdWrite(KEYB_CTRL, KCTRL_ENABLE_AUX);
 
+    TRACE0("[mouse] String 1\n");
     for (ch = s1; *ch; ch++)
     {
-	kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
-	kbdWriteRead(KEYB_PORT, *ch, KEYB_ACK);
+        kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
+        kbdWriteRead(KEYB_PORT, *ch, KEYB_ACK);
     }
 
     /* Bochs doesn't like this bit... */
-#if 0
+    TRACE0("[mouse] String 2\n");
     for (ch = s2; *ch; ch++)
     {
-	kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
-	kbdWriteRead(KEYB_PORT, *ch, KEYB_ACK);
+        kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
+        kbdWriteRead(KEYB_PORT, *ch, KEYB_ACK);
     }
-#endif
 
-    /*msleep(10);*/
+    msleep(10);
 
     /* Identify mouse -- regular PS/2 mice should return zero here.
        Unfortunately, my Intellimouse PS/2 also returns zero unless it has
        been given the string 's2' above. Bochs doesn't support wheeled mice
        and panics when it receives the F6h above. Fix needed. */
+    TRACE0("[mouse] Identify\n");
     kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
     kbdWriteRead(KEYB_PORT, AUX_IDENTIFY, KEYB_ACK);
     id = kbdRead();
 
+    TRACE1("[mouse] Detected device type %x\n", id);
     ctx->has_wheel = id == 3;
     ctx->bytes = 0;
     memset(ctx->data, 0, sizeof(ctx->data));
-    
-    kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
+
+    /*kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
     kbdWriteRead(KEYB_PORT, 0xF3, KEYB_ACK);
     kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
-    kbdWriteRead(KEYB_PORT, 0xFF, KEYB_ACK);
+    kbdWriteRead(KEYB_PORT, 0xFF, KEYB_ACK);*/
 
+    TRACE0("[mouse] Information\n");
     kbdWrite(KEYB_CTRL, KCTRL_WRITE_AUX);
     kbdWriteRead(KEYB_PORT, AUX_INFORMATION, KEYB_ACK);
     TRACE1("[mouse] status = %d\n", kbdRead());

@@ -12,6 +12,7 @@ EXPORTS
     FsOpenSearch
     FsQueryFile
     FsRead
+    FsReadSync
     FsRequestSync
     FsSeek
     FsWrite
@@ -35,6 +36,7 @@ EXPORTS
     ResSizeOfResource
     SysGetInfo
     SysGetTimes
+    SysShutdown
     SysUpTime
     ThrContinueV86
     ThrCreateThread
@@ -45,5 +47,18 @@ EXPORTS
     ThrSetV86Context
     ThrSleep
     ThrWaitHandle
+    WndClose
+    WndCreate
+    WndGetAttribute
+    WndGetClip
+    WndGetMessage
+    WndHasFocus
+    WndInvalidate
+    WndOwnRoot
+    WndPostMessage
+    WndQueueInput
+    WndSetAttribute
+    WndSetCapture
+    WndSetFocus
     VmmAlloc
     VmmFree

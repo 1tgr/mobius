@@ -1,8 +1,9 @@
-/* $Id: wmf.c,v 1.3 2002/03/27 22:08:38 pavlovskii Exp $ */
+/* $Id: wmf.c,v 1.4 2002/04/04 00:09:00 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/defs.h>
 #include <os/video.h>
+#include <os/rtl.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,32 +31,6 @@ static const struct
 } wmf_functions[] = {
 #include "wmfdefs.h"
 };
-
-bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
-{
-    fileop_t op;
-
-    op.event = file;
-    if (!FsRead(file, buf, bytes, &op))
-    {
-	errno = op.result;
-	return false;
-    }
-
-    if (op.result == SIOPENDING)
-	ThrWaitHandle(op.event);
-
-    if (op.result != 0)
-    {
-	errno = op.result;
-	return false;
-    }
-
-    if (bytes_read != NULL)
-	*bytes_read = op.bytes;
-
-    return true;
-}
 
 /*MGLcolour WmfGetMglColour(uint32_t clr)
 {
