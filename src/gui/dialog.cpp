@@ -1,7 +1,7 @@
-/* $Id: dialog.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: dialog.cpp,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/dialog.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <gui/application.h>
 
 using namespace os;
@@ -10,11 +10,11 @@ Dialog::Dialog(const wchar_t *text, const MGLrect &pos) : Frame(text, pos)
 {
 }
 
-void Dialog::OnPaint()
+void Dialog::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect;
 
-    Frame::OnPaint();
+    Frame::OnPaint(rc);
 
     GetPosition(&rect);
     rect.left += m_margins.left;
@@ -22,8 +22,8 @@ void Dialog::OnPaint()
     rect.right -= m_margins.right;
     rect.bottom -= m_margins.bottom;
 
-    glSetColour(0xa0a0a0);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    rc->SetFillColour(0xa0a0a0);
+    rc->FillRect(MGLrect(rect.left, rect.top, rect.right, rect.bottom));
 }
 
 unsigned Dialog::DoModal()

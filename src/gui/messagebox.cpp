@@ -1,9 +1,9 @@
-/* $Id: messagebox.cpp,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: messagebox.cpp,v 1.3 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/messagebox.h>
 #include <gui/button.h>
 #include <gui/label.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <os/keyboard.h>
 #include <wchar.h>
 #include <stdarg.h>
@@ -35,12 +35,12 @@ MessageBox::MessageBox(const wchar_t *title, const wchar_t *text, unsigned butto
     {
         label.left += m_margins.left * 2;
         label.right -= m_margins.right * 2;
-        RectOffset(&label, 0, m_margins.top + m_margins.bottom * 2);
+        label.Offset(0, m_margins.top + m_margins.bottom * 2);
         new Label(this, text, label);
     }
 
     va_start(ptr, buttons);
-    RectOffset(&button, -m_margins.right * 2, -m_margins.bottom * 2);
+    button.Offset(-m_margins.right * 2, -m_margins.bottom * 2);
     for (i = 0; i < 32; i++)
     {
         if (buttons & (1 << i))
@@ -53,7 +53,7 @@ MessageBox::MessageBox(const wchar_t *title, const wchar_t *text, unsigned butto
                 title = va_arg(ptr, const wchar_t*);
 
             new Button(this, title, button, 1 << i);
-            RectOffset(&button, button.left - button.right - m_margins.right, 0);
+            button.Offset(button.left - button.right - m_margins.right, 0);
         }
     }
 

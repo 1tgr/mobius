@@ -1,16 +1,18 @@
-/* $Id: alttabwindow.cpp,v 1.2 2002/04/10 12:25:45 pavlovskii Exp $ */
+/* $Id: alttabwindow.cpp,v 1.3 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include "alttabwindow.h"
 #include "desktop.h"
 #include <stdlib.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <os/keyboard.h>
+#include <mgl/fontmanager.h>
+#include <gui/application.h>
 
 AltTabWindow::AltTabWindow(os::Window *parent)
 {
     MGLrect rect;
     MGLreal width, height;
-    mglGetDimensions(NULL, &rect);
+    rect = os::Application::GetApplication()->m_rc.GetDimensions();
     width = rect.Width();
     height = rect.Height();
     rect.left = (rect.left * 2 + rect.right) / 3;
@@ -20,23 +22,25 @@ AltTabWindow::AltTabWindow(os::Window *parent)
     Create(parent, NULL, rect);
 }
 
-void AltTabWindow::OnPaint()
+void AltTabWindow::OnPaint(mgl::Rc *rc)
 {
     static const wchar_t text[] = L"Alt+Tab Window";
     MGLrect rect;
     MGLpoint size;
 
     GetPosition(&rect);
-    glBevel(&rect, 0x808080, 2, 0x40, false);
-    RectInflate(&rect, -2, -2);
-    glSetColour(0x808080);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    rc->SetPenColour(0x808080);
+    rc->Bevel(rect, 2, 0x40, false);
+    rect.Inflate(-2, -2);
+    rc->SetFillColour(0x808080);
+    rc->FillRect(rect);
 
-    glGetTextSize(text, -1, &size);
-    glSetColour(0x000000);
+    mgl::Font *font = mgl::FontManager::GetDefault(0);
+    size = font->GetTextSize(rc, text, -1);
+    rc->SetPenColour(0x000000);
     rect.left = (rect.left + rect.right - size.x) / 2;
     rect.top = (rect.top + rect.bottom - size.y) / 2;
-    glDrawText(&rect, text, -1);
+    font->DrawText(rc, rect, text, -1);
 }
 
 void AltTabWindow::OnKeyUp(uint32_t key)

@@ -1,6 +1,6 @@
 TARGET_D=	$(BIN)/gui.dll
 TARGET_S=	$(LIB)/gui_s.lib
-OBJS=	dllmain.o window.o button.o frame.o \
+OBJS=	dllmain.o syscall.o window.o button.o frame.o \
 	application.o view.o dialog.o edit.o \
 	label.o control.o container.o messagebox.o
 DEF=	gui.def

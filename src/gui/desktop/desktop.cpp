@@ -1,4 +1,4 @@
-/* $Id: desktop.cpp,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: desktop.cpp,v 1.5 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include "desktop.h"
 #include "alttabwindow.h"
@@ -7,31 +7,37 @@
 
 #include <os/keyboard.h>
 #include <os/syscall.h>
+#include <gui/application.h>
 
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 
 Desktop::Desktop() : m_altTabWindow(NULL)
 {
     MGLrect rect;
 
     m_handle = WndOwnRoot();
-    mglGetDimensions(NULL, &rect);
+    rect = os::Application::GetApplication()->m_rc.GetDimensions();
     WndSetAttribute(m_handle, WND_ATTR_POSITION, WND_TYPE_RECT, &rect, sizeof(rect));
     WndSetAttribute(m_handle, WND_ATTR_USERDATA, WND_TYPE_VOID, this, sizeof(this));
     WndInvalidate(m_handle, NULL);
 
-    m_taskbar = new Taskbar(this);
-    m_icons = new IconView(this, L"/");
+    //m_taskbar = new Taskbar(this);
+    //m_icons = new IconView(this, L"/");
 
     /*
      * xxx - I shouldn't need to do this...
      * Seems like the first child created doesn't get invalidated. Wonder why.
      */
-    m_taskbar->Invalidate();
+    //m_taskbar->Invalidate();
 }
 
-void Desktop::OnPaint()
+void Desktop::OnPaint(mgl::Rc *rc)
 {
+    MGLrect pos;
+
+    GetPosition(&pos);
+    rc->SetFillColour(0x123456);
+    rc->FillRect(pos);
 }
 
 void Desktop::OnKeyDown(uint32_t key)

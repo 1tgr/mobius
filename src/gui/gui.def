@@ -1,4 +1,18 @@
+NAME gui
 EXPORTS
+    WndCreate
+    WndClose
+    WndPostMessage
+    WndInvalidate
+    WndGetMessage
+    WndGetAttribute
+    WndSetAttribute
+    WndOwnRoot
+    WndQueueInput
+    WndSetFocus
+    WndHasFocus
+    WndSetCapture
+    WndGetClip
     GetApplication__Q22os11Application
     GetMessage__Q22os11ApplicationP5msg_t
     HandleMessage__Q22os11ApplicationPC5msg_t
@@ -7,13 +21,17 @@ EXPORTS
     __Q22os11ApplicationPCUw
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    IncludesPoint__C7MGLrectii
+    Inflate__7MGLrectii
     OnClick__Q22os6Button
     OnKeyDown__Q22os6ButtonUl
     OnKeyUp__Q22os6ButtonUl
     OnMouseDown__Q22os6ButtonUlii
     OnMouseMove__Q22os6ButtonUlii
     OnMouseUp__Q22os6ButtonUlii
-    OnPaint__Q22os6Button
+    OnPaint__Q22os6ButtonPQ23mgl2Rc
+    SetFillColour__Q23mgl2RcUl
+    SetPenColour__Q23mgl2RcUl
     _$_Q22os6Button
     _$_Q22os7Control
     __7MGLrect
@@ -78,7 +96,8 @@ EXPORTS
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     DoModal__Q22os6Dialog
     OnCommand__Q22os6DialogUi
-    OnPaint__Q22os6Dialog
+    OnPaint__Q22os6DialogPQ23mgl2Rc
+    SetFillColour__Q23mgl2RcUl
     _$_Q22os5Frame
     _$_Q22os6Dialog
     _$_Q22os9Container
@@ -87,6 +106,7 @@ EXPORTS
     _M_put_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1Pt10_List_node1ZQ32os9Container9ViewTuple
     _S_freelist_index__t24__default_alloc_template2b0i0Ui
     __7MGLrect
+    __7MGLrectiiii
     __Q22os6DialogPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
@@ -96,16 +116,21 @@ EXPORTS
     destroy__H1ZQ32os9Container9ViewTuple_PX01_v
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     DllMainCRTStartup
+    Inflate__7MGLrectii
     OnKeyDown__Q22os4EditUl
     OnMouseDown__Q22os4EditUlii
-    OnPaint__Q22os4Edit
+    OnPaint__Q22os4EditPQ23mgl2Rc
+    SetFillColour__Q23mgl2RcUl
+    SetPenColour__Q23mgl2RcUl
     _$_Q22os4Edit
     _$_Q22os7Control
     __7MGLrect
+    __7MGLrectiiii
     __Q22os4EditPQ22os6WindowPCUwRC7MGLrectUi
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     HitTest__Q22os5Frameii
+    IncludesPoint__C7MGLrectii
     OnBlur__Q22os5Frame
     OnFocus__Q22os5Frame
     OnHitBegin__Q22os5FrameQ32os5Frame11FrameRegionii
@@ -114,8 +139,10 @@ EXPORTS
     OnMouseDown__Q22os5FrameUlii
     OnMouseMove__Q22os5FrameUlii
     OnMouseUp__Q22os5FrameUlii
-    OnPaint__Q22os5Frame
+    OnPaint__Q22os5FramePQ23mgl2Rc
     OnSize__Q22os5FrameRC7MGLrect
+    SetFillColour__Q23mgl2RcUl
+    SetPenColour__Q23mgl2RcUl
     _$_Q22os5Frame
     _$_Q22os9Container
     _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
@@ -136,13 +163,17 @@ EXPORTS
     destroy__H1ZQ32os9Container9ViewTuple_PX01_v
     dwprintf__FPCUwe
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
-    OnPaint__Q22os5Label
+    OnPaint__Q22os5LabelPQ23mgl2Rc
+    SetFillColour__Q23mgl2RcUl
+    SetPenColour__Q23mgl2RcUl
     _$_Q22os5Label
     _$_Q22os7Control
     __7MGLrect
+    __7MGLrectiiii
     __Q22os5LabelPQ22os6WindowPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    Offset__7MGLrectii
     OnClose__Q22os10MessageBox
     OnKeyDown__Q22os10MessageBoxUl
     _$_Q22os10MessageBox
@@ -192,12 +223,13 @@ EXPORTS
     OnMouseMove__Q22os6WindowUlii
     OnMouseUp__Q22os6WindowUlii
     OnMouseWheel__Q22os6Windowiii
-    OnPaint__Q22os6Window
+    OnPaint__Q22os6WindowPQ23mgl2Rc
     OnSize__Q22os6WindowRC7MGLrect
     PostMessage__Q22os6WindowUlUlUlUl
     ReleaseCapture__Q22os6Window
     RemoveChild__Q22os6WindowPQ22os6Window
     SetCapture__Q22os6Window
+    SetFillColour__Q23mgl2RcUl
     SetFocus__Q22os6Window
     SetPosition__Q22os6WindowRC7MGLrect
     SetTitle__Q22os6WindowPw

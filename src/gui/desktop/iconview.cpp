@@ -1,15 +1,16 @@
-/* $Id: iconview.cpp,v 1.4 2002/05/05 13:52:28 pavlovskii Exp $ */
+/* $Id: iconview.cpp,v 1.5 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
 
 #include "iconview.h"
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <wchar.h>
 #include <os/syscall.h>
 #include <os/defs.h>
 #include <os/rtl.h>
 #include <gui/messagebox.h>
+#include <mgl/fontmanager.h>
 
 #define SIZE_ICON   100
 
@@ -19,28 +20,29 @@ IconView::IconView(os::Container *parent, const wchar_t *dir) :
     m_colour = 0x0040C0;
     m_mouseOver = NULL;
     m_dir = _wcsdup(dir);
-    m_icon = WmfOpen(L"banner.wmf");
+    m_icon.Open(L"banner.wmf");
     Refresh();
     m_needErase = true;
 }
 
 IconView::~IconView()
 {
-    WmfClose(m_icon);
     free(m_dir);
 }
 
-void IconView::OnPaint()
+void IconView::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect, icon;
     MGLpoint size;
     std::vector<Item>::iterator it;
+    mgl::Font *font;
 
+    font = mgl::FontManager::GetDefault(0);
     if (m_needErase)
     {
         GetPosition(&rect);
-        glSetColour(m_colour);
-        glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+        rc->SetFillColour(m_colour);
+        rc->FillRect(rect);
     }
     else
         m_needErase = true;
@@ -50,29 +52,29 @@ void IconView::OnPaint()
         for (it = m_items.begin(); it != m_items.end(); ++it)
         {
             rect = GetItemRect(*it);
-            glGetTextSize(it->text, -1, &size);
+            size = font->GetTextSize(rc, it->text, -1);
 
             icon.left = (rect.left + rect.right - SIZE_ICON) / 2;
             icon.top = (rect.top + rect.bottom - size.y - SIZE_ICON) / 2;
             icon.right = icon.left + SIZE_ICON;
             icon.bottom = icon.top + SIZE_ICON;
-            WmfDraw(m_icon, &icon);
+            m_icon.Draw(rc, icon);
 
             rect.left = (rect.left + rect.right - size.x) / 2 - 4;
             rect.top = rect.bottom - size.y;
             rect.right = rect.left + size.x + 4;
 
             if (m_mouseOver == it)
-                glSetColour(0xFFA000);
+                rc->SetFillColour(0xFFA000);
             else
-                glSetColour(0xffffff);
+                rc->SetFillColour(0xffffff);
 
-            glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+            rc->FillRect(rect);
 
-            glSetColour(0x000000);
-            glRectangle(rect.left, rect.top, rect.right, rect.bottom);
+            rc->SetPenColour(0x000000);
+            rc->Rectangle(rect);
             rect.left += 2;
-            glDrawText(&rect, it->text, -1);
+            font->DrawText(rc, rect, it->text);
         }
     }
 }
@@ -87,7 +89,7 @@ void IconView::Refresh()
         while (FsReadDir(search, &di, sizeof(di)))
             AddItem(di.name);
 
-    FsClose(search);
+    HndClose(search);
 }
 
 IconView::Item& IconView::AddItem(const wchar_t *text)
@@ -138,7 +140,7 @@ void IconView::OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y)
     for (it = m_items.begin(); it != m_items.end(); ++it)
     {
         rect = GetItemRect(*it);
-        if (RectIncludesPoint(&rect, x, y))
+        if (rect.IncludesPoint(x, y))
             break;
     }
 
@@ -167,7 +169,7 @@ void IconView::OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y)
     for (it = m_items.begin(); it != m_items.end(); ++it)
     {
         rect = GetItemRect(*it);
-        if (RectIncludesPoint(&rect, x, y))
+        if (rect.IncludesPoint(x, y))
         {
             mouseOver = it;
             break;

@@ -1,4 +1,4 @@
-/* $Id: desktop.h,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
+/* $Id: desktop.h,v 1.4 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #ifndef DESKTOP_H__
 #define DESKTOP_H__
@@ -17,7 +17,7 @@ public:
     Taskbar *m_taskbar;
 
     Desktop();
-    void OnPaint();
+    void OnPaint(mgl::Rc *rc);
     void OnKeyDown(uint32_t key);
     void OnCommand(unsigned id);
 };

@@ -1,13 +1,14 @@
-/* $Id: frame.cpp,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: frame.cpp,v 1.4 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <gui/frame.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <stdlib.h>
 #include <algorithm>
 #include <stdarg.h>
 #include <wchar.h>
 #include <os/syscall.h>
+#include <mgl/fontmanager.h>
 
 using namespace os;
 
@@ -35,7 +36,7 @@ Frame::Frame(const wchar_t *text, const MGLrect &pos) :
     m_mouseRegion = rgnNone;
 }
 
-void Frame::OnPaint()
+void Frame::OnPaint(mgl::Rc *rc)
 {
     static const MGLcolour frameColours[2] = { 0xAAAAAA, 0xFFA000 };
     static const wchar_t l_buttons[NUM_BUTTONS_LEFT][2] = 
@@ -49,61 +50,62 @@ void Frame::OnPaint()
 
     GetPosition(&rect);
 
-    glSetColour(frameColours[HasFocus()]);
-    glFillRect(rect.left, rect.top, 
-        rect.left + m_margins.left, rect.bottom);
-    glFillRect(rect.left + m_margins.left, rect.top, 
-        rect.right - m_margins.right, rect.top + m_margins.top);
-    glFillRect(rect.right - m_margins.right, rect.top, 
-        rect.right, rect.bottom);
-    glFillRect(rect.left + m_margins.left, rect.bottom - m_margins.bottom, 
-        rect.right - m_margins.right, rect.bottom);
-    glBevel(&rect, 0xFFA000, 2, 0x40, true);
+    rc->SetFillColour(frameColours[HasFocus()]);
+    rc->FillRect(MGLrect(rect.left, rect.top, 
+        rect.left + m_margins.left, rect.bottom));
+    rc->FillRect(MGLrect(rect.left + m_margins.left, rect.top, 
+        rect.right - m_margins.right, rect.top + m_margins.top));
+    rc->FillRect(MGLrect(rect.right - m_margins.right, rect.top, 
+        rect.right, rect.bottom));
+    rc->FillRect(MGLrect(rect.left + m_margins.left, rect.bottom - m_margins.bottom, 
+        rect.right - m_margins.right, rect.bottom));
+    rc->SetPenColour(0xFFA000);
+    rc->Bevel(rect, 2, 0x40, true);
 
     rect.left += m_margins.left;
     rect.top += m_margins.bottom;
     rect.right -= m_margins.right;
     rect.bottom = rect.top + m_margins.top;
-    glSetColour(0xA0A0A0);
-    glFillRect(rect.left, rect.top, 
-        rect.left + (SIZE_BUTTON * NUM_BUTTONS_LEFT), rect.bottom);
-    glFillRect(rect.right - (SIZE_BUTTON * NUM_BUTTONS_RIGHT), rect.top, 
-        rect.right, rect.bottom);
+    rc->SetFillColour(0xA0A0A0);
+    rc->FillRect(MGLrect(rect.left, rect.top, 
+        rect.left + (SIZE_BUTTON * NUM_BUTTONS_LEFT), rect.bottom));
+    rc->FillRect(MGLrect(rect.right - (SIZE_BUTTON * NUM_BUTTONS_RIGHT), rect.top, 
+        rect.right, rect.bottom));
 
     rect.top -= m_margins.bottom;
-    glSetColour(0x000000);
+    rc->SetPenColour(0x000000);
     for (i = 0; i < NUM_BUTTONS_LEFT; i++)
     {
         r = MGLrect(rect.left, rect.top, rect.left + SIZE_BUTTON, rect.bottom);
-        glGetTextSize(l_buttons[i], -1, &size);
+        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, l_buttons[i], -1);
         r.left = (r.left + r.right - size.x) / 2;
         r.top = (r.top + r.bottom - size.y) / 2;
         r.right = r.left + size.x;
         r.bottom = r.top + size.y;
-        glDrawText(&r, l_buttons[i], -1);
+        mgl::FontManager::GetDefault(0)->DrawText(rc, r, l_buttons[i], -1);
         rect.left += SIZE_BUTTON;
     }
 
     for (i = 0; i < NUM_BUTTONS_RIGHT; i++)
     {
         r = MGLrect(rect.right - SIZE_BUTTON, rect.top, rect.right, rect.bottom);
-        glGetTextSize(r_buttons[i], -1, &size);
+        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, r_buttons[i], -1);
         r.left = (r.left + r.right - size.x) / 2;
         r.top = (r.top + r.bottom - size.y) / 2;
         r.right = r.left + size.x;
         r.bottom = r.top + size.y;
-        glDrawText(&r, r_buttons[i], -1);
+        mgl::FontManager::GetDefault(0)->DrawText(rc, r, r_buttons[i], -1);
         rect.right -= SIZE_BUTTON;
     }
 
     if (GetTitle(text, _countof(text)))
     {
-        glGetTextSize(text, -1, &size);
+        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, text, -1);
         rect.left = (rect.left + rect.right - size.x) / 2;
         rect.top = (rect.top + rect.bottom - size.y) / 2;
         rect.right = rect.left + size.x;
         rect.bottom = rect.top + size.y;
-        glDrawText(&rect, text, -1);
+        mgl::FontManager::GetDefault(0)->DrawText(rc, rect, text, -1);
     }
 }
 
@@ -168,7 +170,7 @@ Frame::FrameRegion Frame::HitTest(MGLreal x, MGLreal y)
     client.right -= m_margins.right;
     client.bottom -= m_margins.bottom;
 
-    if (RectIncludesPoint(&client, x, y))
+    if (client.IncludesPoint(x, y))
         return rgnClient;
     else
     {
@@ -176,7 +178,7 @@ Frame::FrameRegion Frame::HitTest(MGLreal x, MGLreal y)
         client.top = rect.top + m_margins.bottom;
         client.right = rect.right - m_margins.right;
         client.bottom = rect.bottom - m_margins.bottom;
-        if (RectIncludesPoint(&client, x, y))
+        if (client.IncludesPoint(x, y))
         {
             MGLreal ax;
 
@@ -252,10 +254,10 @@ void Frame::OnHitBegin(FrameRegion rgn, MGLreal x, MGLreal y)
     case rgnSizeTopRight:
     case rgnSizeBottomRight:
     case rgnSizeBottomLeft:
-        GetPosition(&m_dragRect);
+        /*GetPosition(&m_dragRect);
         glSetColour(0xffffffff);
         glRectangle(m_dragRect.left, m_dragRect.top, 
-            m_dragRect.right, m_dragRect.bottom);
+            m_dragRect.right, m_dragRect.bottom);*/
         break;
 
     default:
@@ -317,24 +319,24 @@ void Frame::OnHitMiddle(FrameRegion rgn, MGLreal x, MGLreal y)
     if (offset.left != 0 || offset.top != 0 || 
         offset.right != 0 || offset.bottom != 0)
     {
-        glSetColour(0xffffffff);
+        /*glSetColour(0xffffffff);
         glRectangle(m_dragRect.left, m_dragRect.top, 
-            m_dragRect.right, m_dragRect.bottom);
+            m_dragRect.right, m_dragRect.bottom);*/
 
         m_dragRect.left += offset.left;
         m_dragRect.top += offset.top;
         m_dragRect.right += offset.right;
         m_dragRect.bottom += offset.bottom;
 
-        glRectangle(m_dragRect.left, m_dragRect.top, 
+        /*glRectangle(m_dragRect.left, m_dragRect.top, 
             m_dragRect.right, m_dragRect.bottom);
-        glFlush();
+        glFlush();*/
     }
 }
 
 void Frame::OnHitEnd(FrameRegion rgn, MGLreal x, MGLreal y)
 {
-    MGLrect dims;
+    //MGLrect dims;
 
     switch (rgn)
     {
@@ -350,9 +352,9 @@ void Frame::OnHitEnd(FrameRegion rgn, MGLreal x, MGLreal y)
         dwprintf(L"OnHitEnd: %d (%d,%d), (%d,%d)\n", 
             rgn, m_dragRect.left, m_dragRect.top, 
             m_dragRect.right, m_dragRect.bottom);
-        glSetColour(0xffffffff);
+        /*glSetColour(0xffffffff);
         glRectangle(m_dragRect.left, m_dragRect.top, 
-            m_dragRect.right, m_dragRect.bottom);
+            m_dragRect.right, m_dragRect.bottom);*/
         SetPosition(m_dragRect);
         break;
 
@@ -361,8 +363,8 @@ void Frame::OnHitEnd(FrameRegion rgn, MGLreal x, MGLreal y)
         break;
 
     case rgnButton2:
-        mglGetDimensions(NULL, &dims);
-        SetPosition(dims);
+        /*mglGetDimensions(NULL, &dims);
+        SetPosition(dims);*/
         break;
 
     default:

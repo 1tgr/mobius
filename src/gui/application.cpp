@@ -1,9 +1,10 @@
-/* $Id: application.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: application.cpp,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/application.h>
 #include <gui/window.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <os/rtl.h>
 #include <os/syscall.h>
@@ -23,16 +24,16 @@ using namespace os;
 
 Application *Application::g_theApp;
 
-Application::Application(const wchar_t *name)
+Application::Application(const wchar_t *name) : m_rc(SYS_DEVICES L"/Classes/video0")
 {
     g_theApp = this;
-    ThrGetThreadInfo()->msgqueue_event = EvtAlloc();
-    m_rc = mglCreateRc(NULL);
+    ThrGetThreadInfo()->msgqueue_event = EvtCreate();
+    //m_rc = mglCreateRc(NULL);
 }
 
 Application::~Application()
 {
-    mglDeleteRc(m_rc);
+    //mglDeleteRc(m_rc);
     g_theApp = NULL;
 }
 

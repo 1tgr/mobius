@@ -1,4 +1,4 @@
-/* $Id: taskbar.h,v 1.1 2002/04/11 00:32:30 pavlovskii Exp $ */
+/* $Id: taskbar.h,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #ifndef DESKTOP_TASKBAR_H__
 #define DESKTOP_TASKBAR_H__
@@ -10,7 +10,7 @@ class Taskbar : public os::Container
 public:
     Taskbar(os::Container *parent);
     ~Taskbar();
-    void OnPaint();
+    void OnPaint(mgl::Rc *rc);
     void OnCommand(unsigned id);
 
     static void PowerOff();

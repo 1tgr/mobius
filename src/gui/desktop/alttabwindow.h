@@ -1,4 +1,4 @@
-/* $Id: alttabwindow.h,v 1.1 2002/04/03 23:26:44 pavlovskii Exp $ */
+/* $Id: alttabwindow.h,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #ifndef ALTTABWINDOW_H__
 #define ALTTABWINDOW_H__
@@ -9,7 +9,7 @@ class AltTabWindow : public os::Window
 {
 public:
     AltTabWindow(os::Window *parent);
-    void OnPaint();
+    void OnPaint(mgl::Rc *rc);
     void OnKeyUp(uint32_t key);
 };
 

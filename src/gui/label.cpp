@@ -1,7 +1,8 @@
-/* $Id: label.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: label.cpp,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/label.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
+#include <mgl/fontmanager.h>
 
 using namespace os;
 
@@ -10,17 +11,17 @@ Label::Label(Window *parent, const wchar_t *text, const MGLrect &pos) :
 {
 }
 
-void Label::OnPaint()
+void Label::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect;
     wchar_t text[256];
 
     GetPosition(&rect);
 
-    glSetColour(0xa0a0a0);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    rc->SetFillColour(0xa0a0a0);
+    rc->FillRect(MGLrect(rect.left, rect.top, rect.right, rect.bottom));
 
-    glSetColour(0x000000);
+    rc->SetPenColour(0x000000);
     GetTitle(text, _countof(text));
-    glDrawText(&rect, text, -1);
+    mgl::FontManager::GetDefault(0)->DrawText(rc, rect, text, -1);
 }

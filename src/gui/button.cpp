@@ -1,10 +1,11 @@
-/* $Id: button.cpp,v 1.3 2002/08/17 22:52:12 pavlovskii Exp $ */
+/* $Id: button.cpp,v 1.4 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/button.h>
 //#include <gl/mgl.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <os/keyboard.h>
+#include <mgl/fontmanager.h>
 
 using namespace os;
 
@@ -32,7 +33,7 @@ void Button::OnPaint(mgl::Rc *rc)
     if (GetTitle(text, _countof(text)))
     {
         MGLpoint size;
-        size = rc->GetTextSize(text, -1);
+        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, text, -1);
         rc->SetPenColour(0x000000);
         rect.left = (rect.left + rect.right - size.x) / 2;
         rect.top = (rect.top + rect.bottom - size.y) / 2;
@@ -43,7 +44,7 @@ void Button::OnPaint(mgl::Rc *rc)
             rect.top += 2;
         }
 
-        rc->DrawText(rect, text, -1);
+        mgl::FontManager::GetDefault(0)->DrawText(rc, rect, text, -1);
     }
 }
 
@@ -116,7 +117,7 @@ void Button::OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y)
         MGLrect pos;
         GetPosition(&pos);
         wasDown = m_isDown;
-        m_isDown = RectIncludesPoint(&pos, x, y);
+        m_isDown = pos.IncludesPoint(x, y);
         if (m_isDown != wasDown)
             Invalidate();
     }

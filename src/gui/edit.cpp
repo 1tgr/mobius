@@ -1,10 +1,11 @@
-/* $Id: edit.cpp,v 1.3 2002/04/10 12:27:44 pavlovskii Exp $ */
+/* $Id: edit.cpp,v 1.4 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <gui/edit.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <wchar.h>
 #include <stdlib.h>
 #include <os/keyboard.h>
+#include <mgl/fontmanager.h>
 
 using namespace os;
 
@@ -13,22 +14,23 @@ Edit::Edit(Window *parent, const wchar_t *text, const MGLrect &pos, unsigned id)
 {
 }
 
-void Edit::OnPaint()
+void Edit::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect;
     wchar_t text[256];
 
     GetPosition(&rect);
-    
-    glBevel(&rect, 0x808080, 4, 0x40, false);
-    RectInflate(&rect, -4, -4);
 
-    glSetColour(0xffffff);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
-    
-    glSetColour(0x000000);
+    rc->SetPenColour(0x808080);
+    rc->Bevel(rect, 4, 0x40, false);
+    rect.Inflate(-4, -4);
+
+    rc->SetFillColour(0xffffff);
+    rc->FillRect(MGLrect(rect.left, rect.top, rect.right, rect.bottom));
+
+    rc->SetPenColour(0x000000);
     GetTitle(text, _countof(text));
-    glDrawText(&rect, text, -1);
+    mgl::FontManager::GetDefault(0)->DrawText(rc, rect, text, -1);
 }
 
 void Edit::OnKeyDown(uint32_t key)

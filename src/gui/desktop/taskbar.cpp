@@ -1,7 +1,7 @@
-/* $Id: taskbar.cpp,v 1.2 2002/05/05 13:52:28 pavlovskii Exp $ */
+/* $Id: taskbar.cpp,v 1.3 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include "taskbar.h"
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <gui/messagebox.h>
 #include <gui/edit.h>
 #include <gui/button.h>
@@ -41,12 +41,12 @@ Taskbar::~Taskbar()
     static_cast<Container*>(m_parent)->RemoveView(this);
 }
 
-void Taskbar::OnPaint()
+void Taskbar::OnPaint(mgl::Rc *rc)
 {
     MGLrect pos;
     GetPosition(&pos);
-    glSetColour(0x000080);
-    glFillRect(pos.left, pos.top, pos.right, pos.bottom);
+    rc->SetFillColour(0x000080);
+    rc->FillRect(pos);
 }
 
 void Taskbar::PowerOff()
@@ -66,7 +66,7 @@ void Taskbar::PowerOff()
 
     code = (char*) VmmAlloc(PAGE_ALIGN_UP((size + 0x10000) & 0xffff) / PAGE_SIZE,
         NULL,
-        MEM_READ | MEM_WRITE);
+        VM_MEM_READ | VM_MEM_WRITE);
     *(uint16_t*) code = 0x20cd;
 
     memcpy(code + 0x100, rsrc, size);
@@ -77,7 +77,7 @@ void Taskbar::PowerOff()
     if (sh_v86stack == NULL)
         sh_v86stack = (char*) VmmAlloc(PAGE_ALIGN_UP(65536) / PAGE_SIZE,
             NULL,
-            MEM_READ | MEM_WRITE);
+            VM_MEM_READ | VM_MEM_WRITE);
 
     fp_stackend = i386LinearToFp(sh_v86stack);
     memset(sh_v86stack, 0, 65536);

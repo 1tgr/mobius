@@ -1,4 +1,4 @@
-/* $Id: desktopapplication.cpp,v 1.1 2002/04/03 23:26:44 pavlovskii Exp $ */
+/* $Id: desktopapplication.cpp,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -27,7 +27,7 @@ DesktopApplication::DesktopApplication(const wchar_t *name) :
 {
     ThrCreateThread(KeyboardThread, NULL, 10);
     ThrCreateThread(MouseThread, NULL, 8);
-    ProcSpawnProcess(L"guitest.exe", ProcGetProcessInfo());
+    ProcSpawnProcess(SYS_BOOT L"/guitest.exe", ProcGetProcessInfo());
 }
 
 void DesktopApplication::KeyboardThread()
@@ -57,12 +57,13 @@ void DesktopApplication::MouseThread()
     handle_t mouse;
     mouse_packet_t pkt;
     size_t bytes;
-    wchar_t str[50] = SYS_DEVICES L"/ps2mouse";
+    wchar_t str[50] = SYS_DEVICES L"/Classes/mouse0";
     int err;
     MGLpoint pt;
     MGLrect dims;
     wndinput_t input;
     uint32_t old_buttons;
+    mgl::Rc *rc;
 
     mouse = FsOpen(str, FILE_READ);
     if (mouse == NULL)
@@ -74,13 +75,19 @@ void DesktopApplication::MouseThread()
         ThrExitThread(err);
     }
 
-    mglGetDimensions(NULL, &dims);
+    rc = &os::Application::GetApplication()->m_rc;
+    dims = rc->GetDimensions();
     pt.x = (dims.left + dims.right) / 2;
     pt.y = (dims.top + dims.bottom) / 2;
     old_buttons = 0;
     while (true)
     {
-        mglMoveCursor(pt);
+        // xxx -- reimplement this
+        //mglMoveCursor(pt);
+        rc->SetFillColour(0xffffff);
+        rc->FillRect(MGLrect(pt.x - 10, pt.y - 10, pt.x + 10, pt.y + 10));
+        DbgWrite(str, 
+            swprintf(str, L"%d, %d\n", pt.x, pt.y));
 
         if (!FsReadSync(mouse, &pkt, sizeof(pkt), &bytes))
         {
@@ -139,7 +146,7 @@ void DesktopApplication::MouseThread()
 
     DbgWrite(str, 
         swprintf(str, L"Finished: %s\n", _wcserror(err)));
-    FsClose(mouse);
+    HndClose(mouse);
     ThrExitThread(0);
 }
 
