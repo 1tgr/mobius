@@ -1,4 +1,4 @@
-/* $Id: control.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: control.cpp,v 1.2 2002/04/10 12:27:44 pavlovskii Exp $ */
 
 #include <gui/control.h>
 #include <os/keyboard.h>
@@ -17,6 +17,9 @@ void Control::OnKeyDown(uint32_t key)
     {
     case '\t':
         m_parent->GetNextChild(this)->SetFocus();
+        break;
+    default:
+        Window::OnKeyDown(key);
         break;
     }
 }

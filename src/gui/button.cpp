@@ -1,4 +1,4 @@
-/* $Id: button.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: button.cpp,v 1.2 2002/04/10 12:27:44 pavlovskii Exp $ */
 
 #include <gui/button.h>
 #include <gl/mgl.h>
@@ -54,8 +54,11 @@ void Button::OnKeyDown(uint32_t key)
 {
     if ((key & ~KBD_BUCKY_ANY) == ' ')
     {
-        Invalidate();
-        m_isDown = true;
+        if (!m_isDown)
+        {
+            Invalidate();
+            m_isDown = true;
+        }
     }
     else
         Control::OnKeyDown(key);

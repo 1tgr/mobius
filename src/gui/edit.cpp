@@ -1,4 +1,4 @@
-/* $Id: edit.cpp,v 1.2 2002/04/04 00:08:43 pavlovskii Exp $ */
+/* $Id: edit.cpp,v 1.3 2002/04/10 12:27:44 pavlovskii Exp $ */
 
 #include <gui/edit.h>
 #include <gl/mgl.h>
@@ -51,6 +51,7 @@ void Edit::OnKeyDown(uint32_t key)
         }
         break;
     
+    case '\n':
     case '\t':
         Control::OnKeyDown(key);
         break;

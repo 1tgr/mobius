@@ -35,6 +35,7 @@ EXPORTS
     _S_oom_malloc__t23__malloc_alloc_template1i0Ui
     _S_refill__t24__default_alloc_template2b0i0Ui
     _S_round_up__t24__default_alloc_template2b0i0Ui
+    __Q22os9Container
     __Q22os9ContainerPQ22os6WindowPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     __ml__Ct14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
@@ -91,6 +92,7 @@ EXPORTS
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     DllMainCRTStartup
     OnKeyDown__Q22os4EditUl
+    OnMouseDown__Q22os4EditUlii
     OnPaint__Q22os4Edit
     _$_Q22os4Edit
     _$_Q22os7Control
@@ -98,9 +100,12 @@ EXPORTS
     __Q22os4EditPQ22os6WindowPCUwRC7MGLrectUi
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    HitTest__Q22os5Frameii
     OnBlur__Q22os5Frame
     OnFocus__Q22os5Frame
     OnMouseDown__Q22os5FrameUlii
+    OnMouseMove__Q22os5FrameUlii
+    OnMouseUp__Q22os5FrameUlii
     OnPaint__Q22os5Frame
     _$_Q22os5Frame
     _$_Q22os9Container
@@ -111,6 +116,7 @@ EXPORTS
     __7MGLrect
     __7MGLrectiiii
     __8MGLpoint
+    __8MGLpointii
     __Q22os5FramePCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     clear__t10_List_base2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
@@ -118,6 +124,14 @@ EXPORTS
     deallocate__t23__malloc_alloc_template1i0PvUi
     deallocate__t24__default_alloc_template2b0i0PvUi
     destroy__H1ZPQ22os6Window_PX01_v
+    dwprintf__FPCUwe
+    lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    OnPaint__Q22os5Label
+    _$_Q22os5Label
+    _$_Q22os7Control
+    __7MGLrect
+    __Q22os5LabelPQ22os6WindowPCUwRC7MGLrect
+    __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     OnKeyDown__Q22os10MessageBoxUl
     _$_Q22os10MessageBox
@@ -172,6 +186,7 @@ EXPORTS
     RemoveChild__Q22os6WindowPQ22os6Window
     SetCapture__Q22os6Window
     SetFocus__Q22os6Window
+    SetPosition__Q22os6WindowRC7MGLrect
     SetTitle__Q22os6WindowPw
     _$_Q22os6Window
     _$_t10_List_base2ZPQ22os6WindowZt9allocator1ZPQ22os6Window

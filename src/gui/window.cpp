@@ -1,4 +1,4 @@
-/* $Id: window.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: window.cpp,v 1.2 2002/04/10 12:27:44 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -14,6 +14,8 @@
 
 using namespace os;
 
+int dwprintf(const wchar_t *fmt, ...);
+
 Window::Window()
 {
     m_handle = NULL;
@@ -23,6 +25,12 @@ Window::Window()
 Window::Window(Window *parent, const wchar_t *title, const MGLrect &pos)
 {
     Create(parent, title, pos);
+}
+
+Window::Window(handle_t hnd)
+{
+    m_handle = hnd;
+    m_parent = NULL;
 }
 
 Window::~Window()
@@ -77,6 +85,11 @@ bool Window::GetPosition(MGLrect *rect) const
     size_t size;
     size = sizeof(MGLrect);
     return WndGetAttribute(m_handle, WND_ATTR_POSITION, WND_TYPE_RECT, rect, &size);
+}
+
+void Window::SetPosition(const MGLrect &rect)
+{
+    WndSetAttribute(m_handle, WND_ATTR_POSITION, WND_TYPE_RECT, &rect, sizeof(rect));
 }
 
 bool Window::GetTitle(wchar_t *title, size_t max) const
