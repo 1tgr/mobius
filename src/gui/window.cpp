@@ -1,4 +1,4 @@
-/* $Id: window.cpp,v 1.2 2002/04/10 12:27:44 pavlovskii Exp $ */
+/* $Id: window.cpp,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -116,7 +116,7 @@ void Window::SetTitle(wchar_t *title)
         title, (wcslen(title) + 1) * sizeof(wchar_t));
 }
 
-void Window::Invalidate(MGLrect *rect)
+void Window::Invalidate(const MGLrect *rect)
 {
     WndInvalidate(m_handle, rect);
 }

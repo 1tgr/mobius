@@ -1,88 +1,37 @@
-/* $Id: desktop.cpp,v 1.2 2002/04/10 12:25:45 pavlovskii Exp $ */
+/* $Id: desktop.cpp,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
 
 #include "desktop.h"
 #include "alttabwindow.h"
 #include "iconview.h"
-#include <os/syscall.h>
-#include <os/defs.h>
+#include "taskbar.h"
+
 #include <os/keyboard.h>
-#include <os/rtl.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include <os/syscall.h>
+
 #include <gl/mgl.h>
-#include <gui/messagebox.h>
-#include <gui/button.h>
-#include <gui/edit.h>
-
-#include "v86.h"
-
-class RunDialog : public os::MessageBox
-{
-public:
-    os::Edit m_edit;
-    RunDialog();
-};
-
-RunDialog::RunDialog() : 
-    os::MessageBox(L"Run", L"Enter the name of the program to run:", btnOkCancel),
-    m_edit(this, L"", MGLrect(310, 490, 890, 530), 0)
-{
-}
 
 Desktop::Desktop() : m_altTabWindow(NULL)
 {
     MGLrect rect;
+
     m_handle = WndOwnRoot();
     mglGetDimensions(NULL, &rect);
     WndSetAttribute(m_handle, WND_ATTR_POSITION, WND_TYPE_RECT, &rect, sizeof(rect));
     WndSetAttribute(m_handle, WND_ATTR_USERDATA, WND_TYPE_VOID, this, sizeof(this));
     WndInvalidate(m_handle, NULL);
 
+    m_taskbar = new Taskbar(this);
     m_icons = new IconView(this);
-    new os::Button(this, L"Run...",       MGLrect(25, 25, 225, 75), 1);
-    new os::Button(this, L"Shut Down...", MGLrect(25, 100, 225, 150), 2);
-    /* xxx - I shouldn't need to do this... */
-    m_icons->Invalidate();
+
+    /*
+     * xxx - I shouldn't need to do this...
+     * Seems like the first child created doesn't get invalidated. Wonder why.
+     */
+    m_taskbar->Invalidate();
 }
 
 void Desktop::OnPaint()
 {
-}
-
-void Desktop::PowerOff()
-{
-    static char *sh_v86stack;
-    char *code;
-    FARPTR fp_code, fp_stackend;
-    handle_t thr;
-    const void *rsrc;
-    size_t size;
-    
-    rsrc = ResFindResource(NULL, 256, 1, 0);
-    if (rsrc == NULL)
-        return;
-    
-    size = ResSizeOfResource(NULL, 256, 1, 0);
-
-    code = sbrk((size + 0x10000) & 0xffff);
-    *(uint16_t*) code = 0x20cd;
-
-    memcpy(code + 0x100, rsrc, size);
-    
-    fp_code = i386LinearToFp(code);
-    fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
-        
-    if (sh_v86stack == NULL)
-        sh_v86stack = sbrk(65536);
-
-    fp_stackend = i386LinearToFp(sh_v86stack);
-    memset(sh_v86stack, 0, 65536);
-    
-    thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
-    ThrWaitHandle(thr);
-
-    /* xxx - need to clean up HndClose() implementation before we can use this */
-    /*HndClose(thr);*/
 }
 
 void Desktop::OnKeyDown(uint32_t key)
@@ -97,48 +46,9 @@ void Desktop::OnKeyDown(uint32_t key)
 
 void Desktop::OnCommand(unsigned id)
 {
-    switch (id)
-    {
-    case 1:
-    {
-        RunDialog dlg;
-        if (dlg.DoModal() == RunDialog::btnOk)
-        {
-            wchar_t *str;
-            size_t size;
-            handle_t proc;
-
-            size = dlg.m_edit.GetTitleLength();
-            str = new wchar_t[size + 1];
-            dlg.m_edit.GetTitle(str, size + 1);
-
-            proc = ProcSpawnProcess(str, ProcGetProcessInfo());
-            /* xxx - need to close this */
-            /*HndClose(proc);*/
-
-            delete[] str;
-        }
-
-        break;
-    }
-        
-    case 2:
-    {
-        os::MessageBox box(L"Shut Down The Möbius", 
-            L"What do you want the computer to do?", 
-            os::MessageBox::btnCustom1 | os::MessageBox::btnCustom2 | os::MessageBox::btnCancel,
-            L"Reboot", L"Power Off");
-
-        switch (box.DoModal())
-        {
-        case os::MessageBox::btnCustom1:
-            SysShutdown(SHUTDOWN_REBOOT);
-            break;
-
-        case os::MessageBox::btnCustom2:
-            PowerOff();
-            break;
-        }
-    }
-    };
+    /*
+     * We get various commands sent by the input server (e.g. Ctrl+Alt+Del).
+     * The task bar handles these.
+     */
+    m_taskbar->OnCommand(id);
 }
