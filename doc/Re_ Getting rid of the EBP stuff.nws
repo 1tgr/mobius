@@ -1,0 +1,67 @@
+Path: news.theplanet.net!diablo.theplanet.net!europa.netcrusader.net!209.130.129.214!nntp.frontiernet.net!nntp-new.frontiernet.net!nntp.gblx.net!news.frontiernet.net!not-for-mail
+From: "Alexei A. Frounze" <dummy_addressee@hotmail.com>
+Newsgroups: alt.os.development
+Subject: Re: Getting rid of the EBP stuff
+Date: Wed, 16 May 2001 12:21:21 -0400
+Organization: Global Crossing Telecommunications
+Lines: 49
+Message-ID: <9du9au$18mm$1@node21.cwnet.roc.gblx.net>
+References: <9dtcta$h3u$05$1@news.t-online.com> <9dti0m$bqi$4@news8.svr.pol.co.uk> <9du8c1$1g8s$1@node21.cwnet.roc.gblx.net> <9du8q5$14h$1@newsg2.svr.pol.co.uk>
+NNTP-Posting-Host: 209-130-138-17.nas3.roc.gblx.net
+X-Trace: node21.cwnet.roc.gblx.net 990029983 41686 209.130.138.17 (16 May 2001 16:19:43 GMT)
+X-Complaints-To: abuse@gblx.net
+NNTP-Posting-Date: Wed, 16 May 2001 16:19:43 +0000 (UTC)
+X-Priority: 3
+X-MSMail-Priority: Normal
+X-Newsreader: Microsoft Outlook Express 5.50.4133.2400
+X-MimeOLE: Produced By Microsoft MimeOLE V5.50.4133.2400
+Xref: news.theplanet.net alt.os.development:14986
+
+"Tim Robinson" <timothy.robinson@ic.ac.invalid> wrote in message
+news:9du8q5$14h$1@newsg2.svr.pol.co.uk...
+> "Alexei A. Frounze" <dummy_addressee@hotmail.com> wrote in message
+> news:9du8c1$1g8s$1@node21.cwnet.roc.gblx.net...
+> > I'd suggest to put there some extra stuff:
+>
+> ...and provision for switching stacks, to allow software task switching,
+> would be handy, as well as pushing fake error codes for compatibility with
+> CPU exceptions.
+
+Right, this is how I made my scheduler:
+
+_irq_00_wrapper:
+        push    ds
+        push    es
+        push    fs
+        push    gs                      ; saving segment registers and
+        pushad                          ; other regs because it's an ISR
+
+        mov     bx, 10h
+        mov     ds, ebx
+        mov     es, ebx                 ; load ds and es with valid selector
+
+        mov     ebx, esp
+        push    ebx                     ; pass esp of a current process
+        call    _scheduler              ; call scheduler
+        pop     ebx
+        mov     esp, eax                ; get esp of a new process
+
+        popad                           ; restoring the regs
+        pop     gs
+        pop     fs
+        pop     es
+        pop     ds
+        iretd
+
+scheduler() simply returns a different value for ESP, if a process switch is
+required.
+
+Good Luck
+--
+Alexei A. Frounze
+alexfru [AT] chat [DOT] ru
+http://alexfru.chat.ru
+http://members.xoom.com/alexfru/
+http://welcome.to/pmode/
+
+

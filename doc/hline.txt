@@ -1,0 +1,35 @@
+Horizontal line algorithm -- mode 12h VGA
+=========================================
+
+                               |1 1 1 1 1 1 1 1|1 1 1 1 1 1 1 1|2 2 2 2 2 2 2 2|2 2 2 2 2 2 2 2|
+0 1 2 3 4 5 6 7|8 9 A B C D E F|0 1 2 3 4 5 6 7|8 9 A B C D E F|0 1 2 3 4 5 6 7|8 9 A B C D E F|
+                    *----------+---------------+---------------+---*
+              leftpix=6 pixels |    8 pixels   |    8 pixels   |2 pixels=rightpix
+                    |          |                               |   |
+                    x1        midx                         rightx  x2
+
+x1 = 0x0a;
+x2 = 0x21;
+
+midx = (x1 + 8) & -8 = 0x10;
+leftpix = midx - x1 = 6;
+
+if (leftpix > 0)
+{
+	leftmask = 0xff >> (8 - leftpix) = 0b111111;
+	i386_lpokeb(offset, i386_lpeekb(offset) | leftmask);
+	offset++;
+}
+
+rightx = x2 & -8 = 0x20;
+midpix = rightx - midx = 0x10;
+
+i386_lmemset(offset, 0xff, midpix / 8);
+offset += midpix / 8;
+
+rightpix = x2 - rightx + 1 = 2;
+if (rightpix > 0)
+{
+	rightmask = 0xff << (8 - rightpix) = 0b11000000;
+	i386_lpokeb(offset, i386_lpeekb(offset) | rightmask);
+}

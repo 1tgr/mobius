@@ -1,0 +1,20 @@
+#! /bin/sh
+# simumalloc makes a good thorough exercise for malloc and free.
+# need something for realloc, though.
+case $# in
+*)	;;
+0)	echo "Usage: $0 simumalloc_extension [simumalloc_options]" >&2; exit 1;;
+esac
+ext=$1
+shift
+case "$ext" in
+''|_*)	;;
+*)	ext="_$ext";;
+esac
+echo "# $ext"
+set -x
+/bin/time ./simumalloc$ext -t 100000 -s 1024 -l 2000 "$@"
+/bin/time ./simumalloc$ext -t 300000 -s 512 -l 20 "$@"
+/bin/time ./simumalloc$ext -t 150000 -s 512 -l 20 "$@"
+/bin/time ./simumalloc$ext -t 150000 -s 512 -l 500 "$@"
+/bin/time ./simumalloc$ext -t 20000 -s 512 -a "$@"

@@ -1,0 +1,8 @@
+LOCAL_LIBRARIES = $(XTOOLLIB) $(XLIB)
+DEFINES = -DWINDOWDEBUG # -DOUTPUT_ONLY
+CDEBUGFLAGS = -g
+
+SimpleProgramTarget(xmem)
+
+lint:
+	$(LINT) $(LINTFLAGS) $(SRCS) -lXt -lX11

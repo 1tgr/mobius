@@ -1,0 +1,1 @@
+./xmem -width 1024 -height 300 -geo +2+2 -scale 1 < tracefile

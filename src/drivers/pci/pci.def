@@ -1,0 +1,5 @@
+NAME pci.drv
+EXPORTS
+	pciProbe
+	pciRead
+	pciWrite

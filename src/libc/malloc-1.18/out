@@ -1,0 +1,16 @@
++ ./testmalloc
+./regress: ./testmalloc: No such file or directory
++ ./simumalloc -d -t 2000 -s 1024 -l 2000
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -t 15000 -s 1024 -l 2000
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -d -t 5000 -s 512 -l 20
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -T trace -t 5000 -s 512 -l 20
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -d -t 500 -s 512 -l 20
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -d -t 500 -s 512 -l 500
+./regress: ./simumalloc: No such file or directory
++ ./simumalloc -d -t 500 -s 512 -a
+./regress: ./simumalloc: No such file or directory

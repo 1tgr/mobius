@@ -1,0 +1,46 @@
+ROOT=		/mn
+INCLUDE=	$(ROOT)/include
+LIB=		$(ROOT)/lib
+BIN=		$(ROOT)/bin
+
+#DEFINES+=	-D__STRICT_ANSI__
+CFLAGS+=	-Wall -Wno-multichar -g -nostdinc -ansi $(DEFINES) -O2
+ASFLAGS+=	--gstabs
+CC=		gcc
+LD=		ld
+
+%.o:	%.c
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
+
+%.d:	%.c
+	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
+
+%.o:	%.asm
+	nasm -f win32 $< -o $@
+
+%.d:	%.asm
+	nasm -M $< > $@
+
+%.o:	%.S
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(ASFLAGS)
+
+%.d:	%.S
+	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(ASFLAGS)
+
+# Exports for DLL
+%.exp:	%.def
+	dlltool -d $< -e $@ -D $(<:.def=.dll)
+
+all:	$(TARGET)
+
+# Static library
+#$(TARGET_S):	$(OBJS)
+#	ar rcs $(TARGET_S) $(OBJS)
+
+# DLL
+#$(TARGET_D):	$(TARGET_S) $(EXP)
+#	$(LD) --dll -o $(TARGET_D) --entry _DllMainCRTStartup $(EXP) $(TARGET_S)
+
+# Normal EXE
+#$(TARGET):	$(OBJS)
+#	$(LD) -o $(TARGET) --entry _mainCRTStartup $(OBJS)

@@ -1,0 +1,128 @@
+* Apr 3, 1995 v 1.18
+
+Fixes and problems reported by Mike Schecterman.
+
+	Stupid bugs in globals.[ch] when I clumsily cut'n'pasted the
+	binmax definition, amazing that this even compiled.  Fixed
+	similar problem in globrename.h.
+
+	fix for caddr_t in externs.h, alignment for HPUX in align.h and
+	fcntl.h inclusion in getmem.c.
+
+	Fixed silly buglet in maltrace.c, Insight log.
+
+	Insight lint: cast in strsave.
+
+	Nasty but rare bug that sometimes hits memalign() or valloc()
+	users under DEBUG mode. memalign() can leave behind a block
+	that's too small for the realsize, and I wasn't checking!
+
+* Jan 9, 1995 v1.17
+
+added the _firstbin stuff.
+
+renamed ASSERT2 to ASSERT_SP, created ASSERT_EP, modified __m_botch and
+_m_prblock to take an is_end_ptr argument so that they know how to print
+the block correctly.  modified mal_verify to use these new ASSERTs.
+improved checking in __m_prblock.
+
+made xmem use WorkProcs so that it can handle events.  separated scale
+from wordsize in xmem, other random cleanup, commented some stuff.
+default scale of 4.
+
+added tracemunge.sh and maltrace for trace-driven performance simulation.
+
+* Jan 2, 1995 v1.16
+
+malloc(0) now works everywhere.  I've been convinced that returning
+NULL is not the best answer, because NULL should mean that the malloc
+failed.
+
+added multiple free lists.
+
+realloc trace records now have only first 3 fields.
+
+removed totalavail, isn't much of a performance help.
+
+improved assertions, replaced commonly used groups of asserts with CHECK_
+macros, dump some information about the bogus block if possible.
+
+before starting a search in malloc(), if rover points to wilderness, and
+wilderness->next is not null, rover = wilderness->next.  need to keep
+wilderness uptodate. [made this change a while back, forgot to document
+it here]
+
+check alignment in IS_VALID_PTR. [again, did this a while back, forgot
+to document it]
+
+* Jul 22, 1994 v1.15
+
+Changed u_int to uint in testmalloc.c, report from ghudson@mit.edu
+
+* Mar 8, 1994 v1.14
+
+"Scott M. Jones" <sjones@netcom.com> reports that an old SVR3 has a bizarre
+sbrk kernel bug -- after a while, sbrk starts returning values inside the
+previously allocated space.  Christos confirms.  Added an ASSERT to
+getmem.c:_mal_sbrk to catch this.
+
+* Jan 29, 1994 v1.13
+
+Subtle realloc bug uncovered by Gianni Mariani's super malloc stress test.
+(realloc could return a block less than _malloc_minchunk which could cause
+free to die under certain conditions).  testmalloc now checks this case.
+
+* Dec 15, 1993
+
+Fixed various problems with formats (printing ints for longs or vice versa)
+pointed out by der Mouse.  Integrated old fix to make grabhunk work if
+blocks returned by the memfunc routine (sbrk, etc) are lower than the
+previous blocks.  Not well-tested yet.
+
+Added ecalloc
+
+* Jul 30, 1993
+
+Bunch of fixes from mds@ilight.com (Mike Schechterman) to make it compile
+and work on Alpha/OSF1, RS6000/AIX3.2, SGI/Irix4.0.5, HP720/HP-UX8.0.7,
+DEC5000/Ultrix4.2.  Thanks, Mike.
+
+Major user visible change is that 'make onefile' becomes 'make one' because
+of overly-smart 'make's.  Minor change is that testmalloc, teststomp and
+simumalloc all want stdlib.h or proper stdio.h, else they have implicit
+ints.  I don't want to declare libc functions.
+
+Added ecalloc, _ecalloc.
+
+--
+Added mmap() support.
+
+Cleaned up externs.h a bit more, added sysconf() call for Posix
+
+Merged some of the smaller files into larger ones.
+
+Added mal_contents from ZMailer version of malloc, changed counters in
+leak.c from long to unsigned long.
+
+On a pure allocation pattern, the old one started to take a bad
+performance hit on the search that precedes an sbrk, because of the
+wilderness preservation problem -- we search through every block in
+the free list before the sbrk, even though none of them will satisfy
+the request, since they're all probably little chunks left over from
+the last sbrk chunk. So our performance reduces to the same as that of
+the 4.1 malloc.  Yech. If we were to preserve the wilderness, we
+wouldn't have these little chunks. Good enough reason to reverse the
+philosophy and cut blocks from the start, not the end. To minimize
+pointer munging, means we have to make the block pointer p point to
+the end of the block (i.e the end tag) NEXT becomes (p-1)->next, PREV
+becomes (p-2)->prev, and the start tag becomes (p + 1 -
+p->size)->size. The free logic is reversed -- preceding block merge
+needs pointer shuffle, following block merge doesn't require pointer
+shuffle. (has the additional advantage that realloc is more likely to
+grow into a free area) Did this -- malloc, free stayed as complex/big,
+but realloc and memalign simplified a fair bit. Now much faster on
+pure allocation pattern, as well as any pattern where allocation
+dominates, since fragmentation is less. Also much less wastage.
+
+Also trimmed down the search loop in malloc.c to make it much smaller
+and simpler, also a mite faster.

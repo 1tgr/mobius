@@ -1,0 +1,20 @@
+Handy features to include
+=========================
+
+Port file system
+----------------
+* Create a file in /System/ports/
+* Give it a name (e.g. WindowServer or TCP:80)
+* Tell it to either connect or listen
+* Read/write/etc.
+
+Entity names
+------------
+* Global names given to parts of the file system
+* e.g. Packages => /Local/My Hard Drive/Software/Packages
+* Packages:gcc/bin/gcc.exe => /Local/My Hard Drive/Software/Packages/gcc/bin/gcc.exe
+
+Waiting in the kernel (or I/O completion procedures)
+---------------------
+* Layered I/O model needs this!
+* It's no use having an async I/O model if the FSD blocks while talking to the hardware

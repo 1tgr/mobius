@@ -1,0 +1,8 @@
+
+ Start  Stop   Length Name               Class
+
+ 00000H 0025AH 0025BH TEXT               
+
+Program entry point at 0000:0000
+Warning: No stack
+

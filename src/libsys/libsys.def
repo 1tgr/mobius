@@ -1,0 +1,18 @@
+EXPORTS
+	DbgWrite
+	Hello
+	SysUpTime
+	ThrExitThread
+	ThrGetThreadInfo
+	ThrWaitHandle
+	ThrSleep
+	ProcExitProcess
+	ProcGetProcessInfo
+	FsCreate
+	FsOpen
+	FsClose
+	FsRead
+	FsWrite
+	FsSeek
+	FsRequestSync
+	VmmAlloc

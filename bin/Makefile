@@ -1,0 +1,13 @@
+FILES1=	test.exe console.exe libsys.dll \
+	kernel.exe kernel.cfg ata.drv fat.drv
+FILES2=	tty.drv keyboard.drv
+
+all:
+	mcopy.cmd -o $(FILES1) a:
+	mcopy.cmd -o $(FILES2) a:
+
+floppy:
+	for f in $(FILES1) $(FILES2); do \
+		echo $$f ;\
+		cp $$f /cygdrive/a/; \
+		done

@@ -1,0 +1,48 @@
+ROOT=		/mn
+BIN=		$(ROOT)/bin
+LIB=		$(ROOT)/lib
+CPPFLAGS+=	-g -O2 -ansi -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -I$(ROOT)/include -I.
+CC=		gcc
+NASM=		nasm
+LDFLAGS+=	-g --subsystem native --entry _DrvInit \
+	--image-base `cat .base`
+LIBS+=		$(LIB)/kernel.lib
+DEF=		$(EXP:.exp=.def)
+
+%.d:	%.c
+	$(CC) $(CPPFLAGS) -M -c $< -o $@
+%.o:	%.c
+	$(CC) $(CPPFLAGS) -c $< -o $@
+%.o:	%.cpp
+	$(CC) $(CPPFLAGS) -c $< -o$@
+%.d:	%.cpp
+	$(CC) $(CPPFLAGS) -MD -c $<
+%.d:	%.asm
+	$(NASM) -M $< > $@
+%.o:	%.asm
+	$(NASM) -f win32 -o $@ $<
+
+all:	$(TARGET) $(IMP)
+
+.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
+
+$(TARGET):	$(OBJS) $(EXP) $(LIBS) .base
+	ld -o $(TARGET) $(LDFLAGS) \
+			$(OBJS) \
+			$(EXP) \
+			$(LIBS)
+	objdump -ld $(TARGET) > listing.txt
+
+%.exp: %.def
+	dlltool -e $@ -m i386 --input-def $< -D $(@:.exp=.drv)
+
+$(IMP): $(DEF)
+#	lib /def:$< /out:$@ /nologo /machine:ix86
+	dlltool -m i386 --input-def $(DEF) --output-lib $(IMP)
+
+clean:
+	rm .base
+	rm $(OBJS)
+	rm $(TARGET)
+	rm $(OBJS:.o=.d)

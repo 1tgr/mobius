@@ -1,0 +1,4 @@
+#!/bin/awk -f
+/^\-/	{	loc[$NF] = 0	; next }
+/^\+/	{	loc[$NF] = $2	; next }
+END { for (l in loc) if (loc[l] > 0) print l ": " loc[l] }

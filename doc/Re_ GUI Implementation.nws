@@ -1,0 +1,125 @@
+Path: uni-berlin.de!fu-berlin.de!cyclone2.usenetserver.com!usenetserver.com!newsfeed.wirehub.nl!news-out.nuthinbutnews.com!propagator!feed2.newsfeeds.com!newsfeeds.com!cyclone-sf.pbi.net!206.13.28.144!news.pacbell.net.POSTED!not-for-mail
+From: DONT.qed.SPAM@ME.pobox.com (Paul Hsieh)
+Newsgroups: alt.os.development
+Subject: Re: GUI Implementation
+Message-ID: <MPG.15dff98cf2eba8229898f3@news.pacbell.net>
+References: <W7E77.4579$n9.783206417@twister1.starband.net> <3B602909.40018F09@cs.umd.edu> <DBJ97.423$n62.83807351@twister2.starband.net> <8MO97.13549$ar1.43043@www.newsranger.com> <9k94ao$21r2$1@gavrilo.mtu.ru> <796f488f.0108012000.6e7febaa@posting.google.com> <GA3a7.654$lj.87305316@twister1.starband.net> <796f488f.0108022351.77768399@posting.google.com> <9l5b22$7q8j4$1@ID-57378.news.dfncis.de>
+Organization: A Zillion Monkeys
+X-Newsreader: Anawave Gravity v1.10
+Lines: 109
+Date: Sun, 12 Aug 2001 03:25:52 -0700
+NNTP-Posting-Host: 63.195.90.12
+X-Complaints-To: abuse@pacbell.net
+X-Trace: news.pacbell.net 997611960 63.195.90.12 (Sun, 12 Aug 2001 03:26:00 PDT)
+NNTP-Posting-Date: Sun, 12 Aug 2001 03:26:00 PDT
+Xref: uni-berlin.de alt.os.development:15325
+
+alexfru@chat.ru says...
+> Paul Hsieh <qed@pobox.com> wrote:
+> > 3) Build a robust PutPixel function.  My putPixel supports different
+> > color formats and dithers down from 24 bit to 8 bit, or just truncates
+> > for 16 bits (32 bits is just a memory wasting variation on 24bit.)
+> 
+> How exactly do you dither RGB to 8bpp indexed color?
+> 
+> Just wanna to practice in C++ and doing similar stuff (e.g. GUI).
+
+Well, I assume a fixed palette that I created myself as:
+
+	#define SC(x) ((((x)%6) * 63) / 5)
+	for (i=0; i < 216; i++) {
+	    setPalette (i, SC(i/36), SC(i/6), SC(i));
+	}
+
+Which uses 216 of the 256 colors for an evenly spread palette with up to 
+6 color levels in each component.  The other 40 are unused.
+
+Then for a dithering algorithm, I chose ordered dither since its fast, 
+looks reasonable, and can be computed independently for each pixel, while 
+still resulting in a consistent value with successive re-renders 
+regardless of the order in which the pixels are re-rendered.
+
+What this basically means is that putPixel (x, y, c) does the following:
+
+	offsets = DitherOffsetArray[y & 3][x & 3];
+
+	r = SaturateAndScale (c.Red   + offsets.Red)   * 36;
+	g = SaturateAndScale (c.Green + offsets.Green) * 6;
+	b = SaturateAndScale (c.Blue  + offsets.Blue);
+
+	la = CurrDisp.Offset (x, y);
+	LinearToBankWrite (la);
+	*la = (r | g | b);
+
+Notice that the "x" and "y" parameters are always screen-centric 
+coordinates (not window centric, or anything like that) in order for the 
+most desirable properties of ordered dithering to work.   The 
+DitherOffsetArray table is a little bit complicated to explain.  However 
+it basically is a small gray color vector of different magnitudes, that 
+is added to the color, before the color itself is truncated.  How these 
+vectors are chosen are described in Computer Graphics Principle and 
+Practice by Foley, van Damme, et al.  But intuitively they are chosen 
+such that well conneccted randomly chosen connected sub-shapes will have 
+a high degree of likelihood of having an average color that is as close 
+to the original image as possible.
+
+After some optimization work I arrived at the following:
+
+   #define DS(v) {((v*49+7)/15+1)*(0x010001), ((v*49+7)/15+1)*(0x000100)}
+
+   static int DitherTable8[4][4][2] = {
+        { DS( 0), DS(11), DS( 1), DS(10) },
+        { DS(14), DS( 4), DS(15), DS( 5) },
+        { DS( 2), DS( 9), DS( 3), DS( 8) },
+        { DS(12), DS( 6), DS(13), DS( 7) }
+   };
+
+   static int DitherPixConvertRGBto8(int x, int y, int c) {
+   int rb, r, g, b;
+
+	x &= 3;
+	y &= 3;
+
+	rb  = c & 0xFF00FF;
+	rb += DitherTable8[y][x][0];
+	rb  = (rb*5) & 0x07000700;
+
+       g   = c & 0x00FF00;
+	g  += DitherTable8[y][x][1];
+	g   = (g* 5) & 0x00070000;
+
+	b   = (rb >>  8)&7;
+	g   = ( g >> 15)*3;
+	r   = (rb >> 22)*9;
+
+	return r+g+b;
+   }
+
+It would take some time to explain why the above works, and is 
+substantially equivalent to the code above it.  But basically I am using 
+SIMD (red and blue are computed simultaneously in the same variables), 
+and some mathematical to turn a reciprocal into a multiply which in this 
+case luckily turns out to the very small number 5, which we know the x86 
+is can do in one instruction.
+
+Presumably this is lots faster, but that's not really the point since 
+this is putPixel we are talking about here.  However, it was important 
+for me to go through this so that I could figure out how to do all the 
+other primitives in 8 bpp with high performance (since otherwise there 
+would be a real risk that 8bpp would actually be *slower* than 16bpp.)
+
+If you like, you can use larger dithering grids; it would probably be a 
+minimal change.  You could also try to construct a different palette, but 
+then you'd have to go through all the work I did from scratch.
+
+If you chose an on-the-fly generated palette, then life will get very 
+tough.  You'll need a fast mapping from 24bpp down to 8bpp, and for a 
+general palette, that's a tough problem.  You usually want to build an 
+inverse table with lower resolution or something like that.  General 
+palettes are evil -- they lead to a lot of code, or a lot of compromises, 
+without a significant benefit (palette animation is so passe' and does 
+not justify inclusion versus interface uniformity.)
+
+--
+Paul Hsieh
+http://qed.50megs.com/gui

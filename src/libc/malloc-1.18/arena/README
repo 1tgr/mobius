@@ -1,0 +1,7 @@
+Prototype arena allocator.  Derived from my malloc.  Eventually, I hope
+to make this the official allocator.
+
+Strictly pre-alpha.  Included here more for feedback and comments than
+for any hope at real use.
+
+	- moraes

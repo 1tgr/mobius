@@ -1,0 +1,533 @@
+Test starting
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0xc2c0, 1016 (0x3f8) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0xc2c0, 1000 (0x3e8) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Free blk: 0xa438 to 0xc2c0, 978 (0x3d2) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Allocated blk: 0xa438 to 0xa508, 27 (0x1b) words really 191 bytes
+  Free blk: 0xa510 to 0xc2c0, 951 (0x3b7) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Allocated blk: 0xa438 to 0xa508, 27 (0x1b) words really 191 bytes
+  Allocated blk: 0xa510 to 0xa528, 4 (0x4) words really 2 bytes
+  Free blk: 0xa530 to 0xc2c0, 947 (0x3b3) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Allocated blk: 0xa438 to 0xa508, 27 (0x1b) words really 191 bytes
+  Allocated blk: 0xa510 to 0xa528, 4 (0x4) words really 2 bytes
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Free blk: 0xa560 to 0xc2c0, 941 (0x3ad) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Allocated blk: 0xa438 to 0xa508, 27 (0x1b) words really 191 bytes
+  Allocated blk: 0xa510 to 0xa528, 4 (0x4) words really 2 bytes
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Allocated blk: 0xa560 to 0xb348, 446 (0x1be) words really 3540 bytes
+  Free blk: 0xb350 to 0xc2c0, 495 (0x1ef) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Allocated blk: 0xa438 to 0xa508, 27 (0x1b) words really 191 bytes
+  Allocated blk: 0xa510 to 0xa528, 4 (0x4) words really 2 bytes
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Free blk: 0xa560 to 0xc2c0, 941 (0x3ad) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 2
+  2: 0xa508
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Free blk: 0xa438 to 0xa508, 27 (0x1b) words next=0xa508, prev=0xa508
+  Allocated blk: 0xa510 to 0xa528, 4 (0x4) words really 2 bytes
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Free blk: 0xa560 to 0xc2c0, 941 (0x3ad) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 2
+  2: 0xa528
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa430, 22 (0x16) words really 150 bytes
+  Free blk: 0xa438 to 0xa528, 31 (0x1f) words next=0xa528, prev=0xa528
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Free blk: 0xa560 to 0xc2c0, 941 (0x3ad) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 3
+  3: 0xa528
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0xa528, 53 (0x35) words next=0xa528, prev=0xa528
+  Allocated blk: 0xa530 to 0xa558, 6 (0x6) words really 21 bytes
+  Free blk: 0xa560 to 0xc2c0, 941 (0x3ad) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0xc2c0, 1000 (0x3e8) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0xc2c0, 1016 (0x3f8) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0xc2c0, 1000 (0x3e8) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc2c0
+Arena from 0xa2d0 to 0xc2c8, 1024 (0x400) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Free blk: 0xa440 to 0xc2c0, 977 (0x3d1) words next=0xc2c0, prev=0xc2c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Allocated blk: 0xa440 to 0xc450, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc458 to 0x102c0, 1998 (0x7ce) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Allocated blk: 0xa440 to 0xc450, 1027 (0x403) words really 8192 bytes
+  Allocated blk: 0xc458 to 0xc4d0, 16 (0x10) words really 100 bytes
+  Free blk: 0xc4d8 to 0x102c0, 1982 (0x7be) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Allocated blk: 0xa440 to 0xc450, 1027 (0x403) words really 8192 bytes
+  Allocated blk: 0xc458 to 0xc4d0, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xc4d8 to 0xc508, 7 (0x7) words really 29 bytes
+  Free blk: 0xc510 to 0x102c0, 1975 (0x7b7) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc450
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Free blk: 0xa440 to 0xc450, 1027 (0x403) words next=0x102c0, prev=0x102c0
+  Allocated blk: 0xc458 to 0xc4d0, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xc4d8 to 0xc508, 7 (0x7) words really 29 bytes
+  Free blk: 0xc510 to 0x102c0, 1975 (0x7b7) words next=0xc450, prev=0xc450
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc4d0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Allocated blk: 0xa388 to 0xa438, 23 (0x17) words really 155 bytes
+  Free blk: 0xa440 to 0xc4d0, 1043 (0x413) words next=0x102c0, prev=0x102c0
+  Allocated blk: 0xc4d8 to 0xc508, 7 (0x7) words really 29 bytes
+  Free blk: 0xc510 to 0x102c0, 1975 (0x7b7) words next=0xc4d0, prev=0xc4d0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0xc4d0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0xc4d0, 1066 (0x42a) words next=0x102c0, prev=0x102c0
+  Allocated blk: 0xc4d8 to 0xc508, 7 (0x7) words really 29 bytes
+  Free blk: 0xc510 to 0x102c0, 1975 (0x7b7) words next=0xc4d0, prev=0xc4d0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa380, 16 (0x10) words really 100 bytes
+  Free blk: 0xa388 to 0x102c0, 3048 (0xbe8) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Free blk: 0xa710 to 0x102c0, 2935 (0xb77) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 3
+  3: 0x14328
+  7: 0x102c0
+Arena from 0x10338 to 0x14330, 2048 (0x800) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Free blk: 0x141e0 to 0x14328, 42 (0x2a) words next=0x14328, prev=0x14328
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 3
+  3: 0x14328
+  7: 0x102c0
+Arena from 0x10338 to 0x14330, 2048 (0x800) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14328, 35 (0x23) words next=0x14328, prev=0x14328
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x102c0, prev=0x102c0
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14fe8, 443 (0x1bb) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x25000, 8195 (0x2003) words really 65536 bytes
+  Free blk: 0x25008 to 0x26328, 613 (0x265) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14fe8, 443 (0x1bb) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 8000 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14fe8, 443 (0x1bb) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 7998 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xa708, 129 (0x81) words really 1005 bytes
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 5
+  5: 0xa708
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14fe8, 443 (0x1bb) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 7998 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0xa708, 129 (0x81) words next=0xa708, prev=0xa708
+  Allocated blk: 0xa710 to 0xc720, 1027 (0x403) words really 8192 bytes
+  Free blk: 0xc728 to 0x102c0, 1908 (0x774) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Allocated blk: 0x141e0 to 0x14210, 7 (0x7) words really 29 bytes
+  Free blk: 0x14218 to 0x14fe8, 443 (0x1bb) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 7998 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 6
+  6: 0x14fe8
+  7: 0x26328
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x141d8, 2003 (0x7d3) words really 16000 bytes
+  Free blk: 0x141e0 to 0x14fe8, 450 (0x1c2) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 7998 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x14fe8
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Free blk: 0x10348 to 0x14fe8, 2453 (0x995) words next=0x26328, prev=0x102c0
+  Allocated blk: 0x14ff0 to 0x16f40, 1003 (0x3eb) words really 7998 bytes
+  Free blk: 0x16f48 to 0x26328, 7805 (0x1e7d) words next=0x102c0, prev=0x14fe8
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x14fe8, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x14fe8
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Free blk: 0x10348 to 0x14fe8, 2453 (0x995) words next=0x26328, prev=0x102c0
+  Allocated blk: 0x14ff0 to 0x18e80, 2003 (0x7d3) words really 16000 bytes
+  Free blk: 0x18e88 to 0x26328, 6805 (0x1a95) words next=0x102c0, prev=0x14fe8
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x14fe8, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 7
+  7: 0x14fe8
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Free blk: 0x10348 to 0x14fe8, 2453 (0x995) words next=0x26328, prev=0x102c0
+  Allocated blk: 0x14ff0 to 0x1cd00, 4003 (0xfa3) words really 32000 bytes
+  Free blk: 0x1cd08 to 0x26328, 4805 (0x12c5) words next=0x102c0, prev=0x14fe8
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Free blk: 0xa308 to 0x102c0, 3064 (0xbf8) words next=0x14fe8, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 5
+  5: 0x14fe8
+  7: 0x102c0
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x149a8, 2253 (0x8cd) words really 18000 bytes
+  Free blk: 0x149b0 to 0x14fe8, 200 (0xc8) words next=0x14fe8, prev=0x14fe8
+  Allocated blk: 0x14ff0 to 0x15008, 4 (0x4) words really 1 bytes
+  Allocated blk: 0x15010 to 0x23a80, 7503 (0x1d4f) words really 60000 bytes
+  Free blk: 0x23a88 to 0x26328, 1301 (0x515) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xe968, 2253 (0x8cd) words really 18000 bytes
+  Free blk: 0xe970 to 0x102c0, 811 (0x32b) words next=0x26328, prev=0x26328
+==============
+Heap printout:
+Free list rover pointers:
+  First non-null bin is 5
+  5: 0x15008
+  7: 0x102c0
+Arena from 0x10338 to 0x26330, 11264 (0x2c00) words
+Next arena is 0xa2d0
+  Allocated blk: 0x10348 to 0x149a8, 2253 (0x8cd) words really 18000 bytes
+  Free blk: 0x149b0 to 0x15008, 204 (0xcc) words next=0x15008, prev=0x15008
+  Allocated blk: 0x15010 to 0x23a80, 7503 (0x1d4f) words really 60000 bytes
+  Free blk: 0x23a88 to 0x26328, 1301 (0x515) words next=0x102c0, prev=0x102c0
+Arena from 0xa2d0 to 0x102c8, 3072 (0xc00) words
+Next arena is 0x0
+  Allocated blk: 0xa2e0 to 0xa300, 5 (0x5) words really 12 bytes
+  Allocated blk: 0xa308 to 0xe968, 2253 (0x8cd) words really 18000 bytes
+  Free blk: 0xe970 to 0x102c0, 811 (0x32b) words next=0x26328, prev=0x26328
+==============
+32: 1
+40: 1
+48: 1
+56: 2
+128: 3
+176: 1
+184: 1
+216: 1
+1032: 1
+3568: 1
+8216: 2
+16024: 1
+>= 16384: 4
+Test done

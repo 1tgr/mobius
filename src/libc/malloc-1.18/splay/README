@@ -1,0 +1,5 @@
+A splay tree implementation from David Brower, daveb@rtech.uucp,
+modified somewhat to simplify it for use in malloc, and rename it to
+avoid clashes.
+
+	Mark Moraes <moraes@csri.toronto.edu>

@@ -1,0 +1,12 @@
+xmem takes the trace output of my malloc with mal_trace(1) and plots
+a dynamic picture of the heap.
+
+black (foreground) represents allocated space, white (foreground)
+represents free space, gray is outside our heap.
+
+Uses the X Toolkit which makes it easy to expand and change.
+Accepts standard Xt options.
+
+This was a quick & dirty hack.  Needs cleanup.
+
+	- moraes@csri.toronto.edu
