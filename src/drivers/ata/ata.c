@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.15 2002/04/10 12:32:38 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.16 2002/04/12 01:23:47 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -9,7 +9,7 @@
 #include <kernel/cache.h>
 #include <kernel/io.h>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <os/syscall.h>
@@ -386,7 +386,7 @@ int AtaWaitForInterrupt(volatile ata_ctrl_t *ctrl)
     int r;
     unsigned time_end;
 
-    time_end = SysUpTime() + 10000;
+    time_end = SysUpTime() + 2000;
     /* Wait for an interrupt that sets w_status to "not busy". */
     while (ctrl->status & STATUS_BSY)
     {
@@ -670,13 +670,14 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
 bool AtaDriveRequest(device_t *dev, request_t *req)
 {
     ata_drive_t *drive = (ata_drive_t*) dev;
-    ata_ctrlreq_t ctrl_req;
+    ata_ctrlreq_t *ctrl_req;
     request_dev_t *req_dev = (request_dev_t*) req;
     
     switch (req->code)
     {
     case DEV_READ:
     case DEV_WRITE:
+        ctrl_req = malloc(sizeof(ata_ctrlreq_t));
 	if (drive->is_atapi)
 	{
 	    uint8_t Pkt[12];
@@ -704,12 +705,12 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 	    Pkt[7] = Count >> 8;
 	    Pkt[8] = Count;
 
-	    ctrl_req.header.code = ATAPI_PACKET;
-	    ctrl_req.params.atapi_packet.drive = drive;
-	    ctrl_req.params.atapi_packet.count = Count;
-	    ctrl_req.params.atapi_packet.block = block;
-	    memcpy(ctrl_req.params.atapi_packet.packet, Pkt, sizeof(Pkt));
-	    ctrl_req.params.atapi_packet.buffer = 
+	    ctrl_req->header.code = ATAPI_PACKET;
+	    ctrl_req->params.atapi_packet.drive = drive;
+	    ctrl_req->params.atapi_packet.count = Count;
+	    ctrl_req->params.atapi_packet.block = block;
+	    memcpy(ctrl_req->params.atapi_packet.packet, Pkt, sizeof(Pkt));
+	    ctrl_req->params.atapi_packet.buffer = 
 		req_dev->params.dev_read.buffer;
 	}
 	else
@@ -721,24 +722,24 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 	    cmd.block = req_dev->params.dev_read.offset / SECTOR_SIZE;
 	    cmd.command = req->code == DEV_WRITE ? CMD_WRITE : CMD_READ;
 
-	    ctrl_req.header.code = ATA_COMMAND;
-	    ctrl_req.params.ata_command.drive = drive;
-	    ctrl_req.params.ata_command.cmd = cmd;
-	    ctrl_req.params.ata_command.buffer = 
+	    ctrl_req->header.code = ATA_COMMAND;
+	    ctrl_req->params.ata_command.drive = drive;
+	    ctrl_req->params.ata_command.cmd = cmd;
+	    ctrl_req->params.ata_command.buffer = 
 		req_dev->params.dev_read.buffer;
 	}
 
-	/*ctrl_req.header.original = req;*/
-	ctrl_req.header.param = req;
-	if (IoRequest(dev, &drive->ctrl->dev, &ctrl_req.header))
+	/*ctrl_req->header.original = req;*/
+	ctrl_req->header.param = req;
+	if (IoRequest(dev, &drive->ctrl->dev, &ctrl_req->header))
 	{
 	    /* Be sure to mirror SIOPENDING result to originator */
-	    req->result = ctrl_req.header.result;
+	    req->result = ctrl_req->header.result;
 	    return true;
 	}
 	else
 	{
-	    req->result = ctrl_req.header.result;
+	    req->result = ctrl_req->header.result;
 	    return false;
 	}
     }
@@ -751,12 +752,13 @@ void AtaDriveFinishIo(device_t *dev, request_t *req)
 {
     assert(req->original != NULL);
     assert(req->param != NULL);
-    wprintf(L"AtaDriveFinishIo: dev = %p, req = %p, req->from = %p\n"
+    /*wprintf(L"AtaDriveFinishIo: dev = %p, req = %p, req->from = %p\n"
 	L"\treq->param = %p, req->param->from = %p\n", 
 	dev, req, req->from, 
-	req->param, ((request_t*) req->param)->from);
+	req->param, ((request_t*) req->param)->from);*/
     //if (req->param != req)
 	IoNotifyCompletion(req->param);
+    free(req->param);
 }
 
 static const device_vtbl_t ata_drive_vtbl =
