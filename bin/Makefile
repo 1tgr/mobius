@@ -1,12 +1,12 @@
 BOOT1=	kernel.exe
-BOOT1=	ata.drv ps2mouse.drv iso9660.drv
+BOOT1=	ata.drv ps2mouse.drv 
 BOOT2=	fat.drv tty.drv keyboard.drv fdc.drv \
 	cmos.drv video.drv pci.drv 
 BOOT3=	shell.exe hello.exe libc.dll v86.com \
 	ndisasm.exe nasm.exe libsys.dll 
-BOOT4=	vidtest.exe mgl.dll mgltest.exe tetris.exe \
-	test.exe test.txt vbe.exe
-BOOT5=	desktop.exe guitest.exe gui.dll lucsdm.ttf
+BOOT4=	vidtest.exe mgl.dll mgltest.exe \
+	test.exe test.txt vbe.exe kernel.raw
+BOOT5=	lucsdm.ttf sb.kll sound.drv ne2000.drv
 GRUB=	menu.lst 
 OS1=	folder.wmf banner.wmf ..\\src\\shell\\v86.asm ..\\src\\kernel\\start.asm 
 ifeq ($(DEST),)

@@ -1,9 +1,10 @@
-# $Id: system.pro,v 1.6 2002/04/20 12:50:08 pavlovskii Exp $
+# $Id: system.pro,v 1.7 2002/08/21 12:05:54 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
-    Port=0x3f8
-    #Port=0
+    #Port=0x3f8
+    Speed=115200
+    Port=0
 
     # Set to true to sync with gdb on startup and attempt to connect on 
     #	each exception.
@@ -15,27 +16,28 @@ end
 
 key Devices
     # This is a list of device=driver pairs which get loaded at startup.
-    fdc0=fdc
-    keyboard=keyboard
-    tty0=tty
-    tty1=tty
-    tty2=tty
-    tty3=tty
-    tty4=tty
-    tty5=tty
-    tty6=tty
-    pci=pci
-    cmos=cmos
-    ps2mouse=ps2mouse
-    video=video
-    ata0=ata
-    ata1=ata
-end
-
-key Mounts
-    /hd=fat,ide0a
-    /cd=iso9660,ide1
-    /fd=fat,fdc0
+    0=device,tty,tty0
+    1=device,tty,tty1
+    2=device,tty,tty2
+    3=device,tty,tty3
+    4=device,tty,tty4
+    5=device,tty,tty5
+    6=device,tty,tty6
+    7=device,keyboard,keyboard
+    8=device,fdc,fdc0
+    9=device,ata,ata0
+    10=device,ata,ata1
+    11=mount,fat,/hd,classes/volume0
+    11=mount,ext2,/,classes/volume1
+    12=mount,devfs,/System/Devices,
+    13=mount,ramfs,/System/Boot,
+    14=mount,ext2,/mnb,classes/volume2
+    15=device,pci,pci
+#    14=mount,fat,/Linux/mnt,classes/volume0
+#    13=mount,ext2,/,classes/volume1
+#    13=device,ne2000,ne2000
+    16=device,ps2mouse,ps2mouse
+    17=device,sermouse,sermouse
 end
 
 key ISA
@@ -51,7 +53,7 @@ key ISA
 
     key NBL5016
 	Driver=modem
-	Device=modem
+	#Device=modem
     end
 end
 
@@ -94,10 +96,22 @@ key PCI
     key Vendor5333Device8811Subsystem00000000
 	Description=S3 86C732 Trio32, 86C764 Trio64, 86C765 Trio64V+ Rev 01
 	Driver=video
-	Device=video
+    end
+
+    key Vendor10ECDevice8139Subsystem10EC8139
+        Description=RT8139 (A/B/C/8130) Fast Ethernet Adapter
+        Driver=rtl8139
+    end
+end
+
+key Network
+    key ethernet0
+	Bindings=ip,arp
+	IpAddress=192.168.0.200
     end
 end
 
 # Program to use as the OS shell
 #Shell=/System/Boot/desktop.exe
-Shell=/System/Boot/shell.exe
+Shell=/Mobius/shell.exe
+LibrarySearchPath=/System/Boot,/Mobius,.
