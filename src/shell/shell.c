@@ -1,3 +1,5 @@
+/* $Id: shell.c,v 1.2 2002/02/20 01:38:24 pavlovskii Exp $ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
