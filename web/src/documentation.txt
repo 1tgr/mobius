@@ -1,0 +1,17 @@
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<title></title>
+</head>
+
+<h1>Documentation</h1>
+
+<p>Some documentation is now available in HTML (as produced by 
+<a href="http://www.doxygen.org/">Doxygen</a>). More will be available as I
+write it...</p>
+
+<ul>
+<li><a href="kernel/">Kernel Reference</a></li>
+<li><a href="kernel/devicebook.html">Device Driver Book</a></li>
+</ul>

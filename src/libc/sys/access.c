@@ -1,3 +1,5 @@
+/* $Id: access.c,v 1.3 2002/03/07 16:26:04 pavlovskii Exp $ */
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <os/syscall.h>

@@ -1,4 +1,4 @@
-/* $Id: open.c,v 1.3 2002/03/07 16:26:04 pavlovskii Exp $ */
+/* $Id: wopen.c,v 1.1 2002/03/07 16:26:04 pavlovskii Exp $ */
 
 #include <io.h>
 #include <fcntl.h>
@@ -6,11 +6,8 @@
 #include <os/defs.h>
 #include <stdlib.h>
 
-wchar_t *_towc(const char *mb);
-
-int __open(const char *path, int oflag)
+int __wopen(const wchar_t *path, int oflag)
 {
-    wchar_t *wc = _towc(path);
     uint32_t mode;
     handle_t (*fn)(const wchar_t*, uint32_t);
     handle_t fd;
@@ -27,7 +24,6 @@ int __open(const char *path, int oflag)
     else
 	mode = FILE_READ;
     
-    fd = fn(wc, mode);
-    free(wc);
+    fd = fn(path, mode);
     return fd;
 }
