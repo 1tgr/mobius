@@ -1,4 +1,4 @@
-/* $Id: ramdisk.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: ramdisk.c,v 1.3 2002/01/06 01:56:15 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -225,11 +225,17 @@ size_t RdFileLength(const wchar_t* name)
 	return -1;
 }
 
+static const IDeviceVtbl rdfs_vtbl =
+{
+	RdFsRequest,
+	NULL
+};
+
 device_t* RdMountFs(driver_t* driver, const wchar_t* path, device_t *dev)
 {
 	device_t *ram = malloc(sizeof(device_t));
 	ram->driver = driver;
-	ram->request = RdFsRequest;
+	ram->vtbl = &rdfs_vtbl;
 	return ram;
 }
 

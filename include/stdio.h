@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.3 2002/01/06 01:56:14 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -35,7 +35,7 @@ extern "C" {
    may change with any release without notice!	The fact that they
    are here at all is to comply with ANSI specifictions. */
    
-typedef struct {
+typedef struct FILE {
   int	_cnt;
   char *_ptr;
   char *_base;

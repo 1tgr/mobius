@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.5 2002/01/05 21:37:46 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.6 2002/01/06 01:56:15 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -110,6 +110,9 @@ uint32_t i386Isr(context_t ctx)
 	if (ctx.error == (uint32_t) -1)
 	{
 		irq_t *irq;
+		unsigned i;
+
+		((uint16_t*) PHYSICAL(0xb8000))[1] = ~((uint16_t*) PHYSICAL(0xb8000))[1];
 
 		ArchMaskIrq(0, 1 << ctx.intr);
 		
@@ -119,23 +122,27 @@ uint32_t i386Isr(context_t ctx)
 			ScNeedSchedule(true);
 		}
 		
-		out(PORT_8259M, EOI);
-		if (ctx.intr >= 8)
-			out(PORT_8259S, EOI);
-
 		irq = irq_first[ctx.intr];
+		i = 0;
 		while (irq)
 		{
-			assert(irq->dev->isr);
+			assert(irq->dev->vtbl->isr);
 			/*req.header.code = DEV_ISR;
 			req.header.result = 0;
 			req.params.dev_irq.irq = ctx.intr;
 			if (irq->dev->request(irq->dev, (request_t*) &req))
 				break;*/
-			if (irq->dev->isr(irq->dev, ctx.intr))
+			if (irq->dev->vtbl->isr(irq->dev, ctx.intr))
 				break;
 			irq = irq->next;
+			i++;
+			if (i > 6)
+				assert(false && "Too many interrupt handlers");
 		}
+
+		out(PORT_8259M, EOI);
+		if (ctx.intr >= 8)
+			out(PORT_8259S, EOI);
 
 		ArchMaskIrq(1 << ctx.intr, 0);
 	}

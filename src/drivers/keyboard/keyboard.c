@@ -374,6 +374,12 @@ bool kbdRequest(device_t* dev, request_t* req)
 	return false;
 }
 
+static const IDeviceVtbl keyboard_vtbl =
+{
+	kbdRequest,
+	KbdIsr
+};
+
 device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
 	Keyboard* keyb;
@@ -408,8 +414,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 	ctrl = KEYB_CTRL;
 
 	keyb->dev.driver = drv;
-	keyb->dev.request = kbdRequest;
-	keyb->dev.isr = KbdIsr;
+	keyb->dev.vtbl = &keyboard_vtbl;
 	keyb->dev.cfg = cfg;
 	keyb->dev.io_first = keyb->dev.io_last = NULL;
 	keyb->keys = 0;

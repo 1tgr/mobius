@@ -1,4 +1,4 @@
-/* $Id: fat.c,v 1.8 2002/01/05 22:44:41 pavlovskii Exp $ */
+/* $Id: fat.c,v 1.9 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -96,8 +96,11 @@ fat_dir_t *FatAllocDir(fat_root_t *root, const fat_dirent_t *di)
 			dir + 1, 
 			size);
 		if (bytes < size)
+		{
 			wprintf(L"fat: failed to read root directory: read %u bytes\n", 
 				bytes);
+			return NULL;
+		}
 	}
 	else
 		assert(false);
@@ -196,7 +199,7 @@ unsigned FatAssembleName(fat_dirent_t *entries, wchar_t *name)
 
 	if ((entries[0].attribs & ATTR_LONG_NAME) == ATTR_LONG_NAME)
 	{
-		assert(false);
+		/*assert(false);*/
 		return 1;
 	}
 	else
@@ -489,6 +492,7 @@ start:
 		extra->dev_request.params.buffered.length = bytes;
 		extra->dev_request.params.buffered.offset = 
 			FatClusterToOffset(root, extra->clusters[extra->cluster_index]) + extra->mod;
+		wprintf(L"FatStartIo: req = %p\n", &extra->dev_request.header);
 		if (!DevRequest(&root->dev, root->device, &extra->dev_request.header))
 		{
 			DevUnmapBuffer();
@@ -592,21 +596,31 @@ bool FatRequest(device_t *dev, request_t *req)
 		return true;
 
 	case IO_FINISH:
+		wprintf(L"FatRequest: IO_FINISH: req->original->original = %p\n",
+			req->original->original);
 		FOREACH (io, dev->io)
 		{
 			extra = io->extra;
-			if (req->original == &extra->dev_request.header)
+			if (req->original->original == &extra->dev_request.header)
 			{
 				FatStartIo(io);
-				break;
+				return true;
 			}
 		}
-		return true;
+
+		assert(false && "Request not found");
+		return false;
 	}
 
 	req->code = ENOTIMPL;
 	return false;
 }
+
+static const IDeviceVtbl fat_vtbl =
+{
+	FatRequest,
+	NULL
+};
 
 device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 {
@@ -614,14 +628,15 @@ device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 	fat_dirent_t root_entry;
 	unsigned length, temp;
 	uint32_t RootDirSectors, FatSectors;
+	wchar_t name[FAT_MAX_NAME];
 
 	root = malloc(sizeof(fat_root_t));
 	if (root == NULL)
 		return NULL;
 
 	memset(root, 0, sizeof(fat_root_t));
+	root->dev.vtbl = &fat_vtbl;
 	root->dev.driver = drv;
-	root->dev.request = FatRequest;
 	root->device = dev;
 
 	TRACE0("\tReading boot sector\n");
@@ -684,7 +699,8 @@ device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 		root->bpb.sectors_per_fat * root->bpb.num_fats;
 
 	memset(&root_entry, 0, sizeof(root_entry));
-	root_entry.file_length = root->bpb.num_root_entries * sizeof(fat_dirent_t);
+	/*root_entry.file_length = root->bpb.num_root_entries * sizeof(fat_dirent_t);*/
+	root_entry.file_length = SECTOR_SIZE * 4;
 	root_entry.first_cluster = FAT_CLUSTER_ROOT;
 	root->root = FatAllocDir(root, &root_entry);
 	if (root->root == NULL)
@@ -693,6 +709,8 @@ device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 		return NULL;
 	}
 	
+	FatAssembleName((fat_dirent_t*) (root->root + 1), name);
+	wprintf(L"\tFirst file in root is called %s\n", name);
 	return &root->dev;
 }
 

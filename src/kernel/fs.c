@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.6 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.7 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -58,7 +58,7 @@ bool VfsRequest(device_t *dev, request_t *req)
 			{
 				/*wprintf(L"=> %p\n", mount->fsd);*/
 				req_fs->params.fs_open.name += len;
-				return mount->fsd->request(mount->fsd, req);
+				return mount->fsd->vtbl->request(mount->fsd, req);
 			}
 		
 		wprintf(L"%s: not found in root\n", req_fs->params.fs_open.name);
@@ -106,7 +106,7 @@ bool VfsRequest(device_t *dev, request_t *req)
 				{
 					/*wprintf(L"=> %p\n", mount->fsd);*/
 					req_fs->params.fs_mount.name += len;
-					return mount->fsd->request(mount->fsd, req);
+					return mount->fsd->vtbl->request(mount->fsd, req);
 				}
 
 			req->result = ENOTFOUND;
@@ -350,6 +350,12 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
 		return true;
 }
 
+static const IDeviceVtbl vfs_vtbl =
+{
+	VfsRequest,
+	NULL
+};
+
 bool FsCreateVirtualDir(const wchar_t *path)
 {
 	vfs_dir_t *dir;
@@ -359,7 +365,7 @@ bool FsCreateVirtualDir(const wchar_t *path)
 		return NULL;
 
 	memset(dir, 0, sizeof(vfs_dir_t));
-	dir->dev.request = VfsRequest;
+	dir->dev.vtbl = &vfs_vtbl;
 
 	if (!FsMountDevice(path, &dir->dev))
 	{

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.6 2002/01/05 21:37:44 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.7 2002/01/06 01:56:14 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -86,15 +86,32 @@ struct driver_t
 		device_t *dev);
 };
 
-struct device_t
+typedef struct IDeviceVtbl IDeviceVtbl;
+struct IDeviceVtbl
 {
 	bool (*request)(device_t *dev, request_t *req);
 	bool (*isr)(device_t *dev, uint8_t irq);
-	/*void (*finishio)(device_t *dev, asyncio_t *io);*/
+};
+
+#ifdef __cplusplus
+struct device_t
+{
+	virtual bool request(request_t *req) = 0;
+	virtual bool isr(uint8_t irq) = 0;
+
 	driver_t *driver;
 	device_config_t *cfg;
 	asyncio_t *io_first, *io_last;
 };
+#else
+struct device_t
+{
+	const IDeviceVtbl *vtbl;
+	driver_t *driver;
+	device_config_t *cfg;
+	asyncio_t *io_first, *io_last;
+};
+#endif
 
 typedef struct irq_t irq_t;
 struct irq_t

@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: device.c,v 1.8 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -130,10 +130,15 @@ driver_t devfs_driver =
 	DevMountFs,
 };
 
-device_t dev_fsd =
+static const IDeviceVtbl devfs_vtbl =
 {
 	DevFsRequest,	/* request */
 	NULL,			/* isr */
+};
+
+device_t dev_fsd =
+{
+	&devfs_vtbl,
 	&devfs_driver,
 	NULL,
 	NULL,
@@ -156,8 +161,8 @@ static void DevNotifyCompletion(device_t *dev, request_t *req)
 		temp.event = NULL;
 		temp.original = req;
 		temp.from = dev;
-		assert(req->from->request != NULL);
-		req->from->request(req->from, &temp);
+		assert(req->from->vtbl->request != NULL);
+		req->from->vtbl->request(req->from, &temp);
 		req->from = NULL;
 	}
 }
@@ -177,13 +182,19 @@ bool DevRequest(device_t *from, device_t *dev, request_t *req)
 		return false;
 	}
 
-	if (dev->request == NULL)
+	if (dev->vtbl == NULL)
+	{
+		wprintf(L"DevRequest fails on NULL vtbl\n");
+		return false;
+	}
+
+	if (dev->vtbl->request == NULL)
 	{
 		wprintf(L"DevRequest fails on NULL request function\n");
 		return false;
 	}
 
-	ret = dev->request(dev, req);
+	ret = dev->vtbl->request(dev, req);
 	if (ret && req->event == NULL)
 	{
 		/*

@@ -28,7 +28,7 @@ CFG=tty - Win32 Debug
 
 !IF  "$(CFG)" == "tty - Win32 Release"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
 # PROP BASE Intermediate_Dir "Release"
@@ -37,7 +37,7 @@ CFG=tty - Win32 Debug
 # PROP BASE Target_File "tty.exe"
 # PROP BASE Bsc_Name "tty.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
@@ -49,7 +49,7 @@ CFG=tty - Win32 Debug
 
 !ELSEIF  "$(CFG)" == "tty - Win32 Debug"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
 # PROP BASE Output_Dir "Debug"
 # PROP BASE Intermediate_Dir "Debug"
@@ -58,7 +58,7 @@ CFG=tty - Win32 Debug
 # PROP BASE Target_File "tty.exe"
 # PROP BASE Bsc_Name "tty.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
@@ -86,7 +86,7 @@ CFG=tty - Win32 Debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\tty.c
+SOURCE=.\tty.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"

@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.5 2002/01/05 22:44:41 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.6 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -258,7 +258,7 @@ start:
 	case fdcSeek:
 		if (fdc->sensei)
 			/* Let head settle just after seeking */
-			msleep(15);
+			/*msleep(15);*/
 		
 		/* Motor has finished seeking, so we can start to transfer data */
 		if (fdc->sr0 != 0x20 || fdc->fdc_track != track)
@@ -345,7 +345,7 @@ start:
 
 			wprintf(L".");
 			io->length += 512;
-				
+
 			if (io->length < req_dev->params.buffered.length)
 			{
 				extra->block++;
@@ -525,6 +525,12 @@ void FdcRemove(fdc_t *fdc)
 	/* DevUnregisterIrq(6, &fdc->dev); */
 }
 
+static const IDeviceVtbl fdc_vtbl =
+{
+	FdcRequest,
+	FdcIsr
+};
+
 device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
 	fdc_t *fdc;
@@ -534,8 +540,7 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 		return NULL;
 
 	memset(fdc, 0, sizeof(*fdc));
-	fdc->dev.request = FdcRequest;
-	fdc->dev.isr = FdcIsr;
+	fdc->dev.vtbl = &fdc_vtbl;
 	fdc->base = 0x3f0;
 	fdc->irq = 6;
 	fdc->statsz = 0;

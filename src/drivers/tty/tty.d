@@ -1,4 +1,4 @@
-tty.o: tty.c /mn/include/kernel/kernel.h /mn/include/stddef.h \
+tty.o: tty.cpp /mn/include/kernel/kernel.h /mn/include/stddef.h \
  /mn/include/sys/types.h /mn/include/assert.h /mn/include/stdlib.h \
  /mn/include/os/defs.h /mn/include/kernel/driver.h \
  /mn/include/kernel/handle.h /mn/include/os/device.h \

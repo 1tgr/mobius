@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.2 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.3 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/cache.h>
@@ -24,10 +24,10 @@ struct cache_t
 
 #define BLOCK_USED	1
 
-bool CcIsr(device_t *dev, uint8_t irq)
+/*bool CcIsr(device_t *dev, uint8_t irq)
 {
 	return ((cache_t*) dev)->blockdev->isr(dev, irq);
-}
+}*/
 
 bool CcRequest(device_t* dev, request_t* req)
 {
@@ -104,9 +104,15 @@ bool CcRequest(device_t* dev, request_t* req)
 		return true;
 
 	default:
-		return cache->blockdev->request(cache->blockdev, req);
+		return cache->blockdev->vtbl->request(cache->blockdev, req);
 	}
 }
+
+static const IDeviceVtbl cache_vtbl =
+{
+	CcRequest,
+	NULL
+};
 
 device_t* CcInstallBlockCache(device_t* dev, uint32_t block_size)
 {
@@ -117,13 +123,7 @@ device_t* CcInstallBlockCache(device_t* dev, uint32_t block_size)
 	cache = malloc(sizeof(cache_t) + sizeof(struct cacheblock_t) * cache_size);
 	assert(cache != NULL);
 
-	cache->dev.request = CcRequest;
-
-	if (dev->isr)
-		cache->dev.isr = CcIsr;
-	else
-		cache->dev.isr = NULL;
-
+	cache->dev.vtbl = &cache_vtbl;
 	cache->block_size = block_size;
 	cache->blockdev = dev;
 	cache->cache_size = cache_size;

@@ -9,8 +9,6 @@ EXPORTS
 	ArchSetupContext
 	ArchStartup
 	CcInstallBlockCache
-	CcIsr
-	CcRequest
 	DbgDumpModules
 	DbgDumpStack
 	DbgDumpThreads
@@ -28,7 +26,6 @@ EXPORTS
 	DevCfgFindIrq
 	DevClose
 	DevFinishIo
-	DevFsRequest
 	DevInstallDevice
 	DevInstallNewDriver
 	DevMapBuffer
@@ -92,7 +89,6 @@ EXPORTS
 	ProcInit
 	ProcPageFault
 	RdFileLength
-	RdFsRequest
 	RdInit
 	RdMountFs
 	RdOpen
@@ -116,7 +112,6 @@ EXPORTS
 	ThrRun
 	ThrSleep
 	ThrWaitHandle
-	VfsRequest
 	VmmAlloc
 	VmmArea
 	VmmCommit

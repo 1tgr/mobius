@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.8 2002/01/06 01:56:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -743,9 +743,15 @@ bool AtaPartitionRequest(device_t *dev, request_t *req)
 		req_dev->params.dev_read.offset += part->start_sector * SECTOR_SIZE;
 
 	default:
-		return part->drive->request(part->drive, req);
+		return part->drive->vtbl->request(part->drive, req);
 	}
 }
+
+static const IDeviceVtbl ata_partition_vtbl =
+{
+	AtaPartitionRequest,
+	NULL
+};
 
 void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 {
@@ -777,7 +783,7 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 		part = malloc(sizeof(ata_part_t));
 		memset(part, 0, sizeof(ata_part_t));
 		
-		part->dev.request = AtaPartitionRequest;
+		part->dev.vtbl = &ata_partition_vtbl;
 		part->dev.driver = dev->driver;
 		
 		part->start_sector = sec0.ptab.parts[i].start_sector_abs;
@@ -817,6 +823,12 @@ void AtaFormatString(char *dest, const char *src, size_t count)
 		ch < dest + count)
 		*ch = '\0';
 }
+
+static const IDeviceVtbl ata_drive_vtbl =
+{
+	AtaDriveRequest,
+	NULL
+};
 
 bool AtaInitController(ata_ctrl_t *ctrl)
 {
@@ -922,8 +934,8 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 		swprintf(name, IDE_BASE_NAME L"%u", 
 			(num_controllers - 1) * DRIVES_PER_CONTROLLER + i);
 
+		ctrl->drives[i].dev.vtbl = &ata_drive_vtbl;
 		ctrl->drives[i].dev.driver = ctrl->dev.driver;
-		ctrl->drives[i].dev.request = AtaDriveRequest;
 		ctrl->drives[i].ctrl = ctrl;
 		/*dev = CcInstallBlockCache(&ctrl->drives[i].dev, ctrl->drives[i].is_atapi ? ATAPI_SECTOR_SIZE : SECTOR_SIZE);*/
 		dev = &ctrl->drives[i].dev;
@@ -947,6 +959,12 @@ typedef struct
 	uint8_t flags;
 } bios_params_t;
 #pragma pack(pop)
+
+static const IDeviceVtbl ata_controller_vtbl =
+{
+	AtaCtrlRequest,
+	AtaCtrlIsr
+};
 
 device_t* AtaAddController(driver_t *drv, const wchar_t *name, 
 						   device_config_t *cfg)
@@ -978,8 +996,7 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 	if (num_bios_drives > 0)
 	{
 		ctrl = malloc(sizeof(ata_ctrl_t));
-		ctrl->dev.request = AtaCtrlRequest;
-		ctrl->dev.isr = AtaCtrlIsr;
+		ctrl->dev.vtbl = &ata_controller_vtbl;
 		ctrl->dev.driver = drv;
 		ctrl->dev.cfg = cfg;
 		ctrl->base = 0x1F0;

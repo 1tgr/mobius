@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.9 2002/01/05 22:44:42 pavlovskii Exp $ */
+/* $Id: test.c,v 1.10 2002/01/06 01:56:15 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,9 +19,13 @@ int main(void)
 	/*uint32_t key;
 	process_info_t *info;*/
 	handle_t file;
-	wchar_t name[] = SYS_DEVICES L"/fdc0";
 	size_t len;
-	unsigned i;
+
+#if 1
+	wchar_t name[] = L"/hd/test.txt";
+#else
+	wchar_t name[] = SYS_DEVICES L"/fdc0";
+#endif
 	
 	wprintf(L"Hello from tty0!\n");
 	wprintf(L"Here's an escape sequence: \x1b[31mThis should be red!\x1b[37m\n");
@@ -37,7 +41,8 @@ int main(void)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		/*while ((len = FsRead(file, key, sizeof(key))))
+#if 1
+		while ((len = FsRead(file, key, sizeof(key))))
 		{
 			if (len < sizeof(key))
 				key[len] = '\0';
@@ -46,16 +51,25 @@ int main(void)
 				wprintf(L"invalid multibyte sequence\n");
 			else
 				_cputws(str, len);
-		}*/
+		}
+#else
+		unsigned i;
 
 		FsSeek(file, 19 * 512);
 		if ((len = FsRead(file, key, sizeof(key))))
 		{
 			for (i = 0; i < len; i++)
-				str[i] = (wchar_t) (unsigned char) key[i];
+			{
+				if (key[i])
+					str[i] = (wchar_t) (unsigned char) key[i];
+				else
+					str[i] = '.';
+			}
+
 			str[i] = '\0';
 			_cputws(str, len);
 		}
+#endif
 
 		FsClose(file);
 	}

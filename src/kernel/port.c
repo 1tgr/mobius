@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.3 2002/01/05 21:37:46 pavlovskii Exp $ */
+/* $Id: port.c,v 1.4 2002/01/06 01:56:15 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -25,10 +25,15 @@ driver_t port_driver =
 	PortMountFs
 };
 
-static device_t port_dev =
+static const IDeviceVtbl portfs_vtbl =
 {
 	PortFsRequest,	/* request */
 	NULL,			/* isr */
+};
+
+static device_t port_dev =
+{
+	&portfs_vtbl,
 	&port_driver, 
 };
 
