@@ -1,4 +1,4 @@
-/* $Id: queue.c,v 1.1 2002/04/03 23:53:05 pavlovskii Exp $ */
+/* $Id: queue.c,v 1.2 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <os/queue.h>
@@ -11,7 +11,7 @@ void *QueueAppend(queue_t *queue, const void *data, size_t size)
     if (size == 0)
 	return queue->data;
 
-    SemAcquire(&queue->lock);
+    SpinAcquire(&queue->lock);
 
     if (queue->length + size > queue->allocated)
     {
@@ -22,7 +22,7 @@ void *QueueAppend(queue_t *queue, const void *data, size_t size)
 
 	if (newData == NULL)
 	{
-	    SemRelease(&queue->lock);
+	    SpinRelease(&queue->lock);
 	    return NULL;
 	}
 	
@@ -40,60 +40,60 @@ void *QueueAppend(queue_t *queue, const void *data, size_t size)
     ptr = ((uint8_t*) queue->data + queue->length);
     memcpy(ptr, data, size);
     queue->length += size;
-    SemRelease(&queue->lock);
+    SpinRelease(&queue->lock);
     return ptr;
 }
 
 bool QueuePopLast(queue_t *queue, void *data, size_t size)
 {
-    SemAcquire(&queue->lock);
+    SpinAcquire(&queue->lock);
     if (queue->length >= size)
     {
 	queue->length -= size;
 	if (data)
 	    memcpy(data, (uint8_t*) queue->data + queue->length, size);
-	SemRelease(&queue->lock);
+	SpinRelease(&queue->lock);
 	return true;
     }
     else
     {
-	SemRelease(&queue->lock);
+	SpinRelease(&queue->lock);
 	return false;
     }
 }
 
 bool QueuePopFirst(queue_t *queue, void *data, size_t size)
 {
-    SemAcquire(&queue->lock);
+    SpinAcquire(&queue->lock);
     if (queue->length >= size)
     {
 	queue->length -= size;
 	if (data)
 	    memcpy(data, (uint8_t*) queue->data, size);
 	memcpy(queue->data, (uint8_t*) queue->data + size, queue->length);
-	SemRelease(&queue->lock);
+	SpinRelease(&queue->lock);
 	return true;
     }
     else
     {
-	SemRelease(&queue->lock);
+	SpinRelease(&queue->lock);
 	return false;
     }
 }
 
 void QueueClear(queue_t *queue)
 {
-    SemAcquire(&queue->lock);
+    SpinAcquire(&queue->lock);
     free(queue->data);
     queue->data = NULL;
     queue->allocated = 0;
     queue->length = 0;
-    SemRelease(&queue->lock);
+    SpinRelease(&queue->lock);
 }
 
 void QueueInit(queue_t *queue)
 {
     queue->data = NULL;
     queue->allocated = queue->length = 0;
-    SemInit(&queue->lock);
+    SpinInit(&queue->lock);
 }

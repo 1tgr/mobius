@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.14 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.15 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -15,7 +15,7 @@
 extern process_t proc_idle;
 
 vm_area_t *shared_first, *shared_last;
-semaphore_t sem_share;
+spinlock_t sem_share;
 
 void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type, 
              uint32_t flags)
@@ -101,9 +101,9 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
             collide2->type = VM_AREA_EMPTY;
             collide->num_pages = (start - collide->start) / PAGE_SIZE;
 
-            SemAcquire(&proc->sem_vmm);
+            SpinAcquire(&proc->sem_vmm);
             LIST_ADD(proc->area, collide2);
-            SemRelease(&proc->sem_vmm);
+            SpinRelease(&proc->sem_vmm);
         }
     }
 
@@ -122,7 +122,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 
     area->flags = flags;
     area->type = type;
-    SemInit(&area->mtx_allocate);
+    SpinInit(&area->mtx_allocate);
 
     switch (type)
     {
@@ -142,9 +142,9 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
         break;
     }
 
-    SemAcquire(&proc->sem_vmm);
+    SpinAcquire(&proc->sem_vmm);
     LIST_ADD(proc->area, area);
-    SemRelease(&proc->sem_vmm);
+    SpinRelease(&proc->sem_vmm);
 
     return (void*) start;
 }
@@ -218,11 +218,11 @@ bool VmmShare(void *base, const wchar_t *name)
         return false;
     }
 
-    SemAcquire(&current()->process->sem_vmm);
+    SpinAcquire(&current()->process->sem_vmm);
     free(area->name);
     area->name = _wcsdup(name);
     
-    SemAcquire(&sem_share);
+    SpinAcquire(&sem_share);
 
     if (shared_last != NULL)
         shared_last->shared_next = area;
@@ -232,9 +232,9 @@ bool VmmShare(void *base, const wchar_t *name)
     if (shared_first == NULL)
         shared_first = area;
 
-    SemRelease(&sem_share);
+    SpinRelease(&sem_share);
 
-    SemRelease(&current()->process->sem_vmm);
+    SpinRelease(&current()->process->sem_vmm);
     return true;
 }
 
@@ -242,7 +242,7 @@ void *VmmMapShared(const wchar_t *name, addr_t start, uint32_t flags)
 {
     vm_area_t *dest;
 
-    SemAcquire(&sem_share);
+    SpinAcquire(&sem_share);
 
     for (dest = shared_first; dest != NULL; dest = dest->shared_next)
     {
@@ -254,11 +254,11 @@ void *VmmMapShared(const wchar_t *name, addr_t start, uint32_t flags)
     if (dest == NULL)
     {
         errno = ENOTFOUND;
-        SemRelease(&sem_share);
+        SpinRelease(&sem_share);
         return NULL;
     }
 
-    SemRelease(&sem_share);
+    SpinRelease(&sem_share);
     return VmmMap(dest->pages->num_pages, start, dest, VM_AREA_SHARED, flags);
 }
 
@@ -277,7 +277,7 @@ void VmmFree(vm_area_t* area)
     if (area->start != NULL)
         VmmUncommit(area);
 
-    SemAcquire(&area->owner->sem_vmm);
+    SpinAcquire(&area->owner->sem_vmm);
     /*if (area->prev)
         area->prev->next = area->next;
     if (area->next)
@@ -294,7 +294,7 @@ void VmmFree(vm_area_t* area)
 
     area->type = VM_AREA_EMPTY;
 
-    SemRelease(&area->owner->sem_vmm);
+    SpinRelease(&area->owner->sem_vmm);
 
     /*free(area);*/
     /*wprintf(L"done\n");*/
@@ -341,7 +341,7 @@ bool VmmDoMapFile(vm_area_t *area, addr_t start, bool is_writing)
         assert(area->owner->sem_vmm.locks == 0);
     }
 
-    SemAcquire(&area->owner->sem_vmm);
+    SpinAcquire(&area->owner->sem_vmm);
     //wprintf(L"VmmDoMapFile: start = %x ", start);
 
 tryagain:
@@ -355,14 +355,14 @@ tryagain:
          * xxx - need to release VMM semaphore in case something needs to be 
          *  faulted in here?
          */
-        SemRelease(&area->owner->sem_vmm);
+        SpinRelease(&area->owner->sem_vmm);
         //wprintf(L"VmmDoMapFile(%x): calling VmmMapAddressToFile...",
             //start);
         if (!VmmMapAddressToFile(area, start, &off, &bytes, &flags))
         {
-            SemAcquire(&area->owner->sem_vmm);
+            SpinAcquire(&area->owner->sem_vmm);
             MemSetPageState((const void*) start, PAGE_READFAILED);
-            SemRelease(&area->owner->sem_vmm);
+            SpinRelease(&area->owner->sem_vmm);
             return true;
         }
 
@@ -370,7 +370,7 @@ tryagain:
         /*wprintf(L"%s:%x: PAGE_PAGEDOUT off = %x bytes = %x flags = %x\n", 
             area->owner->exe, start, (uint32_t) off, bytes, flags);*/
 
-        SemAcquire(&area->owner->sem_vmm);
+        SpinAcquire(&area->owner->sem_vmm);
         MtxAcquire(&area->mtx_allocate);
         phys = MemAlloc();
         MemLockPages(phys, 1, true);
@@ -405,7 +405,7 @@ tryagain:
             }
 
             MtxRelease(&area->mtx_allocate);
-            SemRelease(&area->owner->sem_vmm);
+            SpinRelease(&area->owner->sem_vmm);
             return true;
         }
         else
@@ -434,7 +434,7 @@ tryagain:
         {
             /*wprintf(L"=> PAGE_VALID_DIRTY\n");*/
             MemSetPageState((const void*) start, PAGE_VALID_DIRTY);
-            SemRelease(&area->owner->sem_vmm);
+            SpinRelease(&area->owner->sem_vmm);
             return true;
         }
 
@@ -496,7 +496,7 @@ tryagain:
         }
 
         MtxRelease(&area->mtx_allocate);
-        SemRelease(&area->owner->sem_vmm);
+        SpinRelease(&area->owner->sem_vmm);
 
         if (area->type == VM_AREA_IMAGE &&
             MemGetPageState((const void*) start) != PAGE_READINPROG /*&&
@@ -509,7 +509,7 @@ tryagain:
         wprintf(L"PAGE_WRITEINPROG\n");
         MtxAcquire(&area->mtx_allocate);
         MtxRelease(&area->mtx_allocate);
-        SemRelease(&area->owner->sem_vmm);
+        SpinRelease(&area->owner->sem_vmm);
         return true;
 
     case PAGE_READFAILED:
@@ -524,7 +524,7 @@ tryagain:
         wprintf(L"%08x: unknown state for mapped area: %x\n", start, state);
     }
 
-    SemRelease(&area->owner->sem_vmm);
+    SpinRelease(&area->owner->sem_vmm);
     return false;
 }
 
@@ -554,7 +554,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
     assert(area->owner == current()->process || area->owner == &proc_idle);
 
     state = MemGetPageState((const void*) start);
-    SemAcquire(&area->owner->sem_vmm);
+    SpinAcquire(&area->owner->sem_vmm);
     switch (state)
     {
     case 0: /* not committed */
@@ -605,7 +605,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
                 if (!phys)
                 {
                     wprintf(L"VmmCommit: out of memory\n");
-                    SemRelease(&area->owner->sem_vmm);
+                    SpinRelease(&area->owner->sem_vmm);
                     return false;
                 }
             }
@@ -618,7 +618,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
         if (area->flags & MEM_ZERO)
             memset((void*) start, 0, PAGE_SIZE);
 
-        SemRelease(&area->owner->sem_vmm);
+        SpinRelease(&area->owner->sem_vmm);
         return true;
 
     case PAGE_VALID_CLEAN:
@@ -627,7 +627,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
         {
             /*wprintf(L"=> PAGE_VALID_DIRTY\n");*/
             MemSetPageState((const void*) start, PAGE_VALID_DIRTY);
-            SemRelease(&area->owner->sem_vmm);
+            SpinRelease(&area->owner->sem_vmm);
             return true;
         }
 
@@ -661,7 +661,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
         wprintf(L"%08x: unknown state for normal area: %x\n", start, state);
     }
 
-    SemRelease(&area->owner->sem_vmm);
+    SpinRelease(&area->owner->sem_vmm);
     return false;
 }
 
@@ -705,7 +705,7 @@ void VmmUncommit(vm_area_t* area)
     assert(area->owner == current()->process);
     /*wprintf(L"vmmUncommit: %d => %x...", area->pages, area->start);*/
 
-    SemAcquire(&area->owner->sem_vmm);
+    SpinAcquire(&area->owner->sem_vmm);
     virt = area->start;
     for (i = 0; i < area->pages->num_pages; i++)
     {
@@ -721,7 +721,7 @@ void VmmUncommit(vm_area_t* area)
         virt += PAGE_SIZE;
     }
 
-    SemRelease(&area->owner->sem_vmm);
+    SpinRelease(&area->owner->sem_vmm);
 
     /*wprintf(L"done\n"); */
 }

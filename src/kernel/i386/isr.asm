@@ -1,11 +1,11 @@
-; $Id: isr.asm,v 1.9 2002/08/14 16:24:00 pavlovskii Exp $
+; $Id: isr.asm,v 1.10 2002/08/17 19:13:33 pavlovskii Exp $
 
 [bits           32]
 
 [section        .text]
 
-[global         _SemAcquire]
-[global         _SemRelease]
+[global         _SpinAcquire]
+[global         _SpinRelease]
 [global         _KeAtomicInc]
 [global         _KeAtomicDec]
 [global         _i386DoCall]
@@ -15,7 +15,7 @@
 [extern         _i386DoubleFault]
 [extern         _tss]
 
-_SemAcquire:
+_SpinAcquire:
     push    ebp
 
     ; ebp = pointer to semaphore structure
@@ -52,10 +52,10 @@ _SemAcquire:
 .2:
     mov     eax, [ebp+4]
     mov     ebx, [esp+4]
-    cli
-    hlt
+    int     3
+    ret
 
-_SemRelease:
+_SpinRelease:
     mov     eax, [esp+4]
     mov     dword [eax], 0
     mov     eax, [eax+8]

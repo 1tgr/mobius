@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.22 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: main.c,v 1.23 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -24,7 +24,7 @@
 
 extern process_t proc_idle;
 
-void SemInit(semaphore_t *sem)
+void SpinInit(spinlock_t *sem)
 {
     sem->locks = 0;
     sem->owner = NULL;
@@ -33,7 +33,7 @@ void SemInit(semaphore_t *sem)
 void TextUpdateProgress(int min, int progress, int max);
 extern unsigned sc_uptime;
 
-/*static void KernelCpuMeter(void)
+static void KernelCpuMeter(void)
 {
     unsigned up_last, up_cur, up_own;
 
@@ -49,7 +49,7 @@ extern unsigned sc_uptime;
         ThrSleep(current(), 100);
         KeYield();
     }
-}*/
+}
 
 static void __initcode KeInstallDevices(void)
 {
@@ -157,7 +157,6 @@ static void __initcode KeInstallDevices(void)
         swprintf(value, L"%u", i + 1);
     }
 
-    TextUpdateProgress(0, 0, 0);
     wcscpy(proc_idle.info->cwd, L"/");
     ptr = ProGetString(L"", L"Shell", NULL);
     if (ptr == NULL)
@@ -166,8 +165,9 @@ static void __initcode KeInstallDevices(void)
         ProcSpawnProcess(ptr, proc_idle.info);
 
 #ifndef WIN32
-    //ThrCreateThread(&proc_idle, true, KernelCpuMeter, false, NULL, 20);
+    ThrCreateThread(&proc_idle, true, KernelCpuMeter, false, NULL, 20);
 #endif
+    TextUpdateProgress(0, 0, 0);
     ThrExitThread(0);
     KeYield();
 }
@@ -203,5 +203,5 @@ void KernelMain(void)
     TRACE0("Idle\n");
 
     for (;;)
-	    ArchProcessorIdle();
+        ArchProcessorIdle();
 }

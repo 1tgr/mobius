@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.22 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.23 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -12,6 +12,9 @@
 
 #include "wrappers.h"
 
+void i386PitInit(unsigned hz);
+void i386PicInit(uint8_t master_vector, uint8_t slave_vector);
+
 extern char scode[], sbss[], _data_end__[];
 extern thread_info_t idle_thread_info;
 extern uint16_t con_attribs;
@@ -24,9 +27,6 @@ descriptor_int_t arch_idt[_countof(_wrappers)];
 idtr_t arch_idtr;
 tss_t arch_tss;
 struct tss0_t arch_df_tss;
-
-void i386PitInit(unsigned hz);
-void i386PicInit(uint8_t master_vector, uint8_t slave_vector);
 
 void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
 {
@@ -272,7 +272,7 @@ void ArchMaskIrq(uint16_t enable, uint16_t disable)
     out(PORT_8259S + 1, (~enable & 0xff) >> 8);*/
 }
 
-void MtxAcquire(semaphore_t *sem)
+void MtxAcquire(spinlock_t *sem)
 {
     if (sem->owner != NULL &&
         sem->owner != current())
@@ -282,15 +282,15 @@ void MtxAcquire(semaphore_t *sem)
     }
 
     sem->owner = current();
-    sem->locks++;
+    KeAtomicInc((unsigned *) &sem->locks);
 }
 
-void MtxRelease(semaphore_t *sem)
+void MtxRelease(spinlock_t *sem)
 {
     assert(sem->locks > 0);
     assert(sem->owner == current());
 
-    sem->locks--;
+    KeAtomicDec((unsigned *) &sem->locks);
     if (sem->locks == 0)
         sem->owner = NULL;
 }
@@ -493,14 +493,14 @@ static unsigned short ctc(void)
         signed short word;
     } ret_val;
 
-    semaphore_t sem = { 0 };
+    spinlock_t sem = { 0 };
 
-    SemAcquire(&sem);
+    SpinAcquire(&sem);
     disable();
     out(0x43, 0x00);               /* latch channel 0 value */
     ret_val.byte[0] = in(0x40);    /* read LSB */
     ret_val.byte[1] = in(0x40);    /* read MSB */
-    SemRelease(&sem);
+    SpinRelease(&sem);
     return -ret_val.word;          /* convert down count to up count */
 }
 

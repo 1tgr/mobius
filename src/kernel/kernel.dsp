@@ -273,6 +273,10 @@ SOURCE=..\..\include\kernel\multiboot.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\kernel\net.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\kernel\port.h
 # End Source File
 # Begin Source File

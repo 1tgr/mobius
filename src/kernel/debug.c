@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.12 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.13 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -24,12 +24,12 @@
 #define USTACK_BOTTOM	0
 #define USTACK_TOP		0xc0000000
 
-thread_t* thr;
-addr_t fault_addr;
+//thread_t* thr;
+//addr_t fault_addr;
 
-bool in_debugger;
+//bool in_debugger;
 
-static bool dbg_exit;
+static bool dbg_exit, dbg_handled;
 
 static process_t *DbgFindProcess(unsigned id)
 {
@@ -604,8 +604,8 @@ void DbgDumpBuffer(const void* buf, size_t size)
 
 static int DbgCompareVmArea(const void *elem1, const void *elem2)
 {
-	vm_area_t *a1 = *(vm_area_t**) elem1, 
-		*a2 = *(vm_area_t**) elem2;
+    vm_area_t *a1 = *(vm_area_t**) elem1, 
+        *a2 = *(vm_area_t**) elem2;
 
     if (a1->start == a2->start)
         return 0;
@@ -616,9 +616,9 @@ static int DbgCompareVmArea(const void *elem1, const void *elem2)
 static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
 {
     process_t *proc;
-	vm_area_t *area;
-	unsigned count, i;
-	vm_area_t **ary;
+    vm_area_t *area;
+    unsigned count, i;
+    vm_area_t **ary;
     const wchar_t *type;
 
     if (*params == '\0')
@@ -633,26 +633,26 @@ static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
         }
     }
 
-	wprintf(L"Low memory:\t%uKB\n", (pool_low.free_pages * PAGE_SIZE) / 1024);
-	wprintf(L"All memory:\t%uKB\n", (pool_all.free_pages * PAGE_SIZE) / 1024);
+    wprintf(L"Low memory:\t%uKB\n", (pool_low.free_pages * PAGE_SIZE) / 1024);
+    wprintf(L"All memory:\t%uKB\n", (pool_all.free_pages * PAGE_SIZE) / 1024);
 
-	wprintf(L"\tBlock   \tStart   \tEnd     \tType\n");
+    wprintf(L"\tBlock   \tStart   \tEnd     \tType\n");
 
-	count = 0;
-	for (area = proc->area_first; area; area = area->next)
-		count++;
+    count = 0;
+    for (area = proc->area_first; area; area = area->next)
+        count++;
 
-	ary = malloc(count * sizeof(vm_area_t*));
-	assert(ary != NULL);
+    ary = malloc(count * sizeof(vm_area_t*));
+    assert(ary != NULL);
 
-	for (area = proc->area_first, i = 0; 
-		area && i < count; 
-		area = area->next, i++)
-		ary[i] = area;
+    for (area = proc->area_first, i = 0; 
+        area && i < count; 
+        area = area->next, i++)
+        ary[i] = area;
 
-	qsort(ary, count, sizeof(vm_area_t*), DbgCompareVmArea);
+    qsort(ary, count, sizeof(vm_area_t*), DbgCompareVmArea);
 
-	for (i = 0; i < count; i++)
+    for (i = 0; i < count; i++)
     {
         switch (ary[i]->type)
         {
@@ -679,22 +679,109 @@ static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
             break;
         }
 
-		wprintf(L"%c\t%p\t%08x\t%08x\tVM_AREA_%s\n",
-			/*area->is_committed ? 'C' : '_', */
-			' ',
-			ary[i],
-			ary[i]->start,
-			ary[i]->start + ary[i]->num_pages * PAGE_SIZE,
-			type);
+        wprintf(L"%c\t%p\t%08x\t%08x\tVM_AREA_%s\n",
+            /*area->is_committed ? 'C' : '_', */
+            ' ',
+            ary[i],
+            ary[i]->start,
+            ary[i]->start + ary[i]->num_pages * PAGE_SIZE,
+            type);
     }
 
-	free(ary);
+    free(ary);
+}
+
+static void DbgCmdHandles(wchar_t *cmd, wchar_t *params)
+{
+    process_t *cur;
+    unsigned i;
+    handle_hdr_t *h;
+    char *tag;
+
+    if (*params == NULL)
+        cur = current()->process;
+    else
+    {
+        cur = DbgFindProcess(wcstol(params, NULL, 0));
+        if (cur == NULL)
+        {
+            wprintf(L"%s: unknown process\n", params);
+            return;
+        }
+    }
+
+    wprintf(L"%s: %u handles, handles = %p\n", cur->exe, cur->handle_count, cur->handles);
+    wprintf(L"Handle\tPointer  Cp Lk Tag \tAllocator\n");
+    for (i = 0; i < cur->handle_count; i++)
+    {
+        h = cur->handles[i];
+        wprintf(L"%4u\t%p", i, cur->handles[i]);
+        if (cur->handles[i] != NULL)
+        {
+            tag = (char*) &h->tag;
+            wprintf(L" %2d %2d %c%c%c%c\t%S(%d) ", 
+                h->copies, h->locks, 
+                tag[3], tag[2], tag[1], tag[0], 
+                h->file, h->line);
+
+            switch (h->tag)
+            {
+            case 'proc':
+                wprintf(L"ID = %u, exe = %s ", 
+                    ((process_t*) h)->id,
+                    ((process_t*) h)->exe);
+                break;
+            case 'thrd':
+                wprintf(L"ID = %u ", ((thread_t*) ((void**) h - 1))->id);
+                break;
+            case 'file':
+                wprintf(L"cookie = %p ", ((file_t*) (h + 1))->fsd_cookie);
+                break;
+            }
+        }
+        else
+            wprintf(L"      (null)\t");
+
+        /*if (i == cur->info->std_in)
+            wprintf(L"(stdin) ");
+
+        if (i == cur->info->std_out)
+            wprintf(L"(stdout) ");*/
+
+        wprintf(L"\n");
+    }
+}
+
+static void DbgCmdShutdown(wchar_t *cmd, wchar_t *params)
+{
+    unsigned type;
+
+    if (*params == '\0')
+        type = SHUTDOWN_POWEROFF;
+    else if (_wcsicmp(params, L"reboot") == 0)
+        type = SHUTDOWN_REBOOT;
+    else
+    {
+        wprintf(L"%s: invalid shutdown command\n", params);
+        return;
+    }
+
+    SysShutdown(type);
 }
 
 static void DbgCmdExit(wchar_t *cmd, wchar_t *params)
 {
     dbg_exit = true;
+    dbg_handled = true;
 }
+
+static void DbgCmdKill(wchar_t *cmd, wchar_t *params)
+{
+    dbg_exit = true;
+    dbg_handled = false;
+}
+
+static void DbgCmdHelp(wchar_t *cmd, wchar_t *params);
 
 static struct
 {
@@ -703,6 +790,10 @@ static struct
 } dbg_commands[] = 
 {
     { L"exit",      DbgCmdExit },
+    { L"go",        DbgCmdExit },
+    { L"kill",      DbgCmdKill },
+    { L"help",      DbgCmdHelp },
+    { L"shutdown",  DbgCmdShutdown },
     { L"vmm",       DbgCmdVmm },
     { L"modules",   DbgCmdModules },
     { L"mod",       DbgCmdModules },
@@ -712,9 +803,23 @@ static struct
     { L"proc",      DbgCmdProcesses },
     { L"symbol",    DbgCmdSymbol },
     { L"sym",       DbgCmdSymbol },
+    { L"handles",   DbgCmdHandles },
+    { L"hnd",       DbgCmdHandles },
 };
 
-void DbgStartShell(void)
+void DbgCmdHelp(wchar_t *cmd, wchar_t *params)
+{
+    unsigned i, j;
+
+    wprintf(L"Valid commands are:\n");
+    for (i = 0; i < _countof(dbg_commands); i += j)
+        for (j = 0; j < min(8, _countof(dbg_commands) - i); j++)
+            wprintf(L"%10s", dbg_commands[i + j].str);
+
+    wprintf(L"\n");
+}
+
+bool DbgStartShell(void)
 {
     wchar_t ch, str[80], *space;
     size_t len;
@@ -771,4 +876,6 @@ void DbgStartShell(void)
             if (_wcsicmp(str, dbg_commands[i].str) == 0)
                 dbg_commands[i].fn(str, space);
     }
+
+    return dbg_handled;
 }

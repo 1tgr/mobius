@@ -6,13 +6,24 @@ TARGET=	$(BIN)/kernel.exe
 # To build the UP version, uncomment this line and comment out the other one
 DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
 
+# Uncomment this and do 'make clean all' for a text-mode kernel
+#DEFINES+=	-DMODE_TEXT
+
 ARCH=	i386/isr.o i386/i386.o i386/memory.o i386/arch.o \
-	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o
+	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o \
+	../drivers/video/font8x8.o
+
 ifeq (,$(findstring __SMP__,$(DEFINES)))
 ARCH+=	i386/uniproc.o
 else
 ARCH+=  i386/smp.o i386/bsp.o
 endif
+
+ifeq (,$(findstring MODE_TEXT,$(DEFINES)))
+ARCH+=	../drivers/video/vga.o ../drivers/video/vga4.o \
+	../drivers/video/vgamodes.o
+endif
+
 OBJS=	start.o main.o thread.o \
 	proc.o handle.o fs.o vfs.o \
 	device.o io.o vmm.o \

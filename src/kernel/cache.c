@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.11 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.12 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -33,7 +33,7 @@ cache_t *CcCreateFileCache(size_t block_size)
     unsigned temp;
 
     cc = malloc(sizeof(cache_t));
-    SemInit(&cc->lock);
+    SpinInit(&cc->lock);
     cc->block_size = block_size;
 
     temp = block_size;
@@ -61,7 +61,7 @@ void CcDeleteFileCache(cache_t *cc)
 
     /*wprintf(L"CcDeleteFileCache(%p): %u blocks, %u pages: ", 
         cc, cc->num_blocks, cc->num_pages);*/
-    SemAcquire(&cc->lock);
+    SpinAcquire(&cc->lock);
     for (i = 0; i < cc->num_pages; i++)
     {
         if (cc->pages[i] != -1)
@@ -76,7 +76,7 @@ void CcDeleteFileCache(cache_t *cc)
     //wprintf(L"\n");
     free(cc->blocks);
     free(cc->pages);
-    SemRelease(&cc->lock);
+    SpinRelease(&cc->lock);
     free(cc);
 }
 
@@ -103,7 +103,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
 {
     unsigned block, page_start, old, i, pages_per_block;
 
-    SemAcquire(&cc->lock);
+    SpinAcquire(&cc->lock);
     //mod = offset & ((1 << cc->block_shift) - 1);
     offset = ALIGN(offset, cc->block_size);
     block = offset >> cc->block_shift;
@@ -154,7 +154,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
         MemLockPages(cc->pages[i], 1, true);
     }*/
 
-    SemRelease(&cc->lock);
+    SpinRelease(&cc->lock);
 
     return MemDupPageArray(pages_per_block, 
         (block << cc->block_shift) % PAGE_SIZE, 
@@ -228,7 +228,7 @@ void CcReleaseBlock(cache_t *cc, uint64_t offset, bool isValid, bool isDirty)
     assert(block < cc->num_blocks);
 
     page = (block * cc->block_size) / PAGE_SIZE;
-    SemAcquire(&cc->lock);
+    SpinAcquire(&cc->lock);
     cc->blocks[block].is_valid = isValid;
     if (isValid)
         cc->blocks[block].is_dirty = isDirty;
@@ -239,5 +239,5 @@ void CcReleaseBlock(cache_t *cc, uint64_t offset, bool isValid, bool isDirty)
         MemLockPages(cc->pages[page], 1, false);
 
     MemUnmapTemp();*/
-    SemRelease(&cc->lock);
+    SpinRelease(&cc->lock);
 }

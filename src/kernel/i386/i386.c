@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.28 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.29 2002/08/17 19:13:33 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -252,13 +252,14 @@ uint32_t i386Isr(context_t ctx)
                     DbgDumpStack(old_current->process, ctx.regs.ebp);
 
                 ArchDbgDumpContext(&ctx);
-                /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-                //if (old_current->process == &proc_idle)
-                DbgStartShell();
-                    halt(ctx.eip);
-                //else
-                    //ProcExitProcess(-ctx.intr);
+                if (!DbgStartShell())
+                {
+                    if (old_current->process == &proc_idle)
+                        halt(ctx.eip);
+                    else
+                        ProcExitProcess(-ctx.intr);
+                }
             }
         }
     }

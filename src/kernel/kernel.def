@@ -43,6 +43,7 @@ EXPORTS
 	FsCreate
 	FsCreateDir
 	FsCreateFileHandle
+	FsDismount
 	FsFullPath
 	FsGuessMimeType
 	FsMount
@@ -121,9 +122,9 @@ EXPORTS
 	ScEnableSwitch
 	ScNeedSchedule
 	ScSchedule
-	SemAcquire
-	SemInit
-	SemRelease
+	SpinAcquire
+	SpinInit
+	SpinRelease
 	SysGetInfo
 	SysGetTimes
 	SysThrSleep

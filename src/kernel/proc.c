@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.18 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.19 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -115,12 +115,12 @@ static void ProcCleanupProcess(void *p)
     wprintf(L"ProcCleanupProcess: proc = %s, current()->process = %s...",
         proc->exe, current()->process->exe);
 
-    SemAcquire(&proc->sem_lock);
+    /*SpinAcquire(&proc->sem_lock);
 
     assert(proc->hdr.copies == 0);
     free((wchar_t*) proc->exe);
-    SemRelease(&proc->sem_lock);
-    free(proc);
+    SpinRelease(&proc->sem_lock);
+    free(proc);*/
     wprintf(L"done\n");
 }
 
@@ -184,7 +184,7 @@ bool ProcFirstTimeInit(process_t *proc)
     //uint32_t cr3;
     addr_t stack;
 
-    /*SemAcquire(&proc->sem_lock);*/
+    /*SpinAcquire(&proc->sem_lock);*/
     //__asm__("mov %%cr3,%0" : "=r" (cr3));
     TRACE3("Creating process from %s: page dir = %x = %x\n", 
         proc->exe, proc->page_dir_phys, cr3);
@@ -193,7 +193,7 @@ bool ProcFirstTimeInit(process_t *proc)
         3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
     if (info == NULL)
     {
-        //SemRelease(&proc->sem_lock);
+        //SpinRelease(&proc->sem_lock);
         return false;
     }
 
@@ -288,7 +288,7 @@ bool ProcFirstTimeInit(process_t *proc)
     if (mod == NULL)
     {
         wprintf(L"ProcCreateProcess: failed to load %s\n", proc->exe);
-        //SemRelease(&proc->sem_lock);
+        //SpinRelease(&proc->sem_lock);
         ProcExitProcess(0);
         return true;
     }
@@ -300,7 +300,7 @@ bool ProcFirstTimeInit(process_t *proc)
     ctx->eip = mod->entry;
 
     TRACE2("Successful; continuing at %lx, ctx = %p\n", ctx->eip, ctx);
-    /*SemRelease(&proc->sem_lock);*/
+    /*SpinRelease(&proc->sem_lock);*/
     return true;
 }
 
@@ -314,7 +314,7 @@ void ProcExitProcess(int code)
 
     proc = current()->process;
 
-    SemAcquire(&proc->sem_lock);
+    SpinAcquire(&proc->sem_lock);
     proc->exit_code = code;
 
     for (thr = thr_first; thr; thr = tnext)
@@ -363,7 +363,7 @@ void ProcExitProcess(int code)
     HndClose(proc, HANDLE_PROCESS, 'proc');
     wprintf(L"done\n");
     free(handles);*/
-    SemRelease(&proc->sem_lock);
+    SpinRelease(&proc->sem_lock);
 
     wprintf(L"ProcExitProcess(%p): finished, copies = %u, sem_lock = %u\n", 
         proc, proc->hdr.copies, proc->sem_lock.locks);
@@ -371,10 +371,9 @@ void ProcExitProcess(int code)
 
 int ProcGetExitCode(handle_t hnd)
 {
-    handle_hdr_t *hdr, *h;
-    process_t *proc, *cur;
+    handle_hdr_t *hdr;
+    process_t *proc;
     int ret;
-    unsigned i;
 
     hdr = HndLock(NULL, hnd, 'proc');
     if (hdr == NULL)
@@ -383,53 +382,10 @@ int ProcGetExitCode(handle_t hnd)
     proc = (process_t*) (hdr - 1);
     wprintf(L"ProcGetExitCode(%p): exe = %p, sem_lock = %u/%p\n", 
         proc, proc->exe, proc->sem_lock.locks, proc->sem_lock.owner);
-    cur = current()->process;
-    wprintf(L"%s: %u handles, handles = %p\n", cur->exe, cur->handle_count, cur->handles);
-    for (i = 0; i < cur->handle_count; i++)
-    {
-        h = cur->handles[i];
-        wprintf(L"handle %u: %p: ", i, cur->handles[i]);
-        if (cur->handles[i] != NULL)
-        {
-            wprintf(L"%S(%d) %.4S ", h->file, h->line, &h->tag);
 
-            switch (h->tag)
-            {
-            case 'proc':
-                wprintf(L"ID = %u, exe = %s ", 
-                    ((process_t*) h)->id,
-                    ((process_t*) h)->exe);
-                break;
-            case 'thrd':
-                wprintf(L"ID = %u ", ((thread_t*) ((void**) h - 1))->id);
-                break;
-            case 'file':
-                wprintf(L"cookie = %p ", ((file_t*) (h + 1))->fsd_cookie);
-                break;
-            }
-        }
-        else
-            wprintf(L"NULL handle ");
-
-        if (i == cur->info->std_in)
-        {
-            const wchar_t **cookie = ((file_t*) (h + 1))->fsd_cookie;
-            device_t **cookie2 = ((file_t*) (h + 1))->fsd_cookie;
-            wprintf(L"(stdin) %s %p", cookie[2], cookie2[5]->vtbl);
-        }
-
-        if (i == cur->info->std_out)
-        {
-            const wchar_t **cookie = ((file_t*) (h + 1))->fsd_cookie;
-            device_t **cookie2 = ((file_t*) (h + 1))->fsd_cookie;
-            wprintf(L"(stdout) %s %p", cookie[2], cookie2[5]->vtbl);
-        }
-
-        wprintf(L"\n");
-    }
-    SemAcquire(&proc->sem_lock);
+    SpinAcquire(&proc->sem_lock);
     ret = proc->exit_code;
-    SemRelease(&proc->sem_lock);
+    SpinRelease(&proc->sem_lock);
 
     HndUnlock(NULL, hnd, 'proc');
     return ret;

@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.5 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.6 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -29,7 +29,7 @@ static void ProAddValue(profile_key_t *key, const wchar_t *name, const wchar_t *
     val = malloc(sizeof(profile_value_t));
     val->is_subkey = false;
     val->u.value = _wcsdup(value);
-    insert(key, val, name);
+    HashInsertItem(key, val, name);
 }
 
 static void ProAddKey(profile_key_t *key, const wchar_t *name, profile_key_t *child)
@@ -38,7 +38,7 @@ static void ProAddKey(profile_key_t *key, const wchar_t *name, profile_key_t *ch
     val = malloc(sizeof(profile_value_t));
     val->is_subkey = true;
     val->u.subkey = child;
-    insert(key, val, name);
+    HashInsertItem(key, val, name);
 }
 
 static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
@@ -54,7 +54,7 @@ static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
             return root;
         else
         {
-	    search(root, key);
+	    HashSearch(root, key);
 	    if (root->found)
 	    {
 	        value = item(root);
@@ -73,7 +73,7 @@ static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
 	    return root;
 	else
 	{
-	    search(root, key);
+	    HashSearch(root, key);
 	    if (root->found)
 	    {
 		value = item(root);
@@ -91,7 +91,7 @@ static profile_key_t *ProOpenKey(const wchar_t *key)
     profile_key_t *k;
 
     if (pro_root == NULL)
-	pro_root = new_hash_table(256);
+	pro_root = HashCreate(256);
 
     temp = _wcsdup(key);
     k = ProOpenSubkey(pro_root, temp);
@@ -149,7 +149,7 @@ static wchar_t *ProParseBlock(profile_key_t *parent, wchar_t *line)
 	    else if (_wcsicmp(line, L"key") == 0)
 	    {
 		TRACE1("ProParseBlock: key %s\n", space);
-		child = new_hash_table(256);
+		child = HashCreate(256);
 		ProAddKey(parent, space, child);
 		next = ProParseBlock(child, next);
 	    }
@@ -226,7 +226,7 @@ bool ProGetBoolean(const wchar_t *key, const wchar_t *value, bool _default)
 	return _default;
     }
 
-    search(k, value);
+    HashSearch(k, value);
     if (k->found)
     {
 	v = item(k);
@@ -260,7 +260,7 @@ const wchar_t *ProGetString(const wchar_t *key, const wchar_t *value, const wcha
 	return _default;
     }
 
-    search(k, value);
+    HashSearch(k, value);
     if (k->found)
     {
 	v = item(k);
@@ -292,9 +292,9 @@ bool ProEnumValues(const wchar_t *keyname, void *param,
 	v = item(k);
 	
 	if (v->is_subkey)
-	    func(param, key(k), NULL);
+	    func(param, HashGetKey(k), NULL);
 	else
-	    func(param, key(k), v->u.value);
+	    func(param, HashGetKey(k), v->u.value);
 
 	forth(k);
     }

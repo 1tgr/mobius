@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.21 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.22 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -73,11 +73,11 @@ thread_t /**current = &thr_idle, */
 thread_t *thr_first, *thr_last;
 unsigned thr_last_id;
 uint8_t *thr_kernel_stack_end = (void*) 0xE0000000;
-semaphore_t thr_kernel_stack_sem;
+spinlock_t thr_kernel_stack_sem;
 
 int sc_switch_enabled;
 unsigned sc_uptime, sc_need_schedule;
-semaphore_t sc_sem;
+spinlock_t sc_sem;
 
 handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
 
@@ -106,7 +106,7 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
 {
     thread_queuent_t *ent, *entb;
 
-    SemAcquire(&queue->sem);
+    SpinAcquire(&queue->sem);
 
     /*assert(thr->queue == NULL);*/
     ent = malloc(sizeof(thread_queuent_t));
@@ -155,14 +155,14 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
     KeAtomicInc(&thr->queued);
     TRACE2("ThrInsertQueue: thread %u added to queue %p\n",
         thr->id, queue);
-    SemRelease(&queue->sem);
+    SpinRelease(&queue->sem);
 }
 
 void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 {
     thread_queuent_t *ent;
 
-    SemAcquire(&queue->sem);
+    SpinAcquire(&queue->sem);
     ent = ThrFindInQueue(queue, thr);
     assert(ent != NULL);
 
@@ -183,7 +183,7 @@ void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
     thr->queue = NULL;*/
     TRACE2("ThrRemoveQueue: thread %u removed from queue %p\n",
         thr->id, queue);
-    SemRelease(&queue->sem);
+    SpinRelease(&queue->sem);
 }
 
 /*!
@@ -205,9 +205,9 @@ void ThrRunQueue(thread_queue_t *queue)
         next = ent->next;
         thr = ent->thr;
         TRACE1("ThrRunQueue: running thread %u\n", thr->id);
-        SemAcquire(&sc_sem);
+        SpinAcquire(&sc_sem);
         ThrRemoveQueue(thr, queue);
-        SemRelease(&sc_sem);
+        SpinRelease(&sc_sem);
         ThrRun(thr);
     }
 
@@ -296,22 +296,22 @@ void ScSchedule(void)
  */
 void ScEnableSwitch(bool enable)
 {
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
     if (enable)
         KeAtomicInc(&sc_switch_enabled);
     else
         KeAtomicDec(&sc_switch_enabled);
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
 }
 
 void ScNeedSchedule(bool need)
 {
-    /*SemAcquire(&sc_sem);*/
+    /*SpinAcquire(&sc_sem);*/
     if (need)
         KeAtomicInc(&sc_need_schedule);
     else if (sc_need_schedule > 0)
         KeAtomicDec(&sc_need_schedule);
-    /*SemRelease(&sc_sem);*/
+    /*SpinRelease(&sc_sem);*/
 }
 
 bool ThrAllocateThreadInfo(thread_t *thr)
@@ -359,7 +359,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
         return NULL;
     }*/
 
-    SemAcquire(&thr_kernel_stack_sem);
+    SpinAcquire(&thr_kernel_stack_sem);
     
     /*
      * This works as long as:
@@ -414,7 +414,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
 #endif
 
     thr_kernel_stack_end -= PAGE_SIZE * 3;
-    SemRelease(&thr_kernel_stack_sem);
+    SpinRelease(&thr_kernel_stack_sem);
 
     if (isKernel)
     {
@@ -457,7 +457,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     else
         ThrAllocateThreadInfo(thr);
 
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
 
     if (thr_last != NULL)
         thr_last->all_next = thr;
@@ -467,7 +467,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     if (thr_first == NULL)
         thr_first = thr;
 
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
 
     wprintf(L"Created thread %s/%u\n", proc->exe, thr->id);
     HndDuplicate(proc, &thr->hdr);
@@ -559,10 +559,10 @@ bool ThrRun(thread_t *thr)
     if (thr->priority > _countof(thr_priority))
         return false;
 
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
     ThrInsertQueue(thr, thr_priority + thr->priority, NULL);
     thr_queue_ready |= 1 << thr->priority;
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
     //ScNeedSchedule(true);
     return true;
 }
@@ -579,9 +579,9 @@ void ThrPause(thread_t *thr)
         thr_priority[thr->priority].first == NULL*/
         queue->first == NULL)
     {
-        SemAcquire(&sc_sem);
+        SpinAcquire(&sc_sem);
         thr_queue_ready &= ~(1 << thr->priority);
-        SemRelease(&sc_sem);
+        SpinRelease(&sc_sem);
     }
 }
 
@@ -597,14 +597,14 @@ void ThrSleep(thread_t *thr, unsigned ms)
     
     ThrPause(thr);
     thr->sleep_end = end;
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
 
     if (sleep)
         ThrInsertQueue(thr, &thr_sleeping, sleep->thr);
     else
         ThrInsertQueue(thr, &thr_sleeping, NULL);
 
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
     /* wprintf(L"ThrSleep: thread %d sleeping until %u\n", thr->id, thr->sleep_end); */
     ScNeedSchedule(true);
 }
@@ -627,9 +627,9 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
     }
 
     ThrPause(thr);
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
     ThrInsertQueue(thr, &ptr->waiting, NULL);
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
     ScNeedSchedule(true);
     return true;
 }
@@ -649,13 +649,13 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
 {
     thread_apc_t *apc;
-    SemAcquire(&sc_sem);
+    SpinAcquire(&sc_sem);
     apc = malloc(sizeof(thread_apc_t));
     apc->fn = fn;
     apc->param = param;
     LIST_ADD(thr->apc, apc);
     ThrInsertQueue(thr, &thr_apc, NULL);
-    SemRelease(&sc_sem);
+    SpinRelease(&sc_sem);
 }
 
 bool ThrInit(void)

@@ -1,4 +1,4 @@
-/* $Id: winmgr.c,v 1.4 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: winmgr.c,v 1.5 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -17,7 +17,7 @@
 window_t wnd_root = { { 0, 'wndo', NULL } };
 window_t *wnd_focus = &wnd_root;
 window_t *wnd_capture;
-static semaphore_t sem_focus;
+static spinlock_t sem_focus;
 
 wndattr_hdr_t *WndiGetAttribute(window_t *wnd, uint32_t id, uint32_t type)
 {
@@ -155,20 +155,20 @@ void WndiSetFocus(window_t *wnd)
         temp = temp->parent;
     }
     
-    SemAcquire(&sem_focus);
+    SpinAcquire(&sem_focus);
     wnd_focus = wnd;
     parent = wnd->parent;
     child = wnd;
     while (parent != NULL)
     {
-        SemAcquire(&parent->sem);
+        SpinAcquire(&parent->sem);
         parent->child_focus = child;
-        SemRelease(&parent->sem);
+        SpinRelease(&parent->sem);
         child = parent;
         parent = parent->parent;
     }
 
-    SemRelease(&sem_focus);
+    SpinRelease(&sem_focus);
 
     msg.code = MSG_FOCUS;
     temp = wnd_focus;
@@ -223,7 +223,7 @@ handle_t WndCreate(handle_t parent, const wndattr_t *attribs, unsigned num_attri
 
     memset(wnd, 0, sizeof(window_t));
     HndInit(&wnd->hdr, 'wndo');
-    SemInit(&wnd->sem);
+    SpinInit(&wnd->sem);
     wnd->owner = current();
     wnd->parent = par;
 
@@ -258,9 +258,9 @@ handle_t WndCreate(handle_t parent, const wndattr_t *attribs, unsigned num_attri
 
     WndiSetFocus(wnd);
     
-    SemAcquire(&par->sem);
+    SpinAcquire(&par->sem);
     LIST_ADD(par->child, wnd);
-    SemRelease(&par->sem);
+    SpinRelease(&par->sem);
 
     hnd = HndDuplicate(NULL, &wnd->hdr);
     WndInvalidate(hnd, NULL);

@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.28 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.29 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -33,7 +33,7 @@ struct fs_mount_t
     vnode_t root;
 };
 
-static semaphore_t sem_mounts;
+static spinlock_t sem_mounts;
 fs_mount_t *fs_mount_first, *fs_mount_last;
 
 static void FsCompletionApc(void *param)
@@ -116,7 +116,7 @@ bool FsLookupMountPoint(vnode_t *out, const vnode_t *in)
 {
     fs_mount_t *mount;
 
-    SemAcquire(&sem_mounts);
+    SpinAcquire(&sem_mounts);
 
     for (mount = fs_mount_first; mount != NULL; mount = mount->next)
     {
@@ -126,14 +126,14 @@ bool FsLookupMountPoint(vnode_t *out, const vnode_t *in)
         {
             //wprintf(L"=> (%p:%x)\n", mount->root.fsd, mount->root.id);
             *out = mount->root;
-            SemRelease(&sem_mounts);
+            SpinRelease(&sem_mounts);
             return true;
         }
         //else
             //wprintf(L"\n");
     }
 
-    SemRelease(&sem_mounts);
+    SpinRelease(&sem_mounts);
 
     if (out != in)
         *out = *in;
@@ -1172,9 +1172,9 @@ bool FsMountDevice(const wchar_t *path, fsd_t *newfsd)
         mount->node = node;
         mount->root.fsd = newfsd;
         mount->root.id = VNODE_ROOT;
-        SemAcquire(&sem_mounts);
+        SpinAcquire(&sem_mounts);
         LIST_ADD(fs_mount, mount);
-        SemRelease(&sem_mounts);
+        SpinRelease(&sem_mounts);
         wprintf(L"FsMountDevice(%s): mounting (%p:%x) = (%p:%x)\n", 
             path,
             mount->node.fsd, mount->node.id,
@@ -1242,6 +1242,13 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, const wchar_t *dest)
     }
     else
         return true;
+}
+
+bool FsDismount(const wchar_t *path)
+{
+    /* xxx -- implement this */
+    errno = ENOTIMPL;
+    return false;
 }
 
 bool FsChangeDir(const wchar_t *path)

@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.12 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: io.c,v 1.13 2002/08/17 19:13:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -116,7 +116,7 @@ typedef struct syncrequest_t syncrequest_t;
 struct syncrequest_t
 {
     device_t dev;
-    semaphore_t lock;
+    spinlock_t lock;
     //handle_t event;
     bool is_completed;
 };
@@ -126,10 +126,10 @@ void IoSyncRequestFinishIo(device_t *dev, request_t *req)
     syncrequest_t *sync;
     sync = (syncrequest_t*) dev;
     TRACE1("IoSyncRequestFinish: sync = %p\n", sync);
-    SemAcquire(&sync->lock);
+    SpinAcquire(&sync->lock);
     //EvtSignal(NULL, sync->event);
     sync->is_completed = true;
-    SemRelease(&sync->lock);
+    SpinRelease(&sync->lock);
 }
 
 static const device_vtbl_t syncrequest_vtbl =
@@ -146,7 +146,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 
     memset(&sync, 0, sizeof(sync));
     sync.dev.vtbl = &syncrequest_vtbl;
-    SemInit(&sync.lock);
+    SpinInit(&sync.lock);
     /*TRACE2("\tIoRequestSync: dev = %p, sync = %p\n", dev, &sync);*/
     cb.type = IO_CALLBACK_DEVICE;
     cb.u.dev = &sync.dev;
@@ -158,9 +158,9 @@ bool IoRequestSync(device_t *dev, request_t *req)
             /*mal_verify(1);*/
             if (!sync.is_completed)
             {
-                semaphore_t temp;
-                SemInit(&temp);
-                SemAcquire(&temp);
+                spinlock_t temp;
+                SpinInit(&temp);
+                SpinAcquire(&temp);
                 ScEnableSwitch(false);
                 enable();
 
@@ -189,7 +189,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 #endif
 
                 ScEnableSwitch(true);
-                SemRelease(&temp);
+                SpinRelease(&temp);
             }
 
             /*EvtFree(NULL, req->event);*/
