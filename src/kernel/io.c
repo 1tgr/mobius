@@ -1,10 +1,12 @@
-/* $Id: io.c,v 1.8 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: io.c,v 1.9 2002/05/05 13:42:59 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
+#include <kernel/fs.h>
 
 #include <os/syscall.h>
 #include <errno.h>
@@ -20,31 +22,53 @@ void IoNotifyCompletion(request_t *req)
 {
     /*request_t temp;*/
 
-    if (req->from != NULL)
+    switch (req->callback.type)
     {
-        /*temp.code = IO_FINISH;
-        temp.result = 0;
-        temp.event = NULL;
-        temp.original = req;
-        temp.from = dev;
-        assert(req->from->vtbl->request != NULL);
-        req->from->vtbl->request(req->from, &temp);
-        req->from = NULL;*/
-        assert(req->from->vtbl->finishio != NULL);
-        req->from->vtbl->finishio(req->from, (req->original == NULL) ? 
-            req : req->original);
-        req->from = NULL;
+    case IO_CALLBACK_NONE:
+        break;
+
+    case IO_CALLBACK_DEVICE:
+        assert(req->callback.u.dev != (void*) 0x31337);
+        assert(req->callback.u.dev->vtbl->finishio != NULL);
+        req->callback.u.dev->vtbl->finishio(req->callback.u.dev, 
+            (req->original == NULL) ? req : req->original);
+        req->callback.u.dev = (void*) 0x31337;
+        req->callback.type = IO_CALLBACK_NONE;
+        break;
+
+    case IO_CALLBACK_FSD:
+        assert(req->callback.u.fsd != (void*) 0xdeadbeef);
+        assert(req->callback.u.fsd->vtbl->finishio != NULL);
+        req->callback.u.fsd->vtbl->finishio(req->callback.u.fsd, 
+            (req->original == NULL) ? req : req->original);
+        req->callback.u.fsd = (void*) 0xdeadbeef;
+        req->callback.type = IO_CALLBACK_NONE;
+        break;
+
+    case IO_CALLBACK_FUNCTION:
+        assert(req->callback.u.function != (void*) 0xcafebabe);
+        assert(req->callback.u.function != NULL);
+        req->callback.u.function((req->original == NULL) ? req : req->original);
+        req->callback.u.function = (void*) 0xcafebabe;
+        req->callback.type = IO_CALLBACK_NONE;
+        break;
     }
 }
 
-bool IoRequest(device_t *from, device_t *dev, request_t *req)
+bool IoRequest(const io_callback_t *cb, device_t *dev, request_t *req)
 {
     bool ret;
 
     /*TRACE1("\t\tIoRequest: dev = %p\n", dev);*/
     /*req->event = NULL;*/
     req->result = 0;
-    req->from = from;
+    //req->from = from;
+
+    if (cb == NULL)
+        req->callback.type = IO_CALLBACK_NONE;
+    else
+        req->callback = *cb;
+
     req->original = NULL;
 
     if (dev == NULL)
@@ -66,7 +90,9 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
     }
 
     ret = dev->vtbl->request(dev, req);
-    if (ret && /*req->event == NULL*/req->result != SIOPENDING)
+    if (ret && /*req->event == NULL*/
+        req->result != SIOPENDING &&
+        req->callback.type != IO_CALLBACK_NONE)
     {
         /*
          * Operation completed synchronously. 
@@ -109,13 +135,16 @@ static const device_vtbl_t syncrequest_vtbl =
 
 bool IoRequestSync(device_t *dev, request_t *req)
 {
+    io_callback_t cb;
     syncrequest_t sync;
 
     memset(&sync, 0, sizeof(sync));
     sync.dev.vtbl = &syncrequest_vtbl;
     SemInit(&sync.lock);
     /*TRACE2("\tIoRequestSync: dev = %p, sync = %p\n", dev, &sync);*/
-    if (IoRequest(&sync.dev, dev, req))
+    cb.type = IO_CALLBACK_DEVICE;
+    cb.u.dev = &sync.dev;
+    if (IoRequest(&cb, dev, req))
     {
         /*assert(req->event == NULL);*/
         if (/*req->event*/req->result == SIOPENDING)

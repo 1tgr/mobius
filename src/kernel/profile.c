@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.4 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.5 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -172,7 +172,7 @@ bool ProLoadProfile(const wchar_t *file, const wchar_t *root)
 {
     profile_key_t *key;
     handle_t fd;
-    dirent_t di;
+    dirent_standard_t di;
     char *buf;
     wchar_t *wbuf;
     size_t size;

@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.5 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.6 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include <kernel/profile.h>
@@ -17,17 +17,27 @@ bool dbg_hasgdb;
 
 void i386InitSerialDebug(void)
 {
+    uint16_t divisor;
+    unsigned speed;
     dbg_combase = wcstol(ProGetString(L"KernelDebug", L"Port", L"0"), NULL, 0);
     dbg_hasgdb = ProGetBoolean(L"KernelDebug", L"SyncGdb", false);
     if (dbg_combase != 0)
     {
 	out(dbg_combase + 3, in(dbg_combase + 3) | 0x80);
-	out(dbg_combase, 12);       /* 9600 bps, 8-N-1 */
-	out(dbg_combase+1, 0);
+	/*out(dbg_combase, 12);*/       /* 9600 bps, 8-N-1 */
+	/*out(dbg_combase+1, 0);*/
+
+        speed = wcstol(ProGetString(L"KernelDebug", L"Speed", L"9600"), NULL, 0);
+        if (speed == 0)
+            speed = 9600;
+        divisor = 1843200 / (speed * 16);
+        out(dbg_combase, divisor % 256);
+        out(dbg_combase + 1, divisor / 256);
+
 	/*out(dbg_combase + 3, in(dbg_combase + 3) & 0x7f);*/
 	out(dbg_combase + 3, 3);    /* no parity, 8 bits per character */
 	wprintf(L"i386InitSerialDebug: kernel debugger running on port %x\n", dbg_combase);
-	
+
 	if (dbg_hasgdb)
         {
             set_debug_traps();
@@ -40,8 +50,8 @@ void i386InitSerialDebug(void)
 
 int getDebugChar(void)
 {
-    static char twiddle[] = "|\\-/";
-    char *ch = twiddle, str[2];
+    /*static char twiddle[] = "|\\-/";
+    char *ch = twiddle, str[2];*/
 
     while (!(in(dbg_combase + 5) & 0x01))
     {

@@ -198,6 +198,10 @@ SOURCE=.\thread.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\vfs.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\vmm.c
 # End Source File
 # Begin Source File

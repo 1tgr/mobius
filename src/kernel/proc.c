@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.12 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.13 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -25,356 +25,384 @@ unsigned proc_last_id;
 
 process_info_t proc_idle_info =
 {
-	0,							/* id */
-	(addr_t) scode,				/* base */
-	NULL, NULL,					/* std_in, std_out */
-	SYS_BOOT,					/* cwd */
-	L"",						/* cmdline */
+    0,                          /* id */
+    (addr_t) scode,             /* base */
+    NULL, NULL,                 /* std_in, std_out */
+    SYS_BOOT,                   /* cwd */
+    L"",                        /* cmdline */
 };
 
 module_t mod_kernel =
 {
-	NULL,						/* prev */
-	NULL,						/* next */
-	(unsigned) -1,				/* refs */
-	SYS_BOOT L"/kernel.exe",	/* name */
-	(addr_t) scode,				/* base */
-	0x1000000,					/* length */
-	NULL,						/* entry */
-	NULL,						/* file */
-	PAGE_SIZE,					/* sizeof_headers */
-	true,						/* imported */
+    NULL,                       /* prev */
+    NULL,                       /* next */
+    (unsigned) -1,              /* refs */
+    SYS_BOOT L"/kernel.exe",    /* name */
+    (addr_t) scode,             /* base */
+    0x1000000,                  /* length */
+    NULL,                       /* entry */
+    NULL,                       /* file */
+    PAGE_SIZE,                  /* sizeof_headers */
+    true,                       /* imported */
 };
 
 process_t proc_idle = 
 {
-	{
-		0,						/* hdr.locks */
-		'proc',					/* hdr.tag */
-		NULL,					/* hdr.locked_by */
-		0,						/* hdr.signal */
-		{
-			NULL,				/* hdr.waiting.first */
-			NULL,				/* hdr.waiting.last */
-			NULL,				/* hdr.current */
-		},
-		__FILE__,				/* hdr.file */
-		__LINE__,				/* hdr.line */
-	},
-	NULL,						/* prev */
-	NULL,						/* next */
-	(addr_t) kernel_stack_end,	/* stack_end */
-	0,							/* page_dir_phys */
-	/*kernel_pagedir,*/				/* page_dir */
-	NULL,						/* handles */
-	0,							/* handle_count */
-	0,							/* handle_allocated */
-	&mod_kernel,				/* mod_first */
-	&mod_kernel,				/* mod_last */
-	NULL,						/* area_first */
-	NULL,						/* area_last */
-	0xe8000000,					/* vmm_end */
-	{ 0 },						/* sem_vmm */
-	{ 0 },						/* sem_lock */
-	L"kernel",					/* exe */
-	&proc_idle_info,			/* info */
+    {
+        0,                      /* hdr.locks */
+        'proc',                 /* hdr.tag */
+        NULL,                   /* hdr.locked_by */
+        0,                      /* hdr.signal */
+        {
+                NULL,           /* hdr.waiting.first */
+                NULL,           /* hdr.waiting.last */
+                NULL,           /* hdr.current */
+        },
+        __FILE__,               /* hdr.file */
+        __LINE__,               /* hdr.line */
+    },
+    NULL,                       /* prev */
+    NULL,                       /* next */
+    (addr_t) kernel_stack_end,  /* stack_end */
+    0,                          /* page_dir_phys */
+    NULL,                       /* handles */
+    0,                          /* handle_count */
+    0,                          /* handle_allocated */
+    &mod_kernel,                /* mod_first */
+    &mod_kernel,                /* mod_last */
+    NULL,                       /* area_first */
+    NULL,                       /* area_last */
+    0xe8000000,                 /* vmm_end */
+    { 0 },                      /* sem_vmm */
+    { 0 },                      /* sem_lock */
+    L"kernel",                  /* exe */
+    &proc_idle_info,            /* info */
 };
 
 handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
 {
-	process_t *proc;
-	thread_t *thr;
-	wchar_t temp[MAX_PATH];
-	
-	FsFullPath(exe, temp);
-	current->process->hdr.copies++;
-	proc = ProcCreateProcess(temp);
-	if (proc == NULL)
-		return NULL;
+    process_t *proc;
+    thread_t *thr;
+    wchar_t temp[MAX_PATH];
 
-	proc->creator = current->process;
-	proc->info = malloc(sizeof(*proc->info));
-	if (defaults == NULL)
-		defaults = proc->creator->info;
-	memcpy(proc->info, defaults, sizeof(*defaults));
+    FsFullPath(exe, temp);
+    current->process->hdr.copies++;
+    proc = ProcCreateProcess(temp);
+    if (proc == NULL)
+            return NULL;
 
-	thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
-	ScNeedSchedule(true);
-	return HndDuplicate(current->process, &proc->hdr);
+    proc->creator = current->process;
+    proc->info = malloc(sizeof(*proc->info));
+    if (defaults == NULL)
+            defaults = proc->creator->info;
+    memcpy(proc->info, defaults, sizeof(*defaults));
+
+    thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
+    ScNeedSchedule(true);
+    return HndDuplicate(current->process, &proc->hdr);
 }
 
 process_t *ProcCreateProcess(const wchar_t *exe)
 {
-	process_t *proc;
-	
-	proc = malloc(sizeof(process_t));
-	if (proc == NULL)
-		return NULL;
+    process_t *proc;
 
-	memset(proc, 0, sizeof(*proc));
-	proc->page_dir_phys = MemAllocPageDir();
-	proc->hdr.tag = 'proc';
-	proc->hdr.file = __FILE__;
-	proc->hdr.line = __LINE__;
+    proc = malloc(sizeof(process_t));
+    if (proc == NULL)
+            return NULL;
 
-	/* Copy number 1 is the process's handle to itself */
-	proc->hdr.copies = 1;
-	proc->handle_count = 2;
-	proc->handle_allocated = 16;
-	proc->handles = malloc(proc->handle_allocated * sizeof(void*));
-	memset(proc->handles, 0, proc->handle_allocated * sizeof(void*));
-	/*proc->handles[0] = NULL;*/
-	proc->handles[1] = proc;
-	proc->vmm_end = PAGE_SIZE;
-	proc->stack_end = 0x80000000;
-	proc->exe = _wcsdup(exe);
-	proc->info = NULL;
-	proc->id = ++proc_last_id;
+    memset(proc, 0, sizeof(*proc));
+    proc->page_dir_phys = MemAllocPageDir();
+    proc->hdr.tag = 'proc';
+    proc->hdr.file = __FILE__;
+    proc->hdr.line = __LINE__;
 
-	TRACE2("ProcCreateProcess(%s): page dir = %x\n", 
-		exe, proc->page_dir_phys);
-	LIST_ADD(proc, proc);
-	return proc;
+    /* Copy number 1 is the process's handle to itself */
+    proc->hdr.copies = 1;
+    proc->handle_count = 2;
+    proc->handle_allocated = 16;
+    proc->handles = malloc(proc->handle_allocated * sizeof(void*));
+    memset(proc->handles, 0, proc->handle_allocated * sizeof(void*));
+    /*proc->handles[0] = NULL;*/
+    proc->handles[1] = proc;
+    proc->vmm_end = PAGE_SIZE;
+    proc->stack_end = 0x80000000;
+    proc->exe = _wcsdup(exe);
+    proc->info = NULL;
+    proc->id = ++proc_last_id;
+
+    TRACE2("ProcCreateProcess(%s): page dir = %x\n", 
+            exe, proc->page_dir_phys);
+    LIST_ADD(proc, proc);
+    return proc;
 }
 
 bool ProcFirstTimeInit(process_t *proc)
 {
-	context_t *ctx;
-	process_info_t *info;
-	wchar_t *ch;
-	module_t *mod;
-	thread_t *thr;
-	uint32_t cr3;
+    context_t *ctx;
+    process_info_t *info;
+    wchar_t *ch;
+    module_t *mod, *kmod;
+    thread_t *thr;
+    uint32_t cr3;
+    addr_t stack;
 
-	/*SemAcquire(&proc->sem_lock);*/
-	__asm__("mov %%cr3,%0" : "=r" (cr3));
-	TRACE3("Creating process from %s: page dir = %x = %x\n", 
-		proc->exe, proc->page_dir_phys, cr3);
+    /*SemAcquire(&proc->sem_lock);*/
+    __asm__("mov %%cr3,%0" : "=r" (cr3));
+    TRACE3("Creating process from %s: page dir = %x = %x\n", 
+        proc->exe, proc->page_dir_phys, cr3);
 
-	info = VmmAlloc(1, NULL, 
-		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
-	if (info == NULL)
-	{
-		SemRelease(&proc->sem_lock);
-		return false;
-	}
+    info = VmmAlloc(1, NULL, 
+        3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
+    if (info == NULL)
+    {
+        SemRelease(&proc->sem_lock);
+        return false;
+    }
 
-        for (thr = thr_first; thr; thr = thr->all_next)
-	    if (thr->process == proc)
-	    {
-		    if (thr->info == NULL)
-		    {
-			    ThrAllocateThreadInfo(thr);
-			    assert(thr->info != NULL);
-		    }
+    for (thr = thr_first; thr; thr = thr->all_next)
+        if (thr->process == proc)
+        {
+            if (thr->info == NULL)
+            {
+                ThrAllocateThreadInfo(thr);
+                assert(thr->info != NULL);
+            }
 
-		    thr->info->process = info;
-	    }
+            thr->info->process = info;
 
-	if (proc->info != NULL)
-	{
-		handle_hdr_t *ptr;
-		memcpy(info, proc->info, sizeof(*info));
-		
-		ptr = HndGetPtr(proc->creator, info->std_in, 0);
-		if (ptr)
-			info->std_in = HndDuplicate(proc, ptr);
-		else
-			info->std_in = NULL;
+            stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, 
+                thr->user_stack_top - 0x100000, 
+                3 | MEM_READ | MEM_WRITE);
+            wprintf(L"ProcFirstTimeInit: user stack at %x\n", stack);
+            stack += 0x100000;
+            assert(stack == thr->user_stack_top);
 
-		ptr = HndGetPtr(proc->creator, info->std_out, 0);
-		if (ptr)
-			info->std_out = HndDuplicate(proc, ptr);
-		else
-			info->std_out = NULL;
+            ctx = ThrGetUserContext(thr);
+            ctx->esp = stack;
+        }
 
-		free(proc->info);
-	}
-	else
-	{
-		ch = wcsrchr(proc->exe, '/');
+    if (proc->info != NULL)
+    {
+        handle_hdr_t *ptr;
+        memcpy(info, proc->info, sizeof(*info));
+        
+        ptr = HndGetPtr(proc->creator, info->std_in, 0);
+        if (ptr)
+            info->std_in = HndDuplicate(proc, ptr);
+        else
+            info->std_in = NULL;
 
-		if (ch == NULL)
-			wcscpy(info->cwd, L"/");
-		else
-			wcsncpy(info->cwd, proc->exe, ch - proc->exe);
-	}
+        ptr = HndGetPtr(proc->creator, info->std_out, 0);
+        if (ptr)
+            info->std_out = HndDuplicate(proc, ptr);
+        else
+            info->std_out = NULL;
 
-	if (info->std_in == NULL)
-		info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
-	if (info->std_out == NULL)
-		info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
+        free(proc->info);
+    }
+    else
+    {
+        ch = wcsrchr(proc->exe, '/');
 
-	if (proc->creator)
-		proc->creator->hdr.copies--;
+        if (ch == NULL)
+            wcscpy(info->cwd, L"/");
+        else
+            wcsncpy(info->cwd, proc->exe, ch - proc->exe);
+    }
 
-	proc->info = info;
-	info->id = proc->id;
+    if (info->std_in == NULL)
+        info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+    if (info->std_out == NULL)
+        info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
 
-	mod = PeLoad(proc, proc->exe, NULL);
-	if (mod == NULL)
-	{
-		wprintf(L"ProcCreateProcess: failed to load %s\n", proc->exe);
-		SemRelease(&proc->sem_lock);
-		return false;
-	}
+    if (proc->creator)
+        proc->creator->hdr.copies--;
 
-	info->base = mod->base;
-	/*ctx = ThrGetContext(current);*/
-	ctx = ThrGetUserContext(current);
-	ctx->eip = mod->entry;
-	TRACE2("Successful; continuing at %lx, ctx = %p\n", ctx->eip, ctx);
-	/*SemRelease(&proc->sem_lock);*/
-	return true;
+    proc->info = info;
+    info->id = proc->id;
+
+    /* 
+     * Kernel modules need to be duplicated first, in case this is the first 
+     *  process (e.g. the shell) and running it involves faulting in some 
+     *  kernel-mode code (e.g. the FSD)
+     */
+    for (mod = proc_idle.mod_first; mod != NULL; mod = mod->next)
+    {
+        /* The kernel must already be fully mapped */
+        if (mod != &mod_kernel)
+        {
+            /*wprintf(L"ProcFirstTimeInit: loading kernel module %s\n",
+                mod->name);*/
+            kmod = PeLoad(proc, mod->name, mod->base);
+            kmod->imported = true;
+        }
+    }
+
+    mod = PeLoad(proc, proc->exe, NULL);
+    if (mod == NULL)
+    {
+        wprintf(L"ProcCreateProcess: failed to load %s\n", proc->exe);
+        SemRelease(&proc->sem_lock);
+        ProcExitProcess(0);
+        return true;
+    }
+
+    info->base = mod->base;
+    /*ctx = ThrGetContext(current);*/
+    ctx = ThrGetUserContext(current);
+    ctx->eip = mod->entry;
+
+    TRACE2("Successful; continuing at %lx, ctx = %p\n", ctx->eip, ctx);
+    /*SemRelease(&proc->sem_lock);*/
+    return true;
 }
 
 void ProcExitProcess(int code)
 {
-	thread_t *thr, *next;
-	process_t *proc;
-	unsigned i;
+    thread_t *thr, *next;
+    process_t *proc;
+    unsigned i;
 
-	proc = current->process;
-	wprintf(L"Process %u exited with code %d: ", proc->id, code);
-	
-	SemAcquire(&proc->sem_lock);
-	HndSignalPtr(&proc->hdr, true);
+    proc = current->process;
+    wprintf(L"Process %u exited with code %d: ", proc->id, code);
 
-	for (thr = thr_first; thr; thr = next)
-	{
-		next = thr->all_next;
-		if (thr->process == proc)
-			ThrDeleteThread(thr);
-	}
+    SemAcquire(&proc->sem_lock);
+    HndSignalPtr(&proc->hdr, true);
 
-	for (i = 0; i < proc->handle_count; i++)
-		if (proc->handles[i] != NULL &&
-			proc->handles[i] != proc)
-		{
-			handle_hdr_t *hdr;
-			hdr = proc->handles[i];
-			TRACE3("ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
-				i, hdr->file, hdr->line);
-			/*HndClose(proc, i, 0);*/
-		}
+    for (thr = thr_first; thr; thr = next)
+    {
+        next = thr->all_next;
+        if (thr->process == proc)
+            ThrDeleteThread(thr);
+    }
 
-	free(proc->handles);
-	proc->handles = NULL;
-	proc->handle_count = 0;
+    for (i = 0; i < proc->handle_count; i++)
+        if (proc->handles[i] != NULL &&
+            proc->handles[i] != proc)
+        {
+            handle_hdr_t *hdr;
+            hdr = proc->handles[i];
+            TRACE3("ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
+                i, hdr->file, hdr->line);
+            /*HndClose(proc, i, 0);*/
+        }
 
-	proc->hdr.copies--;
-	if (proc->hdr.copies == 0)
-	{
-		free((wchar_t*) proc->exe);
-		SemRelease(&proc->sem_lock);
-		free(proc);
-		wprintf(L"all handles freed\n");
-	}
-	else
-	{
-		SemRelease(&proc->sem_lock);
-		wprintf(L"still has %u refs\n", proc->hdr.copies);
-	}
+    free(proc->handles);
+    proc->handles = NULL;
+    proc->handle_count = 0;
+
+    proc->hdr.copies--;
+    if (proc->hdr.copies == 0)
+    {
+        free((wchar_t*) proc->exe);
+        SemRelease(&proc->sem_lock);
+        free(proc);
+        wprintf(L"all handles freed\n");
+    }
+    else
+    {
+        SemRelease(&proc->sem_lock);
+        wprintf(L"still has %u refs\n", proc->hdr.copies);
+    }
 }
 
 bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 {
-	vm_area_t *area;
-	module_t *mod;
+    vm_area_t *area;
+    /*module_t *mod;*/
 #ifdef DEBUG
-	static unsigned nest;
-	unsigned i;
-
-	for (i = 0; i < nest; i++)
-		_cputws(L"  ", 2);
-
-	wprintf(L"(%u) ProcPageFault(%s, %lx)\n", nest++, proc->exe, addr);
+    static unsigned nest;
+    unsigned i;
+    
+    for (i = 0; i < nest; i++)
+        _cputws(L"  ", 2);
+    
+    wprintf(L"(%u) ProcPageFault(%s, %lx)\n", nest++, proc->exe, addr);
 #endif
-	
-	if (proc->mod_first == NULL &&
-		addr == 0xdeadbeef)
-	{
+    
+    if (proc->mod_first == NULL &&
+        addr == 0xdeadbeef)
+    {
 #ifdef DEBUG
-		nest--;
-		for (i = 0; i < nest; i++)
-			_cputws(L"  ", 2);
-		wprintf(L"(%u) First-time init\n", nest);
+        nest--;
+        for (i = 0; i < nest; i++)
+            _cputws(L"  ", 2);
+        wprintf(L"(%u) First-time init\n", nest);
 #endif
-		return ProcFirstTimeInit(proc);
-	}
-	
-	if (addr < 0x80000000 && addr >= proc->stack_end)
-	{
-		addr = PAGE_ALIGN(addr);
+        return ProcFirstTimeInit(proc);
+    }
+    
+    if (addr < 0x80000000 && addr >= proc->stack_end)
+    {
+        addr = PAGE_ALIGN(addr);
 #ifdef DEBUG
-		nest--;
-		for (i = 0; i < nest; i++)
-			_cputws(L"  ", 2);
-		wprintf(L"(%u) Stack\n", nest);
+        nest--;
+        for (i = 0; i < nest; i++)
+            _cputws(L"  ", 2);
+        wprintf(L"(%u) Stack\n", nest);
 #endif
-		return MemMap(addr, MemAlloc(), addr + PAGE_SIZE, 
-			PRIV_USER | PRIV_RD | PRIV_WR | PRIV_PRES);
-	}
-
-	FOREACH (area, proc->area)
+        return MemMap(addr, MemAlloc(), addr + PAGE_SIZE, 
+            PRIV_USER | PRIV_RD | PRIV_WR | PRIV_PRES);
+    }
+    
+    FOREACH (area, proc->area)
+    {
+        if (addr >= area->start &&
+            addr < area->start + PAGE_SIZE * area->pages->num_pages)
         {
-            /*wprintf(L"%s: Area at %x->%x belongs to %s\n",
-                proc->exe,
-                area->start, area->start + PAGE_SIZE * area->pages,
-                area->owner->exe);*/
-                if (addr >= area->start &&
-                    addr < area->start + PAGE_SIZE * area->pages->num_pages)
-		{
 #ifdef DEBUG
-			nest--;
-			for (i = 0; i < nest; i++)
-				_cputws(L"  ", 2);
-			wprintf(L"(%u) VMM area\n", nest);
+            nest--;
+            for (i = 0; i < nest; i++)
+                _cputws(L"  ", 2);
+            wprintf(L"(%u) VMM area\n", nest);
 #endif
-			//return VmmCommit(area, NULL, -1);
-                        return VmmPageFault(area, addr, is_writing);
-		}
+            //return VmmCommit(area, NULL, -1);
+            return VmmPageFault(area, addr, is_writing);
         }
-
-
-	/*FOREACH (mod, proc->mod)
-		if (PePageFault(proc, mod, addr))
-		{
+    }
+    
+    FOREACH (area, proc_idle.area)
+    {
+        if (addr >= area->start &&
+            addr < area->start + PAGE_SIZE * area->pages->num_pages)
+        {
 #ifdef DEBUG
-			nest--;
-			for (i = 0; i < nest; i++)
-				_cputws(L"  ", 2);
-			wprintf(L"(%u) PE section\n", nest);
+            nest--;
+            for (i = 0; i < nest; i++)
+                _cputws(L"  ", 2);
+            wprintf(L"(%u) VMM area\n", nest);
 #endif
-			return true;
-		}*/
-
+            //return VmmCommit(area, NULL, -1);
+            return VmmPageFault(area, addr, is_writing);
+        }
+    }
+    
 #ifdef DEBUG
-	nest--;
-	for (i = 0; i < nest; i++)
-		_cputws(L"  ", 2);
-	wprintf(L"(%u) Not handled\n", nest);
+    nest--;
+    for (i = 0; i < nest; i++)
+        _cputws(L"  ", 2);
+    wprintf(L"(%u) Not handled\n", nest);
 #endif
-	return false;
+    return false;
 }
 
 /*!
- *	\brief	Initializes the idle process
- *
- *	This function sets up the idle process's initial handle table and
- *	physical page directory pointer.
- *
- *	\return	\p true
- */
+*   \brief        Initializes the idle process
+*
+*   This function sets up the idle process's initial handle table and
+*   physical page directory pointer.
+*
+*   \return        \p true
+*/
 bool ProcInit(void)
 {
-	proc_idle.handle_count = 2;
-	proc_idle.handle_allocated = 16;
-	proc_idle.handles = malloc(proc_idle.handle_allocated * sizeof(void*));
-	proc_idle.handles[0] = NULL;
-	proc_idle.handles[1] = &proc_idle;
-	proc_idle.page_dir_phys = (addr_t) kernel_pagedir/*proc_idle.page_dir */
-		- (addr_t) scode 
-		+ kernel_startup.kernel_phys;
-	return true;
+    proc_idle.handle_count = 2;
+    proc_idle.handle_allocated = 16;
+    proc_idle.handles = malloc(proc_idle.handle_allocated * sizeof(void*));
+    proc_idle.handles[0] = NULL;
+    proc_idle.handles[1] = &proc_idle;
+    proc_idle.page_dir_phys = (addr_t) kernel_pagedir/*proc_idle.page_dir */
+        - (addr_t) scode 
+        + kernel_startup.kernel_phys;
+    return true;
 }

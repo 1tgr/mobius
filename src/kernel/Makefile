@@ -1,7 +1,7 @@
 TARGET=	$(BIN)/kernel.exe
 ARCH=	i386/libi386.lib
 OBJS=	start.o main.o thread.o \
-	proc.o handle.o fs.o \
+	proc.o handle.o fs.o vfs.o \
 	device.o io.o vmm.o \
 	mod_pe.o syscall.o port.o \
 	ramdisk_mb.o cache.o cppsup.o \
@@ -20,13 +20,13 @@ include ../make.conf
 
 all:	$(ARCH) $(TARGET) $(IMP)
 
-$(ARCH):
+.arch $(ARCH):
 	make -C i386
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.exe)
 
-$(TARGET):	$(ARCH) $(OBJS) $(LIBS) $(EXP)
+$(TARGET):	.arch $(ARCH) $(OBJS) $(LIBS) $(EXP)
 	$(LD) -o kernel_d.exe $(OBJS) $(EXP) $(LIBS) \
 		$(LDFLAGS) --entry _KernelEntry -T kernel.ld
 	objdump -ld kernel_d.exe > listing.txt

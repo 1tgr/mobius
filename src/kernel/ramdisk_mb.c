@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.8 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.9 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -22,7 +22,7 @@ struct ramfd_t
     multiboot_module_t *mod;
 };
 
-multiboot_module_t *RdLookupFile(const wchar_t *name)
+status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
 {
     multiboot_module_t *mods;
     wchar_t wc_name[16];
@@ -30,9 +30,9 @@ multiboot_module_t *RdLookupFile(const wchar_t *name)
     char *ch;
     unsigned i;
 
-    assert(name[0] == '/');
+    assert(path[0] == '/');
 
-    /*wprintf(L"RdFsRequest: open %s: ", req_fs->params.fs_open.name + 1);*/
+    /*wprintf(L"RdLookupFile(%s)\n", path);*/
     mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
     for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
     {
@@ -44,13 +44,128 @@ multiboot_module_t *RdLookupFile(const wchar_t *name)
 
         len = mbstowcs(wc_name, ch, _countof(wc_name));
         wc_name[len] = '\0';
-        if (_wcsicmp(wc_name, name + 1) == 0)
-            return mods + i;
+        if (_wcsicmp(wc_name, path + 1) == 0)
+        {
+            *cookie = mods + i;
+            return 0;
+        }
     }
 
-    return NULL;
+    return ENOTFOUND;
 }
 
+status_t RdGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
+{
+    const char *ch;
+    dirent_standard_t* di;
+    size_t len;
+    multiboot_module_t *mod;
+
+    di = buf;
+    mod = cookie;
+    switch (type)
+    {
+    case FILE_QUERY_NONE:
+        return 0;
+
+    case FILE_QUERY_STANDARD:
+        ch = strrchr(PHYSICAL(mod->string), '/');
+        if (ch == NULL)
+            ch = PHYSICAL(mod->string);
+        else
+            ch++;
+
+        len = mbstowcs(di->di.name, ch, _countof(di->di.name));
+        if (len == -1)
+            wcscpy(di->di.name, L"?");
+        else
+            di->di.name[len] = '\0';
+
+        di->di.vnode = mod 
+            - (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+        di->length = mod->mod_end - mod->mod_start;
+        di->attributes = FILE_ATTR_READ_ONLY;
+        return 0;
+    }
+
+    return ENOTIMPL;
+}
+
+bool RdRead(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
+{
+    multiboot_module_t *mod;
+    void *ptr;
+
+    mod = file->fsd_cookie;
+    if (file->pos + length >= mod->mod_end - mod->mod_start)
+        length = mod->mod_end - mod->mod_start - file->pos;
+
+    ptr = (uint8_t*) PHYSICAL(mod->mod_start) + (uint32_t) file->pos;
+    /*wprintf(L"RdRead: %x (%S) at %x => %x = %08x\n",
+        mod->mod_start,
+        PHYSICAL(mod->string),
+        (uint32_t) file->pos, 
+        (addr_t) ptr,
+        *(uint32_t*) ptr);*/
+
+    memcpy(MemMapPageArray(pages, PRIV_PRES | PRIV_KERN | PRIV_WR), 
+        ptr,
+        length);
+    MemUnmapTemp();
+    FsNotifyCompletion(io, length, 0);
+    return true;
+}
+
+status_t RdOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+{
+    unsigned *index;
+    index = malloc(sizeof(unsigned));
+    if (index == NULL)
+        return errno;
+    *index = 0;
+    *cookie = index;
+    return 0;
+}
+
+status_t RdReadDir(fsd_t *fsd, void *dir_cookie, dirent_t *buf)
+{
+    unsigned *index;
+    multiboot_module_t *first_mod, *mod;
+    char *ch;
+    size_t len;
+
+    index = dir_cookie;
+    first_mod = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+    if (*index < kernel_startup.multiboot_info->mods_count)
+    {
+        mod = first_mod + *index;
+        (*index)++;
+
+        ch = strrchr(PHYSICAL(mod->string), '/');
+        if (ch == NULL)
+            ch = PHYSICAL(mod->string);
+        else
+            ch++;
+
+        len = mbstowcs(buf->name, ch, _countof(buf->name));
+        if (len == -1)
+            wcscpy(buf->name, L"?");
+        else
+            buf->name[len] = '\0';
+
+        buf->vnode = mod - first_mod;
+        return 0;
+    }
+    else
+        return EEOF;
+}
+
+void RdFreeDirCookie(fsd_t *fsd, void *dir_cookie)
+{
+    free(dir_cookie);
+}
+
+#if 0
 bool RdFsRequest(device_t* dev, request_t* req)
 {
     request_fs_t *req_fs = (request_fs_t*) req;
@@ -234,6 +349,7 @@ bool RdFsRequest(device_t* dev, request_t* req)
     req->result = ENOTIMPL;
     return false;
 }
+#endif
 
 /*!    \brief Initializes the ramdisk during kernel startup.
  *
@@ -268,18 +384,34 @@ bool RdInit(void)
     return true;
 }
 
-static const device_vtbl_t rdfs_vtbl =
+static const fsd_vtbl_t ramdisk_vtbl =
 {
-    RdFsRequest,
-    NULL
+    NULL,           /* dismount */
+    NULL,           /* get_fs_info */
+    NULL,           /* create_file */
+    RdLookupFile,
+    RdGetFileInfo,
+    NULL,           /* set_file_info */
+    NULL,           /* free_cookie */
+    RdRead,
+    NULL,           /* write */
+    NULL,           /* ioctl */
+    NULL,           /* passthrough */
+    RdOpenDir,
+    RdReadDir,
+    RdFreeDirCookie,
+    NULL,           /* mount */
+    NULL,           /* flush_cache */
 };
 
-device_t* RdMountFs(driver_t* driver, const wchar_t* path, device_t *dev)
+static fsd_t ramdisk_fsd =
 {
-    device_t *ram = malloc(sizeof(device_t));
-    ram->driver = driver;
-    ram->vtbl = &rdfs_vtbl;
-    return ram;
+    &ramdisk_vtbl,
+};
+
+fsd_t* RdMountFs(driver_t* driver, const wchar_t *dest)
+{
+    return &ramdisk_fsd;
 }
 
 driver_t rd_driver =

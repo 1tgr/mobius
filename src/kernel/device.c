@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.23 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: device.c,v 1.24 2002/05/05 13:42:59 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -7,6 +7,7 @@
 #include <kernel/fs.h>
 #include <kernel/memory.h>
 #include <kernel/io.h>
+#include <kernel/init.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -33,321 +34,240 @@ irq_t *irq_first[16], *irq_last[16];
 device_info_t *info_first, *info_last;
 driver_t *drv_first, *drv_last;
 
-device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev);
-
-typedef struct device_file_t device_file_t;
-struct device_file_t
+status_t DfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
 {
-    file_t file;
-    device_t *dev;
-};
-
-static void DevFsFinishIo(device_t *dev, request_t *req)
-{
-    device_file_t *file;
-    request_dev_t *req_dev;
-    request_fs_t *req_fs;
-
-    req_dev = (request_dev_t*) req;
-    req_fs = req->param;
-    assert(req_fs != NULL);
-    assert(req_fs->header.code == FS_READ || req_fs->header.code == FS_WRITE);
-    file = HndLock(NULL, req_fs->params.buffered.file, 'file');
-    assert(file != NULL);
-
-    TRACE3("DevFsFinishIo: req_dev = %p req_fs = %p length = %u\n",
-	req_dev, req_fs, req_dev->params.buffered.length);
-    req_fs->params.buffered.length = req_dev->params.buffered.length;
-    req_fs->header.result = req_dev->header.result;
-    file->file.pos += req_dev->params.buffered.length;
-
-    HndUnlock(NULL, req_fs->params.buffered.file, 'file');
-    HndUnlock(NULL, req_fs->params.buffered.file, 'file');
-    free(req_dev);
-
-    IoNotifyCompletion(&req_fs->header);
-}
-
-static bool DevFsRequest(device_t *dev, request_t *req)
-{
-    request_fs_t *req_fs = (request_fs_t*) req;
-    device_file_t *file;
     device_info_t *info;
-    request_dev_t *req_dev, req_ioctl;
-    size_t len;
-    dirent_t *buf;
-    dirent_device_t *buf_dev;
-    bool ret;
-    
-    switch (req->code)
+
+    assert(path[0] == '/');
+    path++;
+
+    for (info = info_first; info != NULL; info = info->next)
     {
-    case FS_CREATE:
-    case FS_OPEN:
-	if (*req_fs->params.fs_open.name == '/')
-	    req_fs->params.fs_open.name++;
-
-	FOREACH(info, info)
-	    if (_wcsicmp(req_fs->params.fs_open.name, info->name) == 0)
-		break;
-
-	if (info == NULL)
-	{
-	    req->result = ENOTFOUND;
-	    return false;
-	}
-
-	/*if (req->code == FS_CREATE)
-	    wprintf(L"DevFsRequest: create %s => %p", 
-		req_fs->params.fs_open.name,
-		info->dev);*/
-
-	req_fs->params.fs_open.file = HndAlloc(NULL, sizeof(device_file_t), 'file');
-	file = HndLock(NULL, req_fs->params.fs_open.file, 'file');
-	if (file == NULL)
-	{
-	    req->result = EHANDLE;
-	    return false;
-	}
-
-	/*wprintf(L"=> %lu\n", req_fs->params.fs_open.file);*/
-	file->file.fsd = dev;
-	file->file.pos = 0;
-	file->file.flags = req_fs->params.fs_open.flags;
-	file->dev = info->dev;
-	HndUnlock(NULL, req_fs->params.fs_open.file, 'file');
-	return true;
-
-    case FS_OPENSEARCH:
-	if (*req_fs->params.fs_opensearch.name == '/')
-	    req_fs->params.fs_opensearch.name++;
-
-	req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(device_file_t), 'file');
-	file = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
-	if (file == NULL)
-	{
-	    req->result = EHANDLE;
-	    return false;
-	}
-
-	file->file.fsd = dev;
-	file->file.pos = (uint64_t) (addr_t) info_first;
-	file->file.flags = FILE_READ;
-	file->dev = NULL;
-	HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
-	return true;
-
-    case FS_QUERYFILE:
-	if (*req_fs->params.fs_queryfile.name == '/')
-	    req_fs->params.fs_queryfile.name++;
-
-	FOREACH(info, info)
-	    if (_wcsicmp(req_fs->params.fs_queryfile.name, info->name) == 0)
-		break;
-
-	if (info == NULL)
-	{
-	    req->result = ENOTFOUND;
-	    return false;
-	}
-
-	switch (req_fs->params.fs_queryfile.query_class)
-	{
-	case FILE_QUERY_NONE:
-	    break;
-
-	case FILE_QUERY_STANDARD:
-	    if (req_fs->params.fs_queryfile.buffer_size < sizeof(*buf))
-	    {
-		req_fs->header.result = EBUFFER;
-		return false;
-	    }
-
-	    buf = req_fs->params.fs_queryfile.buffer;
-	    wcscpy(buf->name, info->name);
-	    buf->length = 0;
-	    buf->standard_attributes = FILE_ATTR_DEVICE;
-	    break;
-
-	case FILE_QUERY_DEVICE:
-	    if (req_fs->params.fs_queryfile.buffer_size < sizeof(*buf_dev))
-	    {
-		req_fs->header.result = EBUFFER;
-		return false;
-	    }
-
-	    buf_dev = req_fs->params.fs_queryfile.buffer;
-	    if (info->dev->info == NULL)
-	    {
-		buf_dev->description[0] = '\0';
-		buf_dev->device_class = 0;
-	    }
-	    else
-		*buf_dev = *info->dev->info;
-	    break;
-
-	default:
-	    req_fs->header.result = ENOTIMPL;
-	    return false;
-	}
-
-	return true;
-
-    case FS_READ:
-    case FS_WRITE:
-	file = HndLock(NULL, req_fs->params.fs_read.file, 'file');
-	if (file == NULL)
-	{
-	    req->result = EHANDLE;
-	    return false;
-	}
-
-	/*if (req->code == FS_READ)
-	    wprintf(L"DevFsRequest: read from %lu => %p buf = %p len = %lu\n",
-		req_fs->params.fs_read.file,
-		file->dev,
-		req_fs->params.fs_read.buffer,
-		req_fs->params.fs_read.length);*/
-	/*else
-	    wprintf(L"DevFsRequest: write to %lu => %p buf = %p len = %lu\n",
-		req_fs->params.fs_write.file,
-		file->dev,
-		req_fs->params.fs_write.buffer,
-		req_fs->params.fs_write.length);*/
-
-        if (file->dev != NULL)
-	{
-	    /* Normal device file */
-	    req_dev = malloc(sizeof(request_dev_t));
-	    if (req_dev == NULL)
-	    {
-		req->result = ENOMEM;
-		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-		return false;
-	    }
-
-            if (file->dev->flags & DEVICE_IO_DIRECT)
-            {
-                req_dev->header.code = req->code == 
-                    FS_WRITE ? DEV_WRITE_DIRECT : DEV_READ_DIRECT;
-	        req_dev->header.param = req;
-	        req_dev->params.dev_read_direct.buffer = 
-                    MemMapPageArray(req_fs->params.buffered.pages, PRIV_PRES | PRIV_KERN | PRIV_WR);
-	        req_dev->params.dev_read_direct.length = req_fs->params.buffered.length;
-	        req_dev->params.dev_read_direct.offset = file->file.pos;
-            }
-            else
-            {
-                req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
-	        req_dev->header.param = req;
-                req_dev->params.dev_read.pages = req_fs->params.buffered.pages;
-	        req_dev->params.dev_read.length = req_fs->params.buffered.length;
-	        req_dev->params.dev_read.offset = file->file.pos;
-            }
-
-	    /*wprintf(L"DevFsRequest: req_dev = %p req_fs = %p length = %u\n",
-		req_dev, req_fs, req_dev->params.buffered.length);*/
-	    if (!IoRequest(dev, file->dev, &req_dev->header))
-	    {
-		req_fs->params.buffered.length = req_dev->params.buffered.length;
-		req->result = req_dev->header.result;
-		file->file.pos += req_dev->params.buffered.length;
-		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-
-                free(req_dev);
-                return false;
-	    }
-	    else
-	    {
-		req->result = req_dev->header.result;
-		return true;
-	    }
-	}
-	else
-	{
-	    /* Search */
-	    info = (device_info_t*) (addr_t) file->file.pos;
-
-	    if (info == NULL)
-	    {
-		req->result = EEOF;
-		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-		return false;
-	    }
-	    
-	    len = req_fs->params.fs_read.length;
-
-	    req_fs->params.fs_read.length = 0;
-	    buf = MemMapPageArray(req_fs->params.fs_read.pages, 
-                PRIV_PRES | PRIV_KERN | PRIV_WR);
-	    while (req_fs->params.fs_read.length < len)
-	    {
-		wcscpy(buf->name, info->name);
-		buf->length = 0;
-		buf->standard_attributes = FILE_ATTR_DEVICE;
-
-		buf++;
-		req_fs->params.fs_read.length += sizeof(dirent_t);
-
-		info = info->next;
-		file->file.pos = (uint64_t) (addr_t) info;
-		if (info == NULL)
-		    break;
-	    }
-
-            MemUnmapTemp();
-	    HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-	    return true;
-	}
-
-    case FS_PASSTHROUGH:
-	file = HndLock(NULL, req_fs->params.fs_passthrough.file, 'file');
-	if (file == NULL)
-	{
-	    req->result = EHANDLE;
-	    return false;
-	}
-
-        req_dev = malloc(sizeof(request_t) + 
-	    req_fs->params.fs_passthrough.params_size);
-	req_dev->header.code = req_fs->params.fs_passthrough.code;
-	
-	memcpy(&req_dev->params, 
-	    req_fs->params.fs_passthrough.params, 
-	    req_fs->params.fs_passthrough.params_size);
-
-	ret = IoRequestSync(file->dev, &req_dev->header);
-	req->result = req_dev->header.result;
-
-	memcpy(req_fs->params.fs_passthrough.params, 
-	    &req_dev->params,
-	    req_fs->params.fs_passthrough.params_size);
-
-	free(req_dev);
-	HndUnlock(NULL, req_fs->params.fs_passthrough.file, 'file');
-        return ret;
-
-    case FS_IOCTL:
-        file = HndLock(NULL, req_fs->params.fs_ioctl.file, 'file');
-	if (file == NULL)
-	{
-	    req->result = EHANDLE;
-	    return false;
-	}
-
-        req_ioctl.header.code = DEV_IOCTL;
-        req_ioctl.params.dev_ioctl.code = req_fs->params.fs_ioctl.code;
-        req_ioctl.params.dev_ioctl.params = req_fs->params.fs_ioctl.buffer;
-        req_ioctl.params.dev_ioctl.size = req_fs->params.fs_ioctl.length;
-
-	ret = IoRequestSync(file->dev, &req_ioctl.header);
-	req->result = req_ioctl.header.result;
-
-	HndUnlock(NULL, req_fs->params.fs_ioctl.file, 'file');
-        return ret;
+        if (_wcsicmp(path, info->name) == 0)
+        {
+            *cookie = info;
+            return 0;
+        }
     }
 
-    req->result = ENOTIMPL;
-    return false;
+    return ENOTFOUND;
+}
+
+status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
+{
+    device_info_t *info;
+    dirent_standard_t *di;
+
+    info = cookie;
+    di = buf;
+    switch (type)
+    {
+    case FILE_QUERY_NONE:
+        return 0;
+
+    case FILE_QUERY_STANDARD:
+        wcsncpy(di->di.name, info->name, _countof(di->di.name) - 1);
+	di->length = 0;
+	di->attributes = FILE_ATTR_DEVICE;
+        return 0;
+    }
+
+    return ENOTIMPL;
+}
+
+bool DfsReadWrite(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, 
+                  fs_asyncio_t *io, bool is_reading)
+{
+    device_t *dev;
+    device_info_t *info;
+    request_dev_t *req_dev;
+    io_callback_t cb;
+    bool ret;
+
+    req_dev = malloc(sizeof(request_dev_t));
+    if (req_dev == NULL)
+    {
+    	io->op.result = errno;
+        return false;
+    }
+
+    info = file->fsd_cookie;
+    dev = info->dev;
+    if (dev->flags & DEVICE_IO_DIRECT)
+    {
+        req_dev->header.code = is_reading ? DEV_READ_DIRECT : DEV_WRITE_DIRECT;
+	req_dev->header.param = io;
+	req_dev->params.dev_read_direct.buffer = 
+            MemMapPageArray(pages, PRIV_PRES | PRIV_KERN | (is_reading ? PRIV_WR : 0));
+	req_dev->params.dev_read_direct.length = length;
+	req_dev->params.dev_read_direct.offset = file->pos;
+    }
+    else
+    {
+        req_dev->header.code = is_reading ? DEV_READ : DEV_WRITE;
+	req_dev->header.param = io;
+        req_dev->params.dev_read.pages = pages;
+	req_dev->params.dev_read.length = length;
+	req_dev->params.dev_read.offset = file->pos;
+    }
+
+    cb.type = IO_CALLBACK_FSD;
+    cb.u.fsd = fsd;
+    ret = IoRequest(&cb, dev, &req_dev->header);
+
+    if (dev->flags & DEVICE_IO_DIRECT)
+        MemUnmapTemp();
+
+    /* xxx - bad - req_dev might have been freed here */
+    if (req_dev->header.code != 0)
+    {
+        /*
+         * This case only applies if DfsFinishIo hasn't been called yet: 
+         *  that is, if either:
+         * - ret == false
+         * - req_dev->header.result == SIOPENDING
+         * Either way, the FS needs to know what the result was
+         */
+
+        /* xxx - this is hack: we shouldn't have to modify io->original */
+        io->original->result = io->op.result = req_dev->header.result;
+    }
+
+    if (!ret)
+    {
+	io->op.bytes = req_dev->params.buffered.length;
+	free(req_dev);
+        return false;
+    }
+
+    /*
+     * DfsFinishIo *will* get called upon every successful request: 
+     *  for async io: when the device finishes
+     *   for sync io: by IoRequest
+     * Therefore, since DfsFinishIo frees req_dev, we can't use it from now on.
+     * Also, FsNotifyCompletion will free io, so we can't use that either.
+     */
+
+    return true;
+}
+
+void DfsFinishIo(fsd_t *fsd, request_t *req)
+{
+    request_dev_t *req_dev;
+    fs_asyncio_t *io;
+
+    req_dev = (request_dev_t*) req;
+    io = req_dev->header.param;
+    assert(io != NULL);
+
+    FsNotifyCompletion(io, 
+        req_dev->params.buffered.length, 
+        req_dev->header.result);
+    req_dev->header.code = 0;
+    free(req_dev);
+}
+
+bool DfsRead(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, 
+             fs_asyncio_t *io)
+{
+    return DfsReadWrite(fsd, file, pages, length, io, true);
+}
+
+bool DfsWrite(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, 
+              fs_asyncio_t *io)
+{
+    return DfsReadWrite(fsd, file, pages, length, io, false);
+}
+
+bool DfsIoCtl(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t length, 
+              fs_asyncio_t *io)
+{
+    request_dev_t req;
+    bool ret;
+    device_info_t *info;
+
+    if (!MemVerifyBuffer(buf, length))
+    {
+        io->op.result = EBUFFER;
+        return false;
+    }
+
+    req.header.code = DEV_IOCTL;
+    req.params.dev_ioctl.code = code;
+    req.params.dev_ioctl.params = buf;
+    req.params.dev_ioctl.size = length;
+    req.params.dev_ioctl.unused = 0;
+
+    info = file->fsd_cookie;
+    ret = IoRequestSync(info->dev, &req.header);
+
+    FsNotifyCompletion(io, req.params.dev_ioctl.size, req.header.result);
+    return ret;
+}
+
+bool DfsPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t length, 
+                    fs_asyncio_t *io)
+{
+    request_dev_t *req_dev;
+    bool ret;
+    device_info_t *info;
+
+    if (!MemVerifyBuffer(buf, length))
+    {
+        io->op.result = EBUFFER;
+        return false;
+    }
+
+    req_dev = malloc(sizeof(request_t) + length);
+    req_dev->header.code = code;
+
+    memcpy(&req_dev->params, buf, length);
+
+    info = file->fsd_cookie;
+    ret = IoRequestSync(info->dev, &req_dev->header);
+    io->op.result = io->original->result = req_dev->header.result;
+
+    memcpy(buf, &req_dev->params, length);
+
+    FsNotifyCompletion(io, length, req_dev->header.result);
+    free(req_dev);
+    return ret;
+}
+
+status_t DfsOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+{
+    device_info_t **ptr;
+
+    ptr = malloc(sizeof(device_info_t*));
+    if (ptr == NULL)
+        return errno;
+
+    *ptr = info_first;
+    *dir_cookie = ptr;
+    return 0;
+}
+
+status_t DfsReadDir(fsd_t *fsd, void *dir_cookie, dirent_t *buf)
+{
+    device_info_t **ptr, *info;
+
+    ptr = dir_cookie;
+    if (*ptr == NULL)
+        return EEOF;
+    else
+    {
+        info = *ptr;
+        wcsncpy(buf->name, info->name, _countof(buf->name));
+        buf->vnode = 0;
+        info = info->next;
+        *ptr = info;
+        return 0;
+    }
+}
+
+void DfsFreeDirCookie(fsd_t *fsd, void *dir_cookie)
+{
+    free(dir_cookie);
 }
 
 static driver_t devfs_driver =
@@ -359,21 +279,29 @@ static driver_t devfs_driver =
     DevMountFs,
 };
 
-static const device_vtbl_t devfs_vtbl =
+static const fsd_vtbl_t devfs_vtbl =
 {
-    DevFsRequest,    /* request */
-    NULL,	     /* isr */
-    DevFsFinishIo,    /* finishio */
+    NULL,           /* dismount */
+    NULL,           /* get_fs_info */
+    NULL,           /* create_file */
+    DfsLookupFile,
+    DfsGetFileInfo,
+    NULL,           /* set_file_info */
+    NULL,           /* free_cookie */
+    DfsRead,
+    DfsWrite,
+    DfsIoCtl,
+    DfsPassthrough,
+    DfsOpenDir,
+    DfsReadDir,
+    DfsFreeDirCookie,
+    NULL,           /* mount */
+    DfsFinishIo,
+    NULL,           /* flush_cache */
 };
 
-static device_t dev_fsd =
+static fsd_t dev_fsd =
 {
-    &devfs_driver,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    0,
     &devfs_vtbl,
 };
 
@@ -397,7 +325,7 @@ void IoCloseDevice(device_t *dev)
 {
 }
 
-device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
+fsd_t *DevMountFs(driver_t *drv, const wchar_t *dest)
 {
     return &dev_fsd;
 }
@@ -708,7 +636,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 	bool (*DrvInit)(driver_t *drv);
 
 	swprintf(temp, SYS_BOOT L"/%s.drv", name);
-	wprintf(L"DevInstallNewDriver: loading %s\n", temp);
+	/*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
 
 	mod = PeLoad(&proc_idle, temp, 0);
 	if (mod == NULL)

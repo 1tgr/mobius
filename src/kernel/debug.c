@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.9 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.10 2002/05/05 13:42:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -233,7 +233,7 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 			pebp = (uint32_t*) *pebp;
 		}
 		else
-			wprintf(L"(invalid)\n");
+			wprintf(L"(invalid: stack_end = %x)\n", proc->stack_end);
 		
 		i++;
 

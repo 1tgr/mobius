@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.9 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.10 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -25,21 +25,69 @@ static IMAGE_PE_HEADERS* PeGetHeaders(addr_t base)
     return (IMAGE_PE_HEADERS*) (base + dos->e_lfanew);
 }
 
+bool PeFindFile(const wchar_t *relative, wchar_t *full, const wchar_t *search)
+{
+    const wchar_t *ch;
+    wchar_t *buf;
+    size_t l1, l2;
+
+    if (_wcsicmp(relative, L"kernel.exe") == 0)
+    {
+        /* kernel.exe doesn't appear in the ramdisk */
+        wcscpy(full, L"/System/Boot/kernel.exe");
+        return true;
+    }
+
+    l1 = wcslen(relative);
+    for (ch = search; *ch != '\0'; ch += l2 + 1)
+    {
+        l2 = wcslen(ch);
+        buf = malloc(sizeof(wchar_t) * (l1 + l2 + 2));
+        if (buf == NULL)
+            return false;
+
+        wcscpy(buf, ch);
+        wcscpy(buf + l2, L"/");
+        wcscpy(buf + l2 + 1, relative);
+        /*wprintf(L"PeFindFile: %s\n", buf);*/
+        if (FsFullPath(buf, full) &&
+            FsQueryFile(full, FILE_QUERY_NONE, NULL, 0))
+        {
+            free(buf);
+            return true;
+        }
+
+        free(buf);
+    }
+
+    wprintf(L"PeFindFile: unable to find %s\n", relative);
+    return false;
+}
+
+void PeInitImage(module_t *mod);
+
 module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 {
-    static wchar_t full_file[256];
     static int nesting;
+    static wchar_t full_file[256];
 
     handle_t fd;
     module_t* mod;
     IMAGE_DOS_HEADER dos;
     IMAGE_PE_HEADERS pe;
-    vm_area_t *area;
     addr_t new_base;
     size_t size;
-    
+
     nesting++;
-    FsFullPath(file, full_file);
+    if (file[0] == '/')
+        wcsncpy(full_file, file, _countof(full_file) - 1);
+    else if (!PeFindFile(file, full_file, L"/hd/boot\0/System/Boot\0.\0"))
+    {
+        nesting--;
+        return NULL;
+    }
+
+    /*FsFullPath(file, full_file);*/
     FOREACH (mod, proc->mod)
         if (_wcsicmp(mod->name, full_file) == 0)
         {
@@ -47,8 +95,8 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
             nesting--;
             return mod;
         }
-    
-    /*wprintf(L"%*sPeLoad: %s\n", nesting * 2, L"", full_file);*/
+
+    wprintf(L"%*sPeLoad: %s\n", nesting * 2, L"", full_file);
     fd = FsOpen(full_file, FILE_READ);
     if (!fd)
     {
@@ -97,15 +145,13 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     if (base == NULL)
         base = pe.OptionalHeader.ImageBase;
 
-    new_base = base;
+    /*new_base = base;
     while ((area = VmmArea(proc, (const void*) new_base)))
     {
         new_base = area->start + area->pages->num_pages * PAGE_SIZE;
         wprintf(L"%s: clashed with %08x, adjusting base to %08x\n", 
             file, area->start, new_base);
-    }
-
-    assert(new_base == base);
+    }*/
 
     mod->refs = 1;
     mod->base = base;
@@ -115,11 +161,13 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     mod->sizeof_headers = pe.OptionalHeader.SizeOfHeaders;
     mod->imported = false;
 
-    VmmMap(PAGE_ALIGN_UP(mod->length) / PAGE_SIZE,
-        mod->base,
+    new_base = (addr_t) VmmMap(PAGE_ALIGN_UP(mod->length) / PAGE_SIZE,
+        base,
         mod,
         VM_AREA_IMAGE,
         0);
+
+    assert(new_base == base);
 
     /*wprintf(L"%s: %x..%x (pbase = %x)\n",
         file, mod->base, mod->base + mod->length, 
@@ -128,6 +176,10 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     LIST_ADD(proc->mod, mod);
 
     PeGetHeaders(mod->base);
+
+    if (proc == current->process)
+        PeInitImage(mod);
+
     nesting--;
     return mod;
 }
@@ -168,10 +220,14 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
 
     if (hint != (uint16_t) -1)
     {
-        export_name = (const char*) (mod->base + name_table[hint]);
-        if (name_table[hint] == 0 ||
-            _stricmp(export_name, name) == 0)
-            return mod->base + function_table[ordinal_table[hint]];
+        if (hint > exp->NumberOfNames)
+            wprintf(L"PeGetExport(%s, %S): invalid hint %u (NumberOfNames = %u)\n",
+                mod->name, name, hint, exp->NumberOfNames);
+        else
+            export_name = (const char*) (mod->base + name_table[hint]);
+            if (name_table[hint] == 0 ||
+                _stricmp(export_name, name) == 0)
+                return mod->base + function_table[ordinal_table[hint]];
 
         /*wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
             mod->name, hint, name, export_name);*/
@@ -256,6 +312,16 @@ static bool PeDoImports(process_t* proc,
     return true;
 }
 
+void PeInitImage(module_t *mod)
+{
+    IMAGE_PE_HEADERS *pe;
+
+    pe = PeGetHeaders(mod->base);
+    if (!mod->imported &&
+        !PeDoImports(current->process, mod, pe->OptionalHeader.DataDirectory))
+        wprintf(L"%s: imports failed\n", mod->name);
+}
+
 bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
                         size_t *bytes, uint32_t *flags)
 {
@@ -322,16 +388,6 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
     }
 
     return true;
-}
-
-void PeInitImage(module_t *mod)
-{
-    IMAGE_PE_HEADERS *pe;
-
-    pe = PeGetHeaders(mod->base);
-    if (!mod->imported &&
-        !PeDoImports(current->process, mod, pe->OptionalHeader.DataDirectory))
-        wprintf(L"%s: imports failed\n", mod->name);
 }
 
 bool PePageFault(process_t* proc, module_t* mod, addr_t addr)

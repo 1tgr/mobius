@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.13 2002/04/20 12:30:05 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.14 2002/05/05 13:43:25 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -6,6 +6,7 @@
 #include <kernel/init.h>
 #include <kernel/multiboot.h>
 
+#include <stdio.h>
 #include <string.h>
 
 #define MEM_TEMP_START	  0xf8000000
@@ -162,6 +163,10 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
 	    if (pt == NULL)
 		return false;
 
+            if (virt >= 0x80000000)
+                kernel_pagedir[PAGE_DIRENT(virt)] = pt 
+                    | PRIV_WR | PRIV_USER | PRIV_PRES;
+
 	    *pde = pt | PRIV_WR | PRIV_USER | PRIV_PRES;
 
 	    /*__asm__("mov %%cr3, %0" : "=r" (pt));
@@ -259,10 +264,21 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 {
     unsigned i;
     void *ptr;
+    bool can_map_direct;
 
-    if (num_pages == 1 &&
-	*phys < 0x08000000)
-	return PHYSICAL(*phys);
+    can_map_direct = true;
+    for (i = 0; i < num_pages; i++)
+    {
+        if ((phys[i] >= 0x08000000) ||
+            (i > 0 && phys[i] != phys[i - 1] + PAGE_SIZE))
+        {
+            can_map_direct = false;
+            break;
+        }
+    }
+
+    if (can_map_direct)
+    	return PHYSICAL(*phys);
 
     ptr = (void*) mem_temp_end;
     //wprintf(L"MemMapTemp: %u pages ", num_pages);
@@ -358,8 +374,14 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 	/*if (phys > kernel_startup.memory_size)
 	    return false;*/
 
-	assert(phys < kernel_startup.memory_size);
-	locked_pages[index] += d;
+        /*
+         * xxx - drivers could try to lock memory outside of RAM (e.g. the 
+         *  video frame buffer).
+         * The kernel isn't going to do anything with these pages anyway, so
+         *  just ignore attempts to lock/unlock them.
+         */
+	if (phys < kernel_startup.memory_size)
+	    locked_pages[index] += d;
     }
 
     return true;

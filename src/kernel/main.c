@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.17 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: main.c,v 1.18 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -29,10 +29,8 @@ void SemInit(semaphore_t *sem)
     sem->owner = NULL;
 }
 
-static bool KernelEnumDevices(void *param, const wchar_t *name, const wchar_t *value)
+/*static bool KernelEnumDevices(void *param, const wchar_t *name, const wchar_t *value)
 {
-    /*wprintf(L"KernelEnumDevices: loading device %s from driver %s\n",
-	name, value);*/
     if (value != NULL)
 	DevInstallDevice(value, name, NULL);
     return true;
@@ -41,7 +39,6 @@ static bool KernelEnumDevices(void *param, const wchar_t *name, const wchar_t *v
 static bool KernelEnumMounts(void *param, const wchar_t *name, const wchar_t *value)
 {
     wchar_t *dest, *type;
-    device_t *dev;
 
     if (value != NULL)
     {
@@ -50,7 +47,6 @@ static bool KernelEnumMounts(void *param, const wchar_t *name, const wchar_t *va
         {
             wprintf(L"KernelEnumMounts: mounting %s as %s\n",
                 name, value);
-            dev = NULL;
             type = (wchar_t*) value;
         }
         else
@@ -62,23 +58,99 @@ static bool KernelEnumMounts(void *param, const wchar_t *name, const wchar_t *va
 
             wprintf(L"KernelEnumMounts: mounting %s on %s as %s\n",
                 name, dest, type);
-
-            dev = IoOpenDevice(dest);
-            if (dev == NULL)
-            {
-                wprintf(L"%s: not found\n", dest);
-                free(type);
-                return true;
-            }
         }
 
-        FsMount(name, type, dev);
+        FsMount(name, type, dest);
 
         if (dest != NULL)
             free(type);
     }
 
     return true;
+}*/
+
+void KeInstallDevices(void)
+{
+    unsigned i, j;
+    wchar_t value[10], line[256], *tok, *comma;
+    const wchar_t *ptr, *driver, *device_path, *dest;
+    bool is_mount;
+
+    wcscpy(value, L"0");
+    for (i = 0; 
+        (ptr = ProGetString(L"Devices", value, NULL)) != NULL; 
+        i++)
+    {
+        memset(line, 0, sizeof(line));
+        wcsncpy(line, ptr, _countof(line) - 1);
+
+        j = 0;
+        driver = device_path = dest = NULL;
+        tok = line;
+
+        while ((comma = wcschr(tok, ',')) != NULL)
+        {
+            *comma = '\0';
+            tok = comma + 1;
+        }
+
+        tok = line;
+        while (*tok != '\0')
+        {
+            switch (j)
+            {
+            case 0: /* action */
+                if (_wcsicmp(tok, L"device") == 0)
+                    is_mount = false;
+                else if (_wcsicmp(tok, L"mount") == 0)
+                    is_mount = true;
+                else
+                {
+                    wprintf(L"system.pro/Devices: invalid device/mount option: %s\n", tok);
+                    tok = NULL;
+                    continue;
+                }
+
+                break;
+
+            case 1: /* driver name */
+                driver = tok;
+                if (!is_mount)
+                    device_path = driver;
+                break;
+
+            case 2: /* device name or mount point path */
+                device_path = tok;
+                break;
+
+            case 3: /* mount point device (optional) */
+                if (is_mount)
+                    dest = tok;
+                else
+                    wprintf(L"system.pro/Devices: mount point device name (%s) is only valid for mount points\n",
+                        tok);
+                break;
+            }
+
+            j++;
+            tok += wcslen(tok) + 1;
+        }
+
+        if (driver == NULL)
+            wprintf(L"system.pro/Devices: need to specify at least driver name\n");
+        else if (is_mount)
+        {
+            wprintf(L"Mounting %s on %s as %s\n", device_path, dest, driver);
+            FsMount(device_path, driver, dest);
+        }
+        else
+        {
+            wprintf(L"Installing device %s using driver %s\n", device_path, driver);
+            DevInstallDevice(driver, device_path, NULL);
+        }
+
+        swprintf(value, L"%u", i + 1);
+    }
 }
 
 void KernelMain(void)
@@ -93,15 +165,12 @@ void KernelMain(void)
     TRACE0("FsInit\n");
     FsInit();
 
-    ProLoadProfile(L"system.pro", L"/");
+    ProLoadProfile(L"/System/Boot/system.pro", L"/");
     i386InitSerialDebug();
-    ProEnumValues(L"Devices", NULL, KernelEnumDevices);
-    ProEnumValues(L"Mounts", NULL, KernelEnumMounts);
 
-    /*FsMount(L"/hd", L"fat", IoOpenDevice(L"ide0a"));
-    FsMount(L"/cd", L"iso9660", IoOpenDevice(L"ide1"));*/
-    /*FsMount(L"/fd", L"fat", IoOpenDevice(L"fdc0"));*/
+    KeInstallDevices();
 
+    wcscpy(proc_idle.info->cwd, L"/hd/boot");
     ProcSpawnProcess(ProGetString(L"", L"Shell", SYS_BOOT L"/shell.exe"), 
         proc_idle.info);
     ScEnableSwitch(true);

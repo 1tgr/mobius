@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.15 2002/04/20 12:30:04 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.16 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -13,7 +13,6 @@
 #include <kernel/debug.h>
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <os/defs.h>
 
@@ -279,7 +278,7 @@ void ScEnableSwitch(bool enable)
     SemAcquire(&sc_sem);
     if (enable)
         sc_switch_enabled++;
-    else if (sc_switch_enabled > 0)
+    else
         sc_switch_enabled--;
     SemRelease(&sc_sem);
 }
@@ -317,6 +316,9 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
 {
     thread_t *thr;
     addr_t stack;
+
+    if (proc == NULL)
+        proc = &proc_idle;
 
     thr = malloc(sizeof(thread_t));
     if (thr == NULL)
@@ -390,14 +392,24 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     SemRelease(&thr_kernel_stack_sem);
 
     if (isKernel)
+    {
         stack = (addr_t) thr->kernel_stack;
+        wprintf(L"ThrCreateThread(kernel): stack at %x\n", stack);
+    }
     else
     {
         proc->stack_end -= 0x100000;
-        stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
-            3 | MEM_READ | MEM_WRITE);
-        wprintf(L"ThrCreateThread: user stack at %x\n", stack);
-        stack += 0x100000;
+
+        if (proc == current->process)
+        {
+            stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
+                3 | MEM_READ | MEM_WRITE);
+            wprintf(L"ThrCreateThread(user): user stack at %x\n", stack);
+            stack += 0x100000;
+        }
+        else
+            stack = proc->stack_end + 0x100000;
+
         /*stack = proc->stack_end;
         proc->stack_end -= PAGE_SIZE;*/
     }

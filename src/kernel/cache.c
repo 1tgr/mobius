@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.8 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.9 2002/05/05 13:42:59 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -122,7 +122,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
         cc->blocks = realloc(cc->blocks, sizeof(cache_block_t) * cc->num_blocks);
         assert(cc->blocks != NULL);
         for (i = old; i < cc->num_blocks; i++)
-            cc->blocks[block].is_valid = false;
+            cc->blocks[block].is_valid = cc->blocks[block].is_dirty = false;
 
         old = cc->num_pages;
         cc->num_pages = PAGE_ALIGN_UP(cc->num_blocks * cc->block_size) / PAGE_SIZE;
@@ -133,13 +133,17 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
             for (i = old; i < cc->num_pages; i++)
                 cc->pages[i] = -1;
         }
+    }
 
-        for (i = page_start; i < page_start + pages_per_block; i++)
-            if (cc->pages[i] == -1)
-            {
-                cc->pages[i] = MemAlloc();
-                wprintf(L"%x ", cc->pages[i]);
-            }
+    for (i = page_start; i < page_start + pages_per_block; i++)
+    {
+        if (cc->pages[i] == -1)
+        {
+            cc->pages[i] = MemAlloc();
+            wprintf(L"+");
+        }
+
+        wprintf(L"%x ", cc->pages[i]);
     }
 
     wprintf(L"\n");
@@ -226,7 +230,10 @@ void CcReleaseBlock(cache_t *cc, uint64_t offset, bool isValid, bool isDirty)
     page = (block * cc->block_size) / PAGE_SIZE;
     SemAcquire(&cc->lock);
     cc->blocks[block].is_valid = isValid;
-    cc->blocks[block].is_dirty = isDirty;
+    if (isValid)
+        cc->blocks[block].is_dirty = isDirty;
+    else
+        cc->blocks[block].is_dirty = false;
 
     /*if (cc->pages[page] != -1)
         MemLockPages(cc->pages[page], 1, false);

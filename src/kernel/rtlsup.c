@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.13 2002/04/20 12:30:03 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.14 2002/05/05 13:43:24 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <unistd.h>    /* to give sbrk the right name */
+/*#include <unistd.h>*/    /* to give sbrk the right name */
 #include <libc/local.h>
 #include <libc/file.h>
 #include <libc/stdiohk.h>
@@ -70,13 +70,10 @@ void __dj_assert(const char *test, const char *file, int line)
         L"%S\n",
         file, line, test);
     ScEnableSwitch(false);
-#if 1
     __asm__("int3");
-#else
     enable();
     for (;;);
     /*__asm__("cli;hlt");*/
-#endif
 }
 
 #define DEFINE_PUTS(name, ct) \
@@ -147,14 +144,14 @@ wchar_t *ProcGetCwd()
     return current->process->info->cwd;
 }
 
-char *sbrk(size_t diff)
+void *__morecore(size_t diff)
 {
     addr_t new_sbrk, start, phys;
 
     diff = PAGE_ALIGN_UP(diff);
     assert(diff < 1048576);
     if (kernel_sbrk + diff >= 0xf0000000)
-        return (char*) -1;
+        return NULL;
 
     start = kernel_sbrk;
     new_sbrk = kernel_sbrk + diff;
@@ -170,11 +167,11 @@ char *sbrk(size_t diff)
         _cputws(L".", 1);
         if (!MemMap(kernel_sbrk, phys, kernel_sbrk + PAGE_SIZE, 
             PRIV_WR | PRIV_KERN | PRIV_PRES))
-            return (char*) -1;
+            return NULL;
     }
 
     wprintf(L"done\n");
-    return (char*) start;
+    return (void*) start;
 }
 
 void *sbrk_virtual(size_t diff)

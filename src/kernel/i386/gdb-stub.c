@@ -850,7 +850,6 @@ void handle_exception(int exceptionVector)
 void set_debug_traps()
 {
 extern void remcomHandler();
-int exception;
 
 	stackPtr	= &remcomStack[STACKSIZE/sizeof(int) - 1];
 

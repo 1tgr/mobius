@@ -34,7 +34,6 @@ EXPORTS
 	DevInstallDevice
 	DevInstallNewDriver
 	DevMapBuffer
-	DevMountFs
 	DevQueueRequest
 	DevRegisterIrq
 	DevUnloadDriver
@@ -43,13 +42,16 @@ EXPORTS
 	EvtSignal
 	FsClose
 	FsCreate
+	FsCreateFileHandle
 	FsCreateVirtualDir
 	FsFullPath
 	FsMount
+	FsNotifyCompletion
 	FsOpen
-	FsOpenSearch
+	FsOpenDir
 	FsQueryFile
 	FsRead
+	FsReadDir
 	FsReadSync
 	FsRequestSync
 	FsSeek
@@ -93,7 +95,6 @@ EXPORTS
 	PeLoad
 	PePageFault
 	PeUnload
-	PortMountFs
 	ProcCreateProcess
 	ProcExitProcess
 	ProcFirstTimeInit
@@ -141,7 +142,9 @@ EXPORTS
 	VmmFree
 	VmmMap
 	VmmMapFile
+	VmmMapShared
 	VmmPageFault
+	VmmShare
 	VmmUncommit
 	_HndAlloc
 	_HndInit
@@ -153,6 +156,7 @@ EXPORTS
 	__get_eh_context
 	__free
 	__malloc
+	__morecore
 	__realloc
 	__wcsdup
 	_cputws
@@ -183,7 +187,6 @@ EXPORTS
 	memmove
 	memset
 	qsort
-	__sbrk
 	sbrk_virtual
 	sprintf
 	strcat

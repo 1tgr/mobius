@@ -1,10 +1,12 @@
-/* $Id: fs.c,v 1.23 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.24 2002/05/05 13:42:59 pavlovskii Exp $ */
+
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
 #include <kernel/init.h>
 #include <kernel/thread.h>
 #include <kernel/memory.h>
+#include <kernel/cache.h>
 
 #define DEBUG
 #include <kernel/debug.h>
@@ -18,286 +20,83 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-device_t *root;
+fsd_t *root;
 
-typedef struct vfs_mount_t vfs_mount_t;
-struct vfs_mount_t
+#include <kernel/proc.h>
+
+static void FsCompletionApc(void *param)
 {
-    vfs_mount_t *prev, *next;
-    wchar_t *name;
-    device_t *fsd;
-};
+    fs_asyncio_t *io;
 
-typedef struct vfs_dir_t vfs_dir_t;
-struct vfs_dir_t
-{
-    device_t dev;
-    vfs_mount_t *vfs_mount_first, *vfs_mount_last;
-};
-
-typedef struct file_t vfs_search_t;
-
-static bool VfsRequest(device_t *dev, request_t *req)
-{
-    vfs_dir_t *dir = (vfs_dir_t*) dev;
-    request_fs_t *req_fs = (request_fs_t*) req;
-    const wchar_t *ch;
-    size_t len;
-    vfs_mount_t *mount;
-    vfs_search_t *search;
-    dirent_t *buf;
-
-    switch (req->code)
-    {
-    /* Assumes params_fs_t.fs_create <=> params_fs_t.fs_open */
-    case FS_CREATE:
-    case FS_OPEN:
-        if (req_fs->params.fs_open.name[0] == '/')
-            req_fs->params.fs_open.name++;
-
-        ch = wcschr(req_fs->params.fs_open.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_open.name);
-        else
-            len = ch - req_fs->params.fs_open.name;
-
-        /*TRACE3("Path: %s Name: %s Len: %d\n", 
-            req_fs->params.fs_open.name, ch, len);*/
-
-        FOREACH (mount, dir->vfs_mount)
-            if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
-            {
-                /*TRACE1("=> %p\n", mount->fsd);*/
-                req_fs->params.fs_open.name += len;
-                return mount->fsd->vtbl->request(mount->fsd, req);
-            }
-        
-        wprintf(L"%s: not found in root\n", req_fs->params.fs_open.name);
-        req->result = ENOTFOUND;
-        return false;
-        
-    case FS_MOUNT:
-        if (req_fs->params.fs_mount.name[0] == '/')
-            req_fs->params.fs_mount.name++;
-
-        ch = wcschr(req_fs->params.fs_mount.name, '/');
-        if (ch == NULL)
-        {
-            len = wcslen(req_fs->params.fs_mount.name);
-            ch = req_fs->params.fs_mount.name + len;
-        }
-        else
-            len = ch - req_fs->params.fs_mount.name;
-        
-        if (*ch == '\0')
-        {
-            /* Mounting on this directory */
-            /*TRACE3("VfsRequest(FS_MOUNT): mounting %p as %*s\n",
-                req_fs->params.fs_mount.fsd, 
-                len,
-                req_fs->params.fs_mount.name);*/
-
-            mount = malloc(sizeof(vfs_mount_t));
-            mount->name = malloc(sizeof(wchar_t) * (len + 1));
-            mount->name[len] = '\0';
-            memcpy(mount->name, req_fs->params.fs_mount.name, 
-                sizeof(wchar_t) * len);
-            mount->fsd = req_fs->params.fs_mount.fsd;
-            LIST_ADD(dir->vfs_mount, mount);
-
-            return true;
-        }
-        else
-        {
-            /* Mounting on a subdirectory */
-            /*TRACE1("VfsRequest(FS_MOUNT): mounting on subdirectory %s\n", ch);*/
-
-            FOREACH (mount, dir->vfs_mount)
-                if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
-                {
-                    /*TRACE1("=> %p\n", mount->fsd);*/
-                    req_fs->params.fs_mount.name += len;
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-                }
-
-            req->result = ENOTFOUND;
-            return false;
-        }
-
-    case FS_OPENSEARCH:
-        if (req_fs->params.fs_opensearch.name[0] == '/')
-            req_fs->params.fs_opensearch.name++;
-
-        ch = wcschr(req_fs->params.fs_opensearch.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_opensearch.name);
-        else
-            len = ch - req_fs->params.fs_opensearch.name;
-
-        TRACE3("Search: Path: %s Name: %s Len: %d\n", 
-            req_fs->params.fs_open.name, ch, len);
-
-        if (ch != NULL)
-        {
-            FOREACH (mount, dir->vfs_mount)
-                if (_wcsnicmp(mount->name, req_fs->params.fs_opensearch.name, len) == 0)
-                {
-                    /*TRACE1("=> %p\n", mount->fsd);*/
-                    req_fs->params.fs_opensearch.name += len;
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-                }
-
-            req->result = ENOTFOUND;
-            return false;
-        }
-        else
-        {        
-            /* It's a search in our directory */
-            req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(vfs_search_t), 'file');
-            search = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
-            if (search == NULL)
-            {
-                req->result = errno;
-                return false;
-            }
-
-            search->fsd = dev;
-            search->pos = (uint64_t) (addr_t) dir->vfs_mount_first;
-            search->flags = FILE_READ;
-            return true;
-        }
-
-    case FS_CLOSE:
-        if (HndClose(NULL, req_fs->params.fs_close.file, 'file'))
-            return true;
-        else
-        {
-            req->result = errno;
-            return false;
-        }
-
-    case FS_READ:
-        search = HndLock(NULL, req_fs->params.fs_read.file, 'file');
-        if (search == NULL)
-        {
-            req->result = errno;
-            HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-            return false;
-        }
-
-        mount = (vfs_mount_t*) (addr_t) search->pos;
-        if (mount == NULL)
-        {
-            req->result = EEOF;
-            req_fs->params.fs_read.length = 0;
-            HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-            return false;
-        }
-
-        buf = MemMapPageArray(req_fs->params.fs_read.pages, 
-            PRIV_KERN | PRIV_PRES | PRIV_WR);
-        len = req_fs->params.fs_read.length;
-        req_fs->params.fs_read.length = 0;
-        while (req_fs->params.fs_read.length < len)
-        {
-            wcscpy(buf->name, mount->name);
-            buf->length = 0;
-            buf->standard_attributes = FILE_ATTR_DIRECTORY;
-
-            buf++;
-            req_fs->params.fs_read.length += sizeof(dirent_t);
-
-            mount = mount->next;
-            search->pos = (uint64_t) (addr_t) mount;
-
-            if (mount == NULL)
-                break;
-        }
-
-        MemUnmapTemp();
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-        return true;
-        
-    case FS_QUERYFILE:
-        if (req_fs->params.fs_queryfile.name[0] == '/')
-            req_fs->params.fs_queryfile.name++;
-
-        ch = wcschr(req_fs->params.fs_queryfile.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_queryfile.name);
-        else
-            len = ch - req_fs->params.fs_queryfile.name;
-
-        FOREACH (mount, dir->vfs_mount)
-            if (_wcsnicmp(mount->name, req_fs->params.fs_queryfile.name, len) == 0)
-            {
-                req_fs->params.fs_queryfile.name += len;
-                if (*req_fs->params.fs_queryfile.name == '\0' ||
-                    wcscmp(req_fs->params.fs_queryfile.name, L"/") == 0)
-                {
-                    switch (req_fs->params.fs_queryfile.query_class)
-                    {
-                    case FILE_QUERY_NONE:
-                        return true;
-
-                    case FILE_QUERY_STANDARD:
-                        if (req_fs->params.fs_queryfile.buffer_size < sizeof(dirent_t))
-                        {
-                            req->result = EBUFFER;
-                            return false;
-                        }
-
-                        buf = (dirent_t*) req_fs->params.fs_queryfile.buffer;
-                        wcscpy(buf->name, mount->name);
-                        buf->length = 0;
-                        buf->standard_attributes = FILE_ATTR_DIRECTORY;
-                        return true;
-
-                    default:
-                        req->result = ENOTIMPL;
-                        return false;
-                    }
-                }
-                else
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-            }
-
-        wprintf(L"%s: not found in root\n", req_fs->params.fs_queryfile.name);
-        req->result = ENOTFOUND;
-        return false;
-    }
-
-    req->result = ENOTIMPL;
-    return false;
+    io = param;
+    assert(io != NULL);
+    /*wprintf(L"FsCompletionApc(%p): io->owner = %s/%d current = %s/%d\n", 
+        io,
+        io->owner->process->exe, io->owner->id, 
+        current->process->exe, current->id);*/
+    assert(io->owner == current);
+    *io->original = io->op;
+    io->original = NULL;
+    HndUnlock(NULL, io->file_handle, 'file');
+    EvtSignal(NULL, io->op.event);
+    free(io);
 }
 
-static void VfsFinishIo(device_t *dev, request_t *req)
+void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
 {
-    fileop_t *op;
-    request_fs_t *req_fs;
+    io->op.result = result;
+    io->op.bytes = bytes;
+    io->file->pos += bytes;
+    /*wprintf(L"FsNotifyCompletion(%p): io->owner = %p current = %p\n", 
+        io, io->owner, current);*/
 
-    /*if (req->code == FS_READ)
-        TRACE3("VfsFinishIo: req = %p op = %p code = %x: ", 
-            req, req->param, req->code);*/
-
-    assert(req->code == FS_READ || req->code == FS_WRITE);
-    op = req->param;
-    op->result = req->result;
-    req_fs = (request_fs_t*) req;
-    if (req->code == FS_READ || req->code == FS_WRITE)
-        op->bytes = req_fs->params.buffered.length;
-
-    /*if (req->code == FS_READ)
-        TRACE3("finished io: event = %u bytes = %u result = %u\n",
-            op->event, op->bytes, op->result);*/
-
-    EvtSignal(NULL, op->event);
-    free(req);
+    if (io->owner == current)
+        FsCompletionApc(io);
+    else
+    {
+        wprintf(L"FsNotifyCompletion: queueing APC\n");
+        ThrQueueKernelApc(io->owner, FsCompletionApc, io);
+    }
 }
 
 static bool FsCheckAccess(file_t *file, uint32_t mask)
 {
     return (file->flags & mask) == mask;
+}
+
+handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie, 
+                            const wchar_t *name, uint32_t flags)
+{
+    handle_t fd;
+    file_t *file;
+    fs_info_t info;
+
+    fd = HndAlloc(NULL, sizeof(file_t), 'file');
+    file = HndLock(NULL, fd, 'file');
+    if (file == NULL)
+        return NULL;
+
+    info.cache_block_size = 0;
+    if (fsd->vtbl->get_fs_info != NULL)
+        fsd->vtbl->get_fs_info(fsd, &info);
+
+    file->fsd = fsd;
+    file->fsd_cookie = fsd_cookie;
+
+    if (info.cache_block_size != 0)
+        file->cache = CcCreateFileCache(info.cache_block_size);
+    else
+        file->cache = NULL;
+
+    /*if (name == NULL)
+        file->name = NULL;
+    else
+        file->name = _wcsdup(name);*/
+
+    file->flags = flags;
+    file->pos = 0;
+    HndUnlock(NULL, fd, 'file');
+    return fd;
 }
 
 /*!
@@ -308,78 +107,41 @@ static bool FsCheckAccess(file_t *file, uint32_t mask)
  *    \sa    \p FILE_READ, \p FILE_WRITE
  *    \return    Handle to the new file
  */
-handle_t FsCreate(const wchar_t *path, uint32_t flags)
+handle_t FsCreateOpen(const wchar_t *path, uint32_t flags, bool do_create)
 {
-    request_fs_t req;
+    fsd_t *fsd;
     wchar_t fullname[256];
+    status_t ret;
+    void *cookie;
 
     if (!FsFullPath(path, fullname))
         return NULL;
 
-    TRACE2("FsCreate(%s, 0x%x)\n", fullname, flags);
-    req.header.code = FS_CREATE;
-    req.params.fs_create.name = fullname;
-    req.params.fs_create.name_size = (wcslen(fullname) * sizeof(wchar_t)) + 1;
-    req.params.fs_create.file = NULL;
-    req.params.fs_create.flags = flags;
-    if (IoRequestSync(root, (request_t*) &req))
-    {
-        file_t *file;
-
-        file = HndLock(NULL, req.params.fs_create.file, 'file');
-        if (file == NULL)
-            return NULL;
-
-        file->name = _wcsdup(fullname);
-        HndUnlock(NULL, req.params.fs_create.file, 'file');
-        return req.params.fs_create.file;
-    }
+    fsd = root;
+    if (do_create && root->vtbl->create_file != NULL)
+        ret = root->vtbl->create_file(root, fullname, &fsd, &cookie);
+    else if (!do_create && root->vtbl->lookup_file != NULL)
+        ret = root->vtbl->lookup_file(root, fullname, &fsd, &cookie);
     else
+        ret = ENOTIMPL;
+
+    if (ret != 0)
     {
-        errno = req.header.result;
+        errno = ret;
         return NULL;
     }
+
+    return FsCreateFileHandle(NULL, fsd, cookie, fullname, flags);
 }
 
-/*!
- *    \brief    Opens a file
- *
- *    \param    path    Full path specification for the file
- *    \param    flags    Bitmask of access flags for the file
- *    \sa    \p FILE_READ, \p FILE_WRITE
- *    \return    Handle to the file
- */
+handle_t FsCreate(const wchar_t *path, uint32_t flags)
+{
+    return FsCreateOpen(path, flags, true);
+}
+
 handle_t FsOpen(const wchar_t *path, uint32_t flags)
 {
-    request_fs_t req;
-    wchar_t fullname[256];
-
-    if (!FsFullPath(path, fullname))
-        return NULL;
-
-    TRACE2("FsOpen(%s, 0x%x)\n", fullname, flags);
-    req.header.code = FS_OPEN;
-    req.params.fs_open.name = fullname;
-    req.params.fs_open.name_size = (wcslen(fullname) * sizeof(wchar_t)) + 1;
-    req.params.fs_open.file = NULL;
-    req.params.fs_open.flags = flags;
-    if (IoRequestSync(root, (request_t*) &req))
-    {
-        file_t *file;
-
-        file = HndLock(NULL, req.params.fs_open.file, 'file');
-        if (file == NULL)
-            return NULL;
-
-        file->name = _wcsdup(fullname);
-        HndUnlock(NULL, req.params.fs_open.file, 'file');
-        return req.params.fs_open.file;
-    }
-    else
-    {
-        errno = req.header.result;
-        return NULL;
-    }
+    return FsCreateOpen(path, flags, false);
 }
 
 /*!
@@ -388,9 +150,45 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
  *    \param    path    Full search specification
  *    \return    Handle to the search
  */
-handle_t FsOpenSearch(const wchar_t *path)
+handle_t FsOpenDir(const wchar_t *path)
 {
-    request_fs_t req;
+    wchar_t fullname[256];
+    status_t ret;
+    fsd_t *fsd;
+    void *dir_cookie;
+    handle_t fd;
+    file_t *file;
+
+    if (!FsFullPath(path, fullname))
+        return NULL;
+
+    fd = HndAlloc(NULL, sizeof(file_t), 'file');
+    file = HndLock(NULL, fd, 'file');
+
+    fsd = root;
+    if (fsd->vtbl->opendir == NULL)
+        ret = ENOTIMPL;
+    else
+        ret = root->vtbl->opendir(root, fullname, &fsd, &dir_cookie);
+
+    if (ret != 0)
+    {
+        errno = ret;
+        HndUnlock(NULL, fd, 'file');
+        HndClose(NULL, fd, 'file');
+        return NULL;
+    }
+
+    file->fsd = fsd;
+    file->fsd_cookie = dir_cookie;
+    file->cache = NULL;
+    file->flags = FILE_READ | FILE_IS_DIRECTORY;
+    /*file->name = NULL;*/
+    file->pos = 0;
+    HndUnlock(NULL, fd, 'file');
+    return fd;
+
+    /*request_fs_t req;
     wchar_t fullname[256];
 
     if (!FsFullPath(path, fullname))
@@ -407,7 +205,45 @@ handle_t FsOpenSearch(const wchar_t *path)
     {
         errno = req.header.result;
         return NULL;
+    }*/
+}
+
+bool FsReadDir(handle_t dir, dirent_t *di, size_t size)
+{
+    file_t *fd;
+    fsd_t *fsd;
+    status_t ret;
+
+    if (!MemVerifyBuffer(di, size) ||
+        size < sizeof(dirent_t))
+    {
+        errno = EBUFFER;
+        return false;
     }
+
+    fd = HndLock(NULL, dir, 'file');
+    if (fd == NULL)
+    {
+        errno = EHANDLE;
+        return false;
+    }
+
+    fsd = fd->fsd;
+
+    if (!FsCheckAccess(fd, FILE_READ | FILE_IS_DIRECTORY))
+    {
+        HndUnlock(NULL, dir, 'file');
+        errno = EACCESS;
+        return false;
+    }
+
+    if (fsd->vtbl->readdir == NULL)
+        ret = errno = ENOTIMPL;
+    else
+        ret = fsd->vtbl->readdir(fsd, fd->fsd_cookie, di);
+
+    HndUnlock(NULL, dir, 'file');
+    return ret > 0 ? false : true;
 }
 
 /*!
@@ -418,28 +254,40 @@ handle_t FsOpenSearch(const wchar_t *path)
  */
 bool FsClose(handle_t file)
 {
-    request_fs_t req;
     file_t *fd;
-    device_t *fsd;
+    fsd_t *fsd;
 
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
         return false;
 
-    free(fd->name);
-    fd->name = NULL;
     fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
+    if (fd->cache != NULL)
+    {
+        if (fsd->vtbl->flush_cache != NULL)
+            fsd->vtbl->flush_cache(fsd, fd);
 
-    req.header.code = FS_CLOSE;
-    req.params.fs_close.file = file;
-    if (IoRequestSync(fsd, (request_t*) &req))
-        return true;
+        CcDeleteFileCache(fd->cache);
+        fd->cache = NULL;
+    }
+
+    /*free(fd->name);
+    fd->name = NULL;*/
+
+    if (fd->flags & FILE_IS_DIRECTORY)
+    {
+        if (fsd->vtbl->free_dir_cookie != NULL)
+            fsd->vtbl->free_dir_cookie(fsd, fd->fsd_cookie);
+    }
     else
     {
-        errno = req.header.result;
-        return false;
+        if (fsd->vtbl->free_cookie != NULL)
+            fsd->vtbl->free_cookie(fsd, fd->fsd_cookie);
     }
+
+    HndUnlock(NULL, file, 'file');
+    HndClose(NULL, file, 'file');
+    return true;
 }
 
 /*!
@@ -457,45 +305,31 @@ bool FsClose(handle_t file)
  */
 bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
 {
-    request_fs_t req;
-    file_t *fd;
-    device_t *fsd;
-    page_array_t *array;
+    fileop_t op;
 
-    fd = HndLock(NULL, file, 'file');
-    if (fd == NULL)
-        return 0;
-
-    if (!FsCheckAccess(fd, FILE_READ))
+    op.event = file;
+    op.bytes = 0;
+    if (!FsRead(file, buf, bytes, &op))
     {
-        HndUnlock(NULL, file, 'file');
-        return 0;
-    }
-
-    fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
-
-    /*wprintf(L"FsRead: file = %lx buf = %p bytes = %lu\n",
-        file, buf, bytes);*/
-
-    array = MemCreatePageArray(buf, bytes);
-    req.header.code = FS_READ;
-    req.params.fs_read.length = bytes;
-    req.params.fs_read.pages = array;
-    req.params.fs_read.file = file;
-    if (IoRequestSync(fsd, (request_t*) &req))
-    {
-        MemDeletePageArray(array);
+        errno = op.result;
         if (bytes_read != NULL)
-            *bytes_read = req.params.fs_read.length;
-        return true;
-    }
-    else
-    {
-        MemDeletePageArray(array);
-        errno = req.header.result;
+            *bytes_read = op.bytes;
         return false;
     }
+
+    if (op.result == SIOPENDING)
+    {
+        wprintf(L"FsReadSync: op.result == SIOPENDING, waiting\n");
+        ThrWaitHandle(current, op.event, 0);
+        KeYield();
+        wprintf(L"FsReadSync: finished wait\n");
+    }
+
+    errno = op.result;
+    if (bytes_read != NULL)
+        *bytes_read = op.bytes;
+
+    return true;
 }
 
 /*!
@@ -511,58 +345,50 @@ bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
  *    \param    bytes    Number of bytes to write
  *    \return    Number of bytes written
  */
-size_t FsWriteSync(handle_t file, const void *buf, size_t bytes)
+bool FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_written)
 {
-    request_fs_t req;
-    file_t *fd;
-    device_t *fsd;
-    page_array_t *array;
+    fileop_t op;
 
-    fd = HndLock(NULL, file, 'file');
-    if (fd == NULL)
-        return 0;
-
-    if (!FsCheckAccess(fd, FILE_WRITE))
+    op.event = file;
+    op.bytes = 0;
+    if (!FsWrite(file, buf, bytes, &op))
     {
-        HndUnlock(NULL, file, 'file');
-        return 0;
+        errno = op.result;
+        if (bytes_written != NULL)
+            *bytes_written = op.bytes;
+        return false;
     }
 
-    fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
+    if (op.result == SIOPENDING)
+    {
+        ThrWaitHandle(current, op.event, 0);
+        SysYield();
+    }
 
-    array = MemCreatePageArray(buf, bytes);
-    req.header.code = FS_WRITE;
-    req.params.fs_write.length = bytes;
-    req.params.fs_write.pages = array;
-    req.params.fs_write.file = file;
-    if (IoRequestSync(fsd, (request_t*) &req))
-    {
-        MemDeletePageArray(array);
-        return req.params.fs_write.length;
-    }
-    else
-    {
-        MemDeletePageArray(array);
-        errno = req.header.result;
-        return 0;
-    }
+    errno = op.result;
+    if (bytes_written != NULL)
+        *bytes_written = op.bytes;
+
+    return true;
 }
 
 static bool FsReadWritePhysical(handle_t file, page_array_t *pages, size_t bytes, 
                                 fileop_t *op, bool isRead)
 {
-    request_fs_t *req;
+    fsd_t *fsd;
     file_t *fd;
-    device_t *fsd;
-    bool is_sync;
-    
+    fs_asyncio_t *io;
+    bool ret;
+
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
     {
         op->result = EHANDLE;
         return false;
     }
+
+    fsd = fd->fsd;
+    /*wprintf(L"FsReadWritePhysical(%p)\n", fsd);*/
 
     if (!FsCheckAccess(fd, isRead ? FILE_READ : FILE_WRITE))
     {
@@ -572,51 +398,68 @@ static bool FsReadWritePhysical(handle_t file, page_array_t *pages, size_t bytes
         return false;
     }
 
-    fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
-
-    is_sync = op->event == NULL;
-    if (is_sync)
-        op->event = file;
-
-    req = malloc(sizeof(request_fs_t));
-    if (req == NULL)
+    if ((isRead && fsd->vtbl->read_file == NULL) ||
+        (!isRead && fsd->vtbl->write_file == NULL))
     {
-        op->result = ENOMEM;
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
         return false;
     }
 
-    /*if (isRead)
-        TRACE3("FsReadWrite: %s req = %p op = %p: ",
-            isRead ? L"read" : L"write", req, op);*/
-
-    req->header.code = isRead ? FS_READ : FS_WRITE;
-    req->header.param = op;
-    req->params.buffered.pages = pages;
-    req->params.buffered.length = bytes;
-    req->params.buffered.file = file;
-    
-    if (!IoRequest(root, fsd, &req->header))
+    io = malloc(sizeof(fs_asyncio_t));
+    if (io == NULL)
     {
-        /*if (isRead)
-            TRACE1("failed (%d)\n", req->header.result);*/
-        op->result = req->header.result;
-        op->bytes = req->params.buffered.length;
-        free(req);
-        EvtSignal(NULL, op->event);
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
+        return false;
+    }
+
+    op->result = 0;
+    io->original = op;
+    io->op = *op;
+    io->owner = current;
+    io->file = fd;
+    io->file_handle = file;
+
+    if (isRead)
+    {
+        /*wprintf(L"FsReadWritePhysical: reading %u bytes\n", bytes);*/
+        ret = fsd->vtbl->read_file(fsd, fd, pages, bytes, io);
+    }
+    else
+    {
+        /*wprintf(L"FsReadWritePhysical: writing %u bytes\n", bytes);*/
+        ret = fsd->vtbl->write_file(fsd, fd, pages, bytes, io);
+    }
+
+    /*wprintf(L"FsReadWritePhysical: ret = %d ", ret);*/
+    if (!ret)
+    {
+        /*
+         * Immediate failure: FsNotifyCompletion hasn't been called
+         */
+        /*op->result = ret;*/
+        op->result = io->op.result;
+        op->bytes = io->op.bytes;
+        fd->pos += op->bytes;
+        HndSignal(NULL, op->event, 0, true);
+        HndUnlock(NULL, file, 'file');
+        free(io);
         return false;
     }
     else
     {
-        if (is_sync && req->header.result == SIOPENDING)
-        {
-            wprintf(L"FsReadWrite: doing sync\n");
-            ThrWaitHandle(current, op->event, 0);
-        }
-
         /*if (isRead)
-            TRACE1("succeeded (%d)\n", req->header.result);*/
-        op->result = req->header.result;
+            wprintf(L"FsReadWritePhysical: op->result = %d\n", op->result);*/
+
+        /*
+         * If the request is asynchronous, then that won't be reflected in ret.
+         * It is up to the FSD to call FsNotifyCompletion for both async I/O 
+         *  (the common case) and for sync I/O (less common, e.g. ramdisk).
+         */
+
         return true;
     }
 }
@@ -698,6 +541,7 @@ bool FsWritePhysical(handle_t file, page_array_t *pages, size_t bytes, struct fi
 off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
 {
     file_t *fd;
+    status_t ret;
     
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
@@ -714,14 +558,19 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
 
     case FILE_SEEK_END:
         {
-            dirent_t di;
-            if (!FsQueryFile(fd->name, FILE_QUERY_STANDARD, &di, sizeof(di)))
-            {
-                HndUnlock(NULL, file, 'file');
-                return false;
-            }
+            dirent_standard_t di;
+            if (fd->fsd->vtbl->get_file_info == NULL)
+                ret = ENOTIMPL;
+            else
+                ret = fd->fsd->vtbl->get_file_info(fd->fsd, fd->fsd_cookie, FILE_QUERY_STANDARD, &di);
 
-            ofs = di.length - ofs;
+            if (ret > 0)
+            {
+                ofs = fd->pos;
+                errno = ret;
+            }
+            else
+                ofs = di.length - ofs;
             break;
         }
     }
@@ -734,78 +583,178 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
 
 bool FsRequestSync(handle_t file, uint32_t code, void *params, size_t size, fileop_t *op)
 {
+    fsd_t *fsd;
     file_t *fd;
-    device_t *fsd;
-    request_fs_t req_fs;
-    /*handle_hdr_t *ptr;*/
-    bool ret;
+    fs_asyncio_t *io;
 
-    if (!MemVerifyBuffer(params, size))
+    fd = HndLock(NULL, file, 'file');
+    if (fd == NULL)
     {
-	op->result = EBUFFER;
-	return false;
+        op->result = EHANDLE;
+        return false;
     }
+
+    fsd = fd->fsd;
+
+    if (fsd->vtbl->passthrough == NULL)
+    {
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
+        return false;
+    }
+
+    io = malloc(sizeof(fs_asyncio_t));
+    if (io == NULL)
+    {
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
+        return false;
+    }
+
+    op->result = 0;
+    op->event = file;
+    io->original = op;
+    io->op = *op;
+    io->owner = current;
+    io->file = fd;
+    io->file_handle = file;
+
+    /*wprintf(L"FsReadWritePhysical: ret = %d ", ret);*/
+    if (!fsd->vtbl->passthrough(fsd, fd, code, params, size, io))
+    {
+        /*
+         * Immediate failure: FsNotifyCompletion hasn't been called
+         */
+        /*op->result = ret;*/
+        op->result = io->op.result;
+        op->bytes = io->op.bytes;
+        HndSignal(NULL, op->event, 0, true);
+        HndUnlock(NULL, file, 'file');
+        free(io);
+        return false;
+    }
+    else
+    {
+        /*if (isRead)
+            wprintf(L"FsReadWritePhysical: op->result = %d\n", op->result);*/
+
+        /*
+         * If the request is asynchronous, then that won't be reflected in ret.
+         * It is up to the FSD to call FsNotifyCompletion for both async I/O 
+         *  (the common case) and for sync I/O (less common, e.g. ramdisk).
+         */
+
+        return true;
+    }
+
+    /*file_t *fd;
+    status_t ret;
 
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
         return false;
 
-    fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
+    if (fd->fsd->vtbl->passthrough == NULL)
+        ret = ENOTIMPL;
+    else
+        ret = fd->fsd->vtbl->passthrough(fd->fsd, fd, code, params, size, NULL);
 
-    req_fs.header.code = FS_PASSTHROUGH;
-    req_fs.params.fs_passthrough.params_size = size;
-    req_fs.params.fs_passthrough.params = params;
-    req_fs.params.fs_passthrough.file = file;
-    req_fs.params.fs_passthrough.code = code;
-    /*ptr = HndGetPtr(NULL, file, 'file');
-    wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
-        file, fd, fd->fsd, ptr->file, ptr->line);*/
-    ret = IoRequestSync(fsd, &req_fs.header);
-    op->result = req_fs.header.result;
-    op->bytes = 0;
-    return ret;
+    HndUnlock(NULL, file, 'file');
+    return ret;*/
 }
 
 bool FsIoCtl(handle_t file, uint32_t code, void *buffer, size_t length, fileop_t *op)
 {
+    fsd_t *fsd;
     file_t *fd;
-    device_t *fsd;
-    request_fs_t req_fs;
-    /*handle_hdr_t *ptr;*/
-    bool ret;
-
-    if (!MemVerifyBuffer(buffer, length))
+    fs_asyncio_t *io;
+    
+    fd = HndLock(NULL, file, 'file');
+    if (fd == NULL)
     {
-	op->result = EBUFFER;
-	return false;
+        op->result = EHANDLE;
+        return false;
     }
+
+    fsd = fd->fsd;
+
+    if (fsd->vtbl->ioctl_file == NULL)
+    {
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
+        return false;
+    }
+
+    io = malloc(sizeof(fs_asyncio_t));
+    if (io == NULL)
+    {
+        HndUnlock(NULL, file, 'file');
+        op->result = EACCESS;
+        op->bytes = 0;
+        return false;
+    }
+
+    op->result = 0;
+    op->event = file;
+    io->original = op;
+    io->op = *op;
+    io->owner = current;
+    io->file = fd;
+    io->file_handle = file;
+
+    /*wprintf(L"FsReadWritePhysical: ret = %d ", ret);*/
+    if (!fsd->vtbl->ioctl_file(fsd, fd, code, buffer, length, io))
+    {
+        /*
+         * Immediate failure: FsNotifyCompletion hasn't been called
+         */
+        /*op->result = ret;*/
+        op->result = io->op.result;
+        op->bytes = io->op.bytes;
+        HndSignal(NULL, op->event, 0, true);
+        HndUnlock(NULL, file, 'file');
+        free(io);
+        return false;
+    }
+    else
+    {
+        /*if (isRead)
+            wprintf(L"FsReadWritePhysical: op->result = %d\n", op->result);*/
+
+        /*
+         * If the request is asynchronous, then that won't be reflected in ret.
+         * It is up to the FSD to call FsNotifyCompletion for both async I/O 
+         *  (the common case) and for sync I/O (less common, e.g. ramdisk).
+         */
+
+        return true;
+    }
+
+    /*file_t *fd;
+    status_t ret;
 
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
         return false;
 
-    fsd = fd->fsd;
-    HndUnlock(NULL, file, 'file');
+    if (fd->fsd->vtbl->ioctl_file == NULL)
+        ret = ENOTIMPL;
+    else
+        ret = fd->fsd->vtbl->ioctl_file(fd->fsd, fd, code, buffer, length, NULL);
 
-    req_fs.header.code = FS_IOCTL;
-    req_fs.params.fs_ioctl.length = length;
-    req_fs.params.fs_ioctl.buffer = buffer;
-    req_fs.params.fs_ioctl.file = file;
-    req_fs.params.fs_ioctl.code = code;
-    /*ptr = HndGetPtr(NULL, file, 'file');
-    wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
-        file, fd, fd->fsd, ptr->file, ptr->line);*/
-    ret = IoRequestSync(fsd, &req_fs.header);
-    op->result = req_fs.header.result;
-    op->bytes = req_fs.params.fs_ioctl.length;
-    return ret;
+    HndUnlock(NULL, file, 'file');
+    return ret;*/
 }
 
 bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t buffer_size)
 {
-    request_fs_t req;
     wchar_t fullname[256];
+    fsd_t *fsd;
+    void *cookie;
+    status_t ret;
 
     if (!MemVerifyBuffer(buffer, buffer_size))
     {
@@ -816,46 +765,98 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
     if (!FsFullPath(name, fullname))
         return false;
 
-    req.header.code = FS_QUERYFILE;
-    req.params.fs_queryfile.name = fullname;
-    req.params.fs_queryfile.buffer_size = buffer_size;
-    req.params.fs_queryfile.buffer = buffer;
-    req.params.fs_queryfile.query_class = query_class;
-    if (IoRequestSync(root, (request_t*) &req))
-        return true;
+    fsd = root;
+    if (root->vtbl->lookup_file == NULL)
+        ret = ENOTIMPL;
     else
+        ret = root->vtbl->lookup_file(root, name, &fsd, &cookie);
+
+    if (ret != 0)
     {
-        errno = req.header.result;
+        errno = ret;
         return false;
     }
+
+    if (fsd->vtbl->get_file_info == NULL)
+        ret = ENOTIMPL;
+    else
+        ret = fsd->vtbl->get_file_info(fsd, cookie, query_class, buffer);
+
+    if (fsd->vtbl->free_cookie != NULL)
+        fsd->vtbl->free_cookie(fsd, cookie);
+
+    if (ret != 0)
+    {
+        errno = ret;
+        return false;
+    }
+
+    return true;
 }
 
 bool FsQueryHandle(handle_t file, uint32_t query_class, void *buffer, size_t buffer_size)
 {
+    status_t ret;
     file_t *fd;
-    bool ret;
-    
+
+    if (!MemVerifyBuffer(buffer, buffer_size))
+    {
+        errno = EBUFFER;
+        return false;
+    }
+
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
         return false;
-    
-    ret = FsQueryFile(fd->name, query_class, buffer, buffer_size);
+
+    if (fd->fsd->vtbl->get_file_info == NULL)
+        ret = ENOTIMPL;
+    else
+        ret = fd->fsd->vtbl->get_file_info(fd->fsd, fd->fsd_cookie, query_class, buffer);
     HndUnlock(NULL, file, 'file');
-    return ret;
+
+    if (ret != 0)
+    {
+        errno = ret;
+        return false;
+    }
+
+    return true;
 }
 
-static bool FsMountDevice(const wchar_t *path, device_t *dev)
+bool FsMountDevice(const wchar_t *path, fsd_t *newfsd)
 {
-    request_fs_t req;
+    //request_fs_t req;
+    status_t ret;
     
     if (wcscmp(path, L"/") == 0)
     {
-        IoCloseDevice(root);
-        root = dev;
+        /*IoCloseDevice(root);*/
+        if (root != NULL &&
+            root->vtbl->dismount != NULL)
+            root->vtbl->dismount(root);
+
+        root = newfsd;
         return true;
+    }
+    else if (root->vtbl->mount != NULL)
+    {
+        ret = root->vtbl->mount(root, path, newfsd);
+        if (ret != 0)
+        {
+            errno = ret;
+            return false;
+        }
+        else
+            return true;
     }
     else
     {
+        errno = ENOTIMPL;
+        return false;
+    }
+
+    /*{
         req.header.code = FS_MOUNT;
         req.params.fs_mount.name = path;
         req.params.fs_mount.name_size = (wcslen(path) * sizeof(wchar_t)) + 1;
@@ -867,7 +868,7 @@ static bool FsMountDevice(const wchar_t *path, device_t *dev)
             errno = req.header.result;
             return false;
         }
-    }
+    }*/
 }
 
 /*!
@@ -881,11 +882,11 @@ static bool FsMountDevice(const wchar_t *path, device_t *dev)
  *    \param    dev    Device for the file system to use
  *    \return    \p true if the file system was mounted
  */
-bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
+bool FsMount(const wchar_t *path, const wchar_t *filesys, const wchar_t *dest)
 {
     driver_t *driver;
-    device_t *fsd;
-    
+    fsd_t *fsd;
+
     driver = DevInstallNewDriver(filesys);
     if (driver == NULL)
     {
@@ -899,7 +900,7 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
         return false;
     }
 
-    fsd = driver->mount_fs(driver, path, dev);
+    fsd = driver->mount_fs(driver, dest);
     if (fsd == NULL)
     {
         DevUnloadDriver(driver);
@@ -907,49 +908,14 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
     }
 
     assert(fsd->vtbl != NULL);
-    assert(fsd->vtbl->request != NULL);
     if (!FsMountDevice(path, fsd))
     {
-        IoCloseDevice(fsd);
+        if (fsd->vtbl->dismount != NULL)
+            fsd->vtbl->dismount(fsd);
         return false;
     }
     else
         return true;
-}
-
-static const device_vtbl_t vfs_vtbl =
-{
-    VfsRequest,
-    NULL,
-    VfsFinishIo,
-};
-
-/*!
- *    \brief    Creates a new virtual directory
- *
- *    This effectively creates a new virtual file system and mounts it at
- *    \p path.
- *    \param    path    Full path specification for the new directory
- *    \return    \p true if the directory was created
- */
-bool FsCreateVirtualDir(const wchar_t *path)
-{
-    vfs_dir_t *dir;
-
-    dir = malloc(sizeof(vfs_dir_t));
-    if (dir == NULL)
-        return NULL;
-
-    memset(dir, 0, sizeof(vfs_dir_t));
-    dir->dev.vtbl = &vfs_vtbl;
-
-    if (!FsMountDevice(path, &dir->dev))
-    {
-        free(dir);
-        return false;
-    }
-
-    return true;
 }
 
 /*!
