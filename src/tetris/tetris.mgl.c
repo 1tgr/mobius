@@ -1,4 +1,4 @@
-/* $Id: tetris.c,v 1.7 2002/08/17 22:52:14 pavlovskii Exp $ */
+/* $Id: tetris.mgl.c,v 1.1 2002/12/18 23:01:49 pavlovskii Exp $ */
 
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
