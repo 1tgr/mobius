@@ -1,4 +1,4 @@
-/* $Id: fat.h,v 1.1 2002/12/21 09:48:45 pavlovskii Exp $ */
+/* $Id: fat.h,v 1.2 2003/08/16 23:11:45 pavlovskii Exp $ */
 
 #ifndef __FAT_H
 #define __FAT_H

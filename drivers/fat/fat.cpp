@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.1 2002/12/21 09:48:45 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.2 2003/08/16 23:11:44 pavlovskii Exp $ */
 
 /*
  *  Source code the the Möbius FAT driver
@@ -412,7 +412,7 @@ start:
         TRACE0("Fat::StartIo: io finished\n");
         /* The block is now valid */
         CcReleaseBlock(extra->file->cache, 
-            extra->file->pos + extra->bytes_read, 
+            extra->io->pos + extra->bytes_read, 
             true, 
             false);
     }
@@ -433,14 +433,14 @@ start:
             CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read) ? L"cached" : L"not cached");
     }*/
 
-    if (CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read))
+    if (CcIsBlockValid(extra->file->cache, extra->io->pos + extra->bytes_read))
     {
         TRACE0("cached\n");
         /* The cluster is already in the file's cache, so just memcpy() it */
 
         buf = (uint8_t*) MemMapPageArray(extra->pages, 
             PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
-        array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
+        array = CcRequestBlock(extra->file->cache, extra->io->pos + extra->bytes_read);
         page = (uint8_t*) MemMapPageArray(array, 
             PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
 
@@ -454,7 +454,7 @@ start:
                 bytes);
 
         MemUnmapTemp();
-        CcReleaseBlock(extra->file->cache, extra->file->pos + extra->bytes_read, 
+        CcReleaseBlock(extra->file->cache, extra->io->pos + extra->bytes_read, 
             true, 
             !extra->is_reading);
         MemDeletePageArray(array);
@@ -503,9 +503,9 @@ start:
 
         TRACE0("not cached\n");
 
-        array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
+        array = CcRequestBlock(extra->file->cache, extra->io->pos + extra->bytes_read);
         extra->cluster_index = 
-            (extra->file->pos + extra->bytes_read) >> extra->file->cache->block_shift;
+            (extra->io->pos + extra->bytes_read) >> extra->file->cache->block_shift;
 
         extra->dev_request.header.code = DEV_READ;
         extra->dev_request.params.buffered.pages = array;
@@ -546,19 +546,19 @@ bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length,
     FatFile *fatfile;
 
     fatfile = (FatFile*) file->fsd_cookie;
-    if (file->pos >> m_cluster_shift >= fatfile->num_clusters)
+    if (io->pos >> m_cluster_shift >= fatfile->num_clusters)
     {
         TRACE3("fat: position %u beyond end of clusters (%u > %u)\n",
-            (uint32_t) file->pos, 
-            file->pos >> m_cluster_shift,
+            (uint32_t) io->pos, 
+            io->pos >> m_cluster_shift,
             fatfile->num_clusters);
         io->op.bytes = 0;
         io->op.result = EEOF;
         return false;
     }
 
-    if (file->pos + length >= fatfile->vnode->di.file_length && is_reading)
-        length = fatfile->vnode->di.file_length - file->pos;
+    if (io->pos + length >= fatfile->vnode->di.file_length && is_reading)
+        length = fatfile->vnode->di.file_length - io->pos;
     if (length == 0)
     {
         TRACE0("fat: null read\n");
@@ -571,10 +571,10 @@ bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length,
 
     extra = new fat_ioextra_t;
     extra->file = file;
-    extra->cluster_index = file->pos >> m_cluster_shift;
+    extra->cluster_index = io->pos >> m_cluster_shift;
     extra->bytes_read = 0;
     extra->dev_request.header.code = 0;
-    extra->mod = file->pos & ((1 << m_cluster_shift) - 1);
+    extra->mod = io->pos & ((1 << m_cluster_shift) - 1);
 
     extra->pages = MemCopyPageArray(pages);
     extra->length = length;
