@@ -178,26 +178,15 @@ struct tss0_t  /* TSS for 386+ (no I/O bit map) */
 
 #pragma pack (pop)      /* align structures to default boundary */
 
-void i386_set_descriptor(descriptor_t *item, 
-	dword base, dword limit, byte access, byte attribs);
-void i386_set_descriptor_int(descriptor_int_t *item,
-	word selector, dword offset, byte access, byte param_cnt);
+void	i386_set_descriptor(descriptor_t *item, dword base, dword limit, 
+							byte access, byte attribs);
+void	i386_set_descriptor_int(descriptor_int_t *item, word selector, 
+								dword offset, byte access, byte param_cnt);
 
-//void out(word port, byte value);
-//void out16(word port, word value);
-void outs16(unsigned short Adr, unsigned short *Data, unsigned Count);
-//byte in(word port);
-//word in16(word port);
+void	outs16(unsigned short Adr, unsigned short *Data, unsigned Count);
 
-void lpoke16(addr_t off, word value);
-void lpoke32(addr_t off, dword value);
-word lpeek16(addr_t off);
-dword lpeek32(addr_t off);
-
-void lmemset(addr_t off, char ch, size_t count);
-void lmemcpy(addr_t dest, const void* src, size_t count);
-addr_t i386_llmemcpy(addr_t dest, addr_t src, size_t count);
-void lmemmove(addr_t dest, const void* src, size_t count);
+extern dword cpuid_ecx, cpuid_edx, cpu_max_level;
+dword	keIdentifyCpu();
 
 #ifdef _MSC_VER
 
@@ -337,6 +326,18 @@ static inline void enable() { asm ("sti"); }
 static inline void disable() { asm ("cli"); }
 static inline void invalidate_page(void* page) { asm ("invlpg (%0)": :"r" (page)); }
 
+static inline void i386_lpoke8(addr_t off, byte value)
+{
+	asm("movb %0,%%gs:(%1)" : : "r" (value), "r" (off));
+}
+
+static inline word i386_lpeek8(addr_t off)
+{
+	byte value;
+	asm("movb %%gs:(%1),%0" : "=a" (value): "r" (off));
+	return value;
+}
+
 static inline void i386_lpoke16(addr_t off, word value)
 {
 	asm("movw %0,%%gs:(%1)" : : "r" (value), "r" (off));
@@ -345,7 +346,7 @@ static inline void i386_lpoke16(addr_t off, word value)
 static inline word i386_lpeek16(addr_t off)
 {
 	word value;
-	asm("movw %%gs:(%1),%0" : "=r" (value): "r" (off));
+	asm("movw %%gs:(%1),%0" : "=a" (value): "r" (off));
 	return value;
 }
 
@@ -357,7 +358,7 @@ static inline void i386_lpoke32(addr_t off, dword value)
 static inline word i386_lpeek32(addr_t off)
 {
 	dword value;
-	asm("movl %%gs:(%1),%0" : "=r" (value): "r" (off));
+	asm("movl %%gs:(%1),%0" : "=a" (value): "r" (off));
 	return value;
 }
 
@@ -385,7 +386,7 @@ static inline addr_t i386_lmemset16(addr_t off, word c, size_t len)
 	return off;
 }
 
-extern inline addr_t i386_lmemset(addr_t off, char c, int count)
+static inline addr_t i386_lmemset(addr_t off, char c, int count)
 {
 	__asm__("cld\n\t"
 		"rep\n\t"
@@ -395,12 +396,7 @@ extern inline addr_t i386_lmemset(addr_t off, char c, int count)
 	return off;
 }
 
-/*static inline void out(word port, byte value)
-{
-	asm("movw	%0, %%dx ; "
-		"movb	%1, %%al ; "
-		"outb	%%al, %%dx" : : "r" (port), "r" ((byte) value) : "eax", "edx");
-}*/
+addr_t i386_llmemcpy(addr_t dest, addr_t src, size_t size);
 
 #define out(port, value) \
 	asm("outb	%%al, %%dx" : : "d" (port), "a" (value) : "eax", "edx")
@@ -438,7 +434,7 @@ static inline dword in32(word port)
 
 static inline void halt(dword code)
 {
-	asm("hlt" : : "a" (code));
+	asm("cli ; hlt" : : "a" (code));
 }
 
 static inline dword critb(void)

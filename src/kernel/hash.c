@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include <kernel/hash.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
 
 #define DEFAULT_SIZE 31

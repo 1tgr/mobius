@@ -1,4 +1,5 @@
 #include <os/os.h>
+#include <os/console.h>
 
 //! Writes one character to the console.
 /*!
@@ -9,7 +10,7 @@
 wint_t putwchar(wint_t c)
 {
 	wchar_t s[2] = { c, 0 };
-	dputws(s);
+	_cputws(s);
 	return c;
 }
 
@@ -22,5 +23,8 @@ wint_t putwchar(wint_t c)
  */
 int _cputws(const wchar_t* str)
 {
-	return dputws(str);
+	if (conWrite(str))
+		return 0;
+	else
+		return 1;
 }

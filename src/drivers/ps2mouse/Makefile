@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/ps2mouse.drv
 OBJS=	ps2mouse.o
-BASE=	@$(BIN)\coffbase.txt,ps2mouse
+BASE=	ps2mouse
 
 include ../make.driver
 

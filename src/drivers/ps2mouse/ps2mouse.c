@@ -6,6 +6,7 @@
 #include <os/mouse.h>
 #include <kernel/thread.h>
 
+#define DEBUG
 #include <kernel/debug.h>
 
 /*!

@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/vgatext.drv
 OBJS=	vgatext.o
-BASE=	@$(BIN)\coffbase.txt,vgatext
+BASE=	vgatext
 
 include ../make.driver
 

@@ -47,13 +47,13 @@ typedef unsigned int size_t;
 
 #endif
 
-#include "wchar.h"
-
 #ifndef __cplusplus
+
+typedef byte _Bool;
 
 #ifndef bool
 //! A boolean (true or false) value
-typedef byte bool;
+#define bool _Bool
 #endif
 
 #ifndef true
@@ -74,5 +74,23 @@ typedef byte bool;
 #endif
 
 typedef int status_t;
+
+#ifndef _WCHAR_T_DEFINED
+
+typedef unsigned short __wchar_ucs2_t;
+
+//! A single Unicode character
+#define wchar_t __wchar_ucs2_t
+#define _WCHAR_T_DEFINED
+#endif
+
+#ifndef _WCTYPE_T_DEFINED
+//! A data type capable of holding any wide character or an end-of-file value
+typedef int wint_t;
+//! A data type capable of representing all characters of any national 
+//!		character set
+typedef wchar_t wctype_t;
+#define _WCTYPE_T_DEFINED
+#endif
 
 #endif

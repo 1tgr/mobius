@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <malloc.h>
+#include <wchar.h>
 #include <string.h>
+#include <errno.h>
+#include <stdio.h>
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -34,7 +37,7 @@ extern byte code86[], code86_end[];
 //byte exception_stack[PAGE_SIZE];
 
 //! The kernel's errno
-//int kernel_errno;
+int kernel_errno;
 //! The system interrupt descriptor table
 descriptor_int_t idt[countof(_wrappers)];
 //! The system IDT register
@@ -75,7 +78,13 @@ thread_info_t thr_idle_info;
 
 int *__errno()
 {
-	return &current->info->last_error;
+	//return &current->info->last_error;
+	return &kernel_errno;
+}
+
+void sysSetErrno(int err)
+{
+	kernel_errno = err;
 }
 
 //! Allocates more memory for the kernel heap
@@ -88,7 +97,7 @@ int *__errno()
  *	\return	A pointer to the start of the block allocated. This block is also
  *		added to the freed memory list.
  */
-BlockHeader* morecore(size_t nu)
+/*BlockHeader* morecore(size_t nu)
 {
 	byte *cp;
 	BlockHeader *up;
@@ -124,6 +133,54 @@ BlockHeader* morecore(size_t nu)
 	free((void*) (up + 1));
 	
 	return freep;
+}*/
+
+char *sbrk(size_t size)
+{
+	byte *cp;
+	dword allocated;
+	addr_t phys;
+
+	size = (size + PAGE_SIZE - 1) & -PAGE_SIZE;
+	//if (size < PAGE_SIZE * 4)
+		//size = PAGE_SIZE * 4;
+
+	wprintf(L"sbrk: need %u bytes: ", size);
+
+	cp = (byte*) kernel_sbrk;
+	for (allocated = 0; allocated < size; allocated += PAGE_SIZE)
+	{
+		phys = memAlloc();
+
+		if (phys == NULL)
+			return NULL;
+
+		memMap(kernel_pagedir, kernel_sbrk, phys, 1, 
+			PRIV_KERN | PRIV_WR | PRIV_PRES);
+		invalidate_page((void*) kernel_sbrk);
+		kernel_sbrk += PAGE_SIZE;
+		wprintf(L"%x ", phys);
+	}
+
+	wprintf(L"at %p\n", cp);
+	return cp;
+}
+
+FILE __iobuf[3];
+
+void abort()
+{
+	assert(false);
+}
+
+void exit(int status)
+{
+	assert(false);
+}
+
+int __main()
+{
+	return 0;
 }
 
 //! Dumps a context structure on the screen
@@ -276,7 +333,7 @@ void exception(thread_t* thr, context_t* ctx, dword code, dword address)
 	dword exc;
 	int i;
 	process_t* proc;
-	byte *ptr;
+	//byte *ptr;
 
 	if (thr)
 	{
@@ -291,8 +348,8 @@ void exception(thread_t* thr, context_t* ctx, dword code, dword address)
 	if (!lock)
 	{
 		lock = true;
-		for (ptr = 0; ptr < (byte*) 320; ptr++)
-			0xa0000[ptr] = (byte) (dword) ptr;
+		//for (ptr = 0; ptr < (byte*) 320; ptr++)
+			//0xa0000[ptr] = (byte) (dword) ptr;
 
 		if (thr)
 		{
@@ -347,7 +404,7 @@ void exception(thread_t* thr, context_t* ctx, dword code, dword address)
 				else
 					msg = L"exception";
 
-				wprintf(L"\xbb\xbb unhandled %s (%u) at %04x:%08x (%08x) in thread %u\n",
+				wprintf(L"\xbb\xbb unhandled %s (%u) at %04x:%08x (%08x) in thread %d\n",
 					msg, code, ctx->cs, ctx->eip, address, thr->id);
 
 				dump_context(current, ctx);
@@ -376,6 +433,8 @@ void exception(thread_t* thr, context_t* ctx, dword code, dword address)
 	else
 		halt(ctx->eip);
 }
+
+extern bool thr_needschedule;
 
 //! Generic interrupt handler
 /*!
@@ -407,10 +466,9 @@ dword isr(context_t ctx)
 				thrSchedule();
 		}
 		
-		out(PORT_8259M, EOI);
-		if (ctx.intr >= 8)
-			out(PORT_8259S, EOI);
+		enable();
 
+		thr_needschedule = false;
 		irq = irq_first[ctx.intr];
 		while (irq)
 		{
@@ -427,6 +485,14 @@ dword isr(context_t ctx)
 
 			irq = irq->next;
 		}
+
+		if (thr_needschedule)
+			thrSchedule();
+
+		out(PORT_8259M, EOI);
+		if (ctx.intr >= 8)
+			out(PORT_8259S, EOI);
+		//halt(ctx.intr);
 	}
 	else
 	{
@@ -446,7 +512,12 @@ dword isr(context_t ctx)
 			/*if (ctx.intr == EXCEPTION_DEBUG)
 				wprintf(L"%08x ", ctx.eip);
 			else*/ if (ctx.intr == 0x30)
+			{
+				thr_needschedule = false;
 				syscall(&ctx);
+				if (thr_needschedule)
+					thrSchedule();
+			}
 			else if (ctx.intr < 0x10)
 				exception(current, &ctx, ctx.intr, fault_addr);
 			else
@@ -553,8 +624,9 @@ void assert_fail(const char* file, int line, const wchar_t* exp)
 
 	if (current)
 	{
-		wprintf(L"Thread %d\n", current->id);
-		exception(current, thrContext(current), EXCEPTION_ASSERT_FAILED, 0);
+		//wprintf(L"Thread %d\n", current->id);
+		//exception(current, thrContext(current), EXCEPTION_ASSERT_FAILED, 0);
+		asm("int3");
 	}
 	else
 	{
@@ -604,19 +676,6 @@ bool keDiscardSection(const void* base, const char* name)
 	return false;
 }
 
-void KernelThread(dword num)
-{
-	word *vmem = (word*) 0xb8000;
-	int b = current->id;
-
-	while (true)
-	{
-		vmem[b]++;
-		asm("hlt");
-		//sysYield();
-	}
-}
-
 static const wchar_t* INIT_DATA drivers[] =
 {
 	L"kdebug.dll",
@@ -627,6 +686,9 @@ static const wchar_t* INIT_DATA drivers[] =
 void conInit(int mode);
 void devInit();
 bool vfsInit();
+void mal_debug(int level);
+
+#define CONSOLE_PORT	L"console"
 
 //! The real entry point for the kernel, called by _main() once a GDT is set up
 /*!
@@ -646,6 +708,8 @@ int main()
 	bool success;
 	driver_t drv;
 	process_t* shell;
+	dword cpu;
+	device_t *dev;
 	
 	conInit(1);
 	
@@ -656,13 +720,32 @@ int main()
 	 */
 	_cputws_check(L"Loading The M”bius\t\tCopyright (C) 2001 Tim Robinson\n");
 	
+	cpu = keIdentifyCpu();
+	if (cpu_max_level == 0)
+	{
+		wprintf(L"No Pentium-compatible processor found: flags = %x\n",
+			cpu >> 16);
+		//halt(cpu);
+	}
+	else
+	{
+		char s[13];
+		memcpy(s + 0, &cpu, 4);
+		memcpy(s + 4, &cpuid_ecx, 4);
+		memcpy(s + 8, &cpuid_edx, 4);
+		s[12] = '\0';
+		wprintf(L"CPU: %S\n", s);
+	}
+	
 	/* Create the physical page map; set up the kernel page directory */
 	_cputws_check(L"\x10 Initial setup\r");
+	proc_idle.page_dir = 
+		(dword*) ((addr_t) kernel_pagedir - (addr_t) scode + _sysinfo.kernel_phys);
 	memInit();
+	mal_debug(2);
 	malloc(0);
 	
 	/* Set up the TSS */
-	//thr_idle.kernel_stack = malloc(PAGE_SIZE);
 	thr_idle.kernel_stack = (void*) 0xdeadbeef;
 	thr_idle.kernel_esp = (dword) thr_idle.kernel_stack + PAGE_SIZE;
 
@@ -712,8 +795,6 @@ int main()
 	asm("lidt	(_idtr)");
 
 #if 0
-	//_cputws_check(L" \n\x10 Serial port\r");
-
 	/* Open and test the serial port */
 	ioOpenPort(0x3f8, 4);
 	ioSetBaud(NULL, 9600);
@@ -723,15 +804,10 @@ int main()
 	ioWriteBuffer(NULL, "Hello from The M”bius!\n", 23);
 #endif
 
-	//_cputws_check(L" \n\x10 Ramdisk\r");
 	/* Initialise the ramdisk */
 	ramInit();
 
-	//_cputws_check(L" \n\x10 sti\r");
-
 	/* Set up pointers for the (system) idle process */
-	proc_idle.page_dir = 
-		(dword*) ((addr_t) kernel_pagedir - (addr_t) scode + _sysinfo.kernel_phys);
 	proc_idle.vmm_end = _sysinfo.memory_top;
 	proc_idle.stack_end = 0;
 	proc_idle.info = &proc_idle_info;
@@ -759,7 +835,8 @@ int main()
 
 	sysInit();
 	devInit();
-	
+	vfsInit();
+
 	wprintf(L"%dMB memory was detected\n"
 		L"\tKernel is %dKB at %x, ramdisk is %dKB at %x\n",
 		_sysinfo.memory_top / 1048576, 
@@ -772,7 +849,33 @@ int main()
 	sysMount(L"devices", NULL);
 	sysOpen(L"devices");
 	
-	peLoadMemory(&proc_idle, L"kernel.exe", (void*) 0xc0000000, 0);
+	//peLoadMemory(&proc_idle, L"kernel.exe", (void*) 0xc0000000, 0);
+	{
+		IMAGE_DOS_HEADER *dos;
+		IMAGE_PE_HEADERS *pe;
+
+		dos = (IMAGE_DOS_HEADER*) 0xc0000000;
+		pe = (IMAGE_PE_HEADERS*) ((byte*) dos + dos->e_lfanew);
+
+		mod = hndAlloc(sizeof(module_t), NULL);
+		assert(mod != NULL);
+		mod->name = wcsdup(L"kernel.exe");
+		mod->base = pe->OptionalHeader.ImageBase;
+		mod->length = pe->OptionalHeader.SizeOfImage;
+		mod->prev = proc_idle.mod_last;
+		mod->next = NULL;
+		mod->entry = mod->base + pe->OptionalHeader.AddressOfEntryPoint;
+		mod->file = NULL;
+		mod->sizeof_headers = pe->OptionalHeader.SizeOfHeaders;
+		mod->imported = false;
+
+		if (proc_idle.mod_last)
+			proc_idle.mod_last->next = mod;
+		if (proc_idle.mod_first == NULL)
+			proc_idle.mod_first = mod;
+
+		proc_idle.mod_last = mod;
+	}
 	
 	/* Load the kernel drivers */
 	for (i = 0; i < countof(drivers); i++)
@@ -808,49 +911,41 @@ int main()
 			_cputws_check(L"!");
 	}
 
-	vfsInit();
+	dev = devOpen(L"floppy0", NULL);
+	if (!dev || 
+		!fsMount(L"boot1", L"fat", dev))
+		wprintf(L"floppy: %d\n", errno);
 
-	/*{
-		file_t* fd;
-		byte buffer[11];
-		size_t length = 10;
-
-		fd = fsOpen(L"/boot/isa.cfg");
-		wprintf(L"Opened %p\n", fd);
-		buffer[10] = 0;
-		fsRead(fd, buffer, &length);
-		wprintf(L"Buffer = %S\n", buffer);
-		fsClose(fd);
-	}*/
-
+	dev = devOpen(L"ide0a", NULL);
+	if (!dev || 
+		!fsMount(L"Mobius", L"fat", dev))
+		wprintf(L"ide0a: %d\n", errno);
+		
 	_cputws_check(L" \n\x10 Ready\r");
-	//asm("int3");
-	//conSetMode(modeConsole);
-	//_cputws(L"\x1b[2J");
-
-	/* Give the idle process a root directory */
-	//proc_idle.info->root = sysOpen(L"root");
-
+	
 	//keDiscardSection(scode, ".init");
 
 	/* Kernel initialisation is finished -- display system information for confirmation */
-	wprintf(L"The kernel is ready!\n");
-	//asm("mov $4, %eax ; int $0x30");
 	
-	{
+	/*{
 		thread_t *threads[0];
 
 		for (i = 0; i < countof(threads); i++)
-			threads[i] = thrCreate(0, &proc_idle, KernelThread);
+			threads[i] = thrCreate(0, &proc_idle, KernelThread, 16);
 
 		for (i = 0; i < countof(threads); i++)
-			threads[i]->suspend--;
-	}
+			thrSuspend(threads[i], false);
+	}*/
+
+	wcscpy(proc_idle_info.cwd, L"/boot1");
+	asm("int3");
 
 	/* Start the shell */
-	shell = procLoad(3, L"short.exe", NULL);
+	shell = procLoad(3, L"mgltest.exe", NULL, 16, NULL, NULL);
 	if (!shell)
 		_cputws(L"Failed to load shell\n");
+	//procLoad(3, L"short.exe", NULL, 16, NULL, NULL);
+	//procLoad(3, L"short.exe", NULL, 16, NULL, NULL);
 	
 	thr_idle.id = 0;
 	while (!hndIsSignalled(shell))

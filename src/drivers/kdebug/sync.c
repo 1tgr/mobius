@@ -52,19 +52,19 @@ void add_sync(unsigned long pos, unsigned long length)
     int i;
 
     if (nsynx == SYNC_MAX)
-	return;			       /* can't do anything - overflow */
+		return;			       /* can't do anything - overflow */
 
     nsynx++;
     synx[nsynx].pos = pos;
     synx[nsynx].length = length;
 
     for (i = nsynx; i > 1; i /= 2) {
-	if (synx[i/2].pos > synx[i].pos) {
-	    struct Sync t;
-	    t = synx[i/2];	       /* structure copy */
-	    synx[i/2] = synx[i];       /* structure copy again */
-	    synx[i] = t;	       /* another structure copy */
-	}
+		if (synx[i/2].pos > synx[i].pos) {
+		    struct Sync t;
+			t = synx[i/2];	       /* structure copy */
+			synx[i/2] = synx[i];       /* structure copy again */
+			synx[i] = t;	       /* another structure copy */
+		}
     }
 }
 

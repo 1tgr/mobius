@@ -1,0 +1,11 @@
+EXPORTS
+	glClear
+	glFillRect
+	glLineTo
+	glMoveTo
+	glRectangle
+	glSetClearColour
+	glSetColour
+	mglCreateRc
+	mglDeleteRc
+	mglUseRc

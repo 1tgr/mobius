@@ -1,5 +1,5 @@
 #include <os/os.h>
-#include <string.h>
+#include <wchar.h>
 
 #define PATHSEP			'/'
 #define PATHSEPSTR		L"/"

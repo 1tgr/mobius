@@ -37,3 +37,11 @@ void i386_set_descriptor_int(descriptor_int_t *item,
 	item->access = access;
 	item->param_cnt = param_cnt;
 }
+
+addr_t i386_llmemcpy(addr_t dest, addr_t src, size_t size)
+{
+	asm("cld ;"
+		"repnz movsb %%gs:(%%esi),%%es:(%%edi)" 
+		: : "D" (dest), "S" (src), "c" (size));
+	return dest;
+}

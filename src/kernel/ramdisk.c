@@ -1,11 +1,27 @@
-#include <stdlib.h>
-#include <string.h>
 #include <kernel/kernel.h>
 #include <kernel/ramdisk.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
+#include <kernel/vmm.h>
+#include <kernel/memory.h>
+#include <kernel/fs.h>
+
+#include <stdlib.h>
+#include <wchar.h>
+#include <errno.h>
+#include <string.h>
 
 extern process_t proc_idle;
+
+ramdisk_t* ramdisk_header;
+ramfile_t* ramdisk_files;
+
+typedef struct ramfd_t ramfd_t;
+struct ramfd_t
+{
+	file_t file;
+	ramfile_t *ram;
+};
 
 void dump(void* buf, size_t size)
 {
@@ -31,26 +47,127 @@ void dump(void* buf, size_t size)
 	}
 }
 
+bool ramFsRequest(device_t* dev, request_t* req)
+{
+	ramfd_t *fd;
+	ramfile_t *file;
+	unsigned i;
+	wchar_t name[16];
+	byte *ptr;
+
+	switch (req->code)
+	{
+	case FS_OPEN:
+		assert(req->params.fs_open.name[0] == '/');
+
+		//wprintf(L"ramFsRequest: open %s: ", req->params.fs_open.name + 1);
+		file = NULL;
+		for (i = 0; i < ramdisk_header->num_files; i++)
+		{
+			mbstowcs(name, ramdisk_files[i].name, countof(name));
+			if (wcsicmp(name, req->params.fs_open.name + 1) == 0)
+			{
+				file = ramdisk_files + i;
+				break;
+			}
+		}
+
+		if (file == NULL)
+		{
+			req->result = ENOTFOUND;
+			req->params.fs_open.fd = NULL;
+			wprintf(L"not found\n");
+			return false;
+		}
+
+		fd = hndAlloc(sizeof(ramfd_t), NULL);
+		assert(fd != NULL);
+		fd->file.fsd = dev;
+		fd->file.pos = 0;
+		fd->ram = file;
+		
+		/*wprintf(L"ramFsRequest: FS_OPEN(%s), file = %p = %x, %d bytes\n", 
+			name, 
+			file, 
+			*(dword*) ((byte*) ramdisk_header + fd->ram->offset),
+			fd->ram->length);*/
+		
+		req->params.fs_open.fd = &fd->file;
+		hndSignal(req->event, true);
+		return true;
+
+	case FS_CLOSE:
+		fd = (ramfd_t*) req->params.fs_close.fd;
+		assert(fd != NULL);
+
+		hndFree(fd);
+		hndSignal(req->event, true);
+		return true;
+
+	case FS_READ:
+		fd = (ramfd_t*) req->params.fs_read.fd;
+		assert(fd != NULL);
+	
+		if (fd->file.pos + req->params.fs_read.length >= fd->ram->length)
+			req->params.fs_read.length = fd->ram->length - fd->file.pos;
+
+		ptr = (byte*) ramdisk_header + fd->ram->offset + (dword) fd->file.pos;
+		/*wprintf(L"ramRequest: read %x (%S) at %x => %x = %08x\n",
+			fd->ram->offset,
+			fd->ram->name,
+			(dword) fd->file.pos, 
+			(addr_t) ptr,
+			*(dword*) ptr);*/
+
+		memcpy((void*) req->params.fs_read.buffer, 
+			ptr,
+			req->params.fs_read.length);
+		fd->file.pos += req->params.fs_read.length;
+
+		hndSignal(req->event, true);
+		return true;
+	}
+
+	req->result = ENOTIMPL;
+	return false;
+}
+
+device_t* ramMountFs(driver_t* driver, const wchar_t* path, device_t* dev)
+{
+	device_t *ram = hndAlloc(sizeof(device_t), NULL);
+	ram->driver = driver;
+	ram->request = ramFsRequest;
+	return ram;
+}
+
 bool ramPageFault(addr_t virt)
 {
-	addr_t phys, page;
+	addr_t phys;
+	//vm_area_t *area;
 	
 	if ((virt >= 0xd0000000) && (virt < 0xe0000000))
 	{
-		page = virt & -PAGE_SIZE;
-		phys = _sysinfo.ramdisk_phys + page - 0xd0000000;
-		//if (page > 0)
-			//phys += PAGE_SIZE;
-		//wprintf(L"CPagerRamdisk_ValidatePage: mapping page at %x to %x\n", page, phys);
-		memMap(current->process->page_dir, page, phys, 1, 
-			PRIV_KERN | PRIV_RD | PRIV_PRES);
-		invalidate_page((void*) page);
-		//wprintf(L" = %c%c\n", ((byte*) page)[0], ((byte*) page)[1]);
-		//dump((void*) phys, 32);
-		return true;
+		virt &= -PAGE_SIZE;
+		/*if (vmmMap(&proc_idle, 1, virt, 
+			_sysinfo.ramdisk_phys + virt - 0xd0000000,
+			0 | MEM_READ | MEM_COMMIT) == NULL)
+			return false;
+		else
+			return true;*/
+
+		return memMap(proc_idle.page_dir, virt, 
+			_sysinfo.ramdisk_phys + virt - 0xd0000000,
+			1, 0 | PRIV_RD | PRIV_PRES);
 	}
 	else if (virt >= 0xc0000000)
 	{
+		/*area = vmmArea(&proc_idle, (const void*) virt);
+		if (area == NULL)
+			return false;
+		else
+		{
+			vmmShare(&proc_idle, 
+		}*/
 		phys = memTranslate(proc_idle.page_dir, (void*) virt);
 		if (phys)
 		{
@@ -79,6 +196,16 @@ bool ramPageFault(addr_t virt)
  */
 bool INIT_CODE ramInit()
 {
+	ramdisk_header = (ramdisk_t*) 0xd0000000;
+	ramdisk_files = (ramfile_t*) (ramdisk_header + 1);
+
+	if (ramdisk_header->signature != RAMDISK_SIGNATURE_1 &&
+		ramdisk_header->signature != RAMDISK_SIGNATURE_2)
+	{
+		wprintf(L"ramdisk: invalid signature\n");
+		return false;
+	}
+
 	return true;
 }
 
@@ -93,17 +220,21 @@ bool INIT_CODE ramInit()
  */
 void* ramOpen(const wchar_t* name)
 {
-	ramdisk_t* header = (ramdisk_t*) 0xd0000000;
-	ramfile_t* files = (ramfile_t*) (header + 1);
 	wchar_t temp[16];
 	int i;
 
-	for (i = 0; i < header->num_files; i++)
+	assert(ramdisk_header != NULL);
+	assert(ramdisk_files != NULL);
+
+	for (i = 0; i < ramdisk_header->num_files; i++)
 	{
-		mbstowcs(temp, files[i].name, countof(files[i].name));
+		mbstowcs(temp, ramdisk_files[i].name, countof(ramdisk_files[i].name));
 		//wprintf(L"%s\t%x\n", temp, files[i].offset);
 		if (wcsicmp(name, temp) == 0)
-			return (byte*) header + files[i].offset;
+		{
+			assert(ramdisk_files[i].offset < _sysinfo.ramdisk_size);
+			return (byte*) ramdisk_header + ramdisk_files[i].offset;
+		}
 	}
 
 	return NULL;
@@ -111,17 +242,18 @@ void* ramOpen(const wchar_t* name)
 
 size_t ramFileLength(const wchar_t* name)
 {
-	ramdisk_t* header = (ramdisk_t*) 0xd0000000;
-	ramfile_t* files = (ramfile_t*) (header + 1);
 	wchar_t temp[16];
 	int i;
 
-	for (i = 0; i < header->num_files; i++)
+	assert(ramdisk_header != NULL);
+	assert(ramdisk_files != NULL);
+
+	for (i = 0; i < ramdisk_header->num_files; i++)
 	{
-		mbstowcs(temp, files[i].name, countof(files[i].name));
+		mbstowcs(temp, ramdisk_files[i].name, countof(ramdisk_files[i].name));
 		//wprintf(L"%s\t%x\n", temp, files[i].offset);
 		if (wcsicmp(name, temp) == 0)
-			return files[i].length;
+			return ramdisk_files[i].length;
 	}
 
 	return -1;

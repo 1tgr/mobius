@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/short.exe
 OBJS=	short.o 
-LIBS=	$(LIB)/libcs.lib $(LIB)/kernelu.lib
+LIBS=	$(LIB)/libc.lib $(LIB)/kernelu.lib
 
 include ..\make.actions
 

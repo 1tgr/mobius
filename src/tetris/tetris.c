@@ -5,8 +5,11 @@
 #include <os/os.h>
 #include <os/device.h>
 
-addr_t vga;
-word old_buf[80*25];
+/*!
+ *	\ingroup	programs
+ *	\defgroup	tetris	Tetris
+ *	@{
+ */
 
 /* dimensions of playing area */
 #define	SCN_WID		15
@@ -81,13 +84,15 @@ void refresh(void)
 	unsigned XPos, YPos;
 	qword fpos;
 	word ch[2];
+	wchar_t s[8] = L"\x1B[%dm  ";
+	s[5] = s[6] = 0x2588;
 
 	for(YPos=0; YPos < SCN_HT; YPos++)
 	{
 		if(!Dirty[YPos])
 			continue;
 /* gotoxy(0, YPos) */
-		//wprintf(L"\x1B[%d;1H", YPos + 1);
+		wprintf(L"\x1B[%d;1H", YPos + 1);
 		fpos = YPos * 80;
 		for(XPos=0; XPos < SCN_WID; XPos++)
 		{
@@ -95,15 +100,18 @@ void refresh(void)
 			//wprintf(L"\x1B[%dm\xDB\xDB", 30 + Screen[XPos][YPos]);
 
 			/* U+2588 is the Unicode Full Block character */
-			//wprintf(L"\x1B[%dm\x2588\x2588", 30 + Screen[XPos][YPos]);
+			// xxx - gcc seems to break this
+			wprintf(L"\x1B[%dm\x2588\x2588", 30 + Screen[XPos][YPos]);
 
-			ch[0] = ch[1] = (Screen[XPos][YPos] << 8) | 0xDB;
-			devWriteSync(vga, (fpos + XPos * 2) * 2, ch, sizeof(ch));
+			//wprintf(s, 30 + Screen[XPos][YPos]);
+
+			//ch[0] = ch[1] = (Screen[XPos][YPos] << 8) | 0xDB;
+			//devWriteSync(vga, (fpos + XPos * 2) * 2, ch, sizeof(ch));
 		}
 		Dirty[YPos]=0;
 	}
 /* reset foreground color to gray */
-	//wprintf(L"\x1B[37m");
+	wprintf(L"\x1B[37m");
 	//fflush(stdout);
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -250,49 +258,34 @@ int main(void)
 	char Fell, NewShape, NewX, NewY;
 	unsigned Shape, X, Y, i;
 	wint_t Key;
-	static word temp[80*25];
-
-	vga = devOpen(L"vgatext", NULL);
-	if (!vga)
-	{
-		_pwerror(L"vgatext");
-		return 1;
-	}
-
-	devReadSync(vga, 0, old_buf, sizeof(old_buf));
-
-	for (i = 0; i < sizeof(temp); i++)
-		temp[i] = 0x0720;
-	
-	devWriteSync(vga, 0, temp, sizeof(temp));
 
 /* re-seed the random number generator */
 	srand(sysUpTime());
 /* turn off stdio.h buffering */
 	//setbuf(stdout, NULL);
 /* banner screen */
-	/*wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov",
+	wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov",
 		SCN_WID * 2 + 2);
 	wprintf(L"\x1B[2;%dH"L"Software by Chris Giese", SCN_WID * 2 + 2);
 	wprintf(L"\x1B[4;%dH"L"'1' and '2' rotate shape", SCN_WID * 2 + 2);
 	wprintf(L"\x1B[5;%dH"L"Arrow keys move shape", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", SCN_WID * 2 + 2);*/
+	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", SCN_WID * 2 + 2);
 
-	wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov", 2);
+	/*wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov", 2);
 	wprintf(L"\x1B[2;%dH"L"Software by Chris Giese", 2);
 	wprintf(L"\x1B[4;%dH"L"'1' and '2' rotate shape", 2);
 	wprintf(L"\x1B[5;%dH"L"Arrow keys move shape", 2);
-	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", 2);
+	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", 2);*/
 
 NEW:
-	//wprintf(L"\x1B[9;%dH"L"Press any key to begin", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[9;%dH"L"Press any key to begin", 2);
+	wprintf(L"\x1B[9;%dH"L"Press any key to begin", SCN_WID * 2 + 2);
+	//wprintf(L"\x1B[9;%dH"L"Press any key to begin", 2);
 	//fflush(stdout);
 	_wgetch();
-	/*wprintf(L"\x1B[8;%dH"L"                      ", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[9;%dH"L"                      ", SCN_WID * 2 + 2);*/
-	wprintf(L"\x1B[8;%dH"L"                      ", 2);
-	wprintf(L"\x1B[9;%dH"L"                      ", 2);
+	wprintf(L"\x1B[8;%dH"L"                      ", SCN_WID * 2 + 2);
+	wprintf(L"\x1B[9;%dH"L"                      ", SCN_WID * 2 + 2);
+	/*wprintf(L"\x1B[8;%dH"L"                      ", 2);
+	wprintf(L"\x1B[9;%dH"L"                      ", 2);*/
 	screenInit();
 	goto FOO;
 
@@ -369,7 +362,7 @@ FOO:			Y=3;
 	}
 	
 	wprintf(L"\x1B[2J");
-	devWriteSync(vga, 0, old_buf, sizeof(old_buf));
-	devClose(vga);
 	return 0;
 }
+
+//@}

@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/sermouse.drv
 OBJS=	sermouse.o
-BASE=	@$(BIN)\coffbase.txt,sermouse
+BASE=	sermouse
 
 include ../make.driver
 

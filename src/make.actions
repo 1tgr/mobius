@@ -1,23 +1,32 @@
-ROOT=		f:\Projects\mobius
-BIN=		$(ROOT)\bin
-LIB=		$(ROOT)\lib
-CPPFLAGS+=	-D__MOBIUS__ -O2 -Wall -I$(ROOT)\include -pipe
+ROOT=		//f/projects/mobius
+BIN=		$(ROOT)/bin
+LIB=		$(ROOT)/lib
+CFLAGS+=	-D__MOBIUS__ -O2 -Wall -I. -I$(ROOT)/include -nostdinc -pipe
 CC=		gcc
 NASM=		nasm
 RC=		windres
 LDFLAGS+=	-L$(LIB)
 
 %.d:	%.c
-	$(CC) $(CPPFLAGS) -M -c $< -o $@
+	$(CC) $(CFLAGS) -M -c $< -o $@
 %.o:	%.c
-	$(CC) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
+
 %.d:	%.cpp
-	$(CC) $(CPPFLAGS) -MD -c $<
+	$(CC) $(CFLAGS) -MD -c $<
 %.o:	%.cpp
-	$(CC) $(CPPFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
+
 %.d:	%.asm
 	$(NASM) -M $< > $@
 %.o:	%.asm
 	$(NASM) -f win32 -o $@ $<
+
 %.res.o: %.rc
 	$(RC) -i $< -o $@
+
+%.exp: %.def
+	dlltool -e $@ -m i386 --input-def $< -D $(<:.exp=.dll)
+
+$(LIB)/%.lib: %.def
+	dlltool -l $@ -m i386 --input-def $< -D $(<:.def=.dll)

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <wchar.h>
 
 /* 7-bit ASCII maps to bottom 128 characters of UCS */
 struct asciimap_t

@@ -4,45 +4,61 @@
 #include <kernel/vmm.h>
 #include <kernel/handle.h>
 #include <kernel/thread.h>
+#include <kernel/fs.h>
 #include <os/pe.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 module_t* peLoad(process_t* proc, const wchar_t* file, dword base)
 {
-	void* data;
+	file_t *fd;
 	module_t* mod;
-
+	
 	for (mod = proc->mod_first; mod; mod = mod->next)
 		if (wcsicmp(mod->name, file) == 0)
 			return mod;
 
-	data = ramOpen(file);
-	if (!data)
+	fd = fsOpen(file);
+	if (!fd)
 		return NULL;
 	
-	return peLoadMemory(proc, file, data, base);
+	return peLoadMemory(proc, file, fd, base);
 }
 
-module_t* peLoadMemory(process_t* proc, const wchar_t* file, const void* ptr, dword base)
+module_t* peLoadMemory(process_t* proc, const wchar_t* file, 
+					   struct file_t *fd, dword base)
 {
 	module_t *mod;
-	IMAGE_DOS_HEADER *dos;
-	IMAGE_PE_HEADERS *pe;
+	IMAGE_DOS_HEADER dos;
+	IMAGE_PE_HEADERS pe;
 	vm_area_t *area;
 	addr_t new_base;
-
-	dos = (IMAGE_DOS_HEADER*) ptr;
-	if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+	size_t size;
+	
+	fsSeek(fd, 0);
+	size = fsRead(fd, &dos, sizeof(dos));
+	if (size < sizeof(dos))
 	{
-		wprintf(L"%s: not an executable\n", file);
+		wprintf(L"%s: only %d bytes read (%d)\n", file, size, errno);
+		return NULL;
+	}
+	
+	if (dos.e_magic != IMAGE_DOS_SIGNATURE)
+	{
+		wprintf(L"%s: not an executable (%S)\n", file, &dos);
 		return NULL;
 	}
 
-	pe = (IMAGE_PE_HEADERS*) ((byte*) ptr + dos->e_lfanew);
-	if (pe->Signature != IMAGE_NT_SIGNATURE)
+	fsSeek(fd, dos.e_lfanew);
+	fsRead(fd, &pe, sizeof(pe));
+
+	if (pe.Signature != IMAGE_NT_SIGNATURE)
 	{
-		wprintf(L"%s: not PE format\n", file);
+		char *c = (char*) &pe.Signature;
+		wprintf(L"%s: not PE format (%c%c%c%c)\n", file, 
+			c[0], c[1], c[2], c[3]);
 		return NULL;
 	}
 
@@ -50,7 +66,7 @@ module_t* peLoadMemory(process_t* proc, const wchar_t* file, const void* ptr, dw
 	mod->name = wcsdup(file);
 
 	if (base == NULL)
-		base = pe->OptionalHeader.ImageBase;
+		base = pe.OptionalHeader.ImageBase;
 
 	new_base = base;
 	while ((area = vmmArea(proc, (const void*) new_base)))
@@ -63,13 +79,14 @@ module_t* peLoadMemory(process_t* proc, const wchar_t* file, const void* ptr, dw
 	assert(new_base == base);
 
 	mod->base = base;
-	mod->length = pe->OptionalHeader.SizeOfImage;
+	mod->length = pe.OptionalHeader.SizeOfImage;
 	mod->prev = proc->mod_last;
 	mod->next = NULL;
-	mod->entry = base + pe->OptionalHeader.AddressOfEntryPoint;
-	mod->raw_data = (void*) ptr;
-	mod->sizeof_headers = pe->OptionalHeader.SizeOfHeaders;
+	mod->entry = base + pe.OptionalHeader.AddressOfEntryPoint;
+	mod->file = fd;
+	mod->sizeof_headers = pe.OptionalHeader.SizeOfHeaders;
 	mod->imported = false;
+	//mod->raw_data = vmmMapFile(proc, NULL, (size_t) -1, fd, MEM_READ | MEM_WRITE);
 
 	/*wprintf(L"%s: %x..%x (pbase = %x)\n",
 		file, mod->base, mod->base + mod->length, 
@@ -170,7 +187,7 @@ static bool peDoImports(process_t* proc,
 		args[0] = newmod->base;
 		args[1] = 0;
 		args[2] = 0;
-		//thrCall(current, (void*) newmod->entry, args, sizeof(args));
+		thrCall(current, (void*) newmod->entry, args, sizeof(args));
 
 		{
 			int count, nextforwarder = bound==bound_old ? imp->ForwarderChain : -1;
@@ -223,8 +240,9 @@ bool pePageFault(process_t* proc, module_t* mod, addr_t addr)
 {
 	IMAGE_PE_HEADERS *pe;
 	size_t size, raw_size;
-	void *scn_base, *raw_data;
+	void *scn_base;
 	dword priv;
+	addr_t raw_offset;
 	
 	//if (wcsicmp(mod->name, L"kdebug.dll") == 0)
 		//wprintf(L"%s: base = %08x length = %08x\n", mod->name, mod->base, mod->length);
@@ -233,14 +251,19 @@ bool pePageFault(process_t* proc, module_t* mod, addr_t addr)
 		return false;
 
 	//wprintf(L"pePageFault: %s at %p\n", mod->name, addr);
+	
 	if (addr >= mod->base && addr < mod->base + mod->sizeof_headers)
 	{
 		//wprintf(L"%x: headers: %d bytes\n", addr, mod->sizeof_headers);
+
+		/* Map headers as a special case */
+
 		size = (mod->sizeof_headers + PAGE_SIZE - 1) & -PAGE_SIZE;
 		raw_size = mod->sizeof_headers;
 		priv = proc->level | MEM_READ | MEM_COMMIT | MEM_ZERO;
 		scn_base = (void*) mod->base;
-		raw_data = mod->raw_data;
+		//raw_data = mod->raw_data;
+		raw_offset = 0;
 		pe = NULL;
 	}
 	else
@@ -282,9 +305,11 @@ bool pePageFault(process_t* proc, module_t* mod, addr_t addr)
 			priv |= MEM_WRITE;
 		
 		if ((scn->Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) == 0)
-			raw_data = (byte*) mod->raw_data + scn->PointerToRawData;
+			//raw_data = (byte*) mod->raw_data + scn->PointerToRawData;
+			raw_offset = scn->PointerToRawData;
 		else
-			raw_data = NULL;
+			//raw_data = NULL;
+			raw_offset = -1;
 
 		raw_size = scn->SizeOfRawData;
 	}
@@ -295,13 +320,19 @@ bool pePageFault(process_t* proc, module_t* mod, addr_t addr)
 		return false;
 	}
 
+	//wprintf(L"%s: 0x%x bytes at 0x%x\n", mod->name, size, scn_base);
 	if (!vmmAlloc(proc, size / PAGE_SIZE, (addr_t) scn_base, priv))
+	{
+		wprintf(L"%s: failed to allocate section\n", mod->name);
 		return false;
+	}
 
-	if (raw_data)
+	if (raw_offset != (addr_t) -1)
 	{
 		//wprintf(L"Copying %d bytes from %x\n", raw_size, raw_data);
-		memcpy(scn_base, raw_data, raw_size);
+		//memcpy(scn_base, raw_data, raw_size);
+		fsSeek(mod->file, raw_offset);
+		fsRead(mod->file, scn_base, raw_size);
 	}
 	//else
 		//wprintf(L"Uninitialized data\n");

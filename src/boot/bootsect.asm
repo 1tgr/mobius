@@ -137,6 +137,7 @@ nextsector:
     inc ax                      ; read next sector
     loopnz nextsector
 
+    mov dl, [bsBootDrv]
     mov ax,LOAD_SEGMENT         ; set segment registers and jump
     mov es,ax
     mov ds,ax

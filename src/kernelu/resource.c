@@ -1,9 +1,8 @@
 #include <os/os.h>
 #include <os/pe.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <stdio.h>
 
 static const IMAGE_RESOURCE_DIRECTORY_ENTRY* resFindItem(dword base, 
 	const IMAGE_RESOURCE_DIRECTORY* dir, const word* ids)
@@ -19,21 +18,21 @@ static const IMAGE_RESOURCE_DIRECTORY_ENTRY* resFindItem(dword base,
 			ids++;
 			if (entry[i].u2.s.DataIsDirectory)
 			{
-				wprintf(L"%x: Directory: offset to directory = %x\n", 
-					entry[i].u.Id, entry[i].u2.s.OffsetToDirectory);
+				//wprintf(L"%x: Directory: offset to directory = %x\n", 
+					//entry[i].u.Id, entry[i].u2.s.OffsetToDirectory);
 				dir = (const IMAGE_RESOURCE_DIRECTORY*) (base + entry[i].u2.s.OffsetToDirectory);
 				return resFindItem(base, dir, ids);
 			}
 			else
 			{
-				wprintf(L"%x: Resource: offset to data = %x\n", 
-					entry[i].u.Id, entry[i].u2.OffsetToData);
+				//wprintf(L"%x: Resource: offset to data = %x\n", 
+					//entry[i].u.Id, entry[i].u2.OffsetToData);
 				return entry + i;
 			}
 		}
 	}
 
-	wprintf(L"%x: Not found\n", ids[0]);
+	//wprintf(L"%x: Not found\n", ids[0]);
 	sysSetErrno(ENOTFOUND);
 	return NULL;
 }

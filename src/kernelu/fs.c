@@ -4,117 +4,6 @@
 #include <string.h>
 #include <os/device.h>
 
-#if 0
-//! Returns the root folder for the current process.
-/*!
- * By default this is the root folder of the system file system; however, the 
- *	root may have been re-assigned.
- * \return An IFolder* pointer to the root of the current process's file 
- *	system. This interface must be Release()'d once it is finished with.
- */
-IFolder* fsRoot()
-{
-	//IFolder* folder = (IFolder*) thrGetInfo()->process->root;
-	//IUnknown_AddRef(folder);
-	return thrGetInfo()->process->root;
-}
-
-//! Opens an object in the file system
-/*!
- * \param folder	root folder in which to search for the file. If this is 
- *	NULL then the current process's root folder is used.
- * \param path		full path to the file to open.
- * \param iid		interface ID to be returned. Use IID_IStream for files and
- *	IID_IStorage for directories; any other interface ID may be available. Use
- *	IID_IUnknown to return a generic pointer to the object; otherwise, the 
- *	return value can be type-cast to the appropriate interface type.
- * \return A pointer to the specified interface of the object requested, or 
- *	NULL if unsucessful.
- */
-IUnknown* fsOpenHelper(IFolder* folder, const wchar_t* path, REFIID iid)
-{
-	wchar_t* ch = wcschr(path, '/');
-	folderitem_t item;
-	wchar_t temp[MAX_PATH];
-	IStream* ret;
-
-	if (folder == NULL)
-		folder = fsRoot();
-
-	item.size = sizeof(item);
-	if (ch)
-	{
-		wcscpy(temp, path);
-		ch = wcschr(temp, '/');
-		*ch = 0;
-		item.name = temp;
-
-		//wprintf(L"Opening folder %s\n", temp);
-		if (temp[0] == 0)
-			return fsOpenHelper(folder, ch + 1, iid);
-		else if (SUCCEEDED(IFolder_Open(folder, &item, NULL)))
-		{
-			if (SUCCEEDED(IUnknown_QueryInterface(item.u.item_handle, &IID_IFolder, &folder)))
-			{
-				IUnknown_Release(item.u.item_handle);
-				return fsOpenHelper(folder, ch + 1, iid);
-			}
-			else
-			{
-				IUnknown_Release(item.u.item_handle);
-				return NULL;
-			}
-		}
-		else
-			return NULL;
-	}
-	else
-	{
-		ch = wcschr(path, '?');
-		if (ch)
-		{
-			wcsncpy(temp, path, ch - path);
-			ch++;
-		}
-		else
-		{
-			wcscpy(temp, path);
-			ch = L"";
-		}
-
-		item.name = (wchar_t*) temp;
-		//wprintf(L"Opening item \"%s\" params = \"%s\"\n", temp, ch);
-		if (SUCCEEDED(IFolder_Open(folder, &item, ch)))
-		{
-			if (SUCCEEDED(IUnknown_QueryInterface(item.u.item_handle, iid, &ret)))
-			{
-				//wprintf(L"Succeeded\n");
-				IUnknown_Release(item.u.item_handle);
-				return (IUnknown*) ret;
-			}
-			else
-			{
-				//wprintf(L"Failed: no IStream interface");
-				IUnknown_Release(item.u.item_handle);
-				return NULL;
-			}
-		}
-		else
-		{
-			//wprintf(L"Failed: no item found\n");
-			return NULL;
-		}
-	}
-}
-
-IUnknown* fsOpen(const wchar_t* path, REFIID iid)
-{
-	static wchar_t fullpath[MAX_PATH];
-	fsFullPath(path, fullpath);
-	return fsOpenHelper(NULL, fullpath, iid);
-}
-#endif
-
 addr_t fsOpen(const wchar_t* path)
 {
 	static wchar_t fullpath[MAX_PATH];
@@ -141,11 +30,27 @@ bool fsRequest(addr_t fd, request_t* req, size_t size)
 	return ret;
 }
 
+bool fsRequestSync(addr_t fd, request_t* req, size_t size)
+{
+	if (!fsRequest(fd, req, size))
+	{
+		devUserFinishRequest(req, true);
+		return false;
+	}
+
+	thrWaitHandle(&req->header.event, 1, true);
+	devUserFinishRequest(req, true);
+	if (req->header.result)
+		sysSetErrno(req->header.result);
+
+	return req->header.result == 0;
+}
+
 bool fsRead(addr_t fd, void* buffer, size_t* length)
 {
 	request_t req;
 	
-	req.code = FS_READ;
+	req.header.code = FS_READ;
 	req.params.fs_read.buffer = (addr_t) buffer;
 	req.params.fs_read.length = *length;
 	req.params.fs_read.fd = fd;
@@ -154,24 +59,25 @@ bool fsRead(addr_t fd, void* buffer, size_t* length)
 	{
 		devUserFinishRequest(&req, true);
 		*length = req.params.fs_read.length;
-		return req.result;
+		sysSetErrno(req.header.result);
+		return false;
 	}
 
-	thrWaitHandle(&req.event, 1, true);
+	thrWaitHandle(&req.header.event, 1, true);
 	devUserFinishRequest(&req, true);
 	*length = req.params.fs_read.length;
 
-	if (req.result)
-		sysSetErrno(req.result);
+	if (req.header.result)
+		sysSetErrno(req.header.result);
 
-	return req.result == 0;
+	return req.header.result == 0;
 }
 
 bool fsWrite(addr_t fd, const void* buffer, size_t* length)
 {
 	request_t req;
 	
-	req.code = FS_WRITE;
+	req.header.code = FS_WRITE;
 	req.params.fs_write.buffer = (addr_t) buffer;
 	req.params.fs_write.length = *length;
 	req.params.fs_write.fd = fd;
@@ -180,15 +86,58 @@ bool fsWrite(addr_t fd, const void* buffer, size_t* length)
 	{
 		devUserFinishRequest(&req, true);
 		*length = req.params.fs_read.length;
-		return req.result;
+		return req.header.result;
 	}
 
-	thrWaitHandle(&req.event, 1, true);
+	thrWaitHandle(&req.header.event, 1, true);
 	devUserFinishRequest(&req, true);
 
-	if (req.result)
-		sysSetErrno(req.result);
+	if (req.header.result)
+		sysSetErrno(req.header.result);
 
 	*length = req.params.fs_read.length;
-	return req.result == 0;
+	return req.header.result == 0;
+}
+
+bool fsIoCtl(addr_t fd, dword code, void* params, size_t length)
+{
+	request_t req;
+	req.header.code = FS_IOCTL;
+	req.params.fs_ioctl.buffer = params;
+	req.params.fs_ioctl.length = length;
+	req.params.fs_ioctl.code = code;
+	req.params.fs_ioctl.fd = fd;
+	return fsRequestSync(fd, &req, sizeof(req));
+}
+
+bool fsSeek(addr_t fd, qword pos)
+{
+	bool ret;
+	dword high, low;
+	high = (dword) (pos >> 32);
+	low = (dword) pos;
+	asm("int $0x30" 
+		: "=a" (ret) 
+		: "a" (0x703), "b" (fd),  "c" (low), "d" (high));
+	return ret;	
+}
+
+qword fsGetPosition(addr_t fd)
+{
+	dword pos;
+	asm("int $0x30"
+		: "=a" (pos)
+		: "a" (0x704), "b" (fd)
+		: "edx");
+	return pos;
+}
+
+qword fsGetLength(addr_t fd)
+{
+	dword length;
+	asm("int $0x30"
+		: "=a" (length)
+		: "a" (0x705), "b" (fd)
+		: "edx");
+	return length;
 }

@@ -1,4 +1,4 @@
-#include <string.h>
+#include <wchar.h>
 #include <malloc.h>
 
 wchar_t *wcsdup(const wchar_t* str)

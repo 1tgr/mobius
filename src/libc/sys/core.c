@@ -14,6 +14,7 @@
  *	\return	A pointer to the start of the block allocated. This block is also
  *		added to the freed memory list.
  */
+/*
 BlockHeader* morecore(size_t nu)
 {
 	byte *cp;
@@ -25,7 +26,8 @@ BlockHeader* morecore(size_t nu)
 	//if (bytes < PAGE_SIZE * 4)
 		//bytes = PAGE_SIZE * 4;
 
-	cp = vmmAlloc(bytes / PAGE_SIZE, NULL, MEM_USER | MEM_READ | MEM_WRITE);
+	cp = vmmAlloc(bytes / PAGE_SIZE, NULL, 
+		MEM_COMMIT | MEM_USER | MEM_READ | MEM_WRITE);
 	//wprintf(L"libc morecore: allocated %d pages at %p\n", bytes / PAGE_SIZE, cp);
 
 	nu = bytes / sizeof(BlockHeader);
@@ -34,4 +36,19 @@ BlockHeader* morecore(size_t nu)
 	free((void*) (up + 1));
 	return freep;
 }
+*/
 
+char *sbrk(int size)
+{
+	char *cp;
+	size_t bytes;
+	bytes = (size + PAGE_SIZE) & -PAGE_SIZE;
+	cp = vmmAlloc(bytes / PAGE_SIZE, NULL, 
+		MEM_COMMIT | MEM_USER | MEM_READ | MEM_WRITE);
+	return cp;
+}
+
+size_t getpagesize()
+{
+	return PAGE_SIZE;
+}

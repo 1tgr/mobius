@@ -76,38 +76,6 @@ CFG=all - Win32 Debug
 
 !ENDIF 
 
-# Begin Group "boot"
-
-# PROP Default_Filter ".asm"
-# Begin Source File
-
-SOURCE=.\boot\bootsect.asm
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\gdtnasm.inc
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\listing.txt
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\Makefile
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\minifs.asm
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\mobel.asm
-# End Source File
-# Begin Source File
-
-SOURCE=.\boot\mobel_pe.asm
-# End Source File
-# End Group
 # Begin Group "bin"
 
 # PROP Default_Filter ""

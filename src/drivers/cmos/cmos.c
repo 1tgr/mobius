@@ -2,6 +2,7 @@
 #include <kernel/driver.h>
 #include <sys/error.h>
 
+#define DEBUG
 #include <kernel/debug.h>
 
 /*!

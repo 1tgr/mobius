@@ -4,6 +4,7 @@
 #include <kernel/handle.h>
 #include <malloc.h>
 #include <errno.h>
+#include <wchar.h>
 #include <string.h>
 
 /*!

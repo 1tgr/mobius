@@ -3,10 +3,12 @@
 #include <kernel/driver.h>
 #include <kernel/sys.h>
 #include <kernel/memory.h>
+#include <kernel/vmm.h>
 #include <errno.h>
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include <string.h>
 
 #include <os/keyboard.h>
@@ -52,6 +54,7 @@ static const wchar_t* commands[] =
 	L"t",
 	L"go",
 	L"quit",
+	L"vmm",
 };
 
 thread_t* thr;
@@ -64,74 +67,99 @@ void dbgBreak()
 
 bool in_debugger;
 
-SYMENT* dbgLookupSymbol(addr_t base, void* rawdata, void* symbol, addr_t* address)
+bool dbgLookupSymbol(module_t *mod, void* sym, addr_t* address, SYMENT *syment)
 {
+	static SYMENT closest;
+
 	IMAGE_DOS_HEADER* dos;
 	IMAGE_PE_HEADERS* pe;
 	IMAGE_SECTION_HEADER* sections;
-	SYMENT *symbols, *found, *closest;
+	SYMENT symbol;
 	int i;
 	addr_t addr;
 	size_t closest_diff;
+	bool found;
 	
-	dos = (IMAGE_DOS_HEADER*) base;
-	pe = (IMAGE_PE_HEADERS*) ((dword) base + dos->e_lfanew);
+	dos = (IMAGE_DOS_HEADER*) mod->base;
+	pe = (IMAGE_PE_HEADERS*) ((dword) mod->base + dos->e_lfanew);
 	sections = IMAGE_FIRST_SECTION(pe);
 
-	symbols = (SYMENT*) ((byte*) rawdata + 
-		pe->FileHeader.PointerToSymbolTable);
+	/*symbols = (SYMENT*) ((byte*) rawdata + 
+		pe->FileHeader.PointerToSymbolTable);*/
 
-	found = NULL;
-	closest = NULL;
+	if (mod->file)
+		fsSeek(mod->file, pe->FileHeader.PointerToSymbolTable);
+	else
+		return false;
+
 	closest_diff = (addr_t) (dword) -1;
+	found = false;
 	for (i = 0; i < pe->FileHeader.NumberOfSymbols; i++)
 	{
-		if (symbols[i].e_sclass == C_EXT ||
-			symbols[i].e_sclass == C_STAT || 
-			symbols[i].e_sclass == C_LABEL)
+		fsRead(mod->file, &symbol, sizeof(symbol));
+
+		if (symbol.e_sclass == C_EXT ||
+			symbol.e_sclass == C_STAT || 
+			symbol.e_sclass == C_LABEL)
 		{
-			addr = base + symbols[i].e_value;
-			if (symbols[i].e_scnum > 0)
-				addr += sections[symbols[i].e_scnum - 1].VirtualAddress;
+			addr = mod->base + symbol.e_value;
+			if (symbol.e_scnum > 0)
+				addr += sections[symbol.e_scnum - 1].VirtualAddress;
 				
 			//wprintf(L"%d scnum = %d addr = %x\n", 
 				//i, symbols[i].e_scnum, addr);
 
-			if (addr >= (addr_t) symbol &&
-				addr - (addr_t) symbol < closest_diff)
+			if ((addr_t) sym >= addr &&
+				(addr_t) sym - addr < closest_diff)
 			{
-				closest = symbols + i;
-				closest_diff = addr - (addr_t) symbol;
+				closest = symbol;
+				closest_diff = (addr_t) sym - addr;
+				found = true;
 			}
 		}
 	}
 
-	if (closest && address)
+	if (found && address)
 	{
-		addr = base + closest->e_value;
-		if (closest->e_scnum > 0)
-			addr += sections[closest->e_scnum - 1].VirtualAddress;
+		addr = mod->base + closest.e_value;
+		if (closest.e_scnum > 0)
+			addr += sections[closest.e_scnum - 1].VirtualAddress;
 		*address = addr;
 	}
 
-	return closest;
+	*syment = closest;
+	return found;
 }
 
-char* dbgGetStringsTable(addr_t base, void* rawdata)
+char* dbgGetStringsTable(module_t *mod)
 {
 	IMAGE_DOS_HEADER *dos;
 	IMAGE_PE_HEADERS *pe;
+	IMAGE_SECTION_HEADER* sections;
 	SYMENT *symbols;
+	int i;
 
-	dos = (IMAGE_DOS_HEADER*) base;
-	pe = (IMAGE_PE_HEADERS*) (base + dos->e_lfanew);
-	symbols = symbols = (SYMENT*) ((byte*) rawdata + 
-		pe->FileHeader.PointerToSymbolTable);
-	return (char*) (symbols + pe->FileHeader.NumberOfSymbols);
+	dos = (IMAGE_DOS_HEADER*) mod->base;
+	pe = (IMAGE_PE_HEADERS*) (mod->base + dos->e_lfanew);
+	sections = IMAGE_FIRST_SECTION(pe);
+
+	for (i = 0; i < pe->FileHeader.NumberOfSections; i++)
+		if (pe->FileHeader.PointerToSymbolTable >= sections[i].PointerToRawData &&
+			pe->FileHeader.PointerToSymbolTable < 
+				sections[i].PointerToRawData + sections[i].SizeOfRawData)
+		{
+			symbols = (SYMENT*) ((char*) mod->base + sections[i].VirtualAddress +
+				pe->FileHeader.PointerToSymbolTable - sections[i].PointerToRawData);
+			return (char*) (symbols + pe->FileHeader.NumberOfSymbols);
+		}
+
+	return NULL;
 }
 
 char* dbgGetSymbolName(void* strings, SYMENT* se)
 {
+	static char temp[9];
+
 	if (se->e.e.e_zeroes == 0)
 	{
 		if (se->e.e.e_offset)
@@ -140,7 +168,10 @@ char* dbgGetSymbolName(void* strings, SYMENT* se)
 			return NULL;
 	}
 	else
-		return se->e.e_name;
+	{
+		strncpy(temp, se->e.e_name, 8);
+		return temp;
+	}
 }
 
 module_t* dbgLookupModule(process_t* proc, addr_t addr)
@@ -178,7 +209,7 @@ void dbgDumpStack(process_t* proc, dword _ebp)
 {
 	dword *pebp = (dword*) _ebp;
 	module_t* mod;
-	SYMENT* sym;
+	SYMENT sym;
 	char *strings, *name;
 	addr_t addr;
 
@@ -197,11 +228,10 @@ void dbgDumpStack(process_t* proc, dword _ebp)
 				if (mod)
 				{
 					_cputws(mod->name);
-					sym = dbgLookupSymbol(mod->base, mod->raw_data, (void*) pebp[1], &addr);
-					if (sym)
+					if (dbgLookupSymbol(mod, (void*) pebp[1], &addr, &sym))
 					{
-						strings = dbgGetStringsTable(mod->base, mod->raw_data);
-						name = dbgGetSymbolName(strings, sym);
+						strings = dbgGetStringsTable(mod);
+						name = dbgGetSymbolName(strings, &sym);
 						if (name)
 							wprintf(L"\t%S + 0x%x", name, pebp[1] - addr);
 					}
@@ -328,8 +358,11 @@ wchar_t* _getws(wchar_t* buffer)
 			*buf = 0;
 			break;
 		case '\b':
-			buf--;
-			_cputws(L"\b \b");
+			if (buf > buffer)
+			{
+				buf--;
+				_cputws(L"\b \b");
+			}
 			break;
 		default:
 			putwchar(ch);
@@ -460,24 +493,38 @@ void dbgLookupLineNumber(addr_t base, void* rawdata, void* symbol,
 	}
 }
 
+void dbgDumpVmm(process_t *proc)
+{
+	vm_area_t *area;
+
+	wprintf(L"Low memory:\t%uKB\n", (pool_low.free_pages * PAGE_SIZE) / 1024);
+	wprintf(L"All memory:\t%uKB\n", (pool_all.free_pages * PAGE_SIZE) / 1024);
+
+	wprintf(L"\tBlock\t\tStart\t\tEnd\t\t\tPages\n");
+	for (area = proc->first_vm_area; area; area = area->next)
+		wprintf(L"%c\t%p\t%08x\t%08x\t%x\n",
+			//area->is_committed ? 'C' : '_',
+			' ',
+			area,
+			area->start,
+			area->start + area->pages * PAGE_SIZE,
+			area->pages);
+}
+
 int add_label(struct itemplate* p, insn* ins, wchar_t* str, int operand)
 {
-	SYMENT *sym;
+	SYMENT sym;
 	module_t *mod;
 	addr_t addr, realaddr;
 	char *name, *strings;
 	
 	addr = ins->oprs[operand].offset;
-	//mod = dbgLookupModule(thr->process, addr);
-	//if (mod)
-		//sym = dbgLookupSymbol(mod->base, mod->raw_data, (void*) addr, &realaddr);
-	//else
-		sym = NULL;
-
-	if (sym)
+	mod = dbgLookupModule(thr->process, addr);
+	
+	if (mod && dbgLookupSymbol(mod, (void*) addr, &realaddr, &sym))
 	{
-		strings = dbgGetStringsTable(mod->base, mod->raw_data);
-		name = dbgGetSymbolName(strings, sym);
+		strings = dbgGetStringsTable(mod);
+		name = dbgGetSymbolName(strings, &sym);
 		if (addr == realaddr)
 			return swprintf(str, L"%S", name);
 		else
@@ -490,11 +537,16 @@ int add_label(struct itemplate* p, insn* ins, wchar_t* str, int operand)
 bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 {
 	static wchar_t buf[256];
+	static int lastCommand;
+
 	unsigned id;
 	int i;
 	module_t *mod;
-	unsigned line;
-	char* file;
+	//unsigned line;
+	char *name;
+	void* strings;
+	addr_t symaddr;
+	SYMENT sym;
 	
 	if (keyboard == NULL)
 		keyboard = devOpen(L"keyboard", NULL);
@@ -510,22 +562,37 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 		else
 			wcscpy(buf, L"(disassembly unavailable)");
 
-		mod = dbgLookupModule(thr->process, ctx->eip);
+		/*mod = dbgLookupModule(thr->process, ctx->eip);
 		if (mod)
 		{
-			dbgLookupLineNumber(mod->base, mod->raw_data, (void*) ctx->eip,
-				&line, &file);
-			wprintf(L"%S:%d:\n", file, line);
-		}
+			//dbgLookupLineNumber(mod, (void*) ctx->eip, &line, &file);
+			//wprintf(L"%S:%d:\t", file, line);
+
+			if (dbgLookupSymbol(mod, (void*) ctx->eip, &symaddr, &sym))
+			{
+				strings = dbgGetStringsTable(mod);
+				name = dbgGetSymbolName(strings, &sym);
+				if (name)
+					wprintf(L"%S + 0x%x", name, ctx->eip - symaddr);
+			}
+
+			_cputws(L"\n");
+		}*/
 
 		wprintf(L"%s\t%s\n> ", 
 			dbgFormatAddress(ctx->eflags, ctx->cs, ctx->eip), buf);
 
 		_getws(buf);
 
-		for (i = 0; i < countof(commands); i++)
-			if (wcsicmp(buf, commands[i]) == 0)
-				break;
+		if (buf[0])
+		{
+			for (i = 0; i < countof(commands); i++)
+				if (wcsicmp(buf, commands[i]) == 0)
+					break;
+			lastCommand = i;
+		}
+		else
+			i = lastCommand;
 
 		switch (i)
 		{
@@ -534,6 +601,7 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 				L"help\t\t"		L"Help\n"
 				L"ctx\t\t"		L"Dump context\n"
 				L"stk\t\t"		L"Dump stack\n"
+				L"vmm\t\t"		L"Dump process memory blocks\n"
 				L"mods\t\t"		L"List modules\n"
 				L"threads\t"	L"List all threads\n"
 				L"thread\t"		L"Switch threads\n"
@@ -586,6 +654,12 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 			in_debugger = false;
 			t->suspend--;
 			return true;
+		case 9:
+			dbgDumpVmm(thr->process);
+			break;
+		default:
+			wprintf(L"%s: invalid command\n", buf);
+			break;
 		}
 	}
 }

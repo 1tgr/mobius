@@ -1,5 +1,5 @@
 #include <conio.h>
-#include <os/device.h>
+#include <os/console.h>
 #include <errno.h>
 
 //! Returns true if there is a key waiting in the keyboard buffer, false otherwise.
@@ -8,6 +8,8 @@
  *		in the system, use of thrWaitHandle() is recommended, rather than 
  *		using _kbhit() in a loop.
  */
+
+#if 0
 int _kbhit()
 {
 	request_t req;
@@ -31,4 +33,10 @@ int _kbhit()
 	}
 	else
 		return size;
+}
+#endif
+
+int _kbhit()
+{
+	return conKeyPressed();
 }

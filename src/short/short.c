@@ -4,6 +4,7 @@
 #include <string.h>
 #include <os/os.h>
 #include <os/pe.h>
+#include <os/console.h>
 
 wchar_t *_getws(wchar_t *buffer)
 {
@@ -12,7 +13,7 @@ wchar_t *_getws(wchar_t *buffer)
 	while (true)
 	{
 		*ch = _wgetch();
-
+		
 		switch (*ch)
 		{
 		case 0:
@@ -226,9 +227,7 @@ int main()
 	addr_t proc;
 	bool async;
 	
-	//sysExec(L"console.exe", NULL);
-
-	if (resLoadString(0x40000000, 1, buf, countof(buf)))
+	if (resLoadString(procBase(), 1, buf, countof(buf)))
 		_cputws(buf);
 	
 	while (true)
@@ -270,10 +269,10 @@ int main()
 					asm("int3");
 				else
 				{
-					if (!(proc = sysExec(buf, args)))
+					if (!(proc = procLoad(buf, args, 16, NULL, NULL)))
 					{
 						wcscat(buf, L".exe");
-						if (!(proc = sysExec(buf, args)))
+						if (!(proc = procLoad(buf, args, 16, NULL, NULL)))
 						{
 							wprintf(L"%s: not found\n", buf);
 							continue;

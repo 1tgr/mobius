@@ -46,6 +46,12 @@ SECTIONS
 		. = ALIGN(4096);
 	}
 
+	.rsrc :
+	{
+		*(.rsrc)
+		. = ALIGN(4096);
+	}
+
 	/* kernel BSS */
 	.bss :
 	{

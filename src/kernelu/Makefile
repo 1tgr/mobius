@@ -2,18 +2,19 @@ TARGET=	$(BIN)/kernelu.dll
 OBJS=	except.o fs.o fullpath.o main.o \
 	obj.o proc.o resource.o sys.o \
 	thread.o vmm.o device.o debug.o \
-	port.o
+	port.o console.o handle.o
 EXP=	kernelu.exp
 IMP=	$(LIB)/kernelu.lib
+CFLAGS=	-g
 
 include ../make.actions
 
 all:	$(TARGET) $(IMP)
 
 $(TARGET):	$(OBJS) $(EXP) kernelu.res.o Makefile
-	ld -o $(TARGET) \
+	ld -o $(TARGET) -g \
 		$(OBJS) $(EXP) ../crt0dll.o kernelu.res.o \
-		$(LIB)/libcs.lib \
+		$(LIB)/libc_s.lib \
 		--image-base 0x10030000 --entry _DllMainCRTStartup@12
 
 %.exp: %.def

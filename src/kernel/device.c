@@ -11,8 +11,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <string.h>
+#include <wchar.h>
 #include <errno.h>
+#include <string.h>
 
 extern process_t proc_idle;
 
@@ -75,7 +76,7 @@ bool devFsRequest(device_t* dev, request_t* req)
 
 		name = req->params.fs_open.name + 1;
 		fd->dev = devOpen(name, NULL);
-		wprintf(L"devFsRequest: FS_OPEN(%s), dev = %p\n", name, dev);
+		//wprintf(L"devFsRequest: FS_OPEN(%s), dev = %p\n", name, dev);
 		
 		if (fd->dev == NULL)
 		{
@@ -88,11 +89,24 @@ bool devFsRequest(device_t* dev, request_t* req)
 		hndSignal(req->event, true);
 		return true;
 
+	case FS_CLOSE:
+		fd = (devfile_t*) req->params.fs_close.fd;
+		assert(fd != NULL);
+		if (!devClose(fd->dev))
+		{
+			req->result = EINVALID;
+			return false;
+		}
+		
+		hndFree(fd);
+		hndSignal(req->event, true);
+		return true;
+
 	case FS_READ:
 		fd = (devfile_t*) req->params.fs_read.fd;
 		assert(fd != NULL);
 
-		wprintf(L"devFsRequest: FS_READ, dev = %p\n", fd->dev);
+		//wprintf(L"devFsRequest: FS_READ, dev = %p\n", fd->dev);
 		req->result = devReadSync(fd->dev, 
 			fd->file.pos,
 			(void*) req->params.fs_read.buffer,
@@ -105,7 +119,7 @@ bool devFsRequest(device_t* dev, request_t* req)
 		fd = (devfile_t*) req->params.fs_write.fd;
 		assert(fd != NULL);
 
-		wprintf(L"devFsRequest: FS_WRITE, dev = %p\n", fd->dev);
+		//wprintf(L"devFsRequest: FS_WRITE, dev = %p\n", fd->dev);
 		req->result = devWriteSync(fd->dev, 
 			fd->file.pos,
 			(const void*) req->params.fs_write.buffer,
@@ -224,10 +238,10 @@ driver_t* devInstallNewDevice(const wchar_t* name, device_config_t* cfg)
 
 		if ((dlu->vendor_id == 0xffff && match(dlu->name_mask, name) == 0) ||
 			(cfg != NULL &&
-			(cfg->vendor_id != 0xffff) &&
-			(cfg->device_id == dlu->device_id) &&
-			(cfg->vendor_id == dlu->vendor_id) &&
-			(cfg->subsystem == dlu->subsystem)))
+			 (cfg->vendor_id != 0xffff) &&
+			 (cfg->device_id == dlu->device_id) &&
+			 (cfg->vendor_id == dlu->vendor_id) &&
+			 (cfg->subsystem == dlu->subsystem)))
 		{
 			wcscpy(temp, dlu->to_filename);
 
@@ -242,8 +256,13 @@ driver_t* devInstallNewDevice(const wchar_t* name, device_config_t* cfg)
 
 	if (temp[0] == 0)
 	{
-		wcscpy(temp, name);
-		wcscat(temp, L".drv");
+		if (cfg)
+			wprintf(L"No match for %04x/%04x/%04x\n",
+				cfg->vendor_id, cfg->device_id, cfg->subsystem, temp);
+		else
+			wprintf(L"No match for %s\n", name);
+
+		return NULL;
 	}
 
 	mod = peLoad(&proc_idle, temp, 0);
@@ -251,6 +270,7 @@ driver_t* devInstallNewDevice(const wchar_t* name, device_config_t* cfg)
 		return NULL;
 	
 	drv = hndAlloc(sizeof(driver_t), NULL);
+	assert(drv != NULL);
 	memset(drv, 0, sizeof(driver_t));
 	drv->mod = mod;
 	drvInit = (void*) mod->entry;
@@ -350,8 +370,8 @@ status_t devRequest(device_t* dev, request_t* req)
 	{
 		//wprintf(L"devRequest: %c%c\n", req->code / 256, req->code % 256);
 		req->result = 0;
-		req->event = hndAlloc(0, &proc_idle);
-		req->cks = 0xdeadbeef;
+		req->event = hndAlloc(0, NULL);
+		//req->cks = 0xdeadbeef;
 		assert(req->event != NULL);
 		
 		req->next = NULL;
@@ -359,15 +379,17 @@ status_t devRequest(device_t* dev, request_t* req)
 		
 		if (dev->request(dev, req))
 		{
-			assert(req->cks == 0xdeadbeef);
+			//assert(req->cks == 0xdeadbeef);
 			return req->result;
 		}
 		else
 		{
-			wprintf(L"devRequest failed (%p): %x\n", dev->request, req->result);
+			//wprintf(L"devRequest failed (%p): %x\n", dev->request, req->result);
 			hndFree(req->event);
 			req->event = NULL;
-			assert(req->cks == 0xdeadbeef);
+			//assert(req->cks == 0xdeadbeef);
+			if (req->result == 0)
+				req->result = EINVALID;
 			return req->result;
 		}
 	}
@@ -390,14 +412,27 @@ status_t devRequest(device_t* dev, request_t* req)
  */
 status_t devRequestSync(device_t* dev, request_t* req)
 {
+	//bool wasntSignalled = false;
+
 	if (devRequest(dev, req) == 0)
 	{
 		if (req->result == 0)
 		{
+			assert(req->event != NULL);
+
+			/*if (!hndIsSignalled(req->event))
+			{
+				wprintf(L"devRequestSync(%p): event not signalled...",
+					dev->request);
+				wasntSignalled = true;
+			}*/
+
 			while (!hndIsSignalled(req->event))
-				asm("sti\n"
-				    "hlt");
+				asm("sti");
 			
+			//if (wasntSignalled)
+				//wprintf(L"done\n");
+
 			hndFree(req->event);
 			return 0;
 		}
@@ -670,6 +705,12 @@ status_t devUserRequest(device_t* dev, request_t* req, size_t size)
 	}
 
 	ret = devRequest(dev, kreq);
+
+	if (ret)
+	{
+		hndFree(kreq);
+		req->kernel_request = NULL;
+	}
 
 	/*
 	 * event and result need to be reflected now, because they will have been 

@@ -1,6 +1,8 @@
 #include <errno.h>
 #include <malloc.h>
+#include <wchar.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -11,12 +13,67 @@
 #include <kernel/sys.h>
 #include <os/os.h>
 
+thread_queue_t thr_running[32];
+thread_queue_t thr_suspended, thr_sleeping;
+dword thr_canrun;
 thread_t *thr_first, *thr_last, *current;
 dword thr_lastid;
+bool thr_needschedule;
+
+//SEMAPHORE(sem_scheduler);
 
 extern tss_t tss;
 extern thread_t thr_idle;//, *old_current;
 extern descriptor_t _gdt[];
+
+void semAcquire(semaphore_t* sem)
+{
+	if (sem->owner == NULL ||
+		sem->owner == current)
+	{
+		sem->owner = current;
+		sem->locks++;
+	}
+	else
+	{
+		while (sem->locks)
+			enable();
+
+		sem->owner = current;
+		sem->locks++;
+	}
+}
+
+void semRelease(semaphore_t* sem)
+{
+	if (sem->owner != current)
+	{
+		wprintf(L"%S(%d) ", sem->file, sem->line);
+		if (sem->owner)
+			wprintf(L"owned by %u\n", sem->owner->id);
+		else
+			wprintf(L"not owned\n");
+
+		assert(sem->owner == current);
+	}
+
+	sem->locks--;
+	if (sem->locks == 0)
+		sem->owner = NULL;
+}
+
+bool semTryAcquire(semaphore_t* sem)
+{
+	if ((sem->owner == NULL ||
+		sem->owner == current) &&
+		sem->locks == 0)
+	{
+		semAcquire(sem);
+		return true;
+	}
+	else
+		return false;
+}
 
 //! Creates a new thread.
 /*!
@@ -52,22 +109,35 @@ extern descriptor_t _gdt[];
  *
  *	\return	The new thread object, or NULL if thread creation failed.
  */
-thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
+
+char *sbrk(size_t size);
+
+thread_t* thrCreate(int level, process_t* proc, const void* entry_point, 
+					unsigned priority)
 {
 	thread_t* thr;
 	context_t* ctx;
 	thread_info_t* info;
 	vm_area_t* area;
 
+	if (priority >= 32)
+		return false;
+	if (proc == NULL)
+		return false;
+	if (level > 3)
+		return false;
+
 	/* Allocate a handle for the thread structure */
 	thr = hndAlloc(sizeof(thread_t), proc);
 	if (!thr)
 		return NULL;
 
+	//semAcquire(&sem_scheduler);
+
 	memset(thr, 0, sizeof(thread_t));
 
 	/* Allocate a PL0 stack */
-	thr->kernel_stack = malloc(PAGE_SIZE);
+	thr->kernel_stack = (void*) sbrk(PAGE_SIZE);
 	assert(thr->kernel_stack != NULL);
 
 	thr->kernel_esp = (dword) thr->kernel_stack + PAGE_SIZE - sizeof(context_t);
@@ -101,10 +171,13 @@ thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
 
 	thr->next = NULL;
 	thr->prev = thr_last;
+	thr->prev_queue = NULL;
+	thr->next_queue = NULL;
 	thr->id = ++thr_lastid;
 	thr->suspend = 1;
 	thr->state = THREAD_RUNNING;
 	thr->process = proc;
+	thr->priority = priority;
 
 	/* Allocate process memory for the user-mode thread structure */
 	thr->info = vmmAlloc(proc, 1, NULL, MEM_USER | MEM_COMMIT | MEM_READ | MEM_WRITE);
@@ -112,7 +185,11 @@ thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
 	//wprintf(L"%s(%d): TCB at %x\n", proc->mod_first->name, thr->id, thr->info);
 
 	area = vmmArea(proc, thr->info);
-	assert(area != NULL);
+	if (area == NULL)
+	{
+		wprintf(L"thr->info = %p\n", thr->info);
+		assert(area != NULL);
+	}
 
 	if (area)
 	{
@@ -137,6 +214,8 @@ thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
 		thr_first = thr;
 
 	thr_last = thr;
+	thrEnqueue(thr, &thr_suspended);
+	//semRelease(&sem_scheduler);
 	return thr;
 }
 
@@ -184,7 +263,7 @@ thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
  *	\return	The new thread object, or NULL if thread creation failed.
  */
 thread_t* thrCreate86(process_t* proc, const byte* code, size_t code_size,
-					  V86HANDLER handler)
+					  V86HANDLER handler, unsigned priority)
 {
 	thread_t* thr;
 	context_t* ctx86;
@@ -203,7 +282,7 @@ thread_t* thrCreate86(process_t* proc, const byte* code, size_t code_size,
 		area->flags = MEM_READ | MEM_WRITE | MEM_USER | MEM_LITERAL;
 	}
 
-	thr = thrCreate(3, proc, NULL);
+	thr = thrCreate(3, proc, NULL, priority);
 	assert(thr != NULL);
 
 	ctx86 = thrContext(thr);
@@ -215,7 +294,7 @@ thread_t* thrCreate86(process_t* proc, const byte* code, size_t code_size,
 		area = vmmArea(proc, NULL);
 	}
 	
-	vmmCommit(proc, area);
+	vmmCommit(area, NULL, -1);
 
 	//page = vmmAlloc(proc, 1, 0x40000, MEM_READ | MEM_WRITE | MEM_USER | MEM_COMMIT);
 	page = (byte*) 0x40000;
@@ -229,7 +308,7 @@ thread_t* thrCreate86(process_t* proc, const byte* code, size_t code_size,
 	ctx86->eflags = 2 | EFLAG_IF | EFLAG_IOPL3 | EFLAG_VM | EFLAG_TF;
 	thr->v86handler = handler;
 	
-	thr->suspend--;
+	thrSuspend(thr, false);
 	return thr;
 }
 
@@ -249,6 +328,13 @@ void thrDelete(thread_t* thr)
 		return;
 	}
 
+	//semAcquire(&sem_scheduler);
+
+	while (thr->suspend)
+		thrSuspend(thr, false);
+
+	thrDequeue(thr, &thr_running[thr->priority]);
+
 	//wprintf(L"Deleting thread %u\n", thr->id);
 	//thr->suspend++;
 	if (thr->prev)
@@ -260,9 +346,9 @@ void thrDelete(thread_t* thr)
 	if (thr == thr_first)
 		thr_first = thr->next;
 
-	vmmFree(thr->process, vmmArea(thr->process, thr->info));
+	vmmFree(vmmArea(thr->process, thr->info));
 
-	free(thr->kernel_stack);
+	//free(thr->kernel_stack);
 	//memFree(thr->user_stack, 1);
 	thr->state = THREAD_DELETED;
 	hndSignal(thr, true);
@@ -275,6 +361,7 @@ void thrDelete(thread_t* thr)
 	}
 
 	hndFree(thr);
+	//semRelease(&sem_scheduler);
 }
 
 //! Determines whether a thread is ready to continue execution.
@@ -293,6 +380,7 @@ void thrDelete(thread_t* thr)
  *	\param	thr	The thread to be checked
  *	\return	Returns true if the thread can execute, or false otherwise.
  */
+#if 0
 bool thrIsReady(thread_t* thr)
 {
 	if (thr->suspend || thr->id == 0)
@@ -387,6 +475,7 @@ bool thrIsReady(thread_t* thr)
 		return true;
 	}
 }
+#endif
 
 //! Schedules a new thread for execution.
 /*!
@@ -408,17 +497,20 @@ bool thrIsReady(thread_t* thr)
  */
 void thrSchedule()
 {
-	bool end = false;
-	//int i;
+	//bool end = false;
+	dword mask;
+	int i;
+	thread_t *thr, *next;
 
-	if (current->suspend)
+	if (current->suspend /*|| !semTryAcquire(&sem_scheduler)*/)
 		return;
 
+	/*
 	//wprintf(L"%x\r", tss.esp0);
 	*((word*) 0xb8000) = 0x7120;
 	do
 	{
-		//*((word*) 0xb809c) = 0x7100 | (current->id + '0');
+		// *((word*) 0xb809c) = 0x7100 | (current->id + '0');
 
 		//for (i = 0; i < 2500; i++)
 			//;
@@ -436,12 +528,50 @@ void thrSchedule()
 			current = thr_first;
 		}
 	} while (!thrIsReady(current));
+	*/
+
+	for (thr = thr_sleeping.first; thr; thr = next)
+	{
+		next = thr->next_queue;
+
+		if (uptime >= thr->wait.time)
+		{
+			thrDequeue(thr, &thr_sleeping);
+			thrRun(thr);
+		}
+	}
+
+	if (thr_canrun == 0)
+		current = &thr_idle;
+	else
+	{
+		mask = thr_canrun;
+		i = 0;
+
+		while ((mask & 1) == 0)
+		{
+			i++;
+			mask >>= 1;
+		}
+
+		if (thr_running[i].current == NULL)
+			thr_running[i].current = thr_running[i].first;
+
+		assert(thr_running[i].current != NULL);
+
+		current = thr_running[i].current;
+		thr_running[i].current = thr_running[i].current->next_queue;
+		if (thr_running[i].current == NULL)
+			thr_running[i].current = thr_running[i].first;
+	}
 	
 	assert(current->info != NULL);
 	i386_set_descriptor(_gdt + 8, (addr_t) current->info, 1, 
 		ACS_DATA | ACS_DPL_3, ATTR_BIG | ATTR_GRANULARITY);
 
 	*((word*) 0xb8000) = 0x7100 | (current->id + '0');
+
+	//semRelease(&sem_scheduler);
 }
 
 //! Returns the thread context structure for the specified thread.
@@ -475,8 +605,35 @@ void thrSleep(thread_t* thr, dword ms)
 {
 	thr->wait.time = uptime + ms;
 	thr->state = THREAD_WAIT_TIMEOUT;
+	thrDequeue(thr, &thr_running[thr->priority]);
+	thrEnqueue(thr, &thr_sleeping);
 	if (thr == current)
-		thrSchedule();
+		thr_needschedule = true;
+}
+
+bool thrWaitFinished(void** hnd, unsigned num_handles, bool wait_all)
+{
+	bool any_waiting = false,
+		any_signalled = false;
+	unsigned i;
+
+	for (i = 0; i < num_handles; i++)
+	{
+		if (hndIsSignalled(hnd[i]))
+		{
+			hndSignal(hnd[i], false);
+			hnd[i] = NULL;
+			any_signalled = true;
+		}
+
+		if (hnd[i] != NULL)
+			any_waiting = true;
+	}
+
+	if ((wait_all && !any_waiting) || (!wait_all && any_signalled))
+		return true;
+	else
+		return false;
 }
 
 //! Causes the specified thread to be paused until the specified handle is signalled.
@@ -489,23 +646,42 @@ void thrSleep(thread_t* thr, dword ms)
 void thrWaitHandle(thread_t* thr, void** hnd, unsigned num_handles, bool wait_all)
 {
 	context_t* ctx = thrContext(thr);
-	
-	/*if (hnd == NULL)
-	{
-		_cputws(L"thrWaitHandle: NULL handle\n");
-		return;
-	}
-
-	if (hndIsSignalled(hnd))
-		return;*/
+	int i;
+	void** temp;
 
 	//wprintf(L"thrWaitHandle(%p, %S(%d))\n", thr, handle->file, handle->line);
+	temp = hndAlloc(sizeof(void*) * num_handles, NULL);
+	memcpy(temp, hnd, sizeof(void*) * num_handles);
+
 	if (thr != current ||
 		(ctx->intr == 0x30 && ctx->regs.eax == 0x0101))
 	{
 		//_cputws(L"User wait\n");
-		thr->wait.handle.handles = hndAlloc(sizeof(void*) * num_handles, NULL);
-		memcpy(thr->wait.handle.handles, hnd, sizeof(void*) * num_handles);
+
+		if (thrWaitFinished(temp, num_handles, wait_all))
+		{
+			handle_t *h;
+			h = hndHandle(hnd[0]);
+			//wprintf(L"%d: %S(%d) already signalled\n", 
+				//thr->id, h->file, h->line);
+			hndFree(temp);
+			return;
+		}
+
+		for (i = 0; i < num_handles; i++)
+		{
+			handle_t *h = hndHandle(hnd[i]);
+
+			if (hnd[i])
+			{
+				//wprintf(L"Moving thread %d from %u queue to handle %S(%d) queue\n",
+					//thr->id, thr->priority, h->file, h->line);
+				thrDequeue(thr, &thr_running[thr->priority]);
+				thrEnqueue(thr, &h->queue);
+			}
+		}
+
+		thr->wait.handle.handles = temp;
 		thr->wait.handle.num_handles = num_handles;
 		thr->wait.handle.wait_all = wait_all;
 		thr->state = THREAD_WAIT_HANDLE;
@@ -513,9 +689,9 @@ void thrWaitHandle(thread_t* thr, void** hnd, unsigned num_handles, bool wait_al
 	}
 	else
 	{
-		unsigned i;
-		bool wait_end = false;
-		dword flags;
+		//unsigned i;
+		//bool wait_end = false;
+		//dword flags;
 
 		/*
 		 * xxx - this is a very kludgy way of determining whether we are being
@@ -523,13 +699,23 @@ void thrWaitHandle(thread_t* thr, void** hnd, unsigned num_handles, bool wait_al
 		 * thrWaitHandle is being effectively emulated by a busy-wait
 		 */
 
-		//wprintf(L"%d: start wait\n", thr->id);
+		wprintf(L"thrWaitHandle: current = %d, intr = %x\n",
+			current->id, ctx->intr);
+
+		while (!thrWaitFinished(temp, num_handles, wait_all))
+			enable();
+
+		hndFree(temp);
+
+		/*
+		asm("int3");
+		wprintf(L"%d: start wait\n", thr->id);
 		//while (!hndIsSignalled(hnd))
 			//enable();
 		
 		asm("pushfl\n"
 			"pop %0" : "=g" (flags));
-		current->suspend++;
+		thrSuspend(current, true);
 
 		while (!wait_end)
 		{
@@ -559,10 +745,10 @@ void thrWaitHandle(thread_t* thr, void** hnd, unsigned num_handles, bool wait_al
 			enable();
 		}
 
-		current->suspend--;
+		thrSuspend(current, false);
 		asm("push %0\n"
 			"popfl" : : "g" (flags));
-		//wprintf(L"%d: signalled\n", thr->id);
+		//wprintf(L"%d: signalled\n", thr->id);*/
 	}
 }
 
@@ -586,6 +772,7 @@ void thrCall(thread_t* thr, void* addr, void* params, size_t sizeof_params)
 	
 	if (current->process->level > 0)
 	{
+		assert(ctx->esp > 0 && ctx->esp <= 0x80000000);
 		ctx->esp -= sizeof_params;
 		memcpy((void*) ctx->esp, params, sizeof_params);
 		ctx->esp -= 4;
@@ -601,28 +788,103 @@ thread_t* thrCurrent()
 	return current;
 }
 
-void semAcquire(semaphore_t* sem)
+bool thrDequeue(thread_t* thr, thread_queue_t* queue)
 {
-	if (sem->owner == NULL ||
-		sem->owner == current)
-	{
-		sem->owner = current;
-		sem->locks++;
-	}
-	else
-	{
-		while (sem->locks)
-			enable();
+	thread_t *found;
 
-		sem->owner = current;
-		sem->locks++;
+	for (found = queue->first; found; found = found->next_queue)
+		if (found == thr)
+			break;
+
+	if (found == NULL)
+		return false;
+
+	if (thr->prev_queue)
+		thr->prev_queue->next_queue = thr->next_queue;
+	if (thr->next_queue)
+		thr->next_queue->prev_queue = thr->prev_queue;
+	if (thr == queue->first)
+		queue->first = thr->next_queue;
+	if (thr == queue->last)
+		queue->last = thr->prev_queue;
+	thr->next_queue = thr->prev_queue = NULL;
+
+	if (queue->current == thr)
+	{
+		queue->current = thr->next_queue;
+
+		if (queue->current == NULL)
+			queue->current = queue->first;
+	}
+
+	if (queue == &thr_running[thr->priority])
+		if (thr_running[thr->priority].first == NULL)
+			thr_canrun &= ~(1 << thr->priority);
+
+	return true;
+}
+
+void thrEnqueue(thread_t* thr, thread_queue_t* queue)
+{
+	assert(thr->next_queue == NULL);
+	assert(thr->prev_queue == NULL);
+
+	if (queue->last)
+		queue->last->next_queue = thr;
+	thr->prev_queue = queue->last;
+	thr->next_queue = NULL;
+	queue->last = thr;
+	if (queue->first == NULL)
+		queue->first = thr;
+
+	if (queue->current == NULL)
+		queue->current = thr;
+}
+
+void thrRun(thread_t* thr)
+{
+	assert(thr->priority < countof(thr_running));
+	//wprintf(L"Moving thread %d onto run queue\n", thr->id);
+	thrEnqueue(thr, &thr_running[thr->priority]);
+	thr_canrun |= 1 << thr->priority;
+	thr->state = THREAD_RUNNING;
+	thr_needschedule = true;
+}
+
+void thrSuspend(thread_t* thr, bool suspend)
+{
+	if (suspend)
+		thr->suspend++;
+	else
+		thr->suspend--;
+
+	if (suspend && thr->suspend == 1)
+	{
+		wprintf(L"Suspending thread %d\n", thr->id);
+		thrDequeue(thr, &thr_running[thr->priority]);
+		thrEnqueue(thr, &thr_suspended);
+	}
+	else if (!suspend && thr->suspend == 0)
+	{
+		wprintf(L"Unsuspending thread %d\n", thr->id);
+		thrDequeue(thr, &thr_suspended);
+		thrRun(thr);
 	}
 }
 
-void semRelease(semaphore_t* sem)
+bool thrSetPriority(thread_t* thr, unsigned priority)
 {
-	assert(sem->owner == current);
-	sem->locks--;
-	if (sem->locks == 0)
-		sem->owner = NULL;
+	if (priority >= 32)
+		return false;
+
+	if (thr->suspend || thr->wait.handle.num_handles)
+		thr->priority = priority;
+	else
+	{
+		thrDequeue(thr, &thr_running[thr->priority]);
+		thr->priority = priority;
+		thrRun(thr);
+	}
+
+	return true;
 }

@@ -6,6 +6,7 @@
 #include <kernel/thread.h>
 
 handle_t *hnd_first, *hnd_last;
+extern byte scode[];
 
 //! Implements the hndAlloc() macro.
 /*!
@@ -51,6 +52,7 @@ void* _hndAlloc(size_t size, struct process_t* proc, const char* file, int line)
 	hnd->process = proc;
 	hnd->file = file;
 	hnd->line = line;
+	hnd->queue.first = hnd->queue.last = hnd->queue.current = NULL;
 	return hnd + 1;
 }
 
@@ -87,8 +89,12 @@ int hndFree(void* buf)
 		return 0;
 
 	hnd = hndHandle(buf);
+	assert((addr_t) hnd >= (addr_t) &scode);
+
 	if (hnd->refs == 0)
 	{
+		assert(hnd->queue.first == NULL);
+
 		for (prev = hnd_first; prev && prev->next != hnd; prev = prev->next)
 			;
 
@@ -117,8 +123,43 @@ int hndFree(void* buf)
  */
 void hndSignal(void* buf, bool signal)
 {
+	thread_t *thr, *next;
+	handle_t *hnd;
+
 	if (buf != NULL)
-		hndHandle(buf)->signal = signal;
+	{
+		hnd = hndHandle(buf);
+
+		hnd->signal = signal;
+
+		if (signal)
+		{
+			//if (hnd->queue.first)
+				//wprintf(L"Signalled handle %S(%d)\n", hnd->file, hnd->line);
+		
+			for (thr = hnd->queue.first; thr; thr = next)
+			{
+				//wprintf(L"hndSignal: Checking thread %d...", thr->id);
+				next = thr->next_queue;
+				thrDequeue(thr, &hnd->queue);
+
+				if (thrWaitFinished(thr->wait.handle.handles, 
+					thr->wait.handle.num_handles, 
+					thr->wait.handle.wait_all))
+				{
+					//wprintf(L"running\n");
+					hndFree(thr->wait.handle.handles);
+					thr->wait.handle.handles = NULL;
+					thr->wait.handle.num_handles = 0;
+					//wprintf(L"%d: wait on %S(%d) finished\n",
+						//thr->id, hnd->file, hnd->line);
+					thrRun(thr);
+				}
+				//else
+					//wprintf(L"not running\n");
+			}
+		}
+	}
 }
 
 //!	Returns the state of a handle's signal

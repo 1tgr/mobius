@@ -1,5 +1,10 @@
 EXPORTS
+	conConnect
+	conGetKey
+	conKeyPressed
+	conWrite
 	devClose
+	devIoCtl
 	devOpen
 	devReadSync
 	devUserFinishRequest
@@ -9,17 +14,24 @@ EXPORTS
 	dputws
 	fsClose
 	fsFullPath
+	fsGetLength
+	fsGetPosition
+	fsIoCtl
 	fsOpen
 	fsRead
 	fsRequest
+	fsSeek
 	fsWrite
+	hndGetOwner
 	objMarshal
 	objNotifyDelete
 	objUnmarshal
+	procBase
 	procCmdLine
 	procCurrentId
 	procCwd
 	procExit
+	procLoad
 	portAccept
 	portClose
 	portConnect
@@ -27,10 +39,11 @@ EXPORTS
 	portListen
 	resFind
 	resLoadString
+	semAcquire
+	semInit
+	semRelease
 	sysErrno
-	sysExec
 	sysGetErrorText
-	sysOpen
 	sysSetErrno
 	sysUpTime
 	thrCall

@@ -15,9 +15,12 @@ struct file_t
 	qword pos;
 };
 
-file_t* fsOpen(const wchar_t* path);
-bool fsClose(file_t* fd);
-bool fsRead(file_t* fd, void* buffer, size_t* length);
+file_t*	fsOpen(const wchar_t* path);
+bool	fsClose(file_t* fd);
+size_t	fsRead(file_t* fd, void* buffer, size_t length);
+void	fsSeek(file_t *fd, qword pos);
+bool	fsMount(const wchar_t* name, const wchar_t* fsd, device_t* device);
+qword	fsGetLength(file_t* fd);
 
 #ifdef __cplusplus
 }

@@ -2,7 +2,7 @@ TARGET=	$(BIN)/kdebug.dll
 OBJS=	kdebug.o disasm.o insnsd.o sync.o
 EXP=	kdebug.exp
 IMP=	$(LIB)/kdebug.lib
-BASE=	@$(BIN)/coffbase.txt,kdebug
+BASE=	kdebug
 
 include ../make.driver
 

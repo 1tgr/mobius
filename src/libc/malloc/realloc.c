@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-void *realloc(void *memblock, size_t size)
+void *__realloc_core(void *memblock, size_t size)
 {
 	size_t oldsize;
 	void* newblock;

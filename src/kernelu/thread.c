@@ -1,5 +1,39 @@
 #include <os/os.h>
 
+void semInit(semaphore_t* sem)
+{
+	sem->owner = NULL;
+	sem->locks = 0;
+}
+
+void semAcquire(semaphore_t* sem)
+{
+	if (sem->owner == NULL ||
+		sem->owner == thrGetId())
+	{
+		sem->owner = thrGetId();
+		sem->locks++;
+	}
+	else
+	{
+		if (sem->locks)
+			asm("int3");
+
+		while (sem->locks)
+			;
+
+		sem->owner = thrGetId();
+		sem->locks++;
+	}
+}
+
+void semRelease(semaphore_t* sem)
+{
+	sem->locks--;
+	if (sem->locks == 0)
+		sem->owner = NULL;
+}
+
 #if 0
 //! Sets the thread's local storage pointer.
 /*!
@@ -83,10 +117,12 @@ dword thrGetId()
 	return thrGetInfo()->tid;
 }
 
-addr_t thrCreate(void* entry_point, dword param)
+addr_t thrCreate(void* entry_point, dword param, unsigned priority)
 {
 	addr_t ret;
-	asm("int $0x30" : "=a" (ret) : "a" (0x107), "b" (entry_point), "c" (param));
+	asm("int $0x30" 
+		: "=a" (ret) 
+		: "a" (0x107), "b" (entry_point), "c" (param), "d" (priority));
 	return ret;
 }
 

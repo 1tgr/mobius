@@ -90,6 +90,10 @@ SOURCE=.\config.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\cupertino.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\device.c
 # End Source File
 # Begin Source File
@@ -103,10 +107,6 @@ SOURCE=.\font8x16.c
 # Begin Source File
 
 SOURCE=.\font8x8.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\free.c
 # End Source File
 # Begin Source File
 
@@ -134,27 +134,11 @@ SOURCE=.\main.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\malloc.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\match.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\mbstowcs.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\memcpy.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\memory.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\memset.c
 # End Source File
 # Begin Source File
 
@@ -163,10 +147,6 @@ SOURCE=.\mod_pe.c
 # Begin Source File
 
 SOURCE=.\module.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\msize.c
 # End Source File
 # Begin Source File
 
@@ -214,11 +194,19 @@ SOURCE=.\syscall.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\t.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\text.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\thread.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\uuid.c
+SOURCE=.\vga.c
 # End Source File
 # Begin Source File
 
@@ -227,34 +215,6 @@ SOURCE=.\vm86.c
 # Begin Source File
 
 SOURCE=.\vmm.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcscat.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcscmp.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcscpy.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcsdup.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcsicmp.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcslen.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\wcsrchr.c
 # End Source File
 # Begin Source File
 
@@ -287,6 +247,10 @@ SOURCE=..\..\include\kernel\cache.h
 # Begin Source File
 
 SOURCE=..\..\include\kernel\config.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\kernel\console.h
 # End Source File
 # Begin Source File
 
@@ -379,11 +343,19 @@ SOURCE=.\kernel.map
 # End Source File
 # Begin Source File
 
+SOURCE=.\kernel.rc
+# End Source File
+# Begin Source File
+
 SOURCE=.\kernelrc
 # End Source File
 # Begin Source File
 
 SOURCE=.\listing.txt
+# End Source File
+# Begin Source File
+
+SOURCE=.\logo.bmp
 # End Source File
 # Begin Source File
 

@@ -98,7 +98,35 @@ LINK32=link.exe
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\stdio\doprintf.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\dowprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fclose.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fopen.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fseek.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\ftell.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\sprintf.c
 # End Source File
 # Begin Source File
 
@@ -211,6 +239,10 @@ SOURCE=.\string\wcspbrk.c
 # Begin Source File
 
 SOURCE=.\string\wcsrchr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\string\wcstombs.c
 # End Source File
 # End Group
 # Begin Group "malloc"
@@ -375,10 +407,6 @@ SOURCE=..\..\include\stdlib.h
 # Begin Source File
 
 SOURCE=..\..\include\string.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\types.h
 # End Source File
 # Begin Source File
 

@@ -10,19 +10,23 @@
 volatile int syscall_level;
 extern tss_t tss;
 
-thread_t* sysCreateThread(addr_t entry, dword param)
+thread_t* sysCreateThread(addr_t entry, dword param, unsigned priority)
 {
 	thread_t* thr;
 	context_t* ctx;
 	dword* dw;
 
-	thr = thrCreate(current->process->level, current->process, (const void*) entry);
+	thr = thrCreate(current->process->level, current->process, 
+		(const void*) entry, priority);
+	if (thr == NULL)
+		return NULL;
+
 	ctx = thrContext(thr);
 	dw = (dword*) ctx->esp;
 	dw[1] = 0;
 	dw[2] = param;
 	ctx->esp += sizeof(dword);
-	thr->suspend--;
+	thrSuspend(thr, false);
 	thrSchedule();
 	return thr;
 }
@@ -36,7 +40,7 @@ void syscall(context_t* ctx)
 	case 0:
 		ctx->regs.eax = (dword)
 			thrCreate86(current->process, (const byte*) ctx->regs.ebx, ctx->regs.ecx,
-			sysV86Fault);
+				sysV86Fault, ctx->regs.edx);
 		break;
 
 	case 1:
@@ -112,13 +116,17 @@ void syscall(context_t* ctx)
 		break;
 
 	case 0x107:
-		ctx->regs.eax = (dword) sysCreateThread(ctx->regs.ebx, ctx->regs.ecx);
+		ctx->regs.eax = (dword) sysCreateThread(ctx->regs.ebx, ctx->regs.ecx,
+			ctx->regs.edx);
 		break;
 	
 	case 0x200:
 		ctx->regs.eax = (dword) procLoad(3, 
 			(const wchar_t*) ctx->regs.ebx,
-			(const wchar_t*) ctx->regs.ecx);
+			(const wchar_t*) ctx->regs.ecx,
+			ctx->regs.edx,
+			(file_t*) ctx->regs.esi,
+			(file_t*) ctx->regs.edi);
 		thrSchedule();
 		break;
 
@@ -175,6 +183,13 @@ void syscall(context_t* ctx)
 		ctx->regs.eax = 1;
 		break;
 
+	case 0x602:
+		if (ctx->regs.ebx == NULL)
+			ctx->regs.eax = NULL;
+		else
+			ctx->regs.eax = (dword) hndHandle(ctx->regs.ebx)->process;
+		break;
+
 	case 0x700:
 		ctx->regs.eax = (dword) fsOpen((const wchar_t*) ctx->regs.ebx);
 		break;
@@ -186,6 +201,10 @@ void syscall(context_t* ctx)
 	case 0x702:
 		if (ctx->regs.ebx == NULL)
 		{
+			request_t *req;
+			req = (request_t*) ctx->regs.ecx;
+			/* need to zero this in case devUserFinishRequest() is called */
+			req->kernel_request = NULL;
 			errno = EINVALID;
 			ctx->regs.eax = 0;
 		}
@@ -194,6 +213,33 @@ void syscall(context_t* ctx)
 			errno = devUserRequest(((file_t*) ctx->regs.ebx)->fsd, 
 				(request_t*) ctx->regs.ecx, (size_t) ctx->regs.edx);
 			ctx->regs.eax = errno == 0;
+		}
+		break;
+
+	case 0x703:
+		fsSeek((file_t*) ctx->regs.ebx, 
+			(qword) ctx->regs.ecx | (qword) ctx->regs.edx << 32);
+		break;
+
+	case 0x704:
+		if (ctx->regs.ebx == NULL)
+		{
+			errno = EINVALID;
+			ctx->regs.eax = 0;
+		}
+		else
+		{
+			qword pos = ((file_t*) ctx->regs.ebx)->pos;
+			ctx->regs.eax = pos & 0xffffffff;
+			ctx->regs.edx = (pos >> 32) & 0xffffffff;
+		}
+		break;
+
+	case 0x705:
+		{
+			qword length = fsGetLength((file_t*) ctx->regs.ebx);
+			ctx->regs.eax = length & 0xffffffff;
+			ctx->regs.edx = (length >> 32) & 0xffffffff;
 		}
 		break;
 

@@ -3,7 +3,7 @@
 #include <kernel/ramdisk.h>
 #include <kernel/config.h>
 #include <stdlib.h>
-#include <string.h>
+#include <wchar.h>
 
 /*!
  *  \ingroup	drivers

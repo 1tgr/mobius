@@ -33,17 +33,17 @@ size_t devReadSync(addr_t dev, qword pos, void* buffer, size_t length)
 {
 	request_t req;
 
-	req.code = DEV_READ;
+	req.header.code = DEV_READ;
 	req.params.read.buffer = buffer;
 	req.params.read.length = length;
 	req.params.read.pos = pos;
 	
 	if (devUserRequest(dev, &req, sizeof(req)) == 0)
-		thrWaitHandle(&req.event, 1, true);
+		thrWaitHandle(&req.header.event, 1, true);
 
 	devUserFinishRequest(&req, true);
-	if (req.result)
-		sysSetErrno(req.result);
+	if (req.header.result)
+		sysSetErrno(req.header.result);
 
 	return req.params.read.length;
 }
@@ -52,17 +52,17 @@ size_t devWriteSync(addr_t dev, qword pos, void* buffer, size_t length)
 {
 	request_t req;
 
-	req.code = DEV_WRITE;
+	req.header.code = DEV_WRITE;
 	req.params.write.buffer = buffer;
 	req.params.write.length = length;
 	req.params.write.pos = pos;
 	
 	if (devUserRequest(dev, &req, sizeof(req)) == 0)
-		thrWaitHandle(&req.event, 1, true);
+		thrWaitHandle(&req.header.event, 1, true);
 
 	devUserFinishRequest(&req, true);
-	if (req.result)
-		sysSetErrno(req.result);
+	if (req.header.result)
+		sysSetErrno(req.header.result);
 
 	return req.params.write.length;
 }
@@ -70,7 +70,17 @@ size_t devWriteSync(addr_t dev, qword pos, void* buffer, size_t length)
 status_t devUserRequestSync(addr_t dev, request_t* req, size_t size)
 {
 	if (devUserRequest(dev, req, size) == 0)
-		thrWaitHandle(&req->event, 1, true);
+		thrWaitHandle(&req->header.event, 1, true);
 	devUserFinishRequest(req, true);
-	return req->result;
+	return req->header.result;
+}
+
+status_t devIoCtl(addr_t dev, dword code, void* params, size_t length)
+{
+	request_t req;
+	req.header.code = DEV_IOCTL;
+	req.params.ioctl.buffer = params;
+	req.params.ioctl.length = length;
+	req.params.ioctl.code = code;
+	return devUserRequestSync(dev, &req, sizeof(req));
 }

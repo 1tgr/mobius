@@ -1,26 +1,13 @@
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <stdlib.h>
-#include <string.h>
+#include <wchar.h>
 #include <errno.h>
 
 extern byte scode[], edata[], ebss[];
 extern dword kernel_pagedir[];
 void main();
 
-typedef struct page_pool_t page_pool_t;
-struct page_pool_t
-{
-	//! Stack of addresses, describing each page in the pool
-	addr_t* pages;
-	//! The number of pages in memory, i.e. memory_top / PAGE_SIZE
-	unsigned num_pages;
-	//! The number of free pages in the stack
-	unsigned free_pages;
-};
-
-// pool_low contains all the pages below 1MB
-#define NUM_LOW_PAGES	(0x100000 >> PAGE_BITS)
 page_pool_t pool_all, pool_low;
 
 //! Marks a range of pages with the specified flags.
@@ -73,20 +60,62 @@ page_pool_t pool_all, pool_low;
 addr_t memAlloc()
 {
 	addr_t page;
-	assert(pool_all.free_pages > 0);
-	pool_all.free_pages--;
-	page = pool_all.pages[pool_all.free_pages];
+
+	do
+	{
+		assert(pool_all.free_pages > 0);
+		pool_all.free_pages--;
+		page = pool_all.pages[pool_all.free_pages];
+	} while (page == (addr_t) -1);
+
 	return page;
 }
 
 addr_t memAllocLow()
 {
 	addr_t page;
-	assert(pool_low.free_pages > 0);
-	pool_low.free_pages--;
-	page = pool_low.pages[pool_low.free_pages];
+
+	do
+	{
+		assert(pool_low.free_pages > 0);
+		pool_low.free_pages--;
+		page = pool_low.pages[pool_low.free_pages];
+	} while (page == (addr_t) -1);
+
 	assert(page < NUM_LOW_PAGES * PAGE_SIZE);
 	return page;
+}
+
+addr_t memAllocLowSpan(size_t pages)
+{
+	addr_t page, j, start;
+	bool found;
+
+	for (page = 0; page < pool_low.free_pages; page++)
+	{
+		if (pool_low.pages[page] != (addr_t) -1)
+		{
+			found = true;
+
+			for (j = 0; j < pages; j++)
+				if (pool_low.pages[page + j] != 
+					pool_low.pages[page] + j * PAGE_SIZE)
+				{
+					found = false;
+					break;
+				}
+
+			if (found)
+			{
+				start = pool_low.pages[page];
+				for (j = 0; j < pages; j++)
+					pool_low.pages[page + j] = (addr_t) -1;
+				return start;
+			}
+		}
+	}
+
+	return NULL;
 }
 
 //! Frees a block of memory allocated by memAlloc.
@@ -135,7 +164,7 @@ bool memMap(dword *PageDir, dword Virt, dword Phys, dword pages, byte Privilege)
 
 	Privilege = (Privilege & PRIV_ALL)/* | PRIV_PRES*/;
 
-	//wprintf(L"map %x => %x\n", Virt, Phys);
+	//wprintf(L"map %x => %x: ", Virt, Phys);
 	for (; pages > 0; pages--, Virt += PAGE_SIZE, Phys += PAGE_SIZE)
 	{
 		/* get top-level page offset (i.e. page directory entry on x86)
@@ -147,7 +176,7 @@ bool memMap(dword *PageDir, dword Virt, dword Phys, dword pages, byte Privilege)
 		   page table. Get another 4K of memory and use it to create a new page table. */
 		{
 			Temp = memAlloc();
-			//wprintf(L"%x: new page = %p\n", Virt, Temp);
+			//wprintf(L"%new page = %p: ", Virt, Temp);
 			if (!Temp)
 				return false;
 
@@ -172,6 +201,7 @@ bool memMap(dword *PageDir, dword Virt, dword Phys, dword pages, byte Privilege)
 		i386_lpoke32(Temp + PageTabOff * 4, PAGE_NUM(Phys) | Privilege);
 	}
 
+	//wprintf(L"done\n");
 	return true;
 }
 
@@ -248,12 +278,18 @@ bool INIT_CODE memInit()
 	pool_low.pages = pages;
 	pool_low.free_pages = 0;
 
+	/* Free memory below the BIOS */
 	memFreeRange(&pool_low, 0x5000, 0xA0000);
 
-	memFreeRange(&pool_all, 
+	/*memFreeRange(&pool_all, 
 		0x100000, _sysinfo.kernel_phys);
 	memFreeRange(&pool_all, 
 		_sysinfo.kernel_phys + _sysinfo.kernel_data, _sysinfo.ramdisk_phys);
+	memFreeRange(&pool_all, 
+		_sysinfo.ramdisk_phys + _sysinfo.ramdisk_size, _sysinfo.memory_top);*/
+
+	/* Free memory between 1MB and the ramdisk */
+	memFreeRange(&pool_all, 0x100000, _sysinfo.ramdisk_phys);
 	memFreeRange(&pool_all, 
 		_sysinfo.ramdisk_phys + _sysinfo.ramdisk_size, _sysinfo.memory_top);
 
@@ -266,10 +302,14 @@ bool INIT_CODE memInit()
 	memMark(_sysinfo.kernel_phys / PAGE_SIZE,
 		(_sysinfo.kernel_phys + _sysinfo.kernel_data) / PAGE_SIZE, PAGE_RESERVED);*/
 	
+	/* Map physical memory except bottom 4KB */
 	memMap(kernel_pagedir, PAGE_SIZE, PAGE_SIZE, 
 		_sysinfo.memory_top / PAGE_SIZE - 1, PRIV_KERN | PRIV_WR | PRIV_PRES);
+	/* Map graphics memory */
 	memMap(kernel_pagedir, 0xa0000, 0xa0000, 16, PRIV_USER | PRIV_WR | PRIV_PRES);
+	/* Map text memory */
 	memMap(kernel_pagedir, 0xb8000, 0xb8000, 1, PRIV_USER | PRIV_WR | PRIV_PRES);
+	/* Map kernel above 0x80000000 */
 	memMap(kernel_pagedir, (addr_t) scode, _sysinfo.kernel_phys, 
 		_sysinfo.kernel_data / PAGE_SIZE, PRIV_KERN | PRIV_WR | PRIV_PRES);
 	//memMap(kernel_pagedir, 0xff000000, 0xff000000, 1048576 / 4096, PRIV_USER | PRIV_WR);

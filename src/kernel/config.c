@@ -1,6 +1,7 @@
 #include <kernel/config.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
+#include <string.h>
 
 const char* cfgGetToken(const char* str, char* out, size_t max, const char* ctrl)
 {

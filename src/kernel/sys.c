@@ -1,4 +1,4 @@
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
 #include <kernel/kernel.h>
 #include <kernel/sys.h>
@@ -103,12 +103,12 @@ bool keShutdown(dword flags)
 {
 	word idtr[3] = { 0, 0, 0 };
 	
-	while (thr_last != &thr_idle)
+	/*while (thr_last != &thr_idle)
 	{
 		wprintf(L"Shutting down process %d...", thr_last->process->id);
 		procTerminate(thr_last->process);
 		_cputws(L"done\n");
-	}
+	}*/
 
 	//devCleanup();
 	//procDelete(&proc_idle);

@@ -1,17 +1,29 @@
-include ../make.actions
+BIN=	..\..\bin
+TARGET=	$(BIN)\mobel_pe.com
+BOOTSECT=	$(BIN)\bootsect.com
+OBJS=	startup.obj mobel_pe.obj disk.obj vfs.obj \
+	fat.obj loaderb.obj 
+LIBPATH=f:\tc\lib
+CFLAGS=	-w -mt -O2 -d -Z -1 -vi
+LFLAGS	=/x /c
 
-LOADER=	$(BIN)/bootsect.com
-LOADER2=$(BIN)/mobel_pe.com
+all:	$(TARGET) $(BOOTSECT)
 
-all:	$(LOADER) $(LOADER2)
+$(TARGET):	$(OBJS) Makefile
+	tlink $(LFLAGS) /t $(OBJS),$(TARGET),,$(LIBPATH)\cs.lib
+	ndisasmw $(TARGET) > listing.txt
 
-$(BIN)/%.com:	%.asm
-	nasm -f bin -o $@ $<
+%.obj:	%.c Makefile
+	tcc -c $(CFLAGS) -o$@ $<
 
-clean:
-	rm $(LOADER)
-	rm $(LOADER2)
-	rm mobel.d bootsect.d
+%.obj:	%.asm
+	nasm -DNODOS -f obj -o$@ $<
 
-include mobel.d
-include bootsect.d
+$(BOOTSECT):	bootsect.asm
+	nasm -f bin -o$@ $<
+
+floppy:	$(TARGET)
+	copy $(TARGET) a:
+
+bochs:	$(TARGET)
+	make -C ../../bin

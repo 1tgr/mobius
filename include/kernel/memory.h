@@ -6,13 +6,30 @@ extern "C"
 {
 #endif
 
-bool memInit();
-addr_t memAlloc();
-void memFree(addr_t block);
-addr_t memAllocLow();
-void memFreeLow(addr_t block);
-bool memMap(dword *PageDir, dword Virt, dword Phys, dword pages, byte Privilege);
-dword memTranslate(const dword* pPageDir, const void* pAddress);
+typedef struct page_pool_t page_pool_t;
+struct page_pool_t
+{
+	//! Stack of addresses, describing each page in the pool
+	addr_t* pages;
+	//! The number of pages in memory, i.e. memory_top / PAGE_SIZE
+	unsigned num_pages;
+	//! The number of free pages in the stack
+	unsigned free_pages;
+};
+
+extern DLLIMPORT page_pool_t pool_all, pool_low;
+
+// pool_low contains all the pages below 1MB
+#define NUM_LOW_PAGES	(0x100000 >> PAGE_BITS)
+
+bool	memInit();
+addr_t	memAlloc();
+void	memFree(addr_t block);
+addr_t	memAllocLow();
+void	memFreeLow(addr_t block);
+addr_t	memAllocLowSpan(size_t pages);
+bool	memMap(dword *PageDir, dword Virt, dword Phys, dword pages, byte Privilege);
+dword	memTranslate(const dword* pPageDir, const void* pAddress);
 
 #if 0
 

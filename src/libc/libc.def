@@ -8,8 +8,14 @@ EXPORTS
 	_wgetche
 	_wcserror
 	atexit
+	calloc
 	dowprintf
 	exit
+	fclose
+	fopen
+	fread
+	fseek
+	ftell
 	free
 	iswlower
 	iswupper
@@ -21,15 +27,17 @@ EXPORTS
 	memcpy
 	memmove
 	memset
-	msize
 	putwchar
+	qsort
 	rand
 	realloc
 	srand
 	strcmp
+	strcpy
 	stricmp
 	strlen
 	strncmp
+	strncpy
 	strpbrk
 	swprintf
 	towlower
@@ -47,4 +55,5 @@ EXPORTS
 	wcspbrk
 	wcsrchr
 	wcstol
+	wcstombs
 	wprintf

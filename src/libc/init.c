@@ -1,5 +1,8 @@
 #include <stdlib.h>
 #include <os/os.h>
+#include <stdio.h>
+
+FILE __iobuf[3];
 
 //! WTF is this?
 void __main()
@@ -17,5 +20,11 @@ void libc_exit()
 
 void exit(int status)
 {
-	procExit();
+	for (;;)
+		procExit();
+}
+
+void abort()
+{
+	exit(EXIT_FAILURE);
 }

@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/isa.drv
 OBJS=	isa.o
-BASE=	@$(BIN)\coffbase.txt,isa
+BASE=	isa
 
 include ../make.driver
 

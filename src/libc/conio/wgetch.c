@@ -1,5 +1,5 @@
 #include <os/os.h>
-#include <os/device.h>
+#include <os/console.h>
 
 //! Waits for a key to be pressed at the console.
 /*!
@@ -7,6 +7,7 @@
  *		other codes are defined by the operating system and correspond to 
  *		non-printable keys on the keyboard.
  */
+#if 0
 wint_t _wgetch()
 {
 	addr_t keyboard;
@@ -28,4 +29,10 @@ wint_t _wgetch()
 
 	devClose(keyboard);
 	return key;
+}
+#endif
+
+wint_t _wgetch()
+{
+	return conGetKey(true);
 }

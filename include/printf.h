@@ -9,11 +9,19 @@ extern "C"
 #include <sys/types.h>
 #include "stdarg.h"
 
+/*!
+ *  \ingroup	libc
+ *  \defgroup	printf	printf() implementation
+ *  @{
+ */
+
 typedef bool (*PRINTFUNC) (void* pContext, const char* str, dword dwLen);
 typedef bool (*WPRINTFUNC) (void* pContext, const wchar_t* str, dword dwLen);
 
 int doprintf(PRINTFUNC func, void* pContext, const char* fmt, va_list ptr);
 int dowprintf(WPRINTFUNC func, void* pContext, const wchar_t* fmt, va_list ptr);
+
+//@}
 
 #ifdef __cplusplus
 }

@@ -11,7 +11,8 @@ extern "C"
 #include <kernel/handle.h>
 
 /*!
- * \defgroup dev Device Manager
+ *  \ingroup	kernel
+ *  \defgroup	dev Device Manager
  * @{
  */
 
@@ -104,14 +105,15 @@ struct request_t
 			byte irq;			// in
 		} isr;
 
-		//! Parameters for an FS_OPENFILE request
+		//! Parameters for an FS_OPEN request
 		struct
 		{
 			const wchar_t* name;		// in
 			size_t name_length;			// in
 			struct file_t* fd;			// out
-		} fs_open;
+		} fs_open, fs_create;
 
+		//! Parameters for an FS_MOUNT request
 		struct
 		{
 			const wchar_t* name;		// in
@@ -119,20 +121,32 @@ struct request_t
 			struct device_t* dev;		// in
 		} fs_mount;
 
+		//! Parameters for FS_READ and FS_WRITE requests
 		struct
 		{
 			addr_t buffer;				// out
 			size_t length;				// in/out
 			struct file_t* fd;			// in
-		} fs_read, fs_write;
+		} fs_read, fs_write, fs_getlength;
 
+		//! Parameters for an FS_CLOSE request
 		struct
 		{
 			struct file_t* fd;			// in
 		} fs_close;
-	} params;
 
-	dword cks;
+		//! Parameters for a FS_IOCTL request
+		struct
+		{
+			//! Specifies a buffer containing ioctl parameters and data
+			void* buffer;		// in/out
+			//! Specifies the size of the buffer
+			size_t length;		// in/out
+			//! Specifies the IOCTL function to perform
+			dword code;		// in
+			struct file_t* fd;
+		} fs_ioctl;
+	} params;
 };
 
 typedef struct device_t device_t;
@@ -212,10 +226,7 @@ status_t	devRequest(device_t* dev, request_t* req);
 status_t	devRequestSync(device_t* dev, request_t* req);
 bool		devRegisterIrq(device_t* dev, byte irq, bool install);
 driver_t*	devInstallNewDevice(const wchar_t* name, device_config_t* cfg);
-
 bool		devRegister(const wchar_t* name, device_t* dev, device_config_t* cfg);
-//bool		devReadConfig(const wchar_t* name, device_config_t* cfg, size_t size);
-
 void		devStartRequest(device_t* dev, request_t* req);
 void		devFinishRequest(device_t* dev, request_t* req);
 status_t	devReadSync(device_t* dev, qword pos, void* buffer, size_t* length);

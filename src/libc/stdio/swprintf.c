@@ -1,5 +1,5 @@
 #include <printf.h>
-#include <string.h>
+#include <wchar.h>
 
 static bool swprintfhelp(void* pContext, const wchar_t* str, dword len)
 {

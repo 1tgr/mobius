@@ -15,7 +15,7 @@ extern BlockHeader* freep;
  *		error. Otherwise, no checking is performed on the pointer.
  *	\param	ap	Pointer to the start of the block to be freed.
  */
-void free(void *ap)
+void __free_core(void *ap)
 {
 	BlockHeader *bp, *p;
 

@@ -1,15 +1,13 @@
-ROOT=		f:\Projects\mobius
-BIN=		$(ROOT)\bin
-LIB=		$(ROOT)\lib
-#CPPFLAGS+=	/nologo /Z7 /D__MOBIUS__ /DKERNEL /I$(ROOT)\include
-#CC=		cl
-CPPFLAGS+=	-D__MOBIUS__ -DKERNEL -Wall -nostdinc -I$(ROOT)\include
+ROOT=		f:/projects/mobius
+BIN=		$(ROOT)/bin
+LIB=		$(ROOT)/lib
+CPPFLAGS+=	-g -D__MOBIUS__ -DKERNEL -Wall -nostdinc -I$(ROOT)/include -I.
 CC=		gcc
 NASM=		nasm
-LDFLAGS+=	/nologo /debug /debugtype:coff \
-	/libpath:$(LIB) /nodefaultlib /entry:drvInit \
-	/subsystem:native /base:$(BASE)
+LDFLAGS+=	-g --subsystem native --entry _drvInit@4 \
+	--image-base `cat .base`
 LIBS+=		$(LIB)/kernel.lib
+DEF=		$(EXP:.exp=.def)
 
 %.d:	%.c
 	$(CC) $(CPPFLAGS) -M -c $< -o $@
@@ -26,11 +24,24 @@ LIBS+=		$(LIB)/kernel.lib
 
 all:	$(TARGET) $(IMP)
 
-$(TARGET):	$(OBJS) $(EXP)
-	link /out:$(TARGET) $(LDFLAGS) $(OBJS) $(EXP) $(LIBS)
-#	ld -o $(TARGET) $(LDFLAGS) $(OBJS) $(EXP) $(LIBS)
+.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
+
+$(TARGET):	$(OBJS) $(EXP) .base
+	ld -o $(TARGET) $(LDFLAGS) \
+			$(OBJS) \
+			$(EXP) \
+			$(LIBS)
+
+%.exp: %.def
+	dlltool -e $@ -m i386 --input-def $< -D $(@:.exp=.drv)
+
+$(IMP): $(DEF)
+#	lib /def:$< /out:$@ /nologo /machine:ix86
+	dlltool -m i386 --input-def $(DEF) --output-lib $(IMP)
 
 clean:
+	rm .base
 	rm $(OBJS)
 	rm $(TARGET)
 	rm $(OBJS:.o=.d)

@@ -1,45 +1,49 @@
-OBJS=		start.o isr.o kstart.o i386.o \
+OBJS=	start.o isr.o kstart.o i386.o \
 	main.o memory.o vm86.o thread.o \
 	module.o mod_pe.o device.o \
 	syscall.o ramdisk.o handle.o \
 	vmm.o serial.o obj.o sys.o \
 	fs.o config.o cache.o port.o \
-	font8x8.o font8x16.o \
+	vga.o text.o vga4.o \
+	../kernelu/fullpath.o ../kernelu/resource.o \
+	font8x8.o font8x16.o cupertino.o t.o \
 	mbstowcs.o wcstombs.o strtok.o wprintf.o \
-	hash.o \
-	iswupper.o iswlower.o towupper.o towlower.o
+	hash.o
+RES=	kernel.res.o
 
-#	memset.o memcpy.o 
-#	unicode.o 
-#	wcslen.o wcsicmp.o wcsncpy.o wcscpy.o wcsrchr.o wcscat.o wcscmp.o wcsdup.o 
+CFLAGS=	-DKERNEL -ffreestanding -g
+LDFLAGS=--section-alignment 0x1000 --file-alignment 0x1000 \
+	--image-base 0xc0000000 --subsystem native \
+	-T kernel.ld --entry _keEntry
+LIBS=		$(LIB)/libc_s.lib
 
-CPPFLAGS=	-DKERNEL -ffreestanding
-LDFLAGS=	--file-alignment 0x1000 --image-base 0xc0000000 --subsystem native \
-	-T kernel.ld --entry _NtProcessStartup
-LIBS=		$(LIB)/libcs.lib
+include	../make.actions
 
-include ../make.actions
+TARGET=	$(BIN)/kernel.exe
 
-TARGET=		$(BIN)/kernel.exe
+all:	$(TARGET) $(RAMDISK) $(LIB)/kernel.lib
 
-all:	$(TARGET) $(RAMDISK) $(LIB)\kernel.lib
+vga4.d:	../drivers/video/vga4.c
+	$(CC) $(CFLAGS) -M -c $< -o $@
 
-kernel.exp: kernel.def
+vga4.o:	../drivers/video/vga4.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+kernel.res.o:	kernel.rc logo2.bmp
+
+kernel.exp:	kernel.def
 	dlltool -e kernel.exp -m i386 --input-def kernel.def -D kernel.exe
 
-$(LIB)\kernel.lib: kernel.def
-#	dlltool -xc -m i386 --input-def kernel.def --output-lib $(LIB)\kernel.lib
-	lib /def:kernel.def /out:$(LIB)\kernel.lib /nologo /machine:ix86
+$(LIB)/kernel.lib:	kernel.def
+	dlltool -m i386 --input-def kernel.def --output-lib $(LIB)/kernel.lib
 
-$(TARGET): Makefile $(OBJS) $(LIBS) kernel.ld kernel.exp
-	ld -g -o $(TARGET) \
-		$(OBJS) kernel.exp \
-		$(LIBS) $(LDFLAGS)
-	objdump -ld $(TARGET) > listing.txt
-	nm $(TARGET) | sort > symbols.txt
-#	ld -s -o $(TARGET) \
-#		$(OBJS) kernel.exp \
-#		$(LIBS) $(LDFLAGS)
+$(TARGET):	Makefile $(OBJS) $(LIBS) $(RES) kernel.ld kernel.exp
+	ld -s -o $(TARGET) \
+		$(OBJS) \
+		kernel.exp \
+		$(LIBS) $(RES) $(LDFLAGS)
+#	objdump -ld $(TARGET) > listing.txt
+#	nm $(TARGET) | sort > symbols.txt
 
 clean:
 	rm $(OBJS)
@@ -48,6 +52,6 @@ clean:
 	rm listing.txt
 	rm symbols.txt
 
-rebuild: clean all
+rebuild:	clean all
 
 include $(OBJS:.o=.d)

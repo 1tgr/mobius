@@ -1,8 +1,8 @@
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
-#include <sys/error.h>
+#include <errno.h>
 
-bool vgatRequest(device_t* dev, request_t* req)
+bool devRequest(device_t* dev, request_t* req)
 {
 	switch (req->code)
 	{
@@ -19,12 +19,12 @@ bool vgatRequest(device_t* dev, request_t* req)
 	return false;
 }
 
-device_t* vgatAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
+device_t* devAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
 	device_t* dev;
 
 	dev = hndAlloc(sizeof(device_t), NULL);
-	dev->request = vgatRequest;
+	dev->request = devRequest;
 	dev->driver = drv;
 	return dev;
 }

@@ -9,7 +9,7 @@
  */
 
 #include <stdio.h>
-#include <string.h>
+#include <wchar.h>
 
 #include "nasm.h"
 #include "disasm.h"

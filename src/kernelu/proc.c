@@ -1,4 +1,29 @@
 #include <os/os.h>
+#include <os/pe.h>
+
+void conClose();
+
+//! Starts a new process
+/*!
+ *	Creates a new process, loads the specified executable, and starts
+ *		execution, passing the command line provided.
+ *
+ *	\param	filespec	The path to the executable required.
+ *	\param	cmdline		The command line to pass to the process, or NULL if
+ *		no command line is needed.
+ *	\return	A handle to the new process, or NULL if the process could not
+ *		be started.
+ */
+addr_t procLoad(const wchar_t* filespec, const wchar_t* cmdline, 
+				unsigned priority, addr_t input, addr_t output)
+{
+	dword ret;
+	asm("int $0x30" 
+		: "=a" (ret) 
+		: "a" (0x200), "b" (filespec), "c" (cmdline), "d" (priority),
+			"S" (input), "D" (output));
+	return ret;
+}
 
 //! Terminates the current process.
 /*!
@@ -8,6 +33,18 @@
  */
 void procExit()
 {
+	/*process_info_t* proc = thrGetInfo()->process;
+	module_info_t* mod;
+	IMAGE_DOS_HEADER* dos;
+	IMAGE_PE_HEADERS* pe;
+
+	for (mod = proc->module_first; mod; mod = mod->next)
+	{
+		dos = (IMAGE_DOS_HEADER*) mod->base;
+		pe = (IMAGE_PE_HEADERS*) (mod->base + dos->e_magic);
+	}*/
+
+	conClose();
 	asm("int $0x30" : : "a" (3));
 }
 
@@ -43,4 +80,9 @@ wchar_t* procCmdLine()
 wchar_t* procCwd()
 {
 	return thrGetInfo()->process->cwd;
+}
+
+addr_t procBase()
+{
+	return thrGetInfo()->process->base;
 }

@@ -6,6 +6,12 @@ extern "C"
 {
 #endif
 
+/*!
+ *  \ingroup	libc
+ *  \defgroup	errno	Error handling
+ *  @{
+ */
+
 int *__errno();
 
 #define errno	(*__errno())
@@ -18,6 +24,11 @@ int *__errno();
 #define ENOTFOUND	6
 #define EINVALID	7
 #define EMFILE		8
+#define ENOMEM		9
+
+#define EINVAL		EINVALID
+
+//@}
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,7 @@
 #include <kernel/hash.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <string.h>
+#include <wchar.h>
 
 bool vfsRequest(device_t* dev, request_t* req);
 
@@ -27,12 +27,7 @@ vfs_t vfs =
 };
 
 extern device_t vfs_devices;
-
-/*struct vfs_file_t
-{
-	file_t file;
-	device_t* dev;
-};*/
+device_t *ramMountFs(driver_t *driver, const wchar_t *path, device_t *dev);
 
 bool vfsRequest(device_t* dev, request_t* req)
 {
@@ -129,40 +124,65 @@ bool fsMount(const wchar_t* name, const wchar_t* fsd, device_t* device)
 
 bool vfsInit()
 {
-	device_t *floppy, *ide;
+	device_t *ram;
 	wchar_t *name;
 	request_t req;
 
 	vfs.mounts = hashCreate(31);
 
-	floppy = devOpen(L"floppy0", NULL);
-	if (floppy == NULL ||
-		!fsMount(L"boot", L"fat", floppy))
-		return false;
+	/*
+	 * Mount devices and ramdisk directories manually because they're not real
+	 *	drivers.
+	 */
 
-	ide = devOpen(L"ide0a", NULL);
-	if (ide == NULL ||
-		!fsMount(L"Mobius", L"fat", ide))
-		return false;
-
-	/* Mount devices directory manually because it's not a real driver */
-	name = L"devices";
 	req.code = FS_MOUNT;
+	
+	name = L"devices";
 	req.params.fs_mount.name = name;
 	req.params.fs_mount.name_length = sizeof(wchar_t) * (wcslen(name) + 1);
 	req.params.fs_mount.dev = &vfs_devices;
-	
 	devRequestSync(&vfs.dev, &req);
+
+	name = L"boot";
+	ram = ramMountFs(NULL, name, NULL);
+	wprintf(L"vfsInit: mounting ramdisk...");
+	if (ram)
+	{
+		req.params.fs_mount.name = name;
+		req.params.fs_mount.name_length = sizeof(wchar_t) * (wcslen(name) + 1);
+		req.params.fs_mount.dev = ram;
+		devRequestSync(&vfs.dev, &req);
+		wprintf(L"done (%p)\n", ram);
+	}
+	else
+		wprintf(L"failed\n");
+
 	return true;
+}
+
+bool fsFullPath(const wchar_t* src, wchar_t* dst);
+
+const wchar_t *procCwd()
+{
+	if (current &&
+		current->process &&
+		current->process->info)
+		return current->process->info->cwd;
+	else
+		return L"/boot";
 }
 
 file_t* fsOpen(const wchar_t* path)
 {
+	wchar_t fullpath[256];
 	request_t req;
 	status_t hr;
 
+	if (!fsFullPath(path, fullpath))
+		return NULL;
+
 	req.code = FS_OPEN;
-	req.params.fs_open.name = path;
+	req.params.fs_open.name = fullpath;
 	req.params.fs_open.name_length = sizeof(wchar_t) * (wcslen(path) + 1);
 	hr = devRequestSync(&vfs.dev, &req);
 
@@ -196,7 +216,7 @@ bool fsClose(file_t* fd)
 	return hr == 0;
 }
 
-bool fsRead(file_t* fd, void* buffer, size_t* length)
+size_t fsRead(file_t* fd, void* buffer, size_t length)
 {
 	request_t req;
 	status_t hr;
@@ -209,13 +229,46 @@ bool fsRead(file_t* fd, void* buffer, size_t* length)
 
 	req.code = FS_READ;
 	req.params.fs_read.buffer = (addr_t) buffer;
-	req.params.fs_read.length = *length;
+	req.params.fs_read.length = length;
 	req.params.fs_read.fd = fd;
 	hr = devRequestSync(fd->fsd, &req);
-	*length = req.params.fs_read.length;
-
+	
 	if (hr)
+	{
 		errno = hr;
+		return (size_t) -1;
+	}
+	else
+		return req.params.fs_read.length;
+}
 
-	return hr == 0;
+void fsSeek(file_t *fd, qword pos)
+{
+	/* xxx - need to get the FSD to do this */
+	fd->pos = pos;
+}
+
+qword fsGetLength(file_t* fd)
+{
+	request_t req;
+	status_t hr;
+
+	if (fd == NULL)
+	{
+		errno = EINVALID;
+		return false;
+	}
+
+	req.code = FS_GETLENGTH;
+	req.params.fs_getlength.length = 0;
+	req.params.fs_getlength.fd = fd;
+	hr = devRequestSync(fd->fsd, &req);
+	
+	if (hr)
+	{
+		errno = hr;
+		return (qword) -1;
+	}
+	else
+		return req.params.fs_getlength.length;	
 }

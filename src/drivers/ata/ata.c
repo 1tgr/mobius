@@ -2,7 +2,7 @@
 #include <kernel/driver.h>
 #include <kernel/cache.h>
 #include <stdlib.h>
-#include <string.h>
+#include <wchar.h>
 #include <conio.h>
 #include <printf.h>
 #include <stdio.h>

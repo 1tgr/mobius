@@ -94,6 +94,10 @@ LINK32=link.exe
 # PROP Default_Filter ".c"
 # Begin Source File
 
+SOURCE=.\console.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\debug.c
 # End Source File
 # Begin Source File
@@ -111,6 +115,10 @@ SOURCE=.\fs.c
 # Begin Source File
 
 SOURCE=.\fullpath.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\handle.c
 # End Source File
 # Begin Source File
 

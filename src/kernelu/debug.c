@@ -1,6 +1,6 @@
 #include <os/device.h>
 #include <os/os.h>
-#include <string.h>
+#include <wchar.h>
 
 int dputws(const wchar_t* str)
 {
@@ -9,11 +9,11 @@ int dputws(const wchar_t* str)
 
 	debugger = devOpen(L"debugger", NULL);
 
-	dreq.code = DEV_WRITE;
+	dreq.header.code = DEV_WRITE;
 	dreq.params.write.length = sizeof(wchar_t) * wcslen(str);
 	dreq.params.write.buffer = str;
 	if (devUserRequest(debugger, &dreq, sizeof(dreq)))
-		thrWaitHandle((addr_t*) &dreq.event, 1, true);
+		thrWaitHandle((addr_t*) &dreq.header.event, 1, true);
 
 	devUserFinishRequest(&dreq, true);
 	devClose(debugger);

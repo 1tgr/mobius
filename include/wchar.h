@@ -1,20 +1,18 @@
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
-#ifndef _WCHAR_T_DEFINED
-//! A single Unicode character
-typedef unsigned short wchar_t;
-#define _WCHAR_T_DEFINED
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-#ifndef _WCTYPE_T_DEFINED
-//! A data type capable of holding any wide character or an end-of-file value
-typedef int wint_t;
-//! A data type capable of representing all characters of any national 
-//!		character set
-typedef wchar_t wctype_t;
-#define _WCTYPE_T_DEFINED
-#endif
+/*!
+ *  \ingroup	libc
+ *  \defgroup	wchar	Wide character routines
+ *  @{
+ */
+
+#include <sys/types.h>
 
 //! Describes attributes relating to a particular Unicode code point
 struct wchar_info_t
@@ -29,5 +27,28 @@ struct wchar_info_t
 		lower;
 };
 typedef struct wchar_info_t wchar_info_t;
+
+/* Wide-character functions */
+size_t	wcslen(const wchar_t* str);
+wchar_t	*wcscpy(wchar_t *strDestination, const wchar_t *strSource);
+wchar_t	*wcsncpy(wchar_t *strDestination, const wchar_t *strSource, size_t count);
+int	wcscmp(const wchar_t* str1, const wchar_t* str2);
+int	wcsicmp(const wchar_t* str1, const wchar_t* str2);
+wchar_t *wcschr(const wchar_t* str, int c);
+wchar_t *wcsrchr(const wchar_t* str, int c);
+wchar_t *wcscat(wchar_t* dest, const wchar_t* src);
+wchar_t *wcsdup(const wchar_t* str);
+wchar_t *wcspbrk(const wchar_t *s1, const wchar_t *s2);
+
+/* ANSI/wide conversion functions */
+size_t	mbstowcs(wchar_t *wcstr, const char *mbstr, size_t count);
+size_t	wcstombs(char *mbstr, const wchar_t *wcstr, size_t count);
+wchar_t	*_wcserror(int errcode);
+
+//@}
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

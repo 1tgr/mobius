@@ -6,7 +6,7 @@
 #include <os/fs.h>
 #include <os/console.h>
 #include <os/port.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdio.h>
 #include <conio.h>
 #include <ctype.h>
@@ -38,16 +38,16 @@ void TestConsole(wchar_t* buf)
 	{
 		length = sizeof(req);
 		req.code = CON_WRITE;
-		req.params.write.length = wcslen(buf) * sizeof(wchar_t);
+		req.params.write.length = wcslen(buf);
 		fsWrite(client, &req, &length);
-		length = req.params.write.length;
+		length = req.params.write.length * sizeof(wchar_t);
 		fsWrite(client, buf, &length);
 
 		thrWaitHandle(&client, 1, true);
 
 		length = sizeof(reply);
 		fsRead(client, &reply, &length);
-		//wprintf(L"Reply: code = %x\n", reply.code);
+		wprintf(L"[%d] Reply: code = %x\n", thrGetId(), reply.code);
 	}
 }
 
@@ -71,19 +71,19 @@ void TestMouseAndKeyboard()
 
 	for (;;)
 	{
-		kreq.code = DEV_READ;
+		kreq.header.code = DEV_READ;
 		kreq.params.read.buffer = &key;
 		kreq.params.read.length = sizeof(key);
 		if (devUserRequest(keyboard, &kreq, sizeof(kreq)) == 0)
-			events[0] = (addr_t) kreq.event;
+			events[0] = (addr_t) kreq.header.event;
 		else
 			events[0] = NULL;
 
-		mreq.code = DEV_READ;
+		mreq.header.code = DEV_READ;
 		mreq.params.read.buffer = &pkt;
 		mreq.params.read.length = sizeof(pkt);
 		if (devUserRequest(mouse, &mreq, sizeof(mreq)) == 0)
-			events[1] = (addr_t) mreq.event;
+			events[1] = (addr_t) mreq.header.event;
 		else
 			events[1] = NULL;
 		
@@ -149,12 +149,12 @@ void TestStorage(const wchar_t *device)
 
 	for (i = 0; i < 4; i++)
 	{
-		req.code = DEV_READ;
+		req.header.code = DEV_READ;
 		req.params.read.buffer = sector;
 		req.params.read.length = sizeof(sector);
 		req.params.read.pos = i * 512;
 
-		req2.code = DEV_READ;
+		req2.header.code = DEV_READ;
 		req2.params.read.buffer = sector2;
 		req2.params.read.length = sizeof(sector2);
 		req2.params.read.pos = (i + 2) * 512;
@@ -162,19 +162,19 @@ void TestStorage(const wchar_t *device)
 		devUserRequest(ide, &req, sizeof(req));
 		devUserRequest(ide, &req2, sizeof(req2));
 
-		thrWaitHandle((addr_t*) &req.event, 1, true);
+		thrWaitHandle((addr_t*) &req.header.event, 1, true);
 		devUserFinishRequest(&req, true);
 		
-		if (req.result == 0)
+		if (req.header.result == 0)
 		{
 			_cputws(L"1: ");
 			dump(sector, 8);
 		}
 
-		thrWaitHandle((addr_t*) &req2.event, 1, true);
+		thrWaitHandle((addr_t*) &req2.header.event, 1, true);
 		devUserFinishRequest(&req2, true);
 
-		if (req2.result == 0)
+		if (req2.header.result == 0)
 		{
 			_cputws(L"2: ");
 			dump(sector2, 8);
@@ -196,7 +196,7 @@ void TestFileSystem(const wchar_t* filename)
 	memset(buf, 0, sizeof(buf));
 	while (true)
 	{
-		req.code = FS_READ;
+		req.header.code = FS_READ;
 		req.params.fs_read.fd = fd;
 		req.params.fs_read.buffer = (addr_t) buf;
 		req.params.fs_read.length = sizeof(buf);
@@ -208,10 +208,10 @@ void TestFileSystem(const wchar_t* filename)
 		}
 		else
 		{
-			thrWaitHandle(&req.event, 1, true);
+			thrWaitHandle(&req.header.event, 1, true);
 			devUserFinishRequest(&req, true);
 			
-			if (req.result == 0)
+			if (req.header.result == 0)
 			{
 				//wprintf(L"Request succeeded (length = %d): press any key\n", 
 					//req.params.fs_read.length);
@@ -224,7 +224,7 @@ void TestFileSystem(const wchar_t* filename)
 			}
 			else
 			{
-				wprintf(L"Request failed: %x\n", req.result);
+				wprintf(L"Request failed: %x\n", req.header.result);
 				break;
 			}
 		}
@@ -237,14 +237,15 @@ int main()
 {
 	wprintf(L"Device test program\n");
 
-	_cputws(L"Press any key to test the console\n");
-	TestConsole(L"Hello, world!");
+	//_cputws(L"Press any key to test the console\n");
+	//TestConsole(L"Hello, world!");
 	
-	_cputws(L"Press any key to test file system\n");
-	_wgetch();
+	//_cputws(L"Press any key to test file system\n");
+	//_wgetch();
 	//TestFileSystem(L"text/Keyboard Layouts/uk-cap.txt");
 	//TestFileSystem(L"/Mobius/windows/bootlog.txt");
-	TestFileSystem(L"/devices/keyboard");
+	//TestFileSystem(L"/devices/keyboard");
+	//TestFileSystem(L"coffbase.txt");
 
 	_cputws(L"Press any key to test floppy\n");
 	_wgetch();
@@ -254,10 +255,10 @@ int main()
 	_wgetch();
 	TestStorage(L"ide0a");
 
-	_cputws(L"Press any key to test the mouse and keyboard\n");
-	_wgetch();
-	_cputws(L"Testing mouse and keyboard... (press Esc to exit)\n");
-	TestMouseAndKeyboard();
+	//_cputws(L"Press any key to test the mouse and keyboard\n");
+	//_wgetch();
+	//_cputws(L"Testing mouse and keyboard... (press Esc to exit)\n");
+	//TestMouseAndKeyboard();
 
 	_cputws(L"Finished!\n");
 

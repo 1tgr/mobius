@@ -3,13 +3,14 @@
 #include <kernel/fs.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include <string.h>
 #include <ctype.h>
 #include <os/blkdev.h>
 #include <os/fs.h>
 #include "fat.h"
 
-#define DEBUG
+//#define DEBUG
 #include <kernel/debug.h>
 
 //! \ingroup fat
@@ -32,6 +33,8 @@ struct fat_file_t
 {
 	file_t file;
 	fat_dirent_t entry;
+	qword cached_pos;
+	dword cached_cluster;
 };
 
 #define FAT_AVAILABLE		0
@@ -59,6 +62,8 @@ dword fatGetNextCluster(fat_root_t* root, dword cluster)
 	word w;
 	byte* b;
 
+	assert(cluster < 
+		root->boot_sector.sectors / root->boot_sector.sectors_per_cluster);
 	switch (root->fat_bits)
 	{
 	case 12:
@@ -79,7 +84,7 @@ dword fatGetNextCluster(fat_root_t* root, dword cluster)
 			w >>= 4;
 		else				// cluster is even
 			w &= 0xfff;
-
+		
 		if (w >= 0xff0)
 			w |= 0xf000;
 	}
@@ -213,11 +218,11 @@ bool fatLookupEntry(fat_root_t* root, dword cluster,
 
 				if (name[0])
 				{
-					TRACE1("%s\n", name);
+					TRACE2("%s\t\t%x\n", name, u[j].di.first_cluster);
 					if (wcsicmp(name, filename) == 0)
 					{
 						*entry = u[j].di;
-						TRACE2("%s: found at cluster %d\n", 
+						TRACE2("%s: found at cluster %x\n", 
 							name, u[j].di.first_cluster);
 						return true;
 					}
@@ -310,6 +315,8 @@ bool fatOpenFile(fat_root_t* root, request_t* req)
 	fd->file.fsd = &root->dev;
 	fd->file.pos = 0;
 	fd->entry = entry;
+	fd->cached_pos = 0;
+	fd->cached_cluster = entry.first_cluster;
 
 	req->params.fs_open.fd = &fd->file;
 	hndSignal(req->event, true);
@@ -318,21 +325,33 @@ bool fatOpenFile(fat_root_t* root, request_t* req)
 
 bool fatReadFile(fat_root_t* root, request_t* req)
 {
-	fat_file_t* file = (fat_file_t*) req->params.fs_read.fd;
-	dword cluster;
-	qword pos;
+	fat_file_t* file;
+	dword cluster, diff;
+	qword cluster_pos, user_pos;
 	size_t length, this_cluster;
 	status_t hr;
 
-	cluster = fatFindCluster(file, file->file.pos);
+	file = (fat_file_t*) req->params.fs_read.fd;
+
+	if (file->file.pos != file->cached_pos)
+		file->cached_cluster = fatFindCluster(file, file->file.pos);
+
+	cluster = file->cached_cluster;
 	req->user_length = req->params.fs_read.length;
 	req->params.fs_read.length = 0;
 	this_cluster = 0;
 
+	TRACE1("[%x] ", cluster);
 	while (req->params.fs_read.length < req->user_length)
 	{
-		pos = root->data_start * root->boot_sector.bytes_per_sector + 
-			(cluster - 2) * root->bytes_per_cluster + this_cluster;
+		user_pos = file->file.pos + req->params.fs_read.length;
+		user_pos &= -root->bytes_per_cluster;
+		diff = file->file.pos + req->params.fs_read.length - user_pos;
+
+		cluster_pos = root->data_start * root->boot_sector.bytes_per_sector + 
+			(cluster - 2) * root->bytes_per_cluster + this_cluster +
+			diff;
+		TRACE1("(%lu) ", (unsigned long) cluster_pos);
 		length = min(req->user_length - req->params.fs_read.length,
 			root->bytes_per_cluster);
 		/*if (length < root->boot_sector.bytes_per_sector)
@@ -344,14 +363,17 @@ bool fatReadFile(fat_root_t* root, request_t* req)
 			//length);
 
 		hr = devReadSync(root->disk, 
-			pos,
+			cluster_pos,
 			(byte*) req->params.fs_read.buffer + req->params.fs_read.length,
 			&length);
 		
 		if (hr || length == 0)
 		{
-			wprintf(L"read failed\n");
+			wprintf(L"fatReadFile: disk read failed at %u\n",
+				(unsigned long) cluster_pos);
 			req->result = hr;
+			file->cached_pos = file->file.pos;
+			file->cached_cluster = cluster;
 			return false;
 		}
 
@@ -368,10 +390,12 @@ bool fatReadFile(fat_root_t* root, request_t* req)
 			this_cluster -= root->bytes_per_cluster;
 		}
 
-		TRACE2("read %d bytes; next cluster = %d\n", length, cluster);
+		TRACE2("read %d bytes; next cluster = %x\n", length, cluster);
 	}
 
 	//wprintf(L"fat: finished read\n");
+	file->cached_pos = file->file.pos;
+	file->cached_cluster = cluster;
 	hndSignal(req->event, true);
 	return true;
 }
@@ -379,7 +403,7 @@ bool fatReadFile(fat_root_t* root, request_t* req)
 bool fatRequest(device_t* dev, request_t* req)
 {
 	fat_root_t* root = (fat_root_t*) dev;
-	
+		
 	switch (req->code)
 	{
 	case FS_CLOSE:
@@ -395,6 +419,14 @@ bool fatRequest(device_t* dev, request_t* req)
 
 	case FS_READ:
 		return fatReadFile(root, req);
+
+	case FS_GETLENGTH:
+		{
+			fat_file_t *fd = (fat_file_t*) req->params.fs_getlength.fd;
+			req->params.fs_getlength.length = fd->entry.file_length;
+			hndSignal(req->event, true);
+			return true;
+		}
 	}
 
 	req->code = ENOTIMPL;
@@ -419,7 +451,7 @@ device_t* fatMountFs(driver_t* driver, const wchar_t* path, device_t* dev)
 	req.code = BLK_GETSIZE;
 	req.params.buffered.buffer = (addr_t) &size;
 	req.params.buffered.length = sizeof(size);
-	if (!devRequestSync(root->disk, &req) ||
+	if (devRequestSync(root->disk, &req) != 0 ||
 		size.total_blocks > 20740)
 	{
 		TRACE1("Total blocks = %d, using FAT16\n", size.total_blocks);

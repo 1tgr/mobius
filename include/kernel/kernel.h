@@ -80,6 +80,27 @@ void assert_fail(const char* file, int line, const wchar_t* exp);
 #define INIT_DATA		IN_SECTION(".init")
 #endif
 
+typedef struct semaphore_t semaphore_t;
+struct semaphore_t
+{
+	struct thread_t* owner;
+	int locks;
+	const char *file;
+	int line;
+};
+
+static inline void semInit(semaphore_t* sem)
+{
+	sem->owner = NULL;
+	sem->locks = 0;
+}
+
+void semAcquire(semaphore_t* sem);
+void semRelease(semaphore_t* sem);
+bool semTryAcquire(semaphore_t* sem);
+
+#define SEMAPHORE(name)	semaphore_t name = { NULL, 0, __FILE__, __LINE__ }
+
 //@}
 
 #ifdef __cplusplus

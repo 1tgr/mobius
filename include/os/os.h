@@ -6,23 +6,12 @@ extern "C"
 {
 #endif
 
+#include <sys/types.h>
+
 /*!
- *	\defgroup	kernelu	User-Mode Kernel (kernelu.dll)
- *
- *	The user-mode kernel library (kernelu.dll) contains functions which 
- *		interface to the kernel syscalls and make programming for The
- *		Möbius easier.
- *
- *	The kernelu functions cover two broad categories: system call functions
- *		(which load their parameters into the appropriate registers and 
- *		execute the kernel syscall interrupt, int 30h) and utility functions,
- *		(which act as an operating-system-specific run-time library).
+ *	\ingroup	kernelu
  *	@{
  */
-
-#include <sys/types.h>
-//#include <os/com.h>
-//#include <os/filesys.h>
 
 typedef struct module_info_t module_info_t;
 
@@ -159,8 +148,8 @@ struct thread_info_t
 	dword queue;
 };
 
-#define EXCEPTION_DEBUG				1
-#define EXCEPTION_GPF				13
+#define EXCEPTION_DEBUG			1
+#define EXCEPTION_GPF			13
 #define EXCEPTION_PAGE_FAULT		14
 #define EXCEPTION_MISSING_DLL		0x80000000
 #define EXCEPTION_MISSING_IMPORT	0x80000001
@@ -194,6 +183,9 @@ struct process_info_t
 	module_info_t* module_first;
 	//! Contains the process's current working directory, as a fully-qualified path
 	wchar_t cwd[256];
+	wchar_t *environment;
+	addr_t base;
+	addr_t input, output;
 };
 
 #ifdef _MSC_VER
@@ -225,58 +217,68 @@ static inline thread_info_t* thrGetInfo()
 
 #ifndef KERNEL
 
-void procExit();
-dword procCurrentId();
-wchar_t* procCmdLine();
-wchar_t* procCwd();
-
 /*!
- *	\defgroup	sys	General System
+ *	\ingroup	kernelu
+ *	\defgroup	proc	Processes
  *	@{
  */
-dword sysExec(const wchar_t* filespec, const wchar_t* cmdline);
-addr_t sysOpen(const wchar_t* filespec);
-dword sysInvoke(void* obj, dword method, ...);
-void sysSetErrno(int errno);
-int sysErrno();
-dword sysUpTime();
-bool sysGetErrorText(status_t stat, wchar_t* text, size_t max);
 
-/*
- * CRT errno is positive = failure; failed HRESULTs have the top bit set;
- *	hence, conversion from errno->HRESULT requires toggling the sign bit
- */
-#define ERRNO_TO_STATUS(e)	e
+dword	procLoad(const wchar_t* filespec, const wchar_t* cmdline, 
+				 unsigned priority, addr_t input, addr_t output);
+void	procExit();
+dword	procCurrentId();
+wchar_t*	procCmdLine();
+wchar_t*	procCwd();
+addr_t		procBase();
 
 //@}
 
 /*!
+ *	\ingroup	kernelu
+ *	\defgroup	sys	General System
+ *	@{
+ */
+addr_t	sysOpen(const wchar_t* filespec);
+dword	sysInvoke(void* obj, dword method, ...);
+void	sysSetErrno(int errno);
+int		sysErrno();
+dword	sysUpTime();
+bool	sysGetErrorText(status_t stat, wchar_t* text, size_t max);
+
+//@}
+
+/*!
+ *	\ingroup	kernelu
  *	\defgroup	thr	Threads
  *	@{
  */
-void thrSetTls(dword value);
-dword thrGetTls();
-void thrCall(void* addr, void* params, size_t sizeof_params);
-void thrSleep(dword ms);
-unsigned thrWaitHandle(addr_t* hnd, unsigned num_handles, bool wait_all);
-thread_info_t* thrGetInfo();
-dword thrGetId();
-addr_t thrCreate(void* entry_point, dword param);
-void thrExit(int code);
+
+#define THREAD_PRIORITY_NORMAL	16
+
+void	thrSetTls(dword value);
+dword	thrGetTls();
+void	thrCall(void* addr, void* params, size_t sizeof_params);
+void	thrSleep(dword ms);
+unsigned	thrWaitHandle(addr_t* hnd, unsigned num_handles, bool wait_all);
+thread_info_t*	thrGetInfo();
+dword	thrGetId();
+addr_t	thrCreate(void* entry_point, dword param, unsigned priority);
+void	thrExit(int code);
 //@}
 
 typedef struct { dword unused; } *marshal_t;
 
-marshal_t objMarshal(void* ptr);
-void* objUnmarshal(marshal_t mshl);
-void objNotifyDelete(marshal_t mshl);
+marshal_t	objMarshal(void* ptr);
+void*	objUnmarshal(marshal_t mshl);
+void	objNotifyDelete(marshal_t mshl);
 
 /*!
+ *	\ingroup	kernelu
  *	\defgroup	vmm	Virtual Memory Manager
  *	@{
  */
 
-void* vmmAlloc(size_t pages, addr_t start, dword flags);
+void*	vmmAlloc(size_t pages, addr_t start, dword flags);
 //@}
 
 
@@ -319,8 +321,8 @@ bool STDCALL DllMain(dword reserved1, dword reason, void* reserved2);
  *	@{
  */
 
-const void* resFind(dword base, word type, word id, word language);
-bool resLoadString(dword base, word id, wchar_t* str, size_t str_max);
+const void*		resFind(dword base, word type, word id, word language);
+bool	resLoadString(dword base, word id, wchar_t* str, size_t str_max);
 
 /*!
  *	\defgroup	RT	Resource Type Identifiers
@@ -366,7 +368,10 @@ bool resLoadString(dword base, word id, wchar_t* str, size_t str_max);
 #define RT_VERSION		16
 /*! @} @} */
 
-/*! \ingroup vmm @{ */
+/*!
+ *	\ingroup vmm
+ *	@{
+ */
 //! Specifies that the area can only be accessed by the kernel
 #define MEM_KERNEL	0
 //! Specifies that the area can be accessed in user mode
@@ -382,9 +387,28 @@ bool resLoadString(dword base, word id, wchar_t* str, size_t str_max);
 //! Specifies that the start parameter to vmmAlloc() refers to a physical 
 //!		address which has already been allocated in the process's address space.
 #define MEM_LITERAL	0x40
+//! For memory-mapped files, specifies that the file is an executable image 
+//!	and that the memory alignment is independent of the file alignment
+#define MEM_FILE_IMAGE	0x80
 //@}
 
 //@}
+
+addr_t	hndGetOwner(addr_t handle);
+
+#ifndef KERNEL
+
+typedef struct semaphore_t semaphore_t;
+struct semaphore_t
+{
+	addr_t owner;
+	int locks;
+};
+
+void semInit(semaphore_t* sem);
+void semAcquire(semaphore_t* sem);
+void semRelease(semaphore_t* sem);
+#endif
 
 #ifdef __cplusplus
 }

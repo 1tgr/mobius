@@ -1,6 +1,7 @@
 #include <kernel/kernel.h>
 #include <kernel/cache.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include <string.h>
 
 typedef struct cache_t cache_t;
@@ -23,9 +24,10 @@ struct cache_t
 bool ccRequest(device_t* dev, request_t* req)
 {
 	cache_t* cache;
-	dword pos, block_num;
+	dword cell, block_num;
 	size_t length;
 	status_t hr;
+	qword ofs;
 	
 	cache = (cache_t*) dev;
 	switch (req->code)
@@ -36,24 +38,38 @@ bool ccRequest(device_t* dev, request_t* req)
 
 		while (req->params.read.length < req->user_length)
 		{
-			block_num = (dword) (req->params.read.pos + req->params.read.length) / 
-				cache->block_size;
-			pos = block_num % cache->cache_size;
+			/*
+			 * Round the offset down to the nearest multiple of the 
+			 *	device's block size
+			 */
+			ofs = req->params.read.pos + req->params.read.length;
+			ofs &= -cache->block_size;
 
-			//wprintf(L"%d=>%d@%d: ", (dword) req->params.read.pos, 
-				//block_num, pos);
+			/* Calculate the index of the block on the device */
+			block_num = (dword) ofs / cache->block_size;
+			/* Calculate the cell number of this cached block in the list */
+			cell = block_num % cache->cache_size;
 
-			if ((cache->blocks[pos].flags & BLOCK_USED) == 0 ||
-				cache->blocks[pos].block_num != block_num)
+			/*wprintf(L"%d=>%d@%d: pos = %d offset = %d\n", 
+				(dword) req->params.read.pos, 
+				block_num, cell, 
+				req->params.read.pos + req->params.read.length,
+				req->params.read.pos + req->params.read.length - ofs);*/
+
+			/* Check for cache hit/miss based on the block cell number */
+			if ((cache->blocks[cell].flags & BLOCK_USED) == 0 ||
+				cache->blocks[cell].block_num != block_num)
 			{
-				_cputws_check(L"m");
+				/* Missed? Then load the whole cell from the device */
+
+				//_cputws_check(L"m");
 				//wprintf(L"miss\t");
 				length = cache->block_size;
-				assert(pos * cache->block_size + length <= sizeof(cache->cache));
-				
+				assert(cell * cache->block_size + length <= sizeof(cache->cache));
+
 				hr = devReadSync(cache->blockdev, 
-					req->params.read.pos + req->params.read.length,
-					cache->cache + pos * cache->block_size,
+					ofs,
+					cache->cache + cell * cache->block_size,
 					&length);
 				if (hr != 0)
 				{
@@ -61,18 +77,19 @@ bool ccRequest(device_t* dev, request_t* req)
 					return false;
 				}
 
-				cache->blocks[pos].flags |= BLOCK_USED;
-				cache->blocks[pos].block_num = block_num;
+				cache->blocks[cell].flags |= BLOCK_USED;
+				cache->blocks[cell].block_num = block_num;
 			}
-			else
+			//else
 				//wprintf(L"hit\t");
-				_cputws_check(L"h");
+				//_cputws_check(L"h");
 
 			length = min(cache->block_size, 
 				req->user_length - req->params.read.length);
 			memcpy((byte*) req->params.read.buffer + req->params.read.length, 
-				cache->cache + pos * cache->block_size,
-				length);
+				cache->cache + cell * cache->block_size + 
+					req->params.read.pos + req->params.read.length - ofs,
+					length);
 
 			req->params.read.length += length;
 		}

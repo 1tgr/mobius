@@ -4,9 +4,12 @@
 #include <kernel/handle.h>
 #include <kernel/thread.h>
 #include <kernel/vmm.h>
+#include <kernel/fs.h>
+
 #include <malloc.h>
-#include <string.h>
+#include <wchar.h>
 #include <errno.h>
+#include <string.h>
 
 extern dword kernel_pagedir[];
 extern byte start[];
@@ -24,7 +27,6 @@ bool procPageFault(process_t* proc, addr_t virt)
 	{
 		phys = memAlloc();
 		page = virt & -PAGE_SIZE;
-		//wprintf(L"CPagerStack_ValidatePage: mapping page at %x\n", page);
 		memMap(proc->page_dir, (addr_t) page, phys, 1, 
 			PRIV_USER | PRIV_WR | PRIV_PRES);
 		invalidate_page((void*) page);
@@ -32,25 +34,63 @@ bool procPageFault(process_t* proc, addr_t virt)
 	}
 	else
 	{
+		virt &= -PAGE_SIZE;
 		for (area = proc->first_vm_area; area; area = area->next)
 		{
 			if (virt >= (addr_t) area->start &&
 				virt < (addr_t) area->start + area->pages * PAGE_SIZE)
 			{
-				if (!area->is_committed)
-					return vmmCommit(proc, area) ? 0 : -errno;
-				else
+				//if (!area->is_committed)
+					return vmmCommit(area, virt, 1);
+				/*else
 				{
 					wprintf(L"Area at %p already committed\n", area->start);
 					errno = EBUFFER;
 					return false;
-				}
+				}*/
 			}
 		}
 		
 		errno = ENOTFOUND;
 		return false;
 	}
+}
+
+size_t mslen(const wchar_t* str)
+{
+	size_t size = 0, len;
+
+	while (*str)
+	{
+		len = wcslen(str);
+		str += len + 1;
+		size += len;
+	}
+
+	return size;
+}
+
+const wchar_t* msncpy(wchar_t *dest, const wchar_t *src, size_t max)
+{
+	size_t len;
+	wchar_t *ret = dest;
+
+	while (*src)
+	{
+		wcsncpy(dest, src, max);
+
+		len = wcslen(src);
+		max -= len + 1;
+
+		if (max <= 0)
+			return ret;
+
+		dest += len + 1;
+		src += len + 1;
+	}
+
+	*dest = '\0';
+	return ret;
 }
 
 //! Creates a new process, based on an image file on disk
@@ -66,7 +106,8 @@ bool procPageFault(process_t* proc, addr_t virt)
  *	\param	cmdline	Command line to pass to the process
  *	\return	A new process_t structure representing the new process.
  */
-process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline)
+process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline,
+					unsigned priority, file_t* input, file_t* output)
 {
 	process_t* proc;
 	thread_t* thr;
@@ -81,34 +122,29 @@ process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline)
 
 	memset(proc, 0, sizeof(process_t));
 	proc->page_dir = (dword*) memAlloc();
+	assert(proc->page_dir != NULL);
+
 	proc->stack_end = 0x80000000;
-	//proc->vmm_end = 0x20000000;
 	proc->vmm_end = 0;
-	/*memset(proc->page_dir, 0, PAGE_SIZE);
-	memcpy((byte*) proc->page_dir + kernel_start, 
-		(byte*) kernel_pagedir + kernel_start, 
-		PAGE_SIZE - kernel_start);*/
 	memcpy(proc->page_dir, kernel_pagedir, PAGE_SIZE);
 	proc->level = level;
 	proc->last_vm_area = proc->first_vm_area = NULL;
 	proc->marshal_map = NULL;
 	proc->last_marshal = 0;
 	proc->id = ++last_process_id;
+	semInit(&proc->sem_vmm);
 
-	//_cputws(L"Loading modules\n");
 	proc->mod_first = proc->mod_last = NULL;
 	mod = peLoad(proc, file, 0);
 	
 	if (mod == NULL)
 	{
-		//wprintf(L"Failed on %s\n", file);
 		procDelete(proc);
 		return NULL;
 	}
 
 	peLoad(proc, L"kernelu.dll", 0);
-	//_cputws(L"Done\n");
-
+	
 	for (kmod = proc_idle.mod_first; kmod; kmod = kmod->next)
 	{
 		nmod = hndAlloc(sizeof(module_t), proc);
@@ -129,19 +165,63 @@ process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline)
 
 	/* Allocate process memory for the user-mode process structure */
 	proc->info = vmmAlloc(proc, 1, NULL, MEM_USER | MEM_COMMIT | MEM_READ | MEM_WRITE);
+	assert(proc->info != NULL);
 	//wprintf(L"%s: PCB at %x\n", proc->mod_first->name, proc->info);
+
 	area = vmmArea(proc, proc->info);
+	assert(area != NULL);
+
 	if (area)
 	{
 		int pages;
 		addr_t phys;
+		process_info_t *cur = current->process->info;
 
 		phys = memTranslate(proc->page_dir, area->start) & -PAGE_SIZE;
+
 		/* Initialize the fields */
 		info = (process_info_t*) phys;
 		info->id = proc->id;
-		info->root = current->process->info->root;
-		wcscpy(info->cwd, current->process->info->cwd);
+		info->root = cur->root;
+		wcscpy(info->cwd, cur->cwd);
+		info->base = mod->base;
+
+#if 0
+		if (cur->environment)
+		{
+			pages = (mslen(cur->environment) / sizeof(wchar_t) + PAGE_SIZE) / PAGE_SIZE;
+			if (pages < 1)
+				pages = 1;
+		}
+		else
+			pages = 1;
+
+		info->environment = vmmAlloc(proc, pages, NULL, 
+			MEM_USER | MEM_COMMIT | MEM_READ | MEM_WRITE);
+		if (cur->environment && info->environment)
+		{
+			vm_area_t *area;
+
+			area = vmmArea(proc, info->environment);
+			assert(area != NULL);
+
+			if (area)
+			{
+				phys = memTranslate(current->process->page_dir, area->start) & -PAGE_SIZE;
+				wprintf(L"procLoad: copying environment from %p to %x\n",
+					cur->environment, phys);
+				msncpy((wchar_t*) phys, cur->environment, pages * PAGE_SIZE);
+			}
+		}
+#endif
+		
+		if (input == NULL)
+			input = (file_t*) cur->input;
+		if (output == NULL)
+			output = (file_t*) cur->output;
+
+		info->input = (addr_t) input;
+		info->output = (addr_t) output;
 
 		if (cmdline == NULL)
 			cmdline = L"";
@@ -162,6 +242,7 @@ process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline)
 				MEM_READ | MEM_WRITE | MEM_ZERO);
 
 			area = vmmArea(proc, proc->info->cmdline);
+			assert(area != NULL);
 			if (area)
 			{
 				phys = memTranslate(current->process->page_dir, area->start) & -PAGE_SIZE;
@@ -170,8 +251,8 @@ process_t* procLoad(byte level, const wchar_t* file, const wchar_t* cmdline)
 		}
 	}
 
-	thr = thrCreate(level, proc, (void*) mod->entry);
-	thr->suspend--;
+	thr = thrCreate(level, proc, (void*) mod->entry, priority);
+	thrSuspend(thr, false);
 	return proc;
 }
 
@@ -195,6 +276,16 @@ void procDelete(process_t* proc)
 	if (proc)
 	{
 		hndSignal(proc, true);
+		
+		/*if (proc->info)
+		{
+			if ((addr_t) proc->info->cmdline < (addr_t) proc->info + PAGE_SIZE)
+				vmmFree(vmmArea(proc, proc->info->cmdline));
+
+			if (proc->info->environment)
+				vmmFree(vmmArea(proc, proc->info->environment));
+		}*/
+
 		for (thr = thr_first; thr; thr = next)
 		{
 			next = thr->next;
@@ -216,7 +307,7 @@ void procDelete(process_t* proc)
 			for (area = proc->first_vm_area; area; area = anext)
 			{
 				anext = area->next;
-				vmmFree(proc, area);
+				vmmFree(area);
 			}
 
 			memFree((addr_t) proc->page_dir);

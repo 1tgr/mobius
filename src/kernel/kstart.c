@@ -54,6 +54,9 @@ int INIT_CODE _main(addr_t ramdisk_phys,
 
 	i386_lidt(&idtr);
 	
+	if (mem_top > 128 * 1048576)
+		mem_top = 128 * 1048576;
+
 	sysinfo->kernel_phys = phys;
 	sysinfo->kernel_size = kernel_size;
 	sysinfo->memory_top = mem_top;

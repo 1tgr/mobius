@@ -22,7 +22,7 @@ bool vgatRequest(device_t* dev, request_t* req)
 	int i;
 	void* base;
 	dword* params;
-
+	
 	i = devFindResource(dev->config, dresMemory, 0);
 	if (i == -1)
 		base = (void*) 0xb8000;
@@ -52,14 +52,23 @@ bool vgatRequest(device_t* dev, request_t* req)
 
 	case DEV_IOCTL:
 		params = (dword*) req->params.ioctl.buffer;
-		if (params[0] == 0)
+		switch (req->params.ioctl.code)
 		{
-			wprintf(L"DEV_IOCTL: switching base to %x\n", params[1]);
+		case 0:
 			/* extra shift because even/odd text mode uses word clocking */
+
+			/* set base address */
 			out(_crtc_base_adr + VGA_CRTC_INDEX, 12);
-			out(_crtc_base_adr + VGA_CRTC_DATA, params[1] >> 9);
+			out(_crtc_base_adr + VGA_CRTC_DATA, params[0] >> 9);
 			out(_crtc_base_adr + VGA_CRTC_INDEX, 13);
+			out(_crtc_base_adr + VGA_CRTC_DATA, params[0] >> 1);
+
+			/* move cursor */
+			out(_crtc_base_adr + VGA_CRTC_INDEX, 14);
+			out(_crtc_base_adr + VGA_CRTC_DATA, params[1] >> 9);
+			out(_crtc_base_adr + VGA_CRTC_INDEX, 15);
 			out(_crtc_base_adr + VGA_CRTC_DATA, params[1] >> 1);
+
 			hndSignal(req->event, true);
 			return true;
 		}

@@ -25,6 +25,8 @@
 
 //! Opens a file on a file system device
 #define FS_OPEN		REQUEST_CODE(1, 0, 'f', 'o')
+//! Creates a file on a file system device
+#define FS_CREATE	REQUEST_CODE(1, 0, 'f', 'C')
 //! Closes a file
 #define FS_CLOSE	REQUEST_CODE(0, 0, 'f', 'c')
 //! Mount a file or device in a directory
@@ -33,6 +35,10 @@
 #define FS_READ		REQUEST_CODE(1, 0, 'f', 'r')
 //! Writes to a file
 #define FS_WRITE	REQUEST_CODE(1, 0, 'f', 'w')
+//! Performs general file state manipulation functions
+#define FS_IOCTL	REQUEST_CODE(1, 0, 'f', 'i')
+//! Calculate the length of a file
+#define FS_GETLENGTH	REQUEST_CODE(0, 0, 'f', 'l')
 
 //! Retrieves size statistics for a block device
 #define BLK_GETSIZE	REQUEST_CODE(1, 0, 'b', 's')

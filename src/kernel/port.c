@@ -1,11 +1,12 @@
 #include <kernel/kernel.h>
 #include <kernel/port.h>
 #include <errno.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-semaphore_t server_sem;
+SEMAPHORE(server_sem);
 port_t *server_first, *server_last;
 
 bool portRequest(device_t* dev, request_t* req);
@@ -20,6 +21,8 @@ device_t port_dev =
 bool portRequest(device_t* dev, request_t* req)
 {
 	port_t *port, *remote;
+	dword *params;
+
 	assert(dev == &port_dev);
 
 	switch (req->code)
@@ -46,6 +49,7 @@ bool portRequest(device_t* dev, request_t* req)
 
 		hndSignal(req->event, true);
 		return true;
+
 	case FS_READ:
 		port = (port_t*) req->params.fs_read.fd;
 		if ((port->state & PORT_CONNECTED) == 0 ||
@@ -73,6 +77,21 @@ bool portRequest(device_t* dev, request_t* req)
 		
 		hndSignal(req->event, true);
 		return true;
+
+	case FS_IOCTL:
+		port = (port_t*) req->params.fs_ioctl.fd;
+		params = req->params.fs_ioctl.buffer;
+		switch (req->params.fs_ioctl.code)
+		{
+		case 0:
+			params[0] = port->u.client.buffer_length;
+			req->params.fs_ioctl.length = sizeof(dword);
+			hndSignal(req->event, true);
+			return true;
+		default:
+			req->params.fs_ioctl.length = 0;
+			break;
+		}
 	}
 
 	req->code = ENOTIMPL;
@@ -101,7 +120,12 @@ port_t* portCreate(process_t* owner, const wchar_t* name)
 	port->file.pos = 0;
 	port->owner = owner;
 	port->state = 0;
-	port->name = wcsdup(name);
+
+	if (name)
+		port->name = wcsdup(name);
+	else
+		port->name = wcsdup(L"");
+
 	//wprintf(L"portCreate: created port %p = %s\n", port, name);
 	return port;
 }
@@ -165,7 +189,7 @@ bool portConnect(port_t* port, const wchar_t* remote)
 	remote_port = portFindServer(remote);
 	if (remote_port == NULL)
 	{
-		wprintf(L"%s: remote port not found\n", remote);
+		//wprintf(L"%s: remote port not found\n", remote);
 		errno = ENOTFOUND;
 		return false;
 	}

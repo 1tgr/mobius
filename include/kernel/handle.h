@@ -6,6 +6,8 @@ extern "C"
 {
 #endif
 
+#include <kernel/thread.h>
+
 typedef struct handle_t handle_t;
 struct handle_t
 {
@@ -15,16 +17,17 @@ struct handle_t
 	struct process_t* process;
 	const char* file;
 	int line;
+	thread_queue_t queue;
 };
 
 void* _hndAlloc(size_t size, struct process_t* proc, const char* file, int line);
 #define hndAlloc(size, proc)	_hndAlloc(size, proc, __FILE__, __LINE__);
 
-int hndAddRef(void* buf);
-int hndFree(void* buf);
-void hndSignal(void* buf, bool signal);
-bool hndIsSignalled(void* buf);
-void hndEnum(struct process_t* proc);
+int		hndAddRef(void* buf);
+int		hndFree(void* buf);
+void	hndSignal(void* buf, bool signal);
+bool	hndIsSignalled(void* buf);
+void	hndEnum(struct process_t* proc);
 
 #define hndHandle(buf)	((handle_t*) (buf) - 1)
 

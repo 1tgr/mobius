@@ -4,7 +4,7 @@
 
 TARGET=	$(BIN)/fdc.drv
 OBJS=	fdc.o util.o
-BASE=	@$(BIN)/coffbase.txt,fdc
+BASE=	fdc
 
 include ../make.driver
 

@@ -126,6 +126,7 @@ bool fdcWait(Fdc* fdc, bool sensei)
 
 	failed = false;
 	/* wait for IRQ6 handler to signal command finished */
+	enable();
 	while (!fdc->done)
 		if (sysUpTime() > timeout_end)
 		{

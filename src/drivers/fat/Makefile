@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/fat.drv
 OBJS=	fat.o
-BASE=	@$(BIN)\coffbase.txt,fat
+BASE=	fat
 
 include ../make.driver
 

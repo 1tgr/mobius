@@ -1,6 +1,8 @@
 TARGET=	$(BIN)/pci.drv
 OBJS=	pci.o
-BASE=	@$(BIN)\coffbase.txt,pci
+BASE=	pci
+EXP=	pci.exp
+IMP=	$(LIB)/pci.lib
 
 include ../make.driver
 

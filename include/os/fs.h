@@ -9,8 +9,8 @@ extern "C"
 #include <sys/types.h>
 
 /*!
- *	\defgroup	fs	File System
  *	\ingroup	kernelu
+ *	\defgroup	fs	File System
  *	@{
  */
 
@@ -27,12 +27,16 @@ extern "C"
 
 struct request_t;
 
-bool fsFullPath(const wchar_t* src, wchar_t* dst);
-bool fsRequest(addr_t fd, struct request_t* req, size_t size);
-addr_t fsOpen(const wchar_t* path);
-bool fsClose(addr_t fd);
-bool fsRead(addr_t fd, void* buffer, size_t* length);
-bool fsWrite(addr_t fd, const void* buffer, size_t* length);
+bool	fsFullPath(const wchar_t* src, wchar_t* dst);
+bool	fsRequest(addr_t fd, struct request_t* req, size_t size);
+addr_t	fsOpen(const wchar_t* path);
+bool	fsClose(addr_t fd);
+bool	fsRead(addr_t fd, void* buffer, size_t* length);
+bool	fsWrite(addr_t fd, const void* buffer, size_t* length);
+bool	fsIoCtl(addr_t fd, dword code, void* params, size_t length);
+bool	fsSeek(addr_t fd, qword pos);
+qword	fsGetPosition(addr_t fd);
+qword	fsGetLength(addr_t fd);
 
 #endif
 

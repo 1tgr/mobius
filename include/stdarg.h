@@ -1,9 +1,15 @@
-#ifndef __TL_STDARG_H
-#define	__TL_STDARG_H
+#ifndef __STDARG_H
+#define	__STDARG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*!
+ *  \ingroup	libc
+ *  \defgroup	stdarg	Variable argument list handling
+ *  @{
+ */
 
 /* width of stack == width of int */
 #define	STACKITEM	int
@@ -25,6 +31,8 @@ typedef char *va_list;
 
 #define va_arg(AP, TYPE)	\
 	(AP += VA_SIZE(TYPE), *((TYPE *)(AP - VA_SIZE(TYPE))))
+
+//@}
 
 #ifdef __cplusplus
 }

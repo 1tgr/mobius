@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <string.h>
+#include <wchar.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <kernel/kernel.h>
@@ -257,10 +257,7 @@ void kbdDoRequests(Keyboard* ctx)
 			
 			next = req->next;
 			if (req->params.read.length >= req->user_length)
-			{
-				//_cputws(L"finished\n");
 				devFinishRequest(&ctx->dev, req);
-			}
 			//else
 				//_cputws(L"more to do\n");
 		}
@@ -380,6 +377,7 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 	devRegisterIrq(kdebug, 1, false);
 	devClose(kdebug);
 
+#if 0
 	out(port, 0xff); /*reset keyboard   */ 
     do {
         status = in(ctrl);
@@ -403,8 +401,7 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
     out(port, 0x01 | 0x04 | 0x20 | 0x40);
 
     out(ctrl, 0xAE); /*enable keyboard   */
-
-#if 0
+#else
 	/* Reset keyboard and disable scanning until further down */
 	TRACE0("Disable...");
 	kbdHwWriteRead(ctx, ctx->port, KEYB_RESET_DISABLE, KEYB_ACK);

@@ -24,7 +24,11 @@ EXPORTS
 	dowprintf
 	dump_context
 	free
+	fsClose
+	fsMount
 	fsOpen
+	fsRead
+	fsSeek
 	hash
 	hashCreate
 	hashFind
@@ -45,6 +49,7 @@ EXPORTS
 	mbstowcs
 	memAlloc
 	memAllocLow
+	memAllocLowSpan
 	memcpy
 	memFree
 	memFreeLow
@@ -79,6 +84,7 @@ EXPORTS
 	stricmp
 	strlen
 	strncmp
+	strncpy
 	strpbrk
 	strtok
 	swprintf
@@ -95,7 +101,9 @@ EXPORTS
 	thrCreate86
 	thrCurrent
 	thrDelete
-	thrIsReady
+	thrDequeue
+	thrEnqueue
+	thrRun
 	thrSchedule
 	thrSleep
 	thrWaitHandle
@@ -106,6 +114,7 @@ EXPORTS
 	vmmCommit
 	vmmFree
 	vmmInvalidate
+	vmmMap
 	vmmUncommit
 	vswprintf
 	vwprintf
@@ -121,6 +130,9 @@ EXPORTS
 	wcstol
 	wcstombs
 	wprintf
+	_Cupertino
 	current
 	thr_first
 	thr_last
+	pool_all
+	pool_low

@@ -1,11 +1,11 @@
 section		.text	code
 bits		32
 
-[global		_NtProcessStartup]
+[global		_keEntry]
 [extern		__main]
 [extern		_scode]
 [extern		__sysinfo]
-_NtProcessStartup:
+_keEntry:
 	;            eax -> address at top of memory
 	;            ebx -> size of ramdisk
 	;            ecx -> physical address of start
@@ -51,30 +51,6 @@ _NtProcessStartup:
 	cli
 	hlt
 
-[global		___main]
-___main:
-	ret
-
-[global		_i386_llmemcpy]
-_i386_llmemcpy:
-	push	ebp
-	mov		ebp,esp
-	push	edi
-	;push	eax
-	push	ecx
-	
-	mov		edi,[ebp+8]
-	mov		eax,edi
-	mov		esi,[ebp+12]
-	mov		ecx,[ebp+16]
-	gs repnz	movsb
-
-	pop		ecx
-	;pop		eax
-	pop		edi
-	pop		ebp
-	ret
-
 [global		_i386_docall]
 _i386_docall:
 	; This code blatantly nicked from MFC OLECALL.CPP
@@ -88,6 +64,45 @@ _i386_docall:
 	pop     ecx         ; ecx = this pointer (the CCmdTarget*)
 	call    eax         ; call member function
 	ret                 ; esp[0] should = scratch[0] = return address
+
+%define CPUID_GEN_EBX	0x756e6547	; Genu
+%define CPUID_GEN_ECX	0x49656369	; ineI
+%define CPUID_GEN_EDX	0x6c65746e	; ntel
+
+[global		_keIdentifyCpu]
+[global		_cpu_max_level]
+[global		_cpuid_ecx]
+[global		_cpuid_edx]
+
+_keIdentifyCpu:
+	mov	dword [_cpu_max_level], 0
+	pushfd
+	pop	eax
+	mov	ebx, eax
+	and	eax, 200000h
+	je	.not_genuine_intel
+
+	xor	eax, eax
+	cpuid
+
+	mov	[_cpu_max_level], eax
+	cmp	ebx, CPUID_GEN_EBX
+	jne	.not_genuine_intel
+	cmp	ecx, CPUID_GEN_ECX
+	jne	.not_genuine_intel
+	cmp	edx, CPUID_GEN_EDX
+	jne	.not_genuine_intel
+
+	mov	[_cpuid_ecx], ecx
+	mov	[_cpuid_edx], edx
+
+	mov	eax, 1
+	ret
+
+.not_genuine_intel:
+	xor	eax, eax
+	mov	eax, ebx
+	ret
 
 [bits		16]
 [global		_code86]
@@ -161,12 +176,12 @@ _code86_end:
 
 section		.data	data
 _temp:		times 8 dd		0
-	
-;section		.bss	bss
-[extern		_stack]
-;_stack:		resb	8192
-[extern		_stack_end]
-;_stack_end:	resd	1
 
+[extern		_stack]
+[extern		_stack_end]
 [extern		_kernel_pagedir]
-;_kernel_pagedir:	resb	4096
+
+section		.bss	bss
+_cpu_max_level:	resd	1
+_cpuid_ecx:	resd	1
+_cpuid_edx:	resd	1

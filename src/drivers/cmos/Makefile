@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/cmos.drv
 OBJS=	cmos.o
-BASE=	@$(BIN)\coffbase.txt,cmos
+BASE=	cmos
 
 include ../make.driver
 
