@@ -1,4 +1,4 @@
-/* $Id: vbe.c,v 1.2 2002/08/17 22:52:14 pavlovskii Exp $ */
+/* $Id: vbe.c,v 1.3 2002/12/18 22:56:14 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
     printf("Code is %u bytes\n", size);
     fflush(stdout);
 
-    vbe_code = VmmAlloc(PAGE_ALIGN_UP(size) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
+    vbe_code = VmmAlloc(PAGE_ALIGN_UP(size) / PAGE_SIZE, NULL, VM_MEM_READ | VM_MEM_WRITE);
     *(uint16_t*) vbe_code = 0x20cd;
 
     memcpy(vbe_code + 0x100, rsrc, size);
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
     fp_code = i386LinearToFp(vbe_code);
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
 	
-    stack = VmmAlloc(PAGE_ALIGN_UP(65536) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
+    stack = VmmAlloc(PAGE_ALIGN_UP(65536) / PAGE_SIZE, NULL, VM_MEM_READ | VM_MEM_WRITE);
     fp_stackend = i386LinearToFp(stack);
     memset(stack, 0, 65536);
     
