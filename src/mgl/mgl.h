@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.5 2002/05/05 13:51:30 pavlovskii Exp $ */
 
 #ifndef __INTERNAL_MGL_H
 #define __INTERNAL_MGL_H
@@ -19,6 +19,7 @@ struct mglrc_t
     queue_t render_queue;
     clip_t vid_clip;
     bool did_set_mode;
+    videomode_t mode;
 };
 
 bool	    mglMapToSurface(MGLreal x, MGLreal y, point_t *pt);

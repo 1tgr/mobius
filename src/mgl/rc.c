@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.8 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.9 2002/05/05 13:51:30 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -21,6 +21,7 @@ mglrc_t *current;
     params.vid_storepalette.entries = rgb;
     params.vid_storepalette.length = count * sizeof(*rgb);
     params.vid_storepalette.first_index = first;
+    op.event = video;
     return FsRequestSync(video, VID_STOREPALETTE, &params, sizeof(params), &op);
 }
 
@@ -157,6 +158,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     rc->scale_y = rc->gl_height / rc->surf_height;
     rc->colour = 0xffffff;
     rc->clear_colour = 0;
+    rc->mode = params.vid_getmode;
 
     /*if (params.vid_setmode.bitsPerPixel == 4)
     {

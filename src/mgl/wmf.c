@@ -1,4 +1,4 @@
-/* $Id: wmf.c,v 1.5 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: wmf.c,v 1.6 2002/05/05 13:51:30 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/defs.h>
@@ -68,7 +68,7 @@ wmf_t *WmfOpen(const wchar_t *name)
 {
     wmf_t *wmf;
     handle_t file;
-    dirent_t di;
+    dirent_standard_t di;
     MGLrect dims;
 
     if (!FsQueryFile(name, FILE_QUERY_STANDARD, &di, sizeof(di)))
