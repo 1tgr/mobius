@@ -1,3 +1,5 @@
+/* $Id: test.c,v 1.2 2001/11/05 18:38:23 pavlovskii Exp $ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <wchar.h>
