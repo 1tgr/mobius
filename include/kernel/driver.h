@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.14 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.15 2002/04/20 12:34:38 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -10,6 +10,7 @@ extern "C"
 #include <sys/types.h>
 #include <kernel/handle.h>
 #include <os/device.h>
+#include <kernel/memory.h>
 
 #ifndef __DEVICE_T_DEFINED
 typedef struct device_t device_t;
@@ -29,6 +30,179 @@ typedef struct device_t device_t;
  *    \ref    devicebook
  *
  */
+
+typedef union params_dev_t params_dev_t;
+
+/*!    \brief	 Parameters for a \p DEV_xxx request */
+union params_dev_t
+{
+    struct
+    {
+	uint32_t length;
+	//void *buffer;
+        page_array_t *pages;
+	uint64_t offset;
+    } buffered;
+
+    struct
+    {
+        uint32_t length;
+        void *buffer;
+        uint64_t offset;
+    } direct;
+
+    struct
+    {
+	/*! Number of bytes to read */
+	uint32_t length;
+	/*! Buffer into which to read */
+	//void *buffer;
+        page_array_t *pages;
+	/*!
+	 *    \brief	Offset of the first byte to read
+	 *
+	 *    Block devices (e.g. disk drives) must honour this; character 
+	 *    devices (e.g. serial ports) may ignore this.
+	 */
+	uint64_t offset;
+    } dev_read;
+
+    struct
+    {
+	/*! Number of bytes to write */
+	uint32_t length;
+	/*! Buffer from which to write */
+	//const void *buffer;
+        page_array_t *pages;
+	/*!
+	 *    \brief	Offset of the first byte to write
+	 *
+	 *    Block devices (e.g. disk drives) must honour this; character 
+	 *    devices (e.g. serial ports) may ignore this.
+	 */
+	uint64_t offset;
+    } dev_write;
+
+    struct
+    {
+	/*! Number of bytes to read */
+	uint32_t length;
+	/*! Buffer into which to read */
+	void *buffer;
+        /*!
+	 *    \brief	Offset of the first byte to read
+	 *
+	 *    Block devices (e.g. disk drives) must honour this; character 
+	 *    devices (e.g. serial ports) may ignore this.
+	 */
+	uint64_t offset;
+    } dev_read_direct;
+
+    struct
+    {
+	/*! Number of bytes to write */
+	uint32_t length;
+	/*! Buffer from which to write */
+	const void *buffer;
+        /*!
+	 *    \brief	Offset of the first byte to write
+	 *
+	 *    Block devices (e.g. disk drives) must honour this; character 
+	 *    devices (e.g. serial ports) may ignore this.
+	 */
+	uint64_t offset;
+    } dev_write_direct;
+
+    struct
+    {
+	uint32_t size;
+	void *params;
+        uint32_t code;
+	uint32_t unused;
+    } dev_ioctl;
+
+    struct
+    {
+	uint8_t irq;
+    } dev_irq;
+};
+
+typedef union params_fs_t params_fs_t;
+/*!    \brief	 Parameters for a \p FS_xxx request */
+union params_fs_t
+{
+    struct
+    {
+	size_t length;
+	page_array_t *pages;
+	handle_t file;
+    } buffered, fs_read, fs_write;
+
+    struct
+    {
+	size_t length;
+	void *buffer;
+	handle_t file;
+    } direct;
+
+    struct
+    {
+	size_t length;
+	void *buffer;
+	handle_t file;
+    } fs_read_direct;
+
+    struct
+    {
+	size_t length;
+	const void *buffer;
+	handle_t file;
+    } fs_write_direct;
+
+    struct
+    {
+	size_t length;
+	void *buffer;
+	handle_t file;
+	uint32_t code;
+    } fs_ioctl;
+
+    struct
+    {
+	size_t name_size;
+	const wchar_t *name;
+	handle_t file;
+	uint32_t flags;
+    } fs_open, fs_create, fs_opensearch;
+
+    struct
+    {
+	handle_t file;
+    } fs_close;
+
+    struct
+    {
+	size_t buffer_size;
+	void *buffer;
+	const wchar_t *name;
+	uint32_t query_class;
+    } fs_queryfile;
+
+    struct
+    {
+	size_t name_size;
+	const wchar_t *name;
+	struct device_t *fsd;
+    } fs_mount;
+
+    struct
+    {
+        size_t params_size;
+        void *params;
+        handle_t file;
+        uint32_t code;
+    } fs_passthrough;
+};
 
 typedef struct request_t request_t;
 /*!
@@ -64,6 +238,8 @@ struct request_port_t
     params_port_t params;
 };
 
+struct page_array_t;
+
 typedef struct asyncio_t asyncio_t;
 
 /*!
@@ -86,13 +262,16 @@ struct asyncio_t
     /*! Size, in bytes, of the user buffer */
     size_t length;
     /*! Size, in pages, of the user buffer */
-    size_t length_pages;
+    //size_t length_pages;
     /*! Offset of the start of the user buffer from the previous page boundary */
-    unsigned mod_buffer_start;
+    //unsigned mod_buffer_start;
     /*! Physical page addresses follow this structure */
-#ifdef __DOXYGEN__
-    addr_t buffer[];
-#endif
+//#ifdef __DOXYGEN__
+    //addr_t buffer[];
+//#endif
+
+    /*! Page array structure for the request's buffer */
+    struct page_array_t *pages;
 };
 
 typedef struct device_resource_t device_resource_t;
@@ -123,6 +302,10 @@ struct device_resource_t
     } u;
 };
 
+#define DEV_BUS_UNKNOWN 0
+#define DEV_BUS_ISA     1
+#define DEV_BUS_PCI     2
+
 typedef struct device_config_t device_config_t;
 /*!    Device configuration structure */
 struct device_config_t
@@ -133,7 +316,22 @@ struct device_config_t
     uint16_t vendor_id;
     uint16_t device_id;
     uint32_t subsystem;
-    unsigned pci_bus, pci_dev, pci_func;
+    unsigned bus_type;
+
+    union
+    {
+        struct
+        {
+            unsigned number;
+        } isa;
+
+        struct
+        {
+            unsigned bus;
+            unsigned dev;
+            unsigned func;
+        } pci;
+    } location;
 };
 
 #define DEV_CFG_RESOURCES(cfg)    ((device_resource_t*) ((cfg) + 1))
@@ -197,6 +395,9 @@ struct device_vtbl_t
     void (*finishio)(device_t *dev, request_t *req);
 };
 
+#define DEVICE_IO_PAGED     0
+#define DEVICE_IO_DIRECT    1
+
 #ifdef __cplusplus
 /*!    \brief    Device object (C++ definition) */
 struct __attribute__((com_interface)) device_t
@@ -209,6 +410,7 @@ struct __attribute__((com_interface)) device_t
     device_config_t *cfg;
     asyncio_t *io_first, *io_last;
     const struct dirent_device_t *info;
+    uint32_t flags;
 };
 #else
 /*!    \brief    Device object (C definition) */
@@ -218,6 +420,7 @@ struct device_t
     device_config_t *cfg;
     asyncio_t *io_first, *io_last;
     const struct dirent_device_t *info;
+    uint32_t flags;
     const device_vtbl_t *vtbl;
 };
 #endif
@@ -236,8 +439,8 @@ void	    DevUnloadDriver(driver_t *driver);
 
 bool	    DevRegisterIrq(uint8_t irq, device_t *dev);
 bool	    DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg);
-asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, void *user_buffer,
-			    size_t user_buffer_length);
+asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, 
+                            page_array_t *pages, size_t user_buffer_length);
 void	    DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
 uint8_t	    DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
 device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n);

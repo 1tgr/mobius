@@ -1,4 +1,4 @@
-/* $Id: messagebox.h,v 1.1 2002/04/03 23:29:31 pavlovskii Exp $ */
+/* $Id: messagebox.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $ */
 
 #ifndef __GUI_MESSAGEBOX_H
 #define __GUI_MESSAGEBOX_H
@@ -56,6 +56,7 @@ namespace os
         MessageBox(const wchar_t *title, const wchar_t *text, unsigned buttons = btnOk, ...);
         ~MessageBox();
         void OnKeyDown(uint32_t key);
+        void OnClose();
     };
 };
 

@@ -1,4 +1,4 @@
-/* $Id: gui.h,v 1.1 2002/04/10 12:50:18 pavlovskii Exp $ */
+/* $Id: gui.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $ */
 
 #ifndef __OS_GUI_H
 #define __OS_GUI_H
@@ -91,6 +91,7 @@ struct msg_t
 #define MSG_MOUSEUP         8
 #define MSG_MOUSEMOVE       9
 #define MSG_MOUSEWHEEL      10
+#define MSG_CLOSE           11
 
 typedef struct wndinput_t wndinput_t;
 struct wndinput_t

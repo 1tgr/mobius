@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.11 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.12 2002/04/20 12:34:38 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -32,6 +32,9 @@
 #define SYS_SysGetInfo		0x103
 #define SYS_SysGetTimes 	0x104
 #define SYS_SysShutdown         0x105
+#define SYS_KeLeakBegin         0x106
+#define SYS_KeLeakEnd           0x107
+#define SYS_SysYield            0x108
 
 #define SYS_ThrExitThread	0x200
 #define SYS_ThrWaitHandle	0x201
@@ -90,6 +93,9 @@ SYSCALL(unsigned, SysUpTime, 0, void)
 SYSCALL(bool, SysGetInfo, 4, struct sysinfo_t *)
 SYSCALL(bool, SysGetTimes, 4, struct systimes_t *)
 SYSCALL(bool, SysShutdown, 4, unsigned)
+SYSCALL(void, KeLeakBegin, 0, void)
+SYSCALL(void, KeLeakEnd, 0, void)
+SYSCALL(void, SysYield, 0, void)
 SYS_END_GROUP(1)
 
 /* 2 */

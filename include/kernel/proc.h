@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.6 2002/04/20 12:34:38 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -56,13 +56,16 @@ struct process_t
 extern process_t *proc_first, *proc_last;
 extern process_t proc_idle;
 
-process_t	*ProcCreateProcess(const wchar_t *exe);
-bool		ProcPageFault(process_t *proc, addr_t addr);
+process_t * ProcCreateProcess(const wchar_t *exe);
+bool        ProcPageFault(process_t *proc, addr_t addr, bool is_writing);
 
-module_t *	PeLoad(process_t* proc, const wchar_t* file, uint32_t base);
-bool		PePageFault(process_t* proc, module_t* mod, addr_t addr);
-void		PeUnload(process_t* proc, module_t* mod);
-addr_t		PeGetExport(module_t* mod, const char* name, uint16_t hint);
+module_t *  PeLoad(process_t* proc, const wchar_t* file, uint32_t base);
+bool        PePageFault(process_t* proc, module_t* mod, addr_t addr);
+void        PeUnload(process_t* proc, module_t* mod);
+addr_t      PeGetExport(module_t* mod, const char* name, uint16_t hint);
+bool        PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
+                               size_t *bytes, uint32_t *flags);
+void        PeInitImage(module_t *mod);
 
 /*! @} */
 

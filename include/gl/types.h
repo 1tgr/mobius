@@ -1,3 +1,5 @@
+/* $Id: types.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $ */
+
 #ifndef __GL_TYPES_H
 #define __GL_TYPES_H
 
@@ -10,6 +12,10 @@ typedef    uint32_t MGLcolour;
 typedef struct mglrc_t mglrc_t;
 
 typedef struct MGLpoint MGLpoint;
+/*! \brief  MGL point */
+/*!
+ *  Specifies x and y coordinates
+ */
 struct MGLpoint
 {
     MGLreal x, y;
@@ -28,6 +34,7 @@ struct MGLpoint
 };
 
 typedef struct MGLrect MGLrect;
+/*! \brief  MGL rectangle */
 struct MGLrect
 {
     MGLreal left, top, right, bottom;

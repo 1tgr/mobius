@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.7 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.8 2002/04/20 12:34:38 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -21,6 +21,8 @@ extern "C"
  *	@{
  */
 
+struct cache_t;
+
 typedef struct file_t file_t;
 /*!
  *	\brief File object structure
@@ -29,24 +31,29 @@ typedef struct file_t file_t;
  */
 struct file_t
 {
-	/*! File system device that maintains this file */
-	device_t *fsd;
-	/*! Offset in the file for the next read or write operations */
-	uint64_t pos;
-	/*! Flags used to open this file */
-	uint32_t flags;
-        wchar_t *name;
+    /*! File system device that maintains this file */
+    device_t *fsd;
+    /*! Offset in the file for the next read or write operations */
+    uint64_t pos;
+    /*! Flags used to open this file */
+    uint32_t flags;
+    wchar_t *name;
+    struct cache_t *cache;
 };
 
-handle_t	FsCreate (const wchar_t*, uint32_t);
-handle_t	FsOpen (const wchar_t*, uint32_t);
-bool	FsClose (handle_t);
-bool	FsRead (handle_t, void*, size_t, struct fileop_t*);
-bool	FsWrite (handle_t, const void*, size_t, struct fileop_t*);
-off_t	FsSeek (handle_t, off_t, unsigned);
+handle_t    FsCreate(const wchar_t*, uint32_t);
+handle_t    FsOpen(const wchar_t*, uint32_t);
+bool	FsClose(handle_t);
+bool	FsRead(handle_t, void*, size_t, struct fileop_t*);
+bool	FsWrite(handle_t, const void*, size_t, struct fileop_t*);
+off_t	FsSeek(handle_t, off_t, unsigned);
 
 bool	FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read);
 size_t	FsWriteSync(handle_t file, const void *buf, size_t bytes);
+bool    FsReadPhysical(handle_t file, page_array_t *pages, size_t bytes, 
+                       struct fileop_t *op);
+bool    FsWritePhysical(handle_t file, page_array_t *pages, size_t bytes, 
+                        struct fileop_t *op);
 bool	FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev);
 bool	FsCreateVirtualDir(const wchar_t *path);
 

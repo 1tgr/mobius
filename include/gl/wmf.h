@@ -1,4 +1,4 @@
-/* $Id: wmf.h,v 1.2 2002/03/07 15:51:51 pavlovskii Exp $ */
+/* $Id: wmf.h,v 1.3 2002/04/20 12:34:38 pavlovskii Exp $ */
 
 #ifndef WMF_H__
 #define WMF_H__
@@ -132,11 +132,12 @@ struct wmf_t
     wmf_pen_t stock_pen;
     void *data;
     MGLpoint window_org, window_ext;
+    MGLrect dest_rect;
 };
 
 wmf_t *WmfOpen(const wchar_t *name);
 void WmfClose(wmf_t *wmf);
-void WmfDraw(wmf_t *wmf);
+void WmfDraw(wmf_t *wmf, const MGLrect *dest);
 
 #ifdef __cplusplus
 }

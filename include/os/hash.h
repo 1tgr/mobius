@@ -1,4 +1,4 @@
-/* $Id: hash.h,v 1.1 2002/03/13 14:38:30 pavlovskii Exp $
+/* $Id: hash.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $
    +++Date last modified: 05-Jul-1997
    Modified: $LOG$
    By: $Author: pavlovskii $
@@ -43,15 +43,6 @@ typedef struct hash_table_iterator{
     bucket* it_bucket;
 } hash_table_iterator;
 
-
-typedef struct hash_table {
-    size_t size;
-    bucket **table;
-    hash_table_iterator *iterator;
-} hash_table;
-
-
-
 typedef int boolean;
 
 #ifndef FALSE
@@ -62,12 +53,18 @@ typedef int boolean;
 #define TRUE (!FALSE)
 #endif
 
-
-boolean found; /* was last search successfull? Is that the
+typedef struct hash_table {
+    size_t size;
+    bucket **table;
+    hash_table_iterator *iterator;
+    boolean found; /* was last search successfull? Is that the
                          right place for that declaration? */ 
-boolean off; /* am i inside the hash-table? */
+    boolean off; /* am i inside the hash-table? */
 
-boolean insertation_failed;
+    boolean insertation_failed;
+} hash_table;
+
+
 
 /*
  This is used to construct the table.  If it doesn't succeed, it sets

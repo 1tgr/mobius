@@ -1,4 +1,4 @@
-/* $Id: frame.h,v 1.3 2002/04/10 12:32:37 pavlovskii Exp $ */
+/* $Id: frame.h,v 1.4 2002/04/20 12:34:38 pavlovskii Exp $ */
 
 #ifndef __GUI_FRAME_H
 #define __GUI_FRAME_H
@@ -12,8 +12,29 @@ namespace os
     class Frame : public Container
     {
     protected:
-        MGLrect m_margins;
-        bool m_isMoving;
+        enum FrameRegion
+        {
+            rgnNone,
+            rgnTitle,
+            rgnClient,
+            rgnButton1,
+            rgnButton2,
+            rgnButton3,
+            rgnButtonA,
+            rgnButtonB,
+            rgnButtonC,
+            rgnSizeTop,
+            rgnSizeBottom,
+            rgnSizeLeft,
+            rgnSizeRight,
+            rgnSizeTopLeft,
+            rgnSizeTopRight,
+            rgnSizeBottomRight,
+            rgnSizeBottomLeft,
+            rgnButtonClose = rgnButton1,
+        };
+
+        FrameRegion m_mouseRegion;
         MGLpoint m_lastMovePoint;
         MGLrect m_dragRect;
 
@@ -25,15 +46,13 @@ namespace os
         void OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y);
         void OnMouseUp(uint32_t buttons, MGLreal x, MGLreal y);
         void OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y);
+        void OnSize(const MGLrect &rect);
 
     protected:
-        enum FrameRegion
-        {
-            rgnTitle,
-            rgnClient,
-        };
-
         virtual FrameRegion HitTest(MGLreal x, MGLreal y);
+        virtual void OnHitBegin(FrameRegion rgn, MGLreal x, MGLreal y);
+        virtual void OnHitMiddle(FrameRegion rgn, MGLreal x, MGLreal y);
+        virtual void OnHitEnd(FrameRegion rgn, MGLreal x, MGLreal y);
     };
 };
 

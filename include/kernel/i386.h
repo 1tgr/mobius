@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.10 2002/03/13 14:25:51 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.11 2002/04/20 12:34:38 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -59,49 +59,58 @@
 #undef PAGE_SIZE
 #endif
 
-#define PAGE_SIZE       (1 << PAGE_BITS)
+#define PAGE_SIZE          (1 << PAGE_BITS)
 
-#define PRIV_PRES       0x001   /* present */
-#define PRIV_RD         0x000   /* read-only */
-#define PRIV_WR         0x002   /* writable */
-#define PRIV_KERN       0x000   /* ring 0 */
-#define PRIV_USER       0x004   /* ring 3 */
-#define PRIV_ALL        0x007
+#define PRIV_PRES           0x001   /* present */
+#define PRIV_RD             0x000   /* read-only */
+#define PRIV_WR             0x002   /* writable */
+#define PRIV_KERN           0x000   /* ring 0 */
+#define PRIV_USER           0x004   /* ring 3 */
+#define PRIV_ALL            0x007
 
-#define PAGE_ACCESSED	0x020
-#define PAGE_DIRTY		0x040
+#define PAGE_STATEMASK      0xf9b   /* mask out A, D and U/S bits */
+#define PAGE_VALID_CLEAN   (0x000 | PRIV_PRES)
+#define PAGE_VALID_DIRTY   (0x000 | PRIV_PRES | PRIV_WR)
+#define PAGE_READINPROG     0x200
+#define PAGE_WRITEINPROG   (0x400 | PRIV_PRES)
+#define PAGE_READFAILED     0x600
+#define PAGE_WRITEFAILED   (0x800 | PRIV_PRES)
+#define PAGE_PAGEDOUT       0xa00
 
-#define PAGE_NUM(X)     ((X) & -PAGE_SIZE)
-#define PAGE_TABENT(X)  (((X) >> 12) & 0x3FF)
-#define PAGE_DIRENT(X)  (((X) >> 22) & 0x3FF)
+#define PAGE_ACCESSED       0x020
+#define PAGE_DIRTY          0x040
 
-#define EFLAG_TF	0x100
-#define EFLAG_IF	0x200
-#define EFLAG_IOPL0	0x0000
-#define EFLAG_IOPL1	0x1000
-#define EFLAG_IOPL2	0x2000
-#define EFLAG_IOPL3	0x3000
-#define EFLAG_VM	0x20000
+#define PAGE_NUM(X)         ((X) & -PAGE_SIZE)
+#define PAGE_TABENT(X)      (((X) >> 12) & 0x3FF)
+#define PAGE_DIRENT(X)      (((X) >> 22) & 0x3FF)
 
-#define DR6_BS		0x4000
+#define EFLAG_TF	    0x00100
+#define EFLAG_IF	    0x00200
+#define EFLAG_IOPL0	    0x00000
+#define EFLAG_IOPL1	    0x01000
+#define EFLAG_IOPL2	    0x02000
+#define EFLAG_IOPL3	    0x03000
+#define EFLAG_VM	    0x20000
 
-#define KERNEL_BASED_CODE	0x08
-#define KERNEL_BASED_DATA	0x10
-#define KERNEL_FLAT_CODE	0x18
-#define KERNEL_FLAT_DATA	0x20
-#define USER_FLAT_CODE		0x28
-#define USER_FLAT_DATA		0x30
-#define KERNEL_TSS			0x38
-#define USER_THREAD_INFO	0x40
-#define KERNEL_DF_TSS		0x48
+#define DR6_BS		    0x4000
+
+#define KERNEL_BASED_CODE   0x08
+#define KERNEL_BASED_DATA   0x10
+#define KERNEL_FLAT_CODE    0x18
+#define KERNEL_FLAT_DATA    0x20
+#define USER_FLAT_CODE      0x28
+#define USER_FLAT_DATA      0x30
+#define KERNEL_TSS          0x38
+#define USER_THREAD_INFO    0x40
+#define KERNEL_DF_TSS       0x48
 
 /* Page fault error code flags */
-#define PF_PROTECTED		1	/* protection violation... */
-#define PF_WRITE			2	/* ...while writing */
-#define PF_USER				4	/* ...in user mode */
+#define PF_PROTECTED        1	/* protection violation... */
+#define PF_WRITE            2	/* ...while writing */
+#define PF_USER             4	/* ...in user mode */
 
-#define PHYSMEM			0xF0000000
-#define SCHED_QUANTUM	10
+#define PHYSMEM             0xF0000000
+#define SCHED_QUANTUM       10
 
 #define PAGETABLE_MAP		(0xffc00000)
 #define PAGEDIRECTORY_MAP	(0xffc00000 + (PAGETABLE_MAP / (1024)))
@@ -300,16 +309,15 @@ typedef union {
 
 struct thread_t;
 
-void	i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit, 
-						  uint8_t access, uint8_t attribs);
-void	i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector, 
-							 uint32_t offset, uint8_t access, uint8_t param_cnt);
-uint32_t
-		i386DoCall(void *routine, void *args, uint32_t argbytes);
-void	i386DispatchSysCall(context_t *ctx);
-struct thread_t *
-		i386CreateV86Thread(uint32_t entry, uint32_t stack_top, 
-		unsigned priority, void (*handler)(void));
+void    i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit, 
+                          uint8_t access, uint8_t attribs);
+void    i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector, 
+                             uint32_t offset, uint8_t access, uint8_t param_cnt);
+uint32_t i386DoCall(void *routine, void *args, uint32_t argbytes);
+void    i386DispatchSysCall(context_t *ctx);
+struct thread_t *i386CreateV86Thread(uint32_t entry, uint32_t stack_top, 
+                                     unsigned priority, void (*handler)(void));
+bool    i386HandlePageFault(addr_t cr2, bool is_writing);
 
 /*
  * Remote debugging in gdb_stub.c

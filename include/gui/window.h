@@ -1,4 +1,4 @@
-/* $Id: window.h,v 1.3 2002/04/10 12:32:37 pavlovskii Exp $ */
+/* $Id: window.h,v 1.4 2002/04/20 12:34:38 pavlovskii Exp $ */
 
 #ifndef __GUI_WINDOW_H
 #define __GUI_WINDOW_H
@@ -93,7 +93,7 @@ namespace os
          *  application processes messages.
          *  \param  rect    The rectangle to invalidate
          */
-        void Invalidate(MGLrect *rect = 0);
+        void Invalidate(const MGLrect *rect = 0);
 
         //! Sets the input focus to this window
         void SetFocus();
@@ -123,6 +123,8 @@ namespace os
         virtual void OnMouseUp(uint32_t buttons, MGLreal x, MGLreal y);
         virtual void OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y);
         virtual void OnMouseWheel(int delta, MGLreal x, MGLreal y);
+        virtual void OnSize(const MGLrect &rect);
+        virtual void OnClose();
     };
 };
 
