@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.7 2002/04/03 23:33:45 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.8 2002/04/10 12:21:35 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -46,6 +46,7 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
     const uint8_t *regs;
     unsigned i;
     clip_t clip;
+    rect_t rect;
     
     regs = NULL;
     for (i = 0; i < _countof(vga8_modes); i++)
@@ -70,8 +71,11 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
         //vid->text_memory = NULL;
     //}
     //else
-    clip.num_rects = 0;
-    clip.rects = NULL;
+    rect.left = rect.top = 0;
+    rect.right = video_mode.width;
+    rect.bottom = video_mode.height;
+    clip.num_rects = 1;
+    clip.rects = &rect;
     vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
         
     bpp8GeneratePalette(bpp8_palette);
@@ -80,9 +84,20 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
 }
 
 static void vga8PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
-                         colour_t clr)
+                       colour_t clr)
 {
-    video_base[x + y * video_mode.bytesPerLine] = bpp8Dither(x, y, clr);
+    unsigned i;
+
+    for (i = 0; i < clip->num_rects; i++)
+        if (x >= clip->rects[i].left &&
+            y >= clip->rects[i].top &&
+            x <  clip->rects[i].right &&
+            y <  clip->rects[i].bottom)
+        {
+            video_base[x + y * video_mode.bytesPerLine] = 
+                bpp8Dither(x, y, clr);
+            break;
+        }
 }
 
 static colour_t vga8GetPixel(video_t *vid, int x, int y)
@@ -95,17 +110,27 @@ static colour_t vga8GetPixel(video_t *vid, int x, int y)
 }
 
 static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                      colour_t clr)
+                    colour_t clr)
 {
     uint8_t *ptr;
+    unsigned i;
+    int ax1, ax2;
 
     if (x2 < x1)
 	swap_int(&x1, &x2);
 
-    for (ptr = video_base + x1 + y * video_mode.bytesPerLine;
-        x1 < x2;
-        x1++, ptr++)
-        *ptr = bpp8Dither(x1, y, clr);
+    for (i = 0; i < clip->num_rects; i++)
+    {
+        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
+        {
+            ax1 = max(clip->rects[i].left, x1);
+            ax2 = min(clip->rects[i].right, x2);
+            for (ptr = video_base + ax1 + y * video_mode.bytesPerLine;
+                ax1 < ax2;
+                ax1++, ptr++)
+                *ptr = bpp8Dither(ax1, y, clr);
+        }
+    }
 }
 
 #if 0

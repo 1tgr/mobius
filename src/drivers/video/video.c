@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.13 2002/04/03 23:33:45 pavlovskii Exp $ */
+/* $Id: video.c,v 1.14 2002/04/10 12:21:35 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -38,7 +38,8 @@ struct video_drv_t
 
 video_t *vga4Init(device_config_t *cfg);
 video_t *vga8Init(device_config_t *cfg);
-video_t *s3Init(device_config_t *cfg);
+video_t *s3Init8(device_config_t *cfg);
+video_t *s3Init16(device_config_t *cfg);
 
 struct
 {
@@ -47,9 +48,10 @@ struct
     video_t *vid;
 } drivers[] =
 {
-    { L"vga4",     vga4Init, NULL },
+    //{ L"vga4",     vga4Init, NULL },
     { L"vga8",     vga8Init, NULL },
-    { L"s3",       s3Init,   NULL },
+    { L"s3_8",     s3Init8,  NULL },
+    { L"s3_16",    s3Init16, NULL },
     { NULL,        NULL,     NULL },
 };
 
@@ -63,12 +65,24 @@ struct modemap_t
 modemap_t *modes;
 unsigned numModes;
 
+void vidMoveCursor(video_t *vid, point_t pt)
+{
+    rect_t rect;
+    clip_t clip;
+    rect.left = rect.top = 0;
+    rect.right = video_mode.width;
+    rect.bottom = video_mode.height;
+    clip.rects = &rect;
+    clip.num_rects = 1;
+    vid->vidPutPixel(vid, &clip, pt.x, pt.y, 0xffffff);
+}
+
 int vidMatchMode(const videomode_t *a, const videomode_t *b)
 {
     if ((b->width == 0 || a->width == b->width) &&
         (b->height == 0 || a->height == b->height) &&
         (b->bitsPerPixel == 0 || a->bitsPerPixel == b->bitsPerPixel))
-        return a->width * a->height * a->bitsPerPixel;
+        return a->width + a->height + a->bitsPerPixel;
     else
         return 0;
 }
@@ -127,6 +141,8 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
         vid->vidFillPolygon = vidFillPolygon;
     if (vid->vidTextOut == NULL)
         vid->vidTextOut = vidTextOut;
+    if (vid->vidMoveCursor == NULL)
+        vid->vidMoveCursor = vidMoveCursor;
     
     if (!vid->vidSetMode(vid, mode))
         return false;
@@ -380,6 +396,8 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     for (i = 0; drivers[i].name; i++)
     {
         vid = drivers[i].vid = drivers[i].init(cfg);
+        if (vid == NULL)
+            continue;
 
         j = 0;
         do

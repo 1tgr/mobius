@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.2 2002/04/03 23:33:45 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.3 2002/04/10 12:21:35 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -19,6 +19,9 @@
 void *sbrk_virtual(size_t diff);
 void swap_int(int *a, int *b);
 
+extern video_t s3_8, s3_16;
+
+//#define TRIO_ACCEL
 #define PCI_VENDOR_ID_S3        0x5333
 #define PCI_DEVICE_ID_S3_TRIO   0x8811
 
@@ -27,11 +30,17 @@ void swap_int(int *a, int *b);
 #define trio_outw(idx, val) out16(idx, (val) & 0xffff)
 #define trio_inw(idx)       in16(idx)
 
-void udelay(unsigned us)
+static void *        TrioMem;
+static unsigned long TrioSize;
+static addr_t        TrioMem_phys;
+static long trio_memclk = 45000000; /* default (?) */
+static bool          s3_doneinit;
+
+/*void udelay(unsigned us)
 {
     volatile int a;
     a = in(0x80);
-}
+}*/
 
 void gra_outb(unsigned short idx, unsigned char val) {
   vga_outb(GCT_ADDRESS,   idx); 
@@ -55,11 +64,11 @@ void att_outb(unsigned short idx, unsigned char val) {
   vga_outb(ACT_ADDRESS_W, val);
 } 
 
-unsigned char att_inb(unsigned short idx) {
+/*unsigned char att_inb(unsigned short idx) {
   vga_outb(ACT_ADDRESS_W, idx);
   udelay(100);
   return vga_inb(ACT_ADDRESS_R);
-}
+}*/
 
 unsigned char seq_inb(unsigned short idx) {
   vga_outb(SEQ_ADDRESS, idx);
@@ -76,11 +85,7 @@ unsigned char gra_inb(unsigned short idx) {
   return vga_inb(GCT_ADDRESS_R);
 }
 
-static void *        TrioMem;
-static unsigned long TrioSize;
-static addr_t        TrioMem_phys;
-
-long trio_memclk = 45000000; /* default (?) */
+#define s3WriteMulti(index, data)   trio_outw(S3_MULT_MISC, ((index) << 12) | ((data) & 0xfff))
 
 static void s3Close(video_t *vid)
 {
@@ -104,19 +109,32 @@ static s3mode_t s3_modes[] =
     { { 0,  640, 480, 8, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
     /*{ { 1,  800, 600, 8, 0, VIDEO_MODE_GRAPHICS, }, 27778,  64, 24, 22,  1,  72, 2 },*/
     /*{ { 2, 1024, 768, 8, 0, VIDEO_MODE_GRAPHICS, }, 16667, 224, 72, 60, 12, 168, 4 },*/
+    { { 3,  640, 480, 16, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
 };
 
 static int s3EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
-    if (index < _countof(s3_modes))
-    {
-        s3_modes[index].mode.bytesPerLine = 
-            (s3_modes[index].mode.width * s3_modes[index].mode.bitsPerPixel) / 8;
-        *mode = s3_modes[index].mode;
-        return index == _countof(s3_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
-    }
+    int bpp;
+
+    if (vid == &s3_8)
+        bpp = 8;
+    else if (vid == &s3_16)
+        bpp = 16;
     else
         return VID_ENUM_ERROR;
+
+    for (; index < _countof(s3_modes); index++)
+    {
+        if (s3_modes[index].mode.bitsPerPixel == bpp)
+        {
+            s3_modes[index].mode.bytesPerLine = 
+                (s3_modes[index].mode.width * s3_modes[index].mode.bitsPerPixel) / 8;
+            *mode = s3_modes[index].mode;
+            return index == _countof(s3_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
+        }
+    }
+
+    return VID_ENUM_ERROR;
 }
 
 static void Trio_WaitQueue(void) {
@@ -157,10 +175,10 @@ void s3MoveCursor(video_t *vid, point_t pt)
     else
         crt_outb(CRT_ID_HWGC_DSTART_Y, 0);
 
-    crt_outb(CRT_ID_HWGC_ORIGIN_X_HI, (char)((pt.x & 0x0700) >> 8));
     crt_outb(CRT_ID_HWGC_ORIGIN_X_LO, (char)(pt.x & 0x00ff));
-    crt_outb(CRT_ID_HWGC_ORIGIN_Y_HI, (char)((pt.y & 0x0700) >> 8));
+    crt_outb(CRT_ID_HWGC_ORIGIN_X_HI, (char)((pt.x & 0x0700) >> 8));
     crt_outb(CRT_ID_HWGC_ORIGIN_Y_LO, (char)(pt.y & 0x00ff));
+    crt_outb(CRT_ID_HWGC_ORIGIN_Y_HI, (char)((pt.y & 0x0700) >> 8));
 }
 
 inline void trio_video_disable(int toggle) {
@@ -234,6 +252,28 @@ do_clocks:
   return mnr;
 }
 
+static inline uint16_t s3ColourToPixel16(colour_t clr)
+{
+    uint8_t r, g, b;
+    r = COLOUR_RED(clr);
+    g = COLOUR_GREEN(clr);
+    b = COLOUR_BLUE(clr);
+    /* 5-6-5 R-G-B */
+    return ((r >> 3) << 11) |
+           ((g >> 2) << 5) |
+           ((b >> 3) << 0);
+}
+
+static inline colour_t s3Pixel16ToColour(uint16_t pix)
+{
+    uint8_t r, g, b;
+    r = (pix >> 11) << 3;
+    g = (pix >> 5) << 2;
+    b = (pix >> 0) << 3;
+    /* 5-6-5 R-G-B */
+    return MAKE_COLOUR(r, g, b);
+}
+
 static void trio_load_video_mode (s3mode_t *mode)
 {
     int fx, fy;
@@ -295,8 +335,20 @@ static void trio_load_video_mode (s3mode_t *mode)
     crt_outb(0x11, crt_inb(0x11) & 0x7f); /* unlock crt 0-7 */
 
     crt_outb(CRT_ID_HWGC_MODE, crt_inb(CRT_ID_HWGC_MODE) | 1);
-    crt_outb(CRT_ID_HWGC_FG_STACK, 0);
-    crt_outb(CRT_ID_HWGC_BG_STACK, 15);
+
+    switch (mode->mode.bitsPerPixel)
+    {
+    default:
+    case 8:
+        crt_outb(CRT_ID_HWGC_FG_STACK, 0);
+        crt_outb(CRT_ID_HWGC_BG_STACK, 15);
+        break;
+
+    case 16:
+        crt_outb(CRT_ID_HWGC_FG_STACK, s3ColourToPixel16(0x000000));
+        crt_outb(CRT_ID_HWGC_BG_STACK, s3ColourToPixel16(0xffffff));
+        break;
+    }
     
     crt_outb(CRT_ID_EXT_DAC_CNTL, 0x00);
 
@@ -515,22 +567,6 @@ static void trio_load_video_mode (s3mode_t *mode)
 #endif /* TRIO_ACCEL */
 }
 
-static void s3FillSolidRect(video_t *vid, int x1, int y1, int x2, int y2, colour_t clr)
-{
-    Trio_WaitIdle();  
-    trio_outw(S3_PIXEL_CNTL, 0xa000);
-    trio_outw(S3_FRGD_COLOR, bpp8Dither(x1, y1, clr));
-    trio_outw(S3_FRGD_MIX,   0x0027);
-    trio_outw(S3_WRT_MASK,   0xffff);
-
-    Trio_WaitIdle();
-    trio_outw(S3_CUR_X, x1 & 0x0fff);
-    trio_outw(S3_CUR_Y, y1 & 0x0fff);
-    trio_outw(S3_MIN_AXIS_PCNT, (y2 - y1 - 1) & 0x0fff);
-    trio_outw(S3_MAJ_AXIS_PCNT, (x2 - x1 - 1) & 0x0fff);
-    trio_outw(S3_CMD, S3_FILLEDRECT);
-}
-
 static bool s3SetMode(video_t *vid, videomode_t *mode)
 {
     bool found;
@@ -551,18 +587,25 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
     video_mode = s3_modes[i].mode;
     trio_load_video_mode(s3_modes + i);
 
-    s3FillSolidRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
-    bpp8GeneratePalette(bpp8_palette);
-    vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
+    if (mode->bitsPerPixel == 8)
+    {
+        bpp8GeneratePalette(bpp8_palette);
+        vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
+    }
+
     pt.x = pt.y = 0;
     s3MoveCursor(vid, pt);
     return true;
 }
 
-static void s3PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
+static void s3PutPixel8(video_t *vid, const clip_t *clip, int x, int y, 
                        colour_t clr)
 {
     unsigned i;
+
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
 
     for (i = 0; i < clip->num_rects; i++)
         if (x >= clip->rects[i].left &&
@@ -570,23 +613,32 @@ static void s3PutPixel(video_t *vid, const clip_t *clip, int x, int y,
             x <  clip->rects[i].right &&
             y <  clip->rects[i].bottom)
         {
-            ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
-                bpp8Dither(x, y, clr);
+            if (clr == 0xffffffff)
+                ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
+                ~((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine];
+            else
+                ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
+                    bpp8Dither(x, y, clr);
             break;
         }
 }
 
-static colour_t s3GetPixel(video_t *vid, int x, int y)
+static colour_t s3GetPixel8(video_t *vid, int x, int y)
 {
     uint8_t index;
+
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
+
     index = ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine];
     return MAKE_COLOUR(bpp8_palette[index].red, 
         bpp8_palette[index].green, 
         bpp8_palette[index].blue);
 }
 
-static void s3HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                    colour_t clr)
+static void s3HLine8(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+                     colour_t clr)
 {
     uint8_t *ptr;
     unsigned i;
@@ -595,36 +647,132 @@ static void s3HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
     if (x2 < x1)
 	swap_int(&x1, &x2);
 
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
+
     for (i = 0; i < clip->num_rects; i++)
     {
         if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
         {
             ax1 = max(clip->rects[i].left, x1);
             ax2 = min(clip->rects[i].right, x2);
-            for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
-                ax1 < ax2;
-                ax1++, ptr++)
-                *ptr = bpp8Dither(ax1, y, clr);
+            if (clr == 0xffffffff)
+                for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
+                    ax1 < ax2;
+                    ax1++, ptr++)
+                    *ptr = ~*ptr;
+            else
+                for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
+                    ax1 < ax2;
+                    ax1++, ptr++)
+                    *ptr = bpp8Dither(ax1, y, clr);
         }
     }
 }
 
-static video_t s3 =
+static void s3PutPixel16(video_t *vid, const clip_t *clip, int x, int y, 
+                         colour_t clr)
 {
-    s3Close,
-    s3EnumModes,
-    s3SetMode,
-    vgaStorePalette,
-    s3MoveCursor,
-    s3PutPixel,
-    s3GetPixel,
-    s3HLine,
-    NULL,           /* vline */
-    NULL,           /* line */
-    NULL,           /* fillrect */
-    NULL,           /* textout */
-    NULL,           /* fillpolygon */
-};
+    unsigned i;
+    uint16_t pix;
+
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
+
+    pix = s3ColourToPixel16(clr);
+    for (i = 0; i < clip->num_rects; i++)
+        if (x >= clip->rects[i].left &&
+            y >= clip->rects[i].top &&
+            x <  clip->rects[i].right &&
+            y <  clip->rects[i].bottom)
+        {
+            if (clr == 0xffffffff)
+                ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = 
+                ~((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x];
+            else
+                ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = pix;
+            break;
+        }
+}
+
+static colour_t s3GetPixel16(video_t *vid, int x, int y)
+{
+    uint16_t pix;
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
+    pix = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x];
+    return s3Pixel16ToColour(pix);
+}
+
+static void s3HLine16(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+                    colour_t clr)
+{
+    uint16_t *ptr, pix;
+    unsigned i;
+    int ax1, ax2;
+    
+    if (x2 < x1)
+	swap_int(&x1, &x2);
+
+#ifdef TRIO_ACCEL
+    Trio_WaitIdle();
+#endif
+    pix = s3ColourToPixel16(clr);
+    for (i = 0; i < clip->num_rects; i++)
+    {
+        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
+        {
+            ax1 = max(clip->rects[i].left, x1);
+            ax2 = min(clip->rects[i].right, x2);
+            if (clr == 0xffffffff)
+                for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + ax1;
+                    ax1 < ax2;
+                    ax1++, ptr++)
+                    *ptr = ~*ptr;
+            else
+                for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + ax1;
+                    ax1 < ax2;
+                    ax1++, ptr++)
+                    *ptr = pix;
+        }
+    }
+}
+
+#ifdef TRIO_ACCEL
+static void s3FillRect16(video_t *vid, const clip_t *clips, int x1, int y1, int x2, int y2, 
+                         colour_t clr)
+{
+    unsigned i;
+    rect_t *rect;
+    uint16_t pix;
+
+    pix = s3ColourToPixel16(clr);
+    for (i = 0, rect = clips->rects; i < clips->num_rects; i++, rect++)
+    {
+        Trio_WaitIdle();
+
+        s3WriteMulti(S3_MULT_SCISSORS_T, rect->top);
+        s3WriteMulti(S3_MULT_SCISSORS_L, rect->left);
+        s3WriteMulti(S3_MULT_SCISSORS_B, rect->bottom - 1);
+        s3WriteMulti(S3_MULT_SCISSORS_R, rect->right - 1);
+
+        trio_outw(S3_PIXEL_CNTL, 0xa000);
+        trio_outw(S3_FRGD_COLOR, pix);
+        trio_outw(S3_FRGD_MIX,   0x0027);
+        trio_outw(S3_WRT_MASK,   0xffff);
+
+        Trio_WaitIdle();
+        trio_outw(S3_CUR_X, x1 & 0x0fff);
+        trio_outw(S3_CUR_Y, y1 & 0x0fff);
+        trio_outw(S3_MIN_AXIS_PCNT, (y2 - y1 - 1) & 0x0fff);
+        trio_outw(S3_MAJ_AXIS_PCNT, (x2 - x1 - 1) & 0x0fff);
+        trio_outw(S3_CMD, S3_FILLEDRECT);
+    }
+}
+#endif
 
 void _swab(char *src, char *dest, int nbytes)
 {
@@ -836,7 +984,7 @@ void s3InitHardware(void)
 #undef I
 #undef _
 
-video_t *s3Init(device_config_t *cfg)
+bool s3Init(device_config_t *cfg)
 {
     device_resource_t *res;
     addr_t board_addr;
@@ -846,19 +994,19 @@ video_t *s3Init(device_config_t *cfg)
     if (cfg == NULL)
     {
         wprintf(L"s3: no PCI configuration present\n");
-        return NULL;
+        return false;
     }
 
     if (cfg->vendor_id != PCI_VENDOR_ID_S3)
     {
         wprintf(L"s3: vendor (%x) is not S3\n", cfg->vendor_id);
-        return NULL;
+        return false;
     }
 
     if (cfg->device_id != PCI_DEVICE_ID_S3_TRIO)
     {
         wprintf(L"s3: device (%x) is not S3 Trio\n", cfg->device_id);
-        return NULL;
+        return false;
     }
 
     /* goto color emulation, enable CPU access */
@@ -874,7 +1022,8 @@ video_t *s3Init(device_config_t *cfg)
            (crt_inb(CRT_ID_BACKWAD_COMP_2) & ~(0x2 | 0x10 |  0x40)) | 0x20);
 
     /* get Trio identification, 0x10 = trio32, 0x11 = trio64 */
-    if (crt_inb(CRT_ID_DEVICE_LOW) != 0x11) return NULL; 
+    if (crt_inb(CRT_ID_DEVICE_LOW) != 0x11)
+        return false; 
 
     tmp = crt_inb(CRT_ID_CONFIG_1);
     board_size = 
@@ -903,5 +1052,58 @@ video_t *s3Init(device_config_t *cfg)
     wprintf(L"s3: using %ldK of video memory at %x (= %p)\n", 
         TrioSize>>10, TrioMem_phys, TrioMem);
 
-    return &s3;
+    s3_doneinit = true;
+    return true;
+}
+
+static video_t s3_8 =
+{
+    s3Close,
+    s3EnumModes,
+    s3SetMode,
+    vgaStorePalette,
+    s3MoveCursor,
+    s3PutPixel8,
+    s3GetPixel8,
+    s3HLine8,
+    NULL,           /* vline */
+    NULL,           /* line */
+    NULL,           /* fillrect */
+    NULL,           /* textout */
+    NULL,           /* fillpolygon */
+};
+
+static video_t s3_16 =
+{
+    s3Close,
+    s3EnumModes,
+    s3SetMode,
+    NULL,           /* storepalette */
+    s3MoveCursor,
+    s3PutPixel16,
+    s3GetPixel16,
+    s3HLine16,
+    NULL,           /* vline */
+    NULL,           /* line */
+#ifdef TRIO_ACCEL
+    s3FillRect16,
+#else
+    NULL,           /* fillrect */
+#endif
+    NULL,           /* textout */
+    NULL,           /* fillpolygon */
+};
+
+video_t *s3Init8(device_config_t *cfg)
+{
+    if (!s3_doneinit && !s3Init(cfg))
+        return NULL;
+    return &s3_8;
+}
+
+video_t *s3Init16(device_config_t *cfg)
+{
+    if (!s3_doneinit && !s3Init(cfg))
+        return NULL;
+    return &s3_16;
 }

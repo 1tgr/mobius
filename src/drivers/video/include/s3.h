@@ -1,4 +1,4 @@
-/* $Id: s3.h,v 1.2 2002/03/28 15:36:44 pavlovskii Exp $ */
+/* $Id: s3.h,v 1.3 2002/04/10 12:21:35 pavlovskii Exp $ */
 
 #ifndef S3_H__
 #define S3_H__
@@ -62,6 +62,17 @@
 #define S3_WRT_MASK      0xaae8
 #define S3_RD_MASK       0xaee8
 #define S3_SHORT_STROKE	 0x9EE8
+
+/* Multifunction Control Register Indices: */
+#define S3_MULT_MIN_AXIS_PCNT   0x0
+#define S3_MULT_SCISSORS_T      0x1
+#define S3_MULT_SCISSORS_L      0x2
+#define S3_MULT_SCISSORS_B      0x3
+#define S3_MULT_SCISSORS_R      0x4
+#define S3_MULT_PIX_CNTL        0xa
+#define S3_MULT_MULT_MISC_2     0xd
+#define S3_MULT_MULT_MISC       0xe
+#define S3_MULT_READ_SEL        0xf
 
 /* General Registers: */
 #define GREG_MISC_OUTPUT_R	0x03CC

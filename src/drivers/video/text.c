@@ -69,13 +69,13 @@ static void draw_bitmap(video_t *vid, const clip_t *clip, FT_Bitmap *bmp,
 void vidTextOut(video_t *vid, const clip_t *clip, rect_t *rect, 
                 const wchar_t *str, size_t len, colour_t fg, colour_t bg)
 {
-    int error, x, y, maxx, maxy;
+    int error, x, y, maxx, maxy, gap, hgt;
 
-    //wprintf(L"height = 0x%x = %d\n", 
-        //ft_face->size->metrics.height, ft_face->size->metrics.height >> 6);
+    hgt = ft_face->size->metrics.height >> 6;
     maxx = x = rect->left;
-    maxy = y = rect->top + (ft_face->size->metrics.height >> 7);
-    
+    maxy = y = rect->top + hgt;
+    gap = hgt / 4;
+
     while (len > 0)
     {
         if (*str != '\n')
@@ -91,7 +91,7 @@ void vidTextOut(video_t *vid, const clip_t *clip, rect_t *rect,
             x + (ft_face->glyph->advance.x >> 6) > rect->right)
         {
             x = rect->left;
-            y += ft_face->size->metrics.height >> 6;
+            y += hgt;
             if (y > maxy)
                 maxy = y;
 
@@ -111,7 +111,7 @@ void vidTextOut(video_t *vid, const clip_t *clip, rect_t *rect,
                     clip, 
                     &ft_face->glyph->bitmap,
                     x + ft_face->glyph->bitmap_left, 
-                    y - ft_face->glyph->bitmap_top,
+                    y - ft_face->glyph->bitmap_top - gap,
                     fg, bg);
 
             x += ft_face->glyph->advance.x >> 6;
@@ -136,7 +136,7 @@ bool vidInitText(void)
 
     FT_Init_FreeType(&ft_library);
 
-    font = L"/System/Boot/amrtypen.ttf";
+    font = L"/System/Boot/fradm.ttf";
 
     if (FsQueryFile(font, FILE_QUERY_STANDARD, &di, sizeof(di)))
     {
