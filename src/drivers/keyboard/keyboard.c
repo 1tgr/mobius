@@ -273,24 +273,23 @@ void kbdDoRequests(Keyboard* keyb)
 			buf = MemMapTemp(ptr, io->length_pages, 
 				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
 
-			wprintf(L"req = %p buffer = %p + %x size = %d\n", 
-				req,
-				buf, io->mod_buffer_start,
-				io->length);
-
-			wprintf(L"Writing buffer...");
+			wprintf(L"req = %p phys = %p buffer = %p + %x: ", 
+				req, *ptr,
+				buf, io->mod_buffer_start);
 
 			*(uint32_t*) (buf + io->mod_buffer_start + io->length) = key;
 			MemUnmapTemp();
 
-			wprintf(L"done\n");
 			io->length += sizeof(uint32_t);
 			
 			ionext = io->next;
 			if (io->length >= req->params.dev_read.length)
-				DevFinishIo(&keyb->dev, io);
-			/*else */
-				/*_cputws(L"more to do\n"); */
+			{
+				DevFinishIo(&keyb->dev, io, 0);
+				wprintf(L"finished\n");
+			}
+			else
+				wprintf(L"more to do\n");
 		}
 	}
 }
@@ -319,6 +318,7 @@ void kbdKey(Keyboard* keyb, uint8_t scancode)
 		{
 			*keyb->write = key;
 			keyb->write++;
+			TRACE0("[k]");
 
 			if (keyb->write >= keyb->buffer + _countof(keyb->buffer))
 				keyb->write = keyb->buffer;
@@ -335,7 +335,6 @@ void kbdKey(Keyboard* keyb, uint8_t scancode)
 bool KbdIsr(device_t *dev, uint8_t irq)
 {
 	Keyboard* keyb = (Keyboard*) dev;
-	TRACE0("[di]");
 	kbdKey(keyb, kbdHwRead(keyb));
 	return true;
 }

@@ -27,6 +27,9 @@ LD=		ld
 %.d:	%.S
 	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(ASFLAGS)
 
+.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
+
 # Exports for DLL
 %.exp:	%.def
 	dlltool -d $< -e $@ -D $(<:.def=.dll)

@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.5 2002/01/03 15:44:07 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.6 2002/01/05 00:54:09 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -439,26 +439,19 @@ void AtaServiceCtrlRequest(ata_ctrl_t *ctrl)
 		case ATA_COMMAND:
 			if (!AtaIssueCommand(req->params.ata_command.drive, 
 				&req->params.ata_command.cmd))
-			{
-				req->header.result = EHARDWARE;
-				DevFinishIo(&ctrl->dev, io);
-			}
+				DevFinishIo(&ctrl->dev, io, EHARDWARE);
 			break;
 
 		case ATAPI_PACKET:
 			if (!AtapiIssuePacket(req->params.atapi_packet.drive,
 				req->params.atapi_packet.packet))
-			{
-				req->header.result = EHARDWARE;
-				DevFinishIo(&ctrl->dev, io);
-			}
+				DevFinishIo(&ctrl->dev, io, EHARDWARE);
 			break;
 
 		default:
 			wprintf(L"AtaServiceCtrlRequest: invalid code (%4.4S)\n",
 				&req->header.code);
-			req->header.result = EINVALID;
-			DevFinishIo(&ctrl->dev, io);
+			DevFinishIo(&ctrl->dev, io, EINVALID);
 			break;
 		}
 	}
@@ -618,7 +611,7 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 		if (finish)
 		{
 			ctrl->command = CMD_IDLE;
-			DevFinishIo(dev, io);
+			DevFinishIo(dev, io, 0);
 			AtaServiceCtrlRequest(ctrl);
 		}
 	}

@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.5 2002/01/03 15:44:07 pavlovskii Exp $ */
+/* $Id: device.c,v 1.6 2002/01/05 00:54:10 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -289,7 +289,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	return io;
 }
 
-void DevFinishIo(device_t *dev, asyncio_t *io)
+void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 {
 	addr_t *ptr;
 	unsigned i;
@@ -302,14 +302,18 @@ void DevFinishIo(device_t *dev, asyncio_t *io)
 	/*LIST_ADD(io->owner->fio, io);*/
 	/*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
 	EvtSignal(io->owner->process, io->req->event);
-	free(io);
-
+	
 	if (io->req->original != NULL)
 	{
-		free(io->req);
-		io->req = NULL;
+		request_t *req;
+		req = io->req;
+		io->req = io->req->original;
+		free(req);
 	}
 
+	io->req->result = result;
+
+	free(io);
 	/* Need to free io->req->event */
 }
 

@@ -1,77 +1,91 @@
-/* $Id: fat.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
-
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/fs.h>
-
-#include <errno.h>
-#include <stdlib.h>
-#include <wchar.h>
-#include <string.h>
-#include <ctype.h>
-
-#include <os/blkdev.h>
 #include <os/fs.h>
-#include <os/defs.h>
-
-#include "fat.h"
 
 #define DEBUG
 #include <kernel/debug.h>
 
-/*! \ingroup fat */
-/*@{ */
+#include <errno.h>
+#include <wchar.h>
+#include <ctype.h>
 
-typedef struct fat_root_t fat_root_t;
-struct fat_root_t
+#include "fat.h"
+
+typedef struct fat_dir_t fat_dir_t;
+struct fat_dir_t
 {
-	device_t dev;
-	device_t *disk;
-	fat_bootsector_t boot_sector;
-	uint8_t *fat;
-	uint8_t fat_bits;
-	uint32_t bytes_per_cluster;
-	uint32_t data_start, root_start;
-	unsigned char cluster_shift;
+	file_t file;
+	fat_dirent_t di;
+	unsigned num_entries;
+	/* fat_dirent_t entries[]; */
 };
 
 typedef struct fat_file_t fat_file_t;
 struct fat_file_t
 {
 	file_t file;
-	bool is_search;
-	fat_dirent_t entry;
-	uint64_t cached_pos;
-	uint32_t cached_cluster;
+	fat_dirent_t di;
+	unsigned num_clusters;
+	/* uint32_t clusters[]; */
 };
 
-typedef struct fat_search_t fat_search_t;
-struct fat_search_t
+typedef struct fat_root_t fat_root_t;
+struct fat_root_t
 {
-	file_t file;
-	bool is_search;
-	fat_file_t *dir;
-	wchar_t *spec;
+	device_t dev;
+	device_t *device;
+	fat_bootsector_t bpb;
+	fat_dir_t *root;
+	unsigned fat_bits;
+	unsigned bytes_per_cluster;
+	unsigned root_start;
+	unsigned data_start;
+	unsigned cluster_shift;
+	uint8_t *fat;
 };
 
-#define FAT_AVAILABLE		0
-#define FAT_RESERVED_START	0xfff0
-#define FAT_RESERVED_END	0xfff6
-#define FAT_BAD				0xfff7
-#define FAT_EOC_START		0xfff8
-#define FAT_EOC_END			0xffff
+#define SECTOR_SIZE			512
 
-#define IS_EOC_CLUSTER(c)		((c) >= FAT_EOC_START && (c) <= FAT_EOC_END)
-#define IS_RESERVED_CLUSTER(c)	((c) >= FAT_RESERVED_START && (c) <= FAT_RESERVED_END)
+CASSERT(sizeof(fat_bootsector_t) == SECTOR_SIZE);
+CASSERT(sizeof(fat_dirent_t) == 16);
+CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 
-void dump(const uint8_t* buf, size_t size)
+#define FAT_MAX_NAME		256
+
+#define FAT_CLUSTER_ROOT			0
+
+#define FAT_CLUSTER_AVAILABLE		0
+#define FAT_CLUSTER_RESERVED_START	0xfff0
+#define FAT_CLUSTER_RESERVED_END	0xfff6
+#define FAT_CLUSTER_BAD				0xfff7
+#define FAT_CLUSTER_EOC_START		0xfff8
+#define FAT_CLUSTER_EOC_END			0xffff
+
+#define IS_EOC_CLUSTER(c)		((c) >= FAT_CLUSTER_EOC_START && (c) <= FAT_CLUSTER_EOC_END)
+#define IS_RESERVED_CLUSTER(c)	((c) >= FAT_CLUSTER_RESERVED_START && (c) <= FAT_CLUSTER_RESERVED_END)
+
+fat_dir_t *FatAllocDir(fat_root_t *root, const fat_dirent_t *di)
 {
-	int j;
+	fat_dir_t *dir;
+	size_t size;
 
-	for (j = 0; j < size; j++)
-		wprintf(L"%02x ", buf[j]);
+	size = (di->file_length + SECTOR_SIZE - 1) & -SECTOR_SIZE;
+	dir = malloc(sizeof(fat_dir_t) + size);
+	if (dir == NULL)
+		return NULL;
 
-	wprintf(L"\n");
+	dir->file.fsd = &root->dev;
+	dir->file.pos = 0;
+	dir->di = *di;
+	dir->num_entries = size / sizeof(fat_dirent_t);
+
+	if (di->first_cluster == FAT_CLUSTER_ROOT)
+		DevRead(root->device, root->root_start * SECTOR_SIZE, dir + 1, size);
+	else
+		assert(false);
+
+	return dir;
 }
 
 uint32_t FatGetNextCluster(fat_root_t* root, uint32_t cluster)
@@ -81,12 +95,12 @@ uint32_t FatGetNextCluster(fat_root_t* root, uint32_t cluster)
 	uint8_t* b;
 
 	if (cluster >=
-		root->boot_sector.sectors / root->boot_sector.sectors_per_cluster)
+		root->bpb.sectors / root->bpb.sectors_per_cluster)
 	{
 		wprintf(L"Cluster 0x%x (%d) beyond than total clusters 0x%x (%d)\n",
 			cluster, cluster,
-			root->boot_sector.sectors / root->boot_sector.sectors_per_cluster,
-			root->boot_sector.sectors / root->boot_sector.sectors_per_cluster);
+			root->bpb.sectors / root->bpb.sectors_per_cluster,
+			root->bpb.sectors / root->bpb.sectors_per_cluster);
 		assert(false);
 	}
 
@@ -121,609 +135,319 @@ uint32_t FatGetNextCluster(fat_root_t* root, uint32_t cluster)
 	return w;
 }
 
-/*uint32_t FatFindCluster(fat_file_t* file, uint64_t pos)
+handle_t FatAllocFile(fat_root_t *root, const fat_dirent_t *di, uint32_t flags)
 {
-	fat_root_t *root = (fat_root_t*) file->file.fsd;
-	uint64_t ptr;
-	uint32_t cluster;
+	fat_file_t *file;
+	handle_t fd;
+	unsigned num_clusters, i, cluster;
+	uint32_t *ptr;
 
-	cluster = (uint32_t) file->entry.first_cluster;
-
-	if (cluster == 0)
-		return (uint32_t) pos / root->bytes_per_cluster;
-	else
+	num_clusters = 
+		(di->file_length + root->bytes_per_cluster - 1) & -root->bytes_per_cluster;
+	num_clusters /= root->bytes_per_cluster;
+	fd = HndAlloc(NULL, sizeof(fat_dir_t) + num_clusters * sizeof(uint32_t), 'file');
+	file = HndLock(NULL, fd, 'file');
+	if (file == NULL)
 	{
-		ptr = root->bytes_per_cluster;
-		while (ptr <= pos)
-		{
-			if (IS_EOC_CLUSTER(cluster) ||
-				IS_RESERVED_CLUSTER(cluster) ||
-				cluster == FAT_BAD)
-				return -1;
-
-			ptr += root->bytes_per_cluster;
-			cluster = FatGetNextCluster(root, cluster);
-		}
-
-		return cluster;
+		HndFree(NULL, fd, 'file');
+		return NULL;
 	}
-}*/
 
-uint32_t FatGetCluster(fat_root_t *root, fat_file_t *file, uint64_t pos)
-{
-	if (pos >= file->entry.file_length)
-		return -1;
-	else
-		return ((uint32_t*) (file + 1))[pos >> root->cluster_shift];
+	file->file.fsd = &root->dev;
+	file->file.pos = 0;
+	file->file.flags = flags;
+	file->di = *di;
+	file->num_clusters = num_clusters;
+
+	ptr = (uint32_t*) (file + 1);
+	cluster = di->first_cluster;
+	for (i = 0; i < num_clusters; i++)
+	{
+		*ptr++ = cluster;
+		cluster = FatGetNextCluster(root, cluster);
+	}
+
+	assert(IS_EOC_CLUSTER(cluster));
+	HndUnlock(NULL, fd, 'file');
+	return fd;
 }
 
-status_t FatRead(fat_root_t *root, fat_file_t *file, void *buffer, size_t *length)
+unsigned FatAssembleName(fat_dirent_t *entries, wchar_t *name)
 {
-	uint32_t cluster;
-	uint64_t cluster_pos;
-	size_t incr, this_cluster, user_length;
-	bool isRoot;
+	fat_lfnslot_t *lfn;
+	lfn = (fat_lfnslot_t*) entries;
 
-	if (file->file.pos != file->cached_pos)
-		/*file->cached_cluster = FatFindCluster(file, file->file.pos);*/
-		file->cached_cluster = FatGetCluster(root, file, file->file.pos);
-	else if (IS_EOC_CLUSTER(file->cached_cluster))
+	if ((entries[0].attribs & ATTR_LONG_NAME) == ATTR_LONG_NAME)
 	{
-		*length = 0;
-		return 0;
+		assert(false);
+		return 1;
 	}
-
-	if (file->cached_cluster == -1)
+	else
 	{
-		wprintf(L"FatReadFile: failed to find cluster at %d for file at 0x%x\n",
-			(uint32_t) file->file.pos, file->entry.first_cluster);
-		return ENOTFOUND;
-	}
+		unsigned i;
+		wchar_t *ptr;
 
-	isRoot = file->entry.first_cluster == 0;
-	cluster = file->cached_cluster;
-
-	user_length = *length;
-	*length = 0;
-
-	this_cluster = (uint32_t) file->file.pos % root->bytes_per_cluster;
-
-	TRACE1("[%x] ", cluster);
-	while (*length < user_length)
-	{
-		if (isRoot)
-			/* root directory or FAT */
-			cluster_pos = 
-				root->root_start * root->boot_sector.bytes_per_sector 
-				+ cluster * root->bytes_per_cluster;
-		else
-			/* normal file or directory */
-			cluster_pos = 
-				root->data_start * root->boot_sector.bytes_per_sector 
-				+ (cluster - 2) * root->bytes_per_cluster;
-		
-		cluster_pos += this_cluster;
-
-		TRACE2("(%lu = %lu) ", 
-			(unsigned long) file->file.pos,
-			(unsigned long) cluster_pos);
-		incr = min(user_length - *length, root->bytes_per_cluster);
-		
-		if (DevRead(root->disk, 
-			cluster_pos,
-			(uint8_t*) buffer + *length,
-			incr) != incr)
+		memset(name, 0, sizeof(*name) * FAT_MAX_NAME);
+		ptr = name;
+		for (i = 0; i < _countof(entries[0].name); i++)
 		{
-			wprintf(L"FatReadFile: disk read failed at %u\n",
-				(unsigned long) cluster_pos);
-			file->cached_pos = file->file.pos;
-			file->cached_cluster = cluster;
-			return EHARDWARE;
-		}
-
-		*length += incr;
-		file->file.pos += incr;
-		
-		this_cluster += incr;
-		if (this_cluster >= root->bytes_per_cluster)
-		{
-			if (isRoot)
-				cluster++;
-			else
-				/*cluster = FatGetNextCluster(root, cluster);*/
-				cluster = FatGetCluster(root, file, file->file.pos);
+			if (entries[0].name[i] == ' ')
+				break;
 			
-			this_cluster -= root->bytes_per_cluster;
-			TRACE1("next cluster = %x\n", cluster);
+			*ptr++ = tolower(entries[0].name[i]);
 		}
 
-		if (IS_EOC_CLUSTER(cluster))
-			break;
-	}
+		if (entries[0].extension[0] != ' ')
+		{
+			*ptr++ = '.';
 
-	file->cached_pos = file->file.pos;
-	file->cached_cluster = cluster;
-	return 0;
+			for (i = 0; i < _countof(entries[0].extension); i++)
+			{
+				if (entries[0].extension[i] == ' ')
+				{
+					*ptr = '\0';
+					break;
+				}
+
+				*ptr++ = tolower(entries[0].extension[i]);
+			}
+		}
+
+		*ptr = '\0';
+		return 1;
+	}
 }
 
-bool FatReadDir(fat_root_t* root, fat_file_t *dir, wchar_t *name, 
-				size_t name_max, fat_dirent_t* entry)
+bool FatLookupFile(fat_root_t *root, fat_dir_t *dir, 
+				   wchar_t *path, fat_dirent_t *di)
 {
-	union
+	wchar_t *slash, name[FAT_MAX_NAME];
+	unsigned i, count;
+	fat_dirent_t *entries;
+	bool find_dir;
+
+	slash = wcschr(path, '/');
+	if (slash)
 	{
-		fat_dirent_t di;
-		fat_lfnslot_t lfn;
-	} u;
-	wchar_t wtemp[256], *nameptr;
-	char temp[14];
-	size_t length;
-	int i, k, slot;
-	status_t hr;
-	/*bool gotEntry; */
+		*slash = '\0';
+		find_dir = true;
+	}
+	else
+		find_dir = false;
 	
-	/*gotEntry = false; */
-	while (true)
+	i = 0;
+	entries = ((fat_dirent_t*) (dir + 1));
+	while (i < dir->num_entries && entries[i].name[0] != '\0')
 	{
-		/*if (!gotEntry) */
+		if (entries[i].name[0] == 0xe5 ||
+			entries[i].attribs & ATTR_LONG_NAME)
 		{
-			length = sizeof(u);
-			hr = FatRead(root, dir, &u, &length);
-			if (hr != 0)
-			{
-				TRACE0("FatReadDir: end of directory\n");
-				return hr;
-			}
-
-			/*gotEntry = true; */
-		}
-
-		if (u.di.name[0] == 0)
-		{
-			TRACE0("FatReadDir: end of entries\n");
-			return ENOTFOUND;
-		}
-
-		if (u.di.name[0] == 0xe5)
-		{
-			/*gotEntry = false; */
+			i++;
 			continue;
 		}
 
-		name[0] = '\0';
-		if (u.di.attribs != ATTR_LONG_NAME)
-		{
-			memset(temp, 0, sizeof(temp));
+		count = FatAssembleName(entries + i, name);
+		/*TRACE2("%s %s", path, name);*/
 
-			for (i = 0; i < 8; i++)
+		if (_wcsicmp(name, path) == 0)
+		{
+			TRACE2("%s found at %u", name, entries[i].first_cluster);
+
+			if (find_dir)
 			{
-				if (u.di.name[i] == ' ')
+				TRACE0("\n");
+				dir = FatAllocDir(root, entries + i);
+				if (FatLookupFile(root, dir, slash + 1, di))
 				{
-					temp[i] = 0;
-					break;
+					free(dir);
+					return true;
 				}
 				else
-					temp[i] = u.di.name[i];
-			}
-
-			if (u.di.extension[0] != ' ')
-			{
-				strcat(temp, ".");
-
-				k = strlen(temp);
-				for (i = 0; i < 3; i++)
 				{
-					if (u.di.extension[i] == ' ')
-					{
-						temp[i + k] = 0;
-						break;
-					}
-					else
-						temp[i + k] = u.di.extension[i];
+					free(dir);
+					return false;
 				}
 			}
-
-			/* xxx -- need to convert from OEM to UCS */
-			mbstowcs(name, temp, name_max);
-			/*gotEntry = false; */
-		}
-		else
-		{
-			memset(wtemp, 0, sizeof(wtemp));
-			assert((u.lfn.slot & 0x40) == 0x40);
-			
-			while (u.di.attribs == ATTR_LONG_NAME)
+			else
 			{
-				slot = (u.lfn.slot & ~0x40) - 1;
-				/*wprintf(L"slot %d ", slot); */
-				nameptr = wtemp + (slot * 13);
-
-				/*
-				 * Check whether the end of this slot's name is still inside 
-				 *	the buffer
-				 */
-				assert(nameptr + 13 < wtemp + _countof(wtemp));
-
-				for (i = 0; i < _countof(u.lfn.name0_4); i++)
-					*nameptr++ = u.lfn.name0_4[i];
-				
-				for (i = 0; i < _countof(u.lfn.name5_10); i++)
-					*nameptr++ = u.lfn.name5_10[i];
-				
-				for (i = 0; i < _countof(u.lfn.name11_12); i++)
-					*nameptr++ = u.lfn.name11_12[i];
-
-				length = sizeof(u);
-				hr = FatRead(root, dir, &u, &length);
-				if (hr != 0)
-				{
-					TRACE0("FatReadDir: end of directory\n");
-					return hr;
-				}
+				TRACE0(" finished\n");
+				*di = entries[i];
+				return true;
 			}
-
-			/*
-			 * The entry immediately following the LFN slots is the alias 
-			 *	itself, so we need to skip it. u.di contains the alias at 
-			 *	this point.
-			 */
-			
-			if (u.di.name[0] != 0xe5)
-				wcsncpy(name, wtemp, name_max);
-			/*gotEntry = true; */
-			/*wprintf(L"%s\t\t%x\n", name, u.di.first_cluster); */
 		}
 
-		if (name[0])
-		{
-			*entry = u.di;
-			return 0;
-		}
+		i += count;
 	}
+
+	TRACE1("fat: nothing found for %s\n", path);
+	return false;
 }
 
-status_t FatLookupEntry(fat_root_t *root, fat_file_t *dir, 
-						const wchar_t *filename, fat_dirent_t *entry)
+uint32_t FatClusterToOffset(fat_root_t *root, uint32_t cluster)
 {
-	wchar_t buf[MAX_PATH];
-	status_t hr;
-
-	TRACE2("FatLookupEntry: searching for %s in directory at %x\n",
-		filename, dir->entry.first_cluster);
-	dir->file.pos = 0;
-
-	while ((hr = FatReadDir(root, dir, buf, _countof(buf), entry)) == 0)
-		if (_wcsicmp(buf, filename) == 0)
-		{
-			TRACE2("FatLookupEntry: found %s at %x\n", 
-				filename, entry->first_cluster);
-			return 0;
-		}
-	
-	return hr;
+	return root->data_start * root->bpb.bytes_per_sector 
+		+ (cluster - 2) * root->bytes_per_cluster;
 }
 
-handle_t FatAllocFile(fat_root_t *root, const fat_dirent_t *di)
+bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 {
-	handle_t file;
-	fat_file_t *fd;
-	unsigned clusters;
-	uint32_t *ptr, cluster;
-
-	clusters = (di->file_length + root->bytes_per_cluster - 1) & 
-		-root->bytes_per_cluster;
-	file = HndAlloc(NULL, sizeof(fat_file_t) + clusters * sizeof(uint32_t), 
-		'file');
-	fd = HndLock(NULL, file, 'file');
-	if (fd == NULL)
-		return NULL;
-
-	fd->file.fsd = &root->dev;
-	fd->file.pos = 0;
-	fd->is_search = false;
-	fd->entry = *di;
-	fd->cached_pos = 0;
-	fd->cached_cluster = di->first_cluster;
-	
-	cluster = di->first_cluster;
-	for (ptr = (uint32_t*) (fd + 1); clusters > 0; clusters--, ptr++)
-	{
-		*ptr = cluster;
-		cluster = FatGetNextCluster(root, cluster);
-	}
-	
-	assert(IS_EOC_CLUSTER(cluster));
-	HndUnlock(NULL, file, 'file');
-	return file;
-}
-
-#define FsIsWildcard(path)	false
-
-bool FatOpenFile(fat_root_t* root, request_fs_t* req)
-{
-	wchar_t *ch, component[MAX_PATH];
-	const wchar_t* path;
-	fat_file_t dir;
-	fat_dirent_t entry;
-
-	memset(&entry, 0, sizeof(entry));
-	entry.attribs = ATTR_DIRECTORY;
-	entry.first_cluster = 0;
-	entry.file_length = 
-		root->boot_sector.num_root_entries * sizeof(fat_dirent_t);
-
-	path = req->params.fs_open.name + 1;
-	dir.entry = entry;
-	dir.cached_cluster = dir.entry.first_cluster;
-	dir.file.pos = dir.cached_pos = 0;
-	
-	while ((ch = wcschr(path, '/')))
-	{
-		wcsncpy(component, path, ch - path);
-		path += wcslen(component) + 1;
-		
-		req->header.result = FatLookupEntry(root, &dir, component, &entry);
-		if (req->header.result != 0)
-			return false;
-		
-		dir.file.pos = dir.cached_pos = 0;
-		dir.entry = entry;
-		dir.cached_cluster = dir.entry.first_cluster;
-	}
-
-	/*
-	 * At this point, entry and cluster refer to the directory entry and 
-	 *	cluster for the next-to-last component of the file spec respectively.
-	 */
-
-#if 0
-	if (FsIsWildcard(path))
-	{
-		fat_search_t *search;
-
-		if ((entry.attribs & ATTR_DIRECTORY) == 0)
-		{
-			req->header.result = EINVALID;
-			return false;
-		}
-
-		req->params.fs_open.file = HndAlloc(NULL, sizeof(fat_search_t), 'file');
-		search = HndLock(NULL, req->params.fs_open.file, 'file');
-		search->file.fsd = &root->dev;
-		search->file.pos = 0;
-		search->is_search = true;
-		search->spec = _wcsdup(path);
-
-		/* fd is the file descriptor for the directory being searched */
-		search->dir = malloc(sizeof(fat_file_t));
-		fd->file.fsd = &root->dev;
-		fd->file.pos = 0;
-		fd->is_search = false;
-		fd->entry = entry;
-		fd->cached_pos = 0;
-		fd->cached_cluster = entry.first_cluster;
-
-		HndUnlock(NULL, req->params.fs_open.file, 'file');
-		TRACE2("FatOpenFile: opened search object %s for dir at %x\n",
-			search->spec, fd->entry.first_cluster);
-	}
-	else
-#endif
-	{
-		req->header.result = FatLookupEntry(root, &dir, path, &entry);
-		if (req->header.result != 0)
-			return false;
-		
-		/*req->params.fs_open.file = HndAlloc(NULL, sizeof(fat_file_t), 'file');
-		fd = HndLock(NULL, req->params.fs_open.file, 'file');
-		fd->file.fsd = &root->dev;
-		fd->file.pos = 0;
-		fd->is_search = false;
-		fd->entry = entry;
-		fd->cached_pos = 0;
-		fd->cached_cluster = entry.first_cluster;*/
-		req->params.fs_open.file = FatAllocFile(root, &entry);
-
-		TRACE2("FatOpenFile: opened file %s at %x\n", 
-			path, entry.first_cluster);
-		/*HndUnlock(NULL, req->params.fs_open.file, 'file');*/
-	}
-
-	return true;
-}
-
-bool FatReadFile(fat_root_t* root, fat_file_t *file, request_fs_t* req)
-{
-	req->header.result = FatRead(root, file, 
-		(void*) req->params.fs_read.buffer, 
-		&req->params.fs_read.length);
-	return req->header.result == 0;
-}
-
-bool FatReadSearch(fat_root_t* root, fat_search_t *search, request_fs_t* req)
-{
-	dir_entry_t *entry;
-	fat_dirent_t dirent;
-	wchar_t name[MAX_PATH];
-	status_t hr;
-	size_t user_length;
-
-	TRACE1("FatReadSearch(%s)\n", search->spec);
-	
-	if (req->params.fs_read.length % sizeof(*entry) != 0)
-	{
-		req->header.result = EBUFFER;
-		return false;
-	}
-
-	user_length = req->params.fs_read.length;
-	req->params.fs_read.length = 0;
-	entry = (dir_entry_t*) req->params.fs_read.buffer;
-
-	while (req->params.fs_read.length < user_length)
-	{
-		hr = FatReadDir(root, search->dir, name, _countof(name), &dirent);
-		if (hr != 0)
-		{
-			req->header.result = hr;
-			return false;
-		}
-		
-		TRACE1("%s ", name);
-		if (_wcsmatch(search->spec, name) == 0)
-		{
-			wcscpy(entry->name, name);
-			entry->attribs = dirent.attribs;
-			entry->length = dirent.file_length;
-
-			TRACE0("ok\n");
-			entry++;
-			req->params.fs_read.length += sizeof(*entry);
-		}
-	}
-
-	TRACE0("finished\n");
-	return true;
-}
-
-bool FatRequest(device_t* dev, request_t* req)
-{
-	request_fs_t *req_fs = (request_fs_t*) req;
-	fat_root_t *root = (fat_root_t*) dev;
 	fat_file_t *file;
-	fat_search_t *search;
+	unsigned cluster_index, user_length, bytes, mod;
+	uint32_t *ptr;
+	uint8_t *buf;
 	bool ret;
-		
+	
+	file = HndLock(NULL, req_fs->params.fs_read.file, 'file');
+	if (file == NULL)
+		return false;
+
+	cluster_index = file->file.pos >> root->cluster_shift;
+	if (cluster_index >= file->num_clusters)
+		return false;
+
+	/* xxx - change this to 64-bit modulo */
+	mod = (uint32_t) file->file.pos % root->bytes_per_cluster;
+
+	ptr = (uint32_t*) (file + 1);
+	user_length = req_fs->params.fs_read.length;
+	req_fs->params.fs_read.length = 0;
+	ret = true;
+	buf = (uint8_t*) req_fs->params.fs_read.buffer;
+
+	wprintf(L"fat: reading %u bytes\n", user_length);
+	while (req_fs->params.fs_read.length < user_length)
+	{
+		if (file->file.pos >= file->di.file_length)
+		{
+			/* attempt to read past end of file */
+			wprintf(L"fat: attempt to read past end of file\n");
+			ret = false;
+			break;
+		}
+
+		bytes = user_length - req_fs->params.fs_read.length;
+		if (bytes > root->bytes_per_cluster)
+			bytes = root->bytes_per_cluster;
+		wprintf(L"fat: pos = %u cluster = %u = %x bytes = %u\n", 
+			(uint32_t) file->file.pos, cluster_index, 
+			ptr[cluster_index], bytes);
+
+		bytes = DevRead(root->device, 
+			FatClusterToOffset(root, ptr[cluster_index]) + mod,
+			buf,
+			bytes);
+		if (bytes == 0)
+		{
+			/* device failure */
+			wprintf(L"fat: device failure\n");
+			ret = false;
+			break;
+		}
+
+		mod += bytes;
+		if (mod >= root->bytes_per_cluster)
+		{
+			mod -= root->bytes_per_cluster;
+
+			cluster_index++;
+			if (cluster_index >= file->num_clusters)
+			{
+				/* last cluster reached: invalid chain? */
+				wprintf(L"fat: last cluster reached\n");
+				ret = false;
+				break;
+			}
+		}
+
+		file->file.pos += bytes;
+		buf += bytes;
+		req_fs->params.fs_read.length += bytes;
+	}
+
+	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+	return ret;
+}
+
+bool FatRequest(device_t *dev, request_t *req)
+{
+	request_fs_t *req_fs;
+	wchar_t *path;
+	fat_root_t *root;
+	fat_dirent_t di;
+	
+	req_fs = (request_fs_t*) req;
+	root = (fat_root_t*) dev;
 	switch (req->code)
 	{
-	case FS_CLOSE:
-		file = HndLock(NULL, req_fs->params.fs_close.file, 'file');
-		if (file == NULL)
-		{
-			req->result = EHANDLE;
-			return true;
-		}
-
-		if (file->is_search)
-		{
-			search = (fat_search_t*) file;
-			free(search->spec);
-			free(search->dir);
-		}
-
-		HndFree(NULL, req_fs->params.fs_close.file, 'file');
-		return true;
-
 	case FS_OPEN:
-		return FatOpenFile(root, (request_fs_t*) req);
+		path = _wcsdup(req_fs->params.fs_open.name);
+		if (!FatLookupFile(root, root->root, path + 1, &di))
+		{
+			req->code = ENOTFOUND;
+			return false;
+		}
+
+		TRACE2("fat: opening %s at cluster %u\n", path, di.first_cluster);
+		free(path);
+
+		req_fs->params.fs_open.file = FatAllocFile(root, &di, 
+			req_fs->params.fs_open.flags);
+		return req_fs->params.fs_open.file == NULL ? false : true;
 
 	case FS_READ:
-		file = HndLock(NULL, req_fs->params.fs_read.file, 'file');
-		if (file == NULL)
-		{
-			req->result = EHANDLE;
-			return false;
-		}
-
-		if (file->is_search)
-			ret = FatReadSearch(root, (fat_search_t*) file, 
-				(request_fs_t*) req);
-		else
-			ret = FatReadFile(root, file, (request_fs_t*) req);
-
-		HndUnlock(NULL, req_fs->params.fs_close.file, 'file');
-		return ret;
-
-	case FS_GETLENGTH:
-		file = HndLock(NULL, req_fs->params.fs_getlength.file, 'file');
-
-		if (file == NULL)
-		{
-			req->result = EHANDLE;
-			return false;
-		}
-
-		if (file->is_search)
-			/* xxx - return a proper length here? */
-			req_fs->params.fs_getlength.length = 0;
-		else
-			req_fs->params.fs_getlength.length = file->entry.file_length;
-
-		HndUnlock(NULL, req_fs->params.fs_getlength.file, 'file');
-		return true;
+		return FatRead(root, req_fs);
 	}
 
 	req->code = ENOTIMPL;
 	return false;
 }
 
-device_t* FatMountFs(driver_t* driver, const wchar_t* path, device_t* dev)
+device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 {
 	fat_root_t *root;
-	size_t length;
+	fat_dirent_t root_entry;
+	unsigned length, temp;
 	uint32_t RootDirSectors, FatSectors;
-	block_size_t size;
-	request_dev_t req;
-	unsigned temp;
-
-	TRACE0("FatMountFs:\n");
 
 	root = malloc(sizeof(fat_root_t));
-	memset(root, 0, sizeof(fat_root_t));
-	root->dev.driver = driver;
-	root->dev.request = FatRequest;
-	root->disk = dev;
+	if (root == NULL)
+		return NULL;
 
-	size.total_blocks = 0;
-	req.header.code = BLK_GETSIZE;
-	req.params.buffered.buffer = (addr_t) &size;
-	req.params.buffered.length = sizeof(size);
-	if (!DevRequestSync(root->disk, &req.header) ||
-		size.total_blocks > 20740)
-	{
-		TRACE1("\tTotal blocks = %d, using FAT16\n", size.total_blocks);
-		root->fat_bits = 16;
-	}
-	else
-	{
-		TRACE1("\tTotal blocks = %d, using FAT12\n", size.total_blocks);
-		root->fat_bits = 12;
-	}
-	
-	TRACE1("\tReading boot sector: disk = %p\n", root->disk);
-	if (DevRead(root->disk, 0, &root->boot_sector, sizeof(fat_bootsector_t)) 
-			!= sizeof(fat_bootsector_t))
+	memset(root, 0, sizeof(fat_root_t));
+	root->dev.driver = drv;
+	root->dev.request = FatRequest;
+	root->device = dev;
+
+	if (DevRead(dev, 0, &root->bpb, sizeof(root->bpb)) < sizeof(root->bpb))
 	{
 		free(root);
 		return NULL;
 	}
 
-	assert(root->boot_sector.sectors_per_fat != 0);
-	assert(root->boot_sector.bytes_per_sector != 0);
-
-	root->bytes_per_cluster = root->boot_sector.bytes_per_sector * 
-		root->boot_sector.sectors_per_cluster;
+	root->fat_bits = 12;
+	root->bytes_per_cluster = 
+		root->bpb.bytes_per_sector * root->bpb.sectors_per_cluster;
 	temp = root->bytes_per_cluster;
 	for (root->cluster_shift = 0; (temp & 1) == 0; root->cluster_shift++)
 		temp >>= 1;
 	
 	TRACE1("\tAllocating %u bytes for FAT\n",
-		root->boot_sector.sectors_per_fat * 
-		root->boot_sector.bytes_per_sector);
-	root->fat = malloc(root->boot_sector.sectors_per_fat * 
-		root->boot_sector.bytes_per_sector);
+		root->bpb.sectors_per_fat * 
+		root->bpb.bytes_per_sector);
+	root->fat = malloc(root->bpb.sectors_per_fat * root->bpb.bytes_per_sector);
 	assert(root->fat != NULL);
 
 	TRACE2("\tFAT starts at sector %d = 0x%x\n",
-		root->boot_sector.reserved_sectors,
-		root->boot_sector.reserved_sectors * 
-			root->boot_sector.bytes_per_sector);
+		root->bpb.reserved_sectors,
+		root->bpb.reserved_sectors * 
+			root->bpb.bytes_per_sector);
 
-	length = root->boot_sector.sectors_per_fat * 
-		root->boot_sector.bytes_per_sector;
+	length = root->bpb.sectors_per_fat * 
+		root->bpb.bytes_per_sector;
 	TRACE0("\tReading FAT\n");
-	if (DevRead(root->disk, 
-		root->boot_sector.reserved_sectors * 
-			root->boot_sector.bytes_per_sector,
+	if (DevRead(root->device, 
+		root->bpb.reserved_sectors * 
+			root->bpb.bytes_per_sector,
 		root->fat,
 		length) != length)
 	{
@@ -732,26 +456,33 @@ device_t* FatMountFs(driver_t* driver, const wchar_t* path, device_t* dev)
 		return NULL;
 	}
 
-	RootDirSectors = (root->boot_sector.num_root_entries * 32) /
-		root->boot_sector.bytes_per_sector;
-	FatSectors = root->boot_sector.num_fats * root->boot_sector.sectors_per_fat;
-	root->data_start = root->boot_sector.reserved_sectors + 
+	RootDirSectors = (root->bpb.num_root_entries * 32) /
+		root->bpb.bytes_per_sector;
+	FatSectors = root->bpb.num_fats * root->bpb.sectors_per_fat;
+	root->data_start = root->bpb.reserved_sectors + 
 		FatSectors + 
 		RootDirSectors;
 
-	root->root_start = root->boot_sector.reserved_sectors + 
-		root->boot_sector.hidden_sectors + 
-		root->boot_sector.sectors_per_fat * 
-			root->boot_sector.num_fats;
+	root->root_start = root->bpb.reserved_sectors + 
+		root->bpb.hidden_sectors + 
+		root->bpb.sectors_per_fat * root->bpb.num_fats;
 
+	memset(&root_entry, 0, sizeof(root_entry));
+	root_entry.file_length = root->bpb.num_root_entries * sizeof(fat_dirent_t);
+	root_entry.first_cluster = FAT_CLUSTER_ROOT;
+	root->root = FatAllocDir(root, &root_entry);
+	if (root->root == NULL)
+	{
+		free(root);
+		return NULL;
+	}
+	
 	return &root->dev;
 }
 
-bool DrvInit(driver_t* drv)
+bool DrvInit(driver_t *drv)
 {
 	drv->add_device = NULL;
 	drv->mount_fs = FatMountFs;
 	return true;
 }
-
-/*@} */

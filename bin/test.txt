@@ -1,1 +1,1 @@
-This file is test.txt and comes from the ramdisk.
+This file is test.txt and comes from the floppy disk.

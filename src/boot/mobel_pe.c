@@ -1,4 +1,4 @@
-/* $Id: mobel_pe.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: mobel_pe.c,v 1.4 2002/01/05 00:54:09 pavlovskii Exp $ */
 
 #include <dos.h>
 #include <string.h>
@@ -224,6 +224,7 @@ void process_line(const char *key, char *value)
 	file_t file;
 	int bytes;
 	unsigned blocks, i;
+	long unsigned read;
 	ramfile_t *f;
 	char *slash, *ch;
 	
@@ -252,8 +253,19 @@ void process_line(const char *key, char *value)
 		for (i = 0; i < blocks; i++)
 			writechar('\b');
 
-		while ((bytes = my_read(&file, buf, sizeof(buf))) > 0)
+		read = 0;
+		while (read < file.file_size)
 		{
+			bytes = my_read(&file, buf, sizeof(buf));
+			if (bytes == ERR_EOF)
+				break;
+			else if (bytes < 0)
+			{
+				cprintf("%s: fails with error %d\n", bytes);
+				f->name[0] = '\0';
+				break;
+			}
+			
 			copy_to_extended(load_addr, buf, bytes);
 			load_addr += bytes;
 			
@@ -263,9 +275,12 @@ void process_line(const char *key, char *value)
 				twirlptr = twirl;*/
 			//cprintf("\r%3u%%", (unsigned) ((length * 100) / file.file_size));
 			writechar('.');
+			read += bytes;
 		}
 
 		cputs("\n");
+		if (read < file.file_size)
+			cprintf("%u %lu/%lu\n", bytes, read, file.file_size);
 		load_addr = (load_addr + PAGE_SIZE) & -PAGE_SIZE;
 		ramdisk.s.header.num_files++;
 		my_close(&file);
@@ -278,6 +293,7 @@ int main(void)
 {
 	file_t file;
 	char ch, str[128], *dest, *equals;
+	long end;
 	
 	old_ss = _SS;
 	_SS = _DS;
@@ -286,7 +302,7 @@ int main(void)
 		cprintf("Unable to set flat real mode\n");
 
 	_ES = 0;
-	__emit__(0x26, 0x67, 0xC6, 0x05, 0x00, 0x80, 0x0B, 0x00, 0x41);
+	/*__emit__(0x26, 0x67, 0xC6, 0x05, 0x00, 0x80, 0x0B, 0x00, 0x41);*/
 	
 	ramdisk.s.header.signature = RAMDISK_SIGNATURE_1;
 	ramdisk.s.header.num_files = 0;
@@ -343,7 +359,20 @@ int main(void)
 	kernel_addr = load_addr;
 	process_line("load", str);
 
-	cprintf("%d files\n", ramdisk.s.header.num_files);
+	//cprintf("%d files\n", ramdisk.s.header.num_files);
+	cputs("Press SHIFT for startup options...\r");
+	end = biostime(0, 0) + 91;
+	while (biostime(0, 0) < end)
+	{
+		/*if (bioskey(2) & 3)
+		{
+			cputs("                                  \r");
+			for (;;)
+				;
+			break;
+		}*/
+	}
+
 	copy_to_extended(LOAD_ADDR, ramdisk.raw, sizeof(ramdisk.raw));
 
 	memory_top = _ext_mem_size + _conv_mem_size;

@@ -24,9 +24,6 @@ DEF=		$(EXP:.exp=.def)
 
 all:	$(TARGET) $(IMP)
 
-.base:	$(BIN)/coffbase.txt Makefile
-	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
-
 $(TARGET):	$(OBJS) $(EXP) $(LIBS) .base
 	ld -o $(TARGET) $(LDFLAGS) \
 			$(OBJS) \

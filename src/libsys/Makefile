@@ -1,7 +1,7 @@
 EXP=    libsys.exp
 DEF=    libsys.def
 OBJS=	syscall.o port.o misc.o
-BASE=	0x6000000
+BASE=	libsys
 
 include ../make.actions
 
@@ -19,9 +19,9 @@ $(IMP):	$(DEF)
 $(TARGET_S):	$(OBJS)
 	ar rcs $@ $(OBJS)
 
-$(TARGET_D):	 dllmain.o $(TARGET_S) $(EXP) $(LIBS)
+$(TARGET_D):	 dllmain.o $(TARGET_S) $(EXP) $(LIBS) .base
 	$(LD) --dll -o $@ --entry _DllMainCRTStartup \
-		--image-base $(BASE) \
+		--image-base `cat .base` \
 		dllmain.o $(EXP) $(TARGET_S) $(LIBS)
 
 include $(OBJS:.o=.d)

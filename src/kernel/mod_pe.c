@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.3 2002/01/05 00:54:11 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -34,7 +34,6 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 	size_t size;
 	
 	FsFullPath(file, full_file);
-	/*wprintf(L"PeLoad: loading %s\n", full_file);*/
 	FOREACH (mod, proc->mod)
 		if (_wcsicmp(mod->name, full_file) == 0)
 		{
@@ -72,7 +71,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 	}
 
 	mod = malloc(sizeof(module_t));
-	mod->name = _wcsdup(file);
+	mod->name = _wcsdup(full_file);
 
 	if (base == NULL)
 		base = pe.OptionalHeader.ImageBase;
@@ -105,71 +104,71 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 	return mod;
 }
 
-addr_t PeGetExport(module_t* mod, const char* name)
+addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
 {
 	IMAGE_PE_HEADERS* header;
 	IMAGE_DATA_DIRECTORY* directories;
 	IMAGE_EXPORT_DIRECTORY* exp;
+	unsigned i;
+	uint32_t *name_table, *function_table;
 	uint16_t *ordinal_table;
-    uint32_t *function_table;
-    uint32_t *name_table;
-    size_t i;
-    unsigned unused_slots = 0;  /* functions with an RVA of 0 seem to be unused */
+	const char *export_name;
 	
 	header = PeGetHeaders(mod->base);
 	directories = header->OptionalHeader.DataDirectory;
 
 	if (directories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == 0)
+	{
+		wprintf(L"%s: no export directory looking for %S\n", 
+			mod->name, name);
 		return NULL;
+	}
 
 	exp = (IMAGE_EXPORT_DIRECTORY*) 
 		(mod->base + directories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
 
+	if (exp->AddressOfNames == 0)
+	{
+		wprintf(L"%s: DLL has no exported name table (%S)\n",
+			mod->name, name);
+		return NULL;
+	}
+
+	name_table = (uint32_t*) (mod->base + (addr_t) exp->AddressOfNames);
 	ordinal_table = (uint16_t*) (mod->base + (addr_t) exp->AddressOfNameOrdinals);
 	function_table = (uint32_t*) (mod->base + (addr_t) exp->AddressOfFunctions);
-	name_table = exp->AddressOfNames ? (uint32_t*) (mod->base + (addr_t) exp->AddressOfNames) : 0;
 
-	for (i = 0; i < exp->NumberOfFunctions; i++)
+	if (hint != (uint16_t) -1)
 	{
-		uint32_t addr = function_table[i];
-		if (!addr)        /* skip unused slots */
-		{
-			++unused_slots;
-			continue;
-		}
-		
-		/* if names provided, list all names of this
-		* export ordinal
-		*/
-		if (name_table)
-		{
-			size_t n;
-			int found = 0;
-			for (n = 0; n < exp->NumberOfNames; n++)
-			{
-				if (ordinal_table[n] == i)
-				{
-					if (_stricmp((const char*) (mod->base + name_table[n]), name) == 0)
-					{
-						/*wprintf(L"%S => %S\n", name, (const char*) (mod->base + name_table[n]));*/
-						return addr + mod->base;
-					}
+		export_name = (const char*) (mod->base + name_table[hint]);
+		if (name_table[hint] == 0 ||
+			_stricmp(export_name, name) == 0)
+			return mod->base + function_table[ordinal_table[hint]];
 
-					++found;
-				}
-			}
-		}
-		
-		/* entry point */
-		/*if (addr >= section_base_virtual && addr < section_base_virtual + section_length)
-			wprintf(L"%S", adr(addr));
-		else*/
-			/* normal export */
+		wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
+			mod->name, hint, name, export_name);
 	}
-	
-    if (unused_slots)
-        wprintf(L"\t-- there are %u unused slots --\n", unused_slots);
-    
+
+	for (i = 0; i < exp->NumberOfNames; i++)
+	{
+		if (name_table[i] == 0)
+			continue;
+
+		export_name = (const char*) (mod->base + name_table[i]);
+		if (_stricmp(export_name, name) == 0)
+		{
+			if (ordinal_table[i] > exp->NumberOfFunctions)
+			{
+				wprintf(L"%s: invalid ordinal %u (%S)\n",
+					mod->name, ordinal_table[i], name);
+				return NULL;
+			}
+
+			return mod->base + function_table[ordinal_table[i]];
+		}
+	}
+
+	wprintf(L"%s: export not found (%S)\n", mod->name, name);
 	return NULL;
 }
 
@@ -177,15 +176,14 @@ static bool PeDoImports(process_t* proc,
 						module_t* mod, 
 						const IMAGE_DATA_DIRECTORY *directories)
 {
-	IMAGE_IMPORT_DESCRIPTOR * imp;
-	IMAGE_THUNK_DATA *import_entry;
-	IMAGE_THUNK_DATA *mapped_entry;
-	const char* name;
-	enum { bound_none, bound_old, bound_new } bound;
-	wchar_t temp[256];
-	module_t* newmod;
-	uint32_t args[3];
-	size_t len;
+	IMAGE_IMPORT_DESCRIPTOR *imp;
+	IMAGE_THUNK_DATA *thunk, *thunk2;
+	IMAGE_IMPORT_BY_NAME *ibn;
+
+	const char *name;
+	module_t *other;
+	wchar_t name_wide[256];
+	size_t count;
 	
 	if (directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress == 0)
 		return true;
@@ -193,99 +191,37 @@ static bool PeDoImports(process_t* proc,
 	imp = (IMAGE_IMPORT_DESCRIPTOR*) (mod->base + 
 		directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
 
-	mod->imported = true;
 	for (; imp->Name; imp++)
 	{
-		if (imp->Name >= mod->length)
-		{
-			/*wprintf(L"%s: name %d is invalid (%x)\n",
-				mod->name, imp - (IMAGE_IMPORT_DESCRIPTOR*) (mod->base + 
-					directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress),
-				imp->Name); */
-			continue;
-		}
-
 		name = (const char*) (mod->base + (addr_t) imp->Name);
 		
-		if (imp->TimeDateStamp == ~0UL)
-			bound = bound_new;
-		else if (imp->TimeDateStamp)
-			bound = bound_old;
+		count = mbstowcs(name_wide, name, _countof(name_wide));
+		if (count == -1)
+			continue;
 		else
-			bound = bound_none;
-		
-		if (imp->u.OriginalFirstThunk)
+			name_wide[count] = '\0';
+
+		if (imp->u.OriginalFirstThunk == 0)
+			continue;
+
+		other = PeLoad(proc, name_wide, 0);
+		if (other == NULL)
 		{
-			import_entry = (IMAGE_THUNK_DATA*) (mod->base + (addr_t) imp->u.OriginalFirstThunk);
-			mapped_entry = (IMAGE_THUNK_DATA*) (mod->base + (addr_t) imp->FirstThunk);
+			wprintf(L"%s: failed to load %s\n", mod->name, name_wide);
+			return false;
 		}
-		else
+
+		thunk = (IMAGE_THUNK_DATA*) (mod->base + (addr_t) imp->u.OriginalFirstThunk);
+		thunk2 = (IMAGE_THUNK_DATA*) (mod->base + (addr_t) imp->FirstThunk);
+		for (; thunk->u1.AddressOfData; thunk++, thunk2++)
 		{
-			wprintf(L"\t(hint table missing, probably Borland bug)");
-			import_entry = (IMAGE_THUNK_DATA*) (mod->base + (addr_t) imp->FirstThunk);
-			mapped_entry = 0;
-			bound = bound_none;
-		}
-		
-		/*wprintf(L"base = %x, name = %x\n", mod->base, imp->Name);*/
-		len = mbstowcs(temp, name, _countof(temp));
-		temp[len] = '\0';
-		/*wprintf(L"Loading library %s...", temp);*/
-		newmod = PeLoad(proc, temp, 0);
-
-		/*if (newmod)
-			wprintf(L"done\n");
-		else */if (!newmod)
-		{
-			wprintf(L"Failed to load %s\n", temp);
-			mod->imported = false;
-			/* exception(current, NULL, EXCEPTION_MISSING_DLL, (uint32_t) name); */
-			return true;
-		}
-		
-		/*args[0] = newmod->base;
-		args[1] = 0;
-		args[2] = 0;
-		thrCall(current, (void*) newmod->entry, args, sizeof(args));*/
-
-		{
-			int count, nextforwarder = bound==bound_old ? imp->ForwarderChain : -1;
-			for (count = 0; import_entry->u1.Ordinal; count++, import_entry++, 
-				/*bound ?*/ mapped_entry++/* : 0*/) /* xxx - what is this? */
-			{
-				if (IMAGE_SNAP_BY_ORDINAL(import_entry->u1.Ordinal))
-					wprintf(L"\t%6lu %20S", IMAGE_ORDINAL(import_entry->u1.Ordinal),"<ordinal>");
-				else
-				{
-					IMAGE_IMPORT_BY_NAME *name_import = (IMAGE_IMPORT_BY_NAME*) 
-						(mod->base + (addr_t) import_entry->u1.AddressOfData);
-					
-					mapped_entry->u1.Function = 
-						(uint32_t*) PeGetExport(newmod, name_import->Name);
-
-					if (mapped_entry->u1.Function == NULL)
-					{
-						wprintf(L"Failed to access %S from %s\n", name_import->Name, temp);
-						mod->imported = false;
-						/* exception(current, NULL, EXCEPTION_MISSING_IMPORT, (uint32_t) name_import->Name); */
-						return false;
-					}
-				}
-
-				if (bound)
-				{
-					if (count != nextforwarder)
-						wprintf(L"\t0x%12lx\n", (unsigned long)mapped_entry->u1.Function);
-					else
-					{
-						wprintf(L"\t%12S\n", L"    --> forward");
-						nextforwarder = (int)mapped_entry->u1.ForwarderString;
-					}
-				}
-			}
+			ibn = (IMAGE_IMPORT_BY_NAME*) (mod->base + (addr_t) thunk->u1.AddressOfData);
+			thunk2->u1.Function = (uint32_t*) PeGetExport(other, ibn->Name, ibn->Hint);
+			if (thunk2->u1.Function == NULL)
+				return false;
 		}
 	}
-
+	
 	return true;
 }
 
@@ -367,7 +303,8 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
 		return false;
 	}
 
-	/*wprintf(L"%s: 0x%x bytes at 0x%x\n", mod->name, size, scn_base);*/
+	/*wprintf(L"%s: 0x%x bytes (= 0x%x bytes) at 0x%x\t", 
+		mod->name, size, raw_size, scn_base);*/
 	if (!VmmAlloc(size / PAGE_SIZE, (addr_t) scn_base, priv))
 	{
 		wprintf(L"%s: failed to allocate section\n", mod->name);

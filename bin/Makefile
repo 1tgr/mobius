@@ -1,4 +1,4 @@
-FILES1=	test.exe libsys.dll \
+FILES1=	mobel_pe.com test.exe test.txt libsys.dll \
 	kernel.exe kernel.cfg ata.drv 
 FILES2=	fat.drv tty.drv keyboard.drv fdc.drv
 

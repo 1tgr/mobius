@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.5 2002/01/03 15:44:08 pavlovskii Exp $ */
+/* $Id: test.c,v 1.6 2002/01/05 00:54:11 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,9 +15,10 @@ int main(void)
 	/*uint32_t key;
 	process_info_t *info;*/
 	handle_t file;
-	size_t bytes;
-	wchar_t name[] = SYS_DEVICES L"/keyboard";
-	uint32_t key;
+	wchar_t name[] = L"/hd/test.txt";
+	char key[4];
+	wchar_t str[5];
+	size_t len;
 	
 	wprintf(L"Hello from tty0!\n");
 	wprintf(L"Here's an escape sequence: \x1b[31mThis should be red!\x1b[37m\n");
@@ -33,13 +34,13 @@ int main(void)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		do
+		while (FsRead(file, key, sizeof(key)))
 		{
-			bytes = FsRead(file, &key, sizeof(key));
 			/*wprintf(L"Read %u bytes; the device says: %02x %02x %02x %02x\n", 
 				bytes, buf[0], buf[1], buf[2], buf[3]);*/
-			wprintf(L"%c", (wchar_t) key);
-		} while (bytes > 0);
+			len = mbstowcs(str, key, _countof(key));
+			wprintf(L"%.*s", len, str);
+		}
 
 		FsClose(file);
 	}

@@ -1,4 +1,4 @@
-/* $Id: fat.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fat.c,v 1.3 2002/01/05 00:54:09 pavlovskii Exp $ */
 
 /*///////////////////////////////////////////////////////////////////////////
 	FAT12/16 FILESYSTEM
@@ -303,7 +303,12 @@ static int fat_read_sector(file_t *file, sector_t rel_sector,
 			for(;;)
 			{
 				if(abs_cluster > fat->max_cluster)
+				{
+					cprintf("fat_read_sector: abs_cluster = %x, max_cluster = %x, rel_cluster = %x\n",
+						abs_cluster, fat->max_cluster, rel_cluster);
 					return ERR_EOF;
+				}
+
 				err = fat_walk(file, &abs_sector, &abs_cluster);
 				if(err != 0)
 					return err;

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.4 2002/01/03 15:44:07 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.5 2002/01/05 00:54:09 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -115,7 +115,7 @@ bool	DevAddDevice(device_t *dev, const wchar_t *name,
 asyncio_t*	DevQueueRequest(device_t *dev, request_t *req, size_t size,
 							void *user_buffer,
 							size_t user_buffer_length);
-void	DevFinishIo(device_t *dev, asyncio_t *io);
+void	DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
 uint8_t	DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
 
 #ifdef __cplusplus

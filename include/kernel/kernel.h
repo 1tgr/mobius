@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.3 2002/01/05 00:54:09 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -41,7 +41,9 @@ void	SemRelease(semaphore_t *sem);
 void	MtxAcquire(semaphore_t *sem);
 void	MtxRelease(semaphore_t *sem);
 
-#define CASSERT(exp)	extern char __ERR##__LINE__[(exp)!=0]
+#define ___CASSERT(a, b)	a##b
+#define __CASSERT(a, b)	___CASSERT(a, b)
+#define CASSERT(exp)	extern char __CASSERT(__ERR, __LINE__)[(exp)!=0]
 #define PHYSICAL(addr)	((void*) ((char*) PHYSMEM + (addr_t) (addr)))
 
 #define LIST_ADD(list, item) \

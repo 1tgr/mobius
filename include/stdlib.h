@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.3 2002/01/03 15:44:07 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.4 2002/01/05 00:54:09 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -32,6 +32,10 @@ typedef struct {
 } ldiv_t;
 
 #include <sys/types.h>
+
+#ifndef _countof
+#define _countof(a)	(sizeof(a) / sizeof((a)[0]))
+#endif
 
 void	abort(void) __attribute__((noreturn));
 int 	abs(int _i);

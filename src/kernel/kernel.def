@@ -1,4 +1,4 @@
-NAME	kernel
+NAME	kernel.exe
 EXPORTS
 	ArchAttachToThread
 	ArchDbgBreak
@@ -128,7 +128,6 @@ EXPORTS
 	_HndAlloc
 	_HndInit
 	__calloc
-	__cfree
 	__dj_assert
 	__dj_movedata
 	__dj_movedata_rev
@@ -164,10 +163,6 @@ EXPORTS
 	emalloc
 	end
 	erealloc
-	exception_8
-	exception_a
-	exception_b
-	exception_c
 	exception_d
 	exception_e
 	exit
@@ -241,10 +236,13 @@ EXPORTS
 	sprintf
 	strcat
 	strcpy
+	strlen
 	strncmp
 	strncpy
 	strsave
 	swprintf
+	tolower
+	toupper
 	vsprintf
 	vswprintf
 	vwprintf

@@ -65,19 +65,19 @@ SECTIONS
    * Mobius kernel: The kernel doesn't import anything.
    * We save 4096 bytes by omitting these five zeroes.
    */
-  /*.idata BLOCK(__section_alignment__) :
-  {*/
+  .idata BLOCK(__section_alignment__) :
+  {
     /* This cannot currently be handled with grouped sections.
 	See pe.em:sort_sections.  */
-    /*SORT(*)(.idata$2)
-    SORT(*)(.idata$3)*/
+    SORT(*)(.idata$2)
+    SORT(*)(.idata$3)
     /* These zeroes mark the end of the import list.  */
-    /*LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);
+    LONG (0); LONG (0); LONG (0); LONG (0); LONG (0);
     SORT(*)(.idata$4)
     SORT(*)(.idata$5)
     SORT(*)(.idata$6)
     SORT(*)(.idata$7)
-  }*/
+  }
 
   .CRT BLOCK(__section_alignment__) :
   {

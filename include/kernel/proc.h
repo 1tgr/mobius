@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.3 2002/01/05 00:54:09 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -55,7 +55,7 @@ bool		ProcPageFault(process_t *proc, addr_t addr);
 module_t *	PeLoad(process_t* proc, const wchar_t* file, uint32_t base);
 bool		PePageFault(process_t* proc, module_t* mod, addr_t addr);
 void		PeUnload(process_t* proc, module_t* mod);
-addr_t		PeGetExport(module_t* mod, const char* name);
+addr_t		PeGetExport(module_t* mod, const char* name, uint16_t hint);
 
 #ifdef __cplusplus
 }

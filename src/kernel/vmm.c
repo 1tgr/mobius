@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.3 2002/01/05 00:54:11 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -45,9 +45,9 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 	}
 
 	if (collide)
-		wprintf(L"vmmAlloc: moved block to %08x\n", start);
+		wprintf(L"VmmMap: moved block to %08x\n", start);
 
-	/*wprintf(L"vmmAlloc: allocating %d page(s) at %x\n", pages, start);*/
+	/*wprintf(L"VmmMap: allocating %d page(s) at %x\n", pages, start);*/
 	area->start = (void*) start;
 	area->owner = proc;
 	area->pages = pages;

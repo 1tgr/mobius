@@ -1,7 +1,7 @@
 EXP=	libc.exp
 DEF=	libc.def
 DEFINES=-D__STRICT_ANSI__
-BASE=	0x6010000
+BASE=	libc
 
 include ../make.actions
 
@@ -59,9 +59,9 @@ $(IMP):	$(DEF)
 $(TARGET_S):	$(OBJS)
 	ar rcs $(TARGET_S) $(OBJS)
 
-$(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS)
+$(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS) .base
 	$(LD) --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
-		--image-base $(BASE) \
+		--image-base `cat .base` \
 		$(EXP) dllmain.o \
 		$(TARGET_S) $(LIBS)
 
