@@ -1,9 +1,11 @@
-/* $Id: ext2.c,v 1.1 2002/05/15 01:08:22 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.2 2002/05/19 12:17:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/cache.h>
+
+#include <kernel/debug.h>
 
 #include <errno.h>
 #include <wchar.h>
@@ -100,6 +102,9 @@ struct inode_t
     uint8_t i_osd2[12];
 };
 
+#define EXT2_INODE_SIZE64(inode)    \
+    (((uint64_t) (inode).i_dir_acl << 32) | (inode).i_size)
+
 CASSERT(sizeof(inode_t) == 128);
 
 #pragma pack(push, 1)
@@ -151,9 +156,6 @@ struct ext2_dir_t
     unsigned copies;
     unsigned ino;
     inode_t inode;
-    wchar_t *name;
-    ext2_dir_t *subdirs;
-    unsigned num_subdirs;
     cache_t *cache;
 };
 
@@ -167,6 +169,12 @@ struct ext2_t
     unsigned num_groups;
     unsigned block_size;
     ext2_dir_t *dir_hash[31];
+
+    struct inode_hash
+    {
+        unsigned ino;
+        inode_t inode;
+    } inode_hash[128];
 };
 
 typedef struct ext2_search_t ext2_search_t;
@@ -184,25 +192,40 @@ struct ext2_file_t
     wchar_t *name;
 };
 
-const wchar_t iso1tou[] = {
-0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x0008, 0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
-0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016, 0x0017, 0x0018, 0x0019, 0x001A, 0x001B, 0x001C, 0x001D, 0x001E, 0x001F,
-0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,
-0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
-0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047, 0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,
-0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059, 0x005A, 0x005B, 0x005C, 0x005D, 0x005E, 0x005F,
-0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,
-0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x007F,
-0x0080, 0x0081, 0x0082, 0x0083, 0x0084, 0x0085, 0x0086, 0x0087, 0x0088, 0x0089, 0x008A, 0x008B, 0x008C, 0x008D, 0x008E, 0x008F,
-0x0090, 0x0091, 0x0092, 0x0093, 0x0094, 0x0095, 0x0096, 0x0097, 0x0098, 0x0099, 0x009A, 0x009B, 0x009C, 0x009D, 0x009E, 0x009F,
-0x00A0, 0x00A1, 0x00A2, 0x00A3, 0x00A4, 0x00A5, 0x00A6, 0x00A7, 0x00A8, 0x00A9, 0x00AA, 0x00AB, 0x00AC, 0x00AD, 0x00AE, 0x00AF,
-0x00B0, 0x00B1, 0x00B2, 0x00B3, 0x00B4, 0x00B5, 0x00B6, 0x00B7, 0x00B8, 0x00B9, 0x00BA, 0x00BB, 0x00BC, 0x00BD, 0x00BE, 0x00BF,
-0x00C0, 0x00C1, 0x00C2, 0x00C3, 0x00C4, 0x00C5, 0x00C6, 0x00C7, 0x00C8, 0x00C9, 0x00CA, 0x00CB, 0x00CC, 0x00CD, 0x00CE, 0x00CF,
-0x00D0, 0x00D1, 0x00D2, 0x00D3, 0x00D4, 0x00D5, 0x00D6, 0x00D7, 0x00D8, 0x00D9, 0x00DA, 0x00DB, 0x00DC, 0x00DD, 0x00DE, 0x00DF,
-0x00E0, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
-0x00F0, 0x00F1, 0x00F2, 0x00F3, 0x00F4, 0x00F5, 0x00F6, 0x00F7, 0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x00FF,
-0xFFFF
+typedef struct ext2_asyncio_t ext2_asyncio_t;
+struct ext2_asyncio_t
+{
+    file_t *file;
+    page_array_t *pages;
+    size_t length;
+    fs_asyncio_t *io;
+
+    bool is_reading;
+    size_t bytes_read;
+    request_dev_t req_dev;
 };
+
+static uint32_t Ext2GetBlockNumber(ext2_t *ext2, uint32_t numbers_block, unsigned index)
+{
+    uint32_t *buf, ret;
+
+    buf = malloc(ext2->block_size);
+    if (buf == NULL)
+        return 0;
+
+    if (IoReadSync(ext2->dev, 
+        numbers_block << (10 + ext2->super_block.s_log_block_size),
+        buf,
+        ext2->block_size) != ext2->block_size)
+    {
+        free(buf);
+        return 0;
+    }
+
+    ret = buf[index];
+    free(buf);
+    return ret;
+}
 
 static uint64_t Ext2CalculateDeviceOffset(ext2_t *ext2, 
                                           uint64_t file_offset, 
@@ -210,19 +233,39 @@ static uint64_t Ext2CalculateDeviceOffset(ext2_t *ext2,
 {
     uint32_t block;
     uint64_t offset;
+    unsigned numbers_per_block;
 
     block = file_offset >> (10 + ext2->super_block.s_log_block_size);
-    if (block < 13)
+    numbers_per_block = ext2->block_size / sizeof(uint32_t);
+    if (block < 12)
     {
         block = inode->i_block[block];
-        wprintf(L"Ext2CalculateDeviceOffset: block = %lu\n", block);
     }
-    else
+    else if (block < 12 
+        + numbers_per_block)
     {
-        /* xxx -- look up indirect blocks */
-        assert(block < 13);
+        /* single indirect */
+        block = Ext2GetBlockNumber(ext2, inode->i_block[12], block - 12);
+    }
+    else if (block < 12 
+        + numbers_per_block 
+        + numbers_per_block * numbers_per_block)
+    {
+        /* double indirect */
+        assert(false);
         block = 0;
     }
+    else if (block < 12 
+        + numbers_per_block 
+        + numbers_per_block * numbers_per_block
+        + numbers_per_block * numbers_per_block * numbers_per_block)
+    {
+        /* triple indirect */
+        assert(false);
+        block = 0;
+    }
+
+    assert(block != 0);
 
     offset = (uint64_t) block << (10 + ext2->super_block.s_log_block_size);
     offset += file_offset & ((1 << (10 + ext2->super_block.s_log_block_size)) - 1);
@@ -240,8 +283,6 @@ static status_t Ext2GetDirectoryEntry(ext2_t *ext2, ext2_dir_t *dir, uint64_t *p
 
     pos = *posn;
 again:
-    /*wprintf(L"Ext2GetDirectoryEntry(%lu): pos = %lu\n", dir->ino, (uint32_t) pos);*/
-
     if (pos >= (((uint64_t) dir->inode.i_dir_acl << 32) | dir->inode.i_size))
         return EEOF;
 
@@ -263,7 +304,7 @@ again:
 
         offset = 
             Ext2CalculateDeviceOffset(ext2, pos, &dir->inode);
-        wprintf(L"Ext2GetDirectoryEntry(not cached): pos = %lu, offset = %lu\n", 
+        TRACE2("Ext2GetDirectoryEntry(not cached): pos = %lu, offset = %lu\n", 
             (uint32_t) pos, (uint32_t) offset);
         if (IoReadPhysicalSync(ext2->dev, 
             offset, 
@@ -284,7 +325,8 @@ again:
 
     di = (ext2_dirent_t*) 
         (ptr + (pos & ((1 << (10 + ext2->super_block.s_log_block_size)) - 1)));
-    if (di->rec_len == 0)
+    if (di->rec_len == 0 ||
+        di->name_len == 0)
     {
         MemDeletePageArray(array);
         return EEOF;
@@ -292,8 +334,9 @@ again:
 
     pos += di->rec_len;
 
-    if (di->name[0] == '.' 
-        && (di->name_len == 1 || (di->name_len == 2 && di->name[1] == '.')))
+    if (di->inode == 0 ||
+        (di->name[0] == '.' 
+        && (di->name_len == 1 || (di->name_len == 2 && di->name[1] == '.'))))
     {
         MemDeletePageArray(array);
         goto again;
@@ -301,9 +344,10 @@ again:
 
     dirent->vnode = di->inode;
     for (i = 0; i < min(di->name_len, _countof(dirent->name) - 1); i++)
-        dirent->name[i] = iso1tou[(unsigned char) di->name[i]];
+        dirent->name[i] = (wchar_t) (unsigned char) di->name[i];
 
     dirent->name[i] = '\0';
+
     MemDeletePageArray(array);
 
     *posn = pos;
@@ -311,15 +355,7 @@ again:
 }
 
 static ext2_dir_t *Ext2GetDirectory(ext2_t *ext2, wchar_t *path, unsigned ino);
-
-static void Ext2ReleaseDirectory(ext2_t *ext2, ext2_dir_t *dir)
-{
-    dir->copies--;
-    if (dir->copies == 0)
-    {
-        /* free directory */
-    }
-}
+static void Ext2ReleaseDirectory(ext2_t *ext2, ext2_dir_t *dir);
 
 static unsigned Ext2LookupInode(ext2_t *ext2, wchar_t *path)
 {
@@ -361,13 +397,12 @@ static unsigned Ext2LookupInode(ext2_t *ext2, wchar_t *path)
             at_end = false;
         }
 
-        wprintf(L"Ext2LookupInode: %s\n", ch);
-
         pos = 0;
         while ((ret = Ext2GetDirectoryEntry(ext2, dir, &pos, dirent)) == 0)
         {
             if (_wcsicmp(dirent->name, ch) == 0)
             {
+                wcscpy(ch, dirent->name);
                 ino = dirent->vnode;
                 break;
             }
@@ -385,7 +420,6 @@ static unsigned Ext2LookupInode(ext2_t *ext2, wchar_t *path)
             return 0;
         }
 
-        wprintf(L"Ext2LookupInode: ino = %u\n", ino);
         if (slash != NULL)
             *slash = '/';
         ch = slash + 1;
@@ -398,11 +432,19 @@ static unsigned Ext2LookupInode(ext2_t *ext2, wchar_t *path)
 
 static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
 {
-    unsigned group;
-    uint8_t all_inodes[512];
+    unsigned group, hash, i;
+    inode_t all_inodes[512 / sizeof(inode_t)];
 
     /* xxx -- these should really be uint64_t's */
     uint32_t offset, mod;
+
+    hash = ino % _countof(ext2->inode_hash);
+    if (ext2->inode_hash[hash].ino == ino)
+    {
+        TRACE2("Ext2LoadInode: hit cache inode %u at hash = %x\n", ino, hash);
+        *inode = ext2->inode_hash[hash].inode;
+        return true;
+    }
 
     ino--;
     group = ino / ext2->super_block.s_inodes_per_group;
@@ -414,12 +456,31 @@ static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
     offset += mod & -512;
     mod %= 512;
 
-    wprintf(L"Ext2LoadInode: ino = %u, group = %u, offset = %lx, mod = %lx\n",
+    TRACE4("Ext2LoadInode: ino = %u, group = %u, offset = %lx, mod = %lx\n",
         ino, group, offset, mod);
     if (IoReadSync(ext2->dev, offset, all_inodes, 512) != 512)
         return false;
 
-    memcpy(inode, all_inodes + mod, sizeof(inode_t));
+    TRACE2("Ext2LoadInode: loaded inode %u at hash = %x\n", ino + 1, hash);
+    *inode = all_inodes[mod / sizeof(inode_t)];
+
+    ino = (ino & -_countof(all_inodes)) + 1;
+    for (i = 0; i < _countof(all_inodes); i++)
+    {
+        hash = (ino + i) % _countof(ext2->inode_hash);
+
+        if (all_inodes[i].i_links_count == 0)
+            wprintf(L"Ext2LoadInode: skipped unused inode %u at hash = %x\n",
+                ino + i, hash);
+        else
+        {
+            TRACE2("Ext2LoadInode: cached inode %u at hash = %x\n",
+                ino + i, hash);
+            ext2->inode_hash[hash].ino = ino + i;
+            ext2->inode_hash[hash].inode = all_inodes[i];
+        }
+    }
+
     return true;
 }
 
@@ -458,7 +519,7 @@ static ext2_dir_t *Ext2GetDirectory(ext2_t *ext2, wchar_t *path, unsigned ino)
         dir->hash_next = NULL;
         dir->ino = ino;
         dir->inode = inode;
-        dir->copies = 0;
+        dir->copies = 1;
 
         dir->cache = CcCreateFileCache(ext2->block_size);
         if (dir->cache == NULL)
@@ -471,15 +532,42 @@ static ext2_dir_t *Ext2GetDirectory(ext2_t *ext2, wchar_t *path, unsigned ino)
             ext2->dir_hash[ino % _countof(ext2->dir_hash)] = dir;
         else
             prev->hash_next = dir;
-
-        wprintf(L"Ext2GetDirectory(%s)\n", path);
-        wprintf(L"\tmode = %x\n", inode.i_mode);
-        wprintf(L"\tsize = %lu * 4GB + %lu\n", inode.i_dir_acl, inode.i_size);
-        wprintf(L"\tblocks = %lx\n", inode.i_blocks);
     }
 
     dir->copies++;
     return dir;
+}
+
+static void Ext2ReleaseDirectory(ext2_t *ext2, ext2_dir_t *dir)
+{
+    ext2_dir_t *item, *prev;
+    unsigned hash;
+
+    dir->copies--;
+    if (dir->copies == 0)
+    {
+        hash = dir->ino % _countof(ext2->dir_hash);
+
+        item = ext2->dir_hash[hash];
+        prev = NULL;
+        while (item != NULL)
+        {
+            if (item == dir)
+                break;
+            prev = item;
+            item = item->hash_next;
+        }
+
+        assert(item != NULL);
+
+        if (prev == NULL)
+            ext2->dir_hash[hash] = dir->hash_next;
+        else
+            prev->hash_next = dir->hash_next;
+
+        CcDeleteFileCache(dir->cache);
+        free(dir);
+    }
 }
 
 void Ext2Dismount(fsd_t *fsd)
@@ -513,32 +601,38 @@ status_t Ext2LookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect,
 
     ext2 = (ext2_t*) fsd;
 
-    wprintf(L"Ext2LookupFile(%s)\n", path);
     copy = _wcsdup(path);
     ino = Ext2LookupInode(ext2, copy);
-    free(copy);
 
     if (ino == 0)
+    {
+        free(copy);
         return ENOTFOUND;
+    }
 
     file = malloc(sizeof(ext2_file_t));
     if (file == NULL)
+    {
+        free(copy);
         return errno;
+    }
 
     if (!Ext2LoadInode(ext2, ino, &file->inode))
     {
         /* xxx -- use a more descriptive error code */
+        free(copy);
         free(file);
         return EHARDWARE;
     }
 
     file->ino = ino;
-    copy = wcsrchr(path, '/');
-    if (copy != NULL)
-        file->name = _wcsdup(copy + 1);
+    path = wcsrchr(copy, '/');
+    if (path != NULL)
+        file->name = _wcsdup(path + 1);
     else
-        file->name = _wcsdup(copy);
+        file->name = _wcsdup(path);
 
+    free(copy);
     *cookie = file;
     return 0;
 }
@@ -579,9 +673,13 @@ status_t Ext2GetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
             break;
         }
 
-        FsGuessMimeType(wcsrchr(file->name, '.'), 
-            di->standard.mimetype, 
-            _countof(di->standard.mimetype));
+        if ((di->standard.attributes & (FILE_ATTR_DEVICE | FILE_ATTR_DIRECTORY)) == 0)
+            FsGuessMimeType(wcsrchr(file->name, '.'), 
+                di->standard.mimetype, 
+                _countof(di->standard.mimetype));
+        else
+            memset(di->standard.mimetype, 0, sizeof(di->standard.mimetype));
+
         return 0;
     }
 
@@ -601,15 +699,209 @@ void Ext2FreeCookie(fsd_t *fsd, void *cookie)
     free(file);
 }
 
-bool Ext2ReadFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
-    size_t length, fs_asyncio_t *io)
+static void Ext2StartIo(ext2_t *ext2, ext2_asyncio_t *e2io)
 {
-    io->op.result = ENOTIMPL;
-    return false;
+    size_t bytes_per_read;
+    uint64_t pos;
+    uint32_t offset_from_block;
+    page_array_t *cache_block;
+    status_t result;
+    uint8_t *user_buffer, *cache_buffer;
+    ext2_file_t *fd;
+
+    fd = e2io->file->fsd_cookie;
+
+start:
+    result = 0;
+
+    pos = e2io->file->pos + e2io->bytes_read;
+    offset_from_block = pos & (ext2->block_size - 1);
+    bytes_per_read = e2io->length - e2io->bytes_read;;
+    if (offset_from_block + bytes_per_read > ext2->block_size)
+        bytes_per_read = ext2->block_size - offset_from_block;
+
+    TRACE4("Ext2StartIo: pos = %lx, offset_from_block = %lx, bytes_per_read = %lu: %s\n",
+        (uint32_t) pos, offset_from_block, bytes_per_read, 
+        CcIsBlockValid(e2io->file->cache, pos) ? L"cached" : L"not cached");
+
+    if (CcIsBlockValid(e2io->file->cache, pos))
+    {
+        cache_block = CcRequestBlock(e2io->file->cache, pos);
+        if (cache_block == NULL)
+        {
+            result = errno;
+            goto finished;
+        }
+
+        user_buffer = MemMapPageArray(e2io->pages, PRIV_KERN | PRIV_WR | PRIV_PRES);
+        cache_buffer = MemMapPageArray(cache_block, PRIV_KERN | PRIV_RD | PRIV_PRES);
+
+        if (e2io->is_reading)
+            memcpy(user_buffer + e2io->bytes_read,
+                cache_buffer + offset_from_block,
+                bytes_per_read);
+        else
+            memcpy(cache_buffer + offset_from_block,
+                user_buffer + e2io->bytes_read,
+                bytes_per_read);
+
+        e2io->bytes_read += bytes_per_read;
+
+        if (e2io->bytes_read >= e2io->length)
+        {
+            result = 0;
+            goto finished;
+        }
+
+        MemUnmapTemp();
+        MemDeletePageArray(cache_block);
+        CcReleaseBlock(e2io->file->cache, pos, true, 
+            CcIsBlockDirty(e2io->file->cache, pos) || !e2io->is_reading);
+
+        goto start;
+    }
+    else
+    {
+        io_callback_t cb;
+
+        cache_block = CcRequestBlock(e2io->file->cache, pos);
+        if (cache_block == NULL)
+        {
+            result = errno;
+            goto finished;
+        }
+
+        assert(e2io->req_dev.header.code == 0);
+
+        e2io->req_dev.header.code = DEV_READ;
+        e2io->req_dev.header.param = e2io;
+        e2io->req_dev.params.dev_read.offset = 
+            Ext2CalculateDeviceOffset(ext2, pos - offset_from_block, &fd->inode);
+
+        if (pos - offset_from_block + ext2->block_size >= EXT2_INODE_SIZE64(fd->inode))
+        {
+            e2io->req_dev.params.dev_read.length = EXT2_INODE_SIZE64(fd->inode)
+                - (pos - offset_from_block);
+
+            if (e2io->req_dev.params.dev_read.length < 512)
+                e2io->req_dev.params.dev_read.length = 512;
+        }
+        else
+            e2io->req_dev.params.dev_read.length = ext2->block_size;
+
+        e2io->req_dev.params.dev_read.pages = cache_block;
+
+        cb.type = IO_CALLBACK_FSD;
+        cb.u.fsd = &ext2->fsd;
+        if (!IoRequest(&cb, ext2->dev, &e2io->req_dev.header))
+        {
+            result = e2io->req_dev.header.result;
+            MemDeletePageArray(cache_block);
+            goto finished;
+        }
+
+        MemDeletePageArray(cache_block);
+    }
+
+    return;
+
+finished:
+    TRACE2("Ext2StartIo: finished: bytes_read = %lu, result = %d\n",
+        e2io->bytes_read, result);
+    FsNotifyCompletion(e2io->io, e2io->bytes_read, result);
+    free(e2io);
+}
+
+void Ext2FinishIo(fsd_t *fsd, request_t *req)
+{
+    ext2_t *ext2;
+    ext2_asyncio_t *e2io;
+    uint64_t block_offset;
+
+    ext2 = (ext2_t*) fsd;
+    e2io = req->param;
+    assert(e2io != NULL);
+    assert(req == &e2io->req_dev.header);
+    assert(req->code == DEV_READ);
+
+    block_offset = (e2io->file->pos + e2io->bytes_read) & -ext2->block_size;
+    req->code = 0;
+    /*wprintf(L"Ext2FinishIo(%p): block_offset = %lu, result = %d, length = %lu\n", 
+        req,
+        (uint32_t) block_offset, 
+        req->result, 
+        e2io->req_dev.params.dev_read.length);*/
+
+    /* xxx -- should look at req->result here */
+    if (e2io->req_dev.params.dev_read.length != 0)
+    {
+        CcReleaseBlock(e2io->file->cache, block_offset, true, false);
+        Ext2StartIo(ext2, e2io);
+    }
+    else
+    {
+        CcReleaseBlock(e2io->file->cache, block_offset, false, false);
+        FsNotifyCompletion(e2io->io, e2io->bytes_read, req->result);
+        free(e2io);
+    }
+}
+
+bool Ext2ReadFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
+                  size_t length, fs_asyncio_t *io)
+{
+    ext2_asyncio_t *e2io;
+    ext2_t *ext2;
+    ext2_file_t *fd;
+    uint64_t file_length;
+
+    ext2 = (ext2_t*) fsd;
+    io->op.bytes = 0;
+
+    fd = file->fsd_cookie;
+    file_length = EXT2_INODE_SIZE64(fd->inode);
+
+    if (file->pos + length > file_length)
+        length = file_length - file->pos;
+
+    if (length == 0)
+    {
+        io->op.result = EEOF;
+        return false;
+    }
+
+    e2io = malloc(sizeof(ext2_asyncio_t));
+    if (e2io == NULL)
+    {
+        io->op.result = errno;
+        return false;
+    }
+
+    e2io->file = file;
+    e2io->pages = MemCopyPageArray(pages->num_pages, 
+        pages->mod_first_page, 
+        pages->pages);
+
+    if (e2io->pages == NULL)
+    {
+        free(e2io);
+        io->op.result = errno;
+        return false;
+    }
+
+    e2io->length = length;
+    e2io->io = io;
+
+    e2io->is_reading = true;
+    e2io->bytes_read = 0;
+    e2io->req_dev.header.code = 0;
+
+    io->original->result = io->op.result = SIOPENDING;
+    Ext2StartIo(ext2, e2io);
+    return true;
 }
 
 bool Ext2WriteFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
-    size_t length, fs_asyncio_t *io)
+                   size_t length, fs_asyncio_t *io)
 {
     io->op.result = ENOTIMPL;
     return false;
@@ -656,10 +948,6 @@ void Ext2FreeDirCookie(fsd_t *fsd, void *dir_cookie)
     search = dir_cookie;
     Ext2ReleaseDirectory((ext2_t*) fsd, search->dir);
     free(search);
-}
-
-void Ext2FinishIo(fsd_t *fsd, request_t *req)
-{
 }
 
 void Ext2FlushCache(fsd_t *fsd, file_t *fd)
@@ -728,6 +1016,12 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
         return NULL;
     }
 
+    ext2->block_size = 1024 << ext2->super_block.s_log_block_size;
+
+    ext2->num_groups = ext2->super_block.s_blocks_count / 
+        ext2->super_block.s_blocks_per_group;
+
+#ifdef DEBUG
     wprintf(L"ext2 superblock:\n");
     wprintf(L"\ts_inodes_count: %lu\n", ext2->super_block.s_inodes_count);
     wprintf(L"\ts_blocks_count: %lu\n", ext2->super_block.s_blocks_count);
@@ -741,12 +1035,8 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
     wprintf(L"\ts_magic: %x\n", ext2->super_block.s_magic);
     wprintf(L"\ts_first_ino: %lu\n", ext2->super_block.s_first_ino);
     wprintf(L"\ts_volume_name: %16S\n", ext2->super_block.s_volume_name);
-
-    ext2->block_size = 1024 << ext2->super_block.s_log_block_size;
-
-    ext2->num_groups = ext2->super_block.s_blocks_count / 
-        ext2->super_block.s_blocks_per_group;
     wprintf(L"\tnum_groups = %u\n", ext2->num_groups);
+#endif
 
     size = sizeof(gpdesc_t) * ext2->num_groups;
     size = (size + ext2->block_size - 1) & -ext2->block_size;
