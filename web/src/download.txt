@@ -31,10 +31,22 @@
 <h2>Source Code</h2>
 <h3>TGZ</h3>
 
-<p>The compressed source archive has been removed for now, after it was pointed
+<ul>
+<li>Working source code is released at the same time as every working binary, through the
+normal SourceForge downloads page.</li>
+
+<li><a href="/archives/">Daily development source code tarballs</a> are available, although there
+is no guarantee these will compile, no less run. These are generally under 20MB in size.</li>
+
+<li>Developers are advised to start using the CVS updates service if they want regular copies of
+working source code without having to download the entire source tarball each time (see below).</li>
+
+</ul>
+
+<!-- <p>The compressed source archive has been removed for now, after it was pointed
 out that what I was offering for download didn't contain the M&ouml;bius sources. I will
 now start releasing source archives alongside the binaries. Sorry for any 
-inconvenience. You will still be able to use the SourceForge CVS interface (see below).</p>
+inconvenience. You will still be able to use the SourceForge CVS interface (see below).</p> -->
 
 <!--
 <p>You can download the latest version of the M&ouml;bius source as one big tarball 

@@ -1,23 +1,221 @@
 <h1>File System Driver Interface</h1>
 
-<pre>struct fsd_t
+<h2>C Language Definition</h2>
+<pre>
+struct fsd_t
 {
     const fsd_vtbl_t *vtbl;
 };
 
-fsd_t *FsdMount(const wchar_t *dest);
-
 struct fsd_vtbl_t
 {
-    status_t lookup(const wchar_t *path, void **cookie);
-    status_t get_file_info(void *cookie, uint32_t type, void *buf);
-    status_t set_file_info(void *cookie, uint32_t type, const void *buf);
-    void free_cookie(void *cookie);
+    void (*dismount)(fsd_t *fsd);
+    void (*get_fs_info)(fsd_t *fsd, fs_info_t *info);
 
-    status_t read(file_t *file, page_array_t *pages, size_t length, fileop_t *op);
-    status_t write(file_t *file, page_array_t *pages, size_t length, fileop_t *op);
+    status_t (*create_file)(fsd_t *fsd, const wchar_t *path, 
+        fsd_t **redirect, void **cookie);
+    status_t (*lookup_file)(fsd_t *fsd, const wchar_t *path, 
+        fsd_t **redirect, void **cookie);
+    status_t (*get_file_info)(fsd_t *fsd, void *cookie, uint32_t type, void *buf);
+    status_t (*set_file_info)(fsd_t *fsd, void *cookie, uint32_t type, const void *buf);
+    void (*free_cookie)(fsd_t *fsd, void *cookie);
 
-    status_t opendir(const wchar_t *path, void **dir_cookie);
-    status_t readdir(void *dir_cookie, uint32_t type, void *buf);
-    void free_dir_cookie(void *dir_cookie);
-};</pre>
+    bool (*read_file)(fsd_t *fsd, file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io);
+    bool (*write_file)(fsd_t *fsd, file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io);
+    bool (*ioctl_file)(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io);
+    bool (*passthrough)(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io);
+
+    status_t (*opendir)(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie);
+    status_t (*readdir)(fsd_t *fsd, void *dir_cookie, uint32_t type, void *buf);
+    void (*free_dir_cookie)(fsd_t *fsd, void *dir_cookie);
+
+    status_t (*mount)(fsd_t *fsd, const wchar_t *path, fsd_t *newfsd);
+    void (*finishio)(fsd_t *fsd, request_t *req);
+    void (*flush_cache)(fsd_t *fsd, file_t *fd);
+};
+
+fsd_t *FsdMount(driver_t *drv, const wchar_t *dest);
+</pre>
+
+<h2>C++ Language Definition</h2>
+<pre>
+class fsd_t
+{
+virtual void dismount() = 0;
+    virtual void get_fs_info(fs_info_t *info) = 0;
+
+    virtual status_t create_file(const wchar_t *path, 
+        fsd_t **redirect, void **cookie) = 0;
+    virtual status_t lookup_file(const wchar_t *path, 
+        fsd_t **redirect, void **cookie) = 0;
+    virtual status_t get_file_info(void *cookie, uint32_t type, void *buf) = 0;
+    virtual status_t set_file_info(void *cookie, uint32_t type, const void *buf) = 0;
+    virtual void free_cookie(void *cookie) = 0;
+
+    virtual bool read_file(file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io) = 0;
+    virtual bool write_file(file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io) = 0;
+    virtual bool ioctl_file(file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io) = 0;
+    virtual bool passthrough(file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io) = 0;
+
+    virtual status_t opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie) = 0;
+    virtual status_t readdir(void *dir_cookie, uint32_t type, void *buf) = 0;
+    virtual void free_dir_cookie(void *dir_cookie) = 0;
+
+    virtual status_t mount(const wchar_t *path, fsd_t *newfsd) = 0;
+
+    virtual void finishio(request_t *req) = 0;
+    virtual void flush_cache(file_t *fd) = 0;
+};
+
+fsd_t *FsdMount(driver_t *drv, const wchar_t *dest);
+</pre>
+
+<table border="0" cellspacing="0">
+
+<tr>
+<td nowrap class="md" align="right">void&nbsp;</td>
+<td nowrap class="md">
+<b>dismount</b>(fsd_t *fsd);
+</td></tr>
+
+<tr><td colspan="2">
+Dismounts the file system.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>create_file</b>(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie);
+</td></tr>
+
+<tr><td colspan="2">
+Creates a new file; allocates a cookie for it, which is returned through <samp>cookie</samp>.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>lookup_file</b>(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie);
+</td></tr>
+
+<tr><td colspan="2">
+Looks for the file at the given path and allocates a cookie for that file, 
+which is returned through <samp>cookie</samp>.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>get_file_info</b>(fsd_t *fsd, void *cookie, uint32_t type, void *buf);
+</td></tr>
+
+<tr><td colspan="2">
+Retrieves information associated with the given file into the buffer at 
+<samp>buf</samp>.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>set_file_info</b>(fsd_t *fsd, void *cookie, uint32_t type, const void *buf);
+</td></tr>
+
+<tr><td colspan="2">
+Updates the information associated with the given file with the attributes at 
+<samp>buf</samp>
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">void&nbsp;</td>
+<td nowrap class="md">
+<b>free_cookie</b>(fsd_t *fsd, void *cookie);
+</td></tr>
+
+<tr><td colspan="2">
+Frees a file cookie allocated during a call to <samp>lookup</samp>.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>read</b>(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fileop_t *op);
+</td></tr>
+
+<tr><td colspan="2">
+Starts a read from the given file: <samp>file-&gt;fsd_cookie</samp> contains 
+the cookie obtained from <samp>lookup</samp>, and <samp>file-&gt;pos</samp> 
+specifies where to start the read. <samp>op</samp> should be updated once the 
+read finishes.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>write</b>(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fileop_t *op);
+</td></tr>
+
+<tr><td colspan="2">
+Starts a write to the given file: <samp>file-&gt;fsd_cookie</samp> contains 
+the cookie obtained from <samp>lookup</samp>, and <samp>file-&gt;pos</samp> 
+specifies where to start the write. <samp>op</samp> should be updated once the 
+write finishes.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>ioctl</b>(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t length, fileop_t *op);
+</td></tr>
+
+<tr><td colspan="2">
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>passthrough</b>(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t length, fileop_t *op);
+</td></tr>
+
+<tr><td colspan="2">
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>opendir</b>(fsd_t *fsd, const wchar_t *path, void **dir_cookie);
+</td></tr>
+
+<tr><td colspan="2">
+Obtains a directory cookie for the directory at the path given.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">status_t&nbsp;</td>
+<td nowrap class="md">
+<b>readdir</b>(fsd_t *fsd, void *dir_cookie, uint32_t type, void *buf);
+</td></tr>
+
+<tr><td colspan="2">
+Reads an entry from the given directory into the buffer at <samp>buf</samp>,
+in the same way as <samp>get_file_info</samp>.
+</td></tr>
+
+<tr>
+<td nowrap class="md" align="right">void&nbsp;</td>
+<td nowrap class="md">
+<b>free_dir_cookie</b>(fsd_t *fsd, void *dir_cookie);
+</td></tr>
+
+<tr><td colspan="2">
+Frees a directory cookie allocated during a call to <samp>opendir</samp>.
+</td></tr>
+
+</table>

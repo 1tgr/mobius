@@ -6,64 +6,114 @@
 </head>
 
 <h1>Links</h1>
-<p><a href="http://aarongray.members.beeb.net/osdev.html">Aaron Gray's Links</a></p>
-<p><a href="http://www.acm.uiuc.edu/sigops/">ACM@UIUC Special Interest Group for
-Operating Systems</a></p>
-<p><a href="http://www.teleport.com/~acpi/">ACPI - Advanced Configuration and
-Power Interface</a></p>
-<p><a href="http://enterprise.aacc.cc.md.us/~rhs/ansi.html">ANSI.SYS -- ansi
-terminal emulation escape sequences</a></p>
-<p><a href="http://www.atheos.cx/">AtheOS - free alternate operating system</a></p>
-<p><a href="http://www.microsoft.com/hwdev/devdes/mcompat.htm">Compatibility of
-Type 2 Pointing Devices with Microsoft IntelliMouse</a></p>
-<p><a href="http://minnie.cs.adfa.edu.au/FreeBSD-srctree/">Cross-references for
-FreeBSD</a></p>
-<p><a href="http://www.mega-tokyo.com/cgi-bin/yabb/YaBB.pl?board=OS_FAQ">Development,
-Design, FAQ, etc</a></p>
-<p><a href="http://www.microsoft.com/hwdev/download/hardware/FATGEN103.doc">FAT
-General Overview of On-Disk Format</a></p>
-<p><a href="http://www.reactos.com/">http--www.reactos.com-</a></p>
-<p><a href="http://minnie.tuhs.org/FreeBSD-srctree/newsrc/">Index of -FreeBSD-srctree-newsrc</a></p>
-<p><a href="http://www.levitte.org/~ava/index.htmlx">Information about the VMS
-operating system</a></p>
-<p><a href="http://www.insector.de/">Insector OS Resources</a></p>
-<p><a href="http://lksr.org/">Linux Kernel Source Reference</a></p>
-<p><a href="http://src.openresources.com/linux-2.2.1/">linux-2.2.1</a></p>
-<p><a href="http://cvs.sourceforge.net/cgi-bin/viewcvs.cgi/mobius/">mobius CVS</a></p>
-<p><a
-href="http://kernelnewbies.org/documents/kdoc/mousedrivers/mouseguide.html">Mouse
-Drivers</a></p>
-<p><a href="http://www.opsys.net/">Opsys</a></p>
-<p><a href="http://os-dev.isa.net.au/boardindex.phtml">OS Development -
-Discussion board</a></p>
-<p><a href="http://www.osdev.org/">OS Development</a></p>
-<p><a href="http://www.visopsys.org/osdev/index.html">OS Development (2)</a></p>
-<p><a href="http://osdevscircle.s5.com/">OS Dev's Circle</a></p>
-<p><a href="http://members.hyperlink.net.au/~chart/pci.htm">PCI Information</a></p>
-<p><a
-href="http://debs.future.easyspace.com/Programming/Hardware/FDC/floppy.html">Programming
-the NEC µPD765 and Intel 82072-7 Floppy Disk Controller</a></p>
-<p><a href="http://www.execpc.com/~geezer/os/index.htm">Protected mode and
-operating systems</a></p>
-<p><a href="http://www.ctyme.com/rbrown.htm">Ralf Brown's Interrupt List - HTML
-Version</a></p>
-<p><a href="http://www.acm.uiuc.edu/sigops/rsrc/">SigOps OS Development
-Resources</a></p>
-<p><a href="http://www.skyos.org/">Sky Operating System V3</a></p>
-<p><a href="https://sourceforge.net/projects/andromeda-gui">SourceForge Project
-Info - andromeda gui development project</a></p>
-<p><a href="http://sourceforge.net/projects/mobius/">SourceForge Project Info -
-The Möbius</a></p>
-<p><a href="http://qdn.qnx.com/support/docs/neutrino_qrp/lib_ref/summary.html">Summary
-of POSIX Functions</a></p>
-<p><a href="http://www-classic.be.com/documentation/be_book/">The Be Book 5
-Table of Contents</a></p>
-<p><a href="http://www.nondot.org/sabre/os/">The Operating Systems Collection</a></p>
-<p><a href="http://www.projectudi.org/">Uniform Driver Interface (UDI)</a></p>
-<p><a href="http://www.goodnet.com/~tinara/FreeVGA/vga/vga.htm">VGA-SVGA Video
-Programming--Standard VGA Chipset Reference</a></p>
-<p><a
-href="http://www.microsoft.com/windows/embedded/ce/tools/source/default.asp">Windows
-CE Source Code</a></p>
-<p><a href="http://www.mega-tokyo.com/os/os-faq.html">Write Your Own Operating
-System</a></p>
+<h2>Operating Systems</h2>
+<dl>
+  <dt><a href="http://www.atheos.cx/">AtheOS - free alternate operating system</a></dt>
+  <dt><a href="http://www.kioki.com/">AtheOS and BeOS mirror -- kioki.com</a></dt>
+  <dt><a href="http://www.levitte.org/~ava/index.htmlx">Information about the
+    VMS operating system</a></dt>
+  <dt><a href="http://www.o3one.org/">O3ONE - The Object Oriented OS</a></dt>
+  <dt><a href="http://omikron.sourceforge.net/">Omikron Project Overview</a></dt>
+  <dt><a href="http://www.reactos.com/">ReactOS</a></dt>
+  <dt><a href="http://www.skyos.org/">Sky Operating System V3</a></dt>
+  <dt><a href="http://www.acypher.com/wwid/Chapters/05SmallStar.html">SmallStar</a></dt>
+  <dt><a
+    href="http://www.microsoft.com/windows/embedded/ce/tools/source/default.asp">Windows
+    CE Source Code</a></dt>
+</dl>
+<h2>OS Resources</h2>
+<dl>
+  <dt><a href="http://aarongray.members.beeb.net/osdev.html">Aaron Gray's Links</a></dt>
+  <dd>A large collection of OS-related links collected in alt.os.development</dd>
+  <dt><a href="http://www.acm.uiuc.edu/sigops/">ACM@UIUC Special Interest Group
+    for Operating Systems</a></dt>
+  <dd>Site with some useful code and tutorials and links to some good OS
+    projects</dd>
+  <dt><a href="http://osanswers.port5.com/">Bona Fide OS Development-for real OS
+    Development info</a></dt>
+  <dd>A collection of some well-written OS tutorials and resources</dd>
+  <dt><a
+    href="http://chapman.karlskrona.se/cgi-bin/cgiwrap/nsm99jeo/osjournal/index.pl?action=home">The
+    OS Journal</a></dt>
+  <dd>A project of the alt.os.development newsgroup</dd>
+  <dt><a href="http://www.nondot.org/sabre/os/">The Operating Systems Collection</a></dt>
+  <dd>A large collection of useful documents</dd>
+  <dt><a href="http://www.osdev.org/">OS Development</a></dt>
+  <dd>Chase's OS development site and message board</dd>
+  <dt><a href="http://www.execpc.com/~geezer/os/index.htm">Protected mode and
+    operating systems</a></dt>
+  <dd>Chris Giese's web site</dd>
+  <dt><a href="http://www.acm.uiuc.edu/sigops/rsrc/">SigOps OS Development
+    Resources</a></dt>
+  <dd>Some small pieces of useful code from ACM at UIUC</dd>
+  <dt><a href="http://www.visopsys.org/osdev/index.html">Visopsys OS Development</a></dt>
+  <dd>A large list of links, and some source code</dd>
+  <dt><a href="http://www.mega-tokyo.com/os/os-faq.html">Write Your Own
+    Operating System</a></dt>
+  <dd>Stuart George's classic OS development FAQ list</dd>
+</dl>
+<h2>Hardware</h2>
+<dl>
+  <dt><a href="http://www.microsoft.com/hwdev/tech/input/mcompat.asp">Compatibility
+    of Type 2 Pointing Devices with MS IntelliMouse</a></dt>
+  <dd>A description of the format of the data output by IntelliMouse-compatible
+    mice</dd>
+  <dt><a href="http://www.hut.fi/~hmallat/linux/s3.html">Hannu's S3 Linux Driver
+    Page</a></dt>
+  <dd>Page describing a well-written S3 video card driver for Linux</dd>
+  <dt><a href="http://www.neutralzone.org/home/faqsys/docs/s3.txt">http//www.neutralzone.org/home/faqsys/docs/s3.txt</a></dt>
+  <dd>The closest I've ever seen to some useful S3 chipset documentation</dd>
+  <dt><a href="http://www.microsoft.com/globaldev/keyboards/keyboards.asp">Microsoft
+    Global Software Development - Keyboard Layouts</a></dt>
+  <dd>A JavaScript applet which allows you to view all the keyboard layouts
+    supported by Windows</dd>
+  <dt><a href="http://members.hyperlink.net.au/~chart/pci.htm">PCI Information</a></dt>
+  <dd>Some useful free information on the PCI standard</dd>
+  <dt><a
+    href="http://debs.future.easyspace.com/Programming/Hardware/FDC/floppy.html">Programming
+    the NEC µPD765 and Intel 82072-7 Floppy Disk Controller</a></dt>
+  <dd>Debs' page describing the PC floppy disk controller</dd>
+  <dt><a href="http://www.ctyme.com/rbrown.htm">Ralf Brown's Interrupt List -
+    HTML Version</a></dt>
+  <dd>Ralf Brown's classic interrupt list</dd>
+</dl>
+<h2>Software References</h2>
+<dl>
+  <dt><a href="http://g.oswego.edu/dl/html/malloc.html">A Memory Allocator (Doug
+    Lea)</a></dt>
+  <dd>Page describing the malloc implementation currently used in The Möbius</dd>
+  <dt><a href="http://enterprise.aacc.cc.md.us/~rhs/ansi.html">ANSI.SYS -- ansi
+    terminal emulation escape sequences</a></dt>
+  <dd>An on-line copy of the MS-DOS help page for ANSI.SYS</dd>
+  <dt><a href="http://www.microsoft.com/hwdev/download/hardware/FATGEN103.doc">FAT
+    General Overview of On-Disk Format</a></dt>
+  <dd>The official Microsoft FAT documentation</dd>
+  <dt><a href="http://www.execpc.com/~geezer/osd/boot/grub-how.txt">GRUB HOWTO</a></dt>
+  <dd>Chris Giese's collection of notes on GRUB</dd>
+  <dt><a href="http://www.gnu.org/manual/grub-0.90/html_mono/grub.html">GRUB
+    Manual</a></dt>
+  <dd>The manual for the GRUB boot loader</dd>
+  <dt><a href="http://www.nilo.org/multiboot.html">Multiboot Standard</a></dt>
+  <dd>A page describing the Multiboot standard</dd>
+  <dt><a href="http://www.freesoftware.fsf.org/ext2-doc/ext2.html">The Second
+    Extended File System</a></dt>
+  <dd>Dave Poirier's useful document describing the Ext2 file system</dd>
+  <dt><a href="http://www.projectudi.org/">Uniform Driver Interface (UDI)</a></dt>
+  <dd>Web site of the UDI project</dd>
+</dl>
+<h2>Discussion</h2>
+<dl>
+  <dt><a href="http://tunes.org/~coreyr/date.php?chan=osdev">cnoolb! osdev</a></dt>
+  <dd>Logs of the #osdev channel on irc.openprojects.net</dd>
+  <dt><a href="http://www.mega-tokyo.com/forum/index.php?board=1">Development,
+    Design, FAQ, etc</a></dt>
+  <dd>The OS development message board on the mega-tokyo.com site</dd>
+  <dt><a href="http://freshmeat.net/articles/view/237">freshmeat.net Editorials
+    - The Evolution of OS Design</a></dt>
+  <dd>An interesting article on possible future OS directions</dd>
+  <dt><a href="http://tunes.org/~nef/logs/osdev">Index of /~nef/logs/osdev</a></dt>
+  <dd>The #osdev logs in text format</dd>
+  <dt><a href="http://www.osnews.com/">OSNews.com - Exploring the Future of
+    Computing</a></dt>
+  <dd>Operating system news and opinions</dd>
+</dl>
