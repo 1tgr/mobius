@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.13 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.14 2002/04/03 23:53:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -580,7 +580,7 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
         current->process->exe, ptr->file, ptr->line, handle);
     if (ptr->signals)
     {
-        wprintf(L"ThrWaitHandle: already signalled...\n");
+        /*wprintf(L"ThrWaitHandle: already signalled...\n");*/
         ptr->signals--;
         return true;
     }

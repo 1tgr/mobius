@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.15 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.16 2002/04/03 23:53:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -474,4 +474,27 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
     }
 
     return true;
+}
+
+void ArchReboot(void)
+{
+    unsigned char temp;
+    disable();
+
+    /* flush the keyboard controller */
+    do
+    {
+	temp = in(0x64);
+	if ((temp & 0x01) != 0)
+	{
+	    (void) in(0x60);
+	    continue;
+	}
+    } while((temp & 0x02) != 0);
+
+    /* pulse the CPU reset line */
+    out(0x64, 0xFE);
+
+    /* ...and if that didn't work, just halt */
+    ArchProcessorIdle();
 }

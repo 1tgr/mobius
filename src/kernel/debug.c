@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.7 2002/02/27 18:33:38 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.8 2002/04/03 23:52:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -81,7 +81,7 @@ bool DbgLookupSymbol(module_t *mod, void* sym, addr_t* address, SYMENT *syment)
 	found = false;
 	for (i = 0; i < pe->FileHeader.NumberOfSymbols; i++)
 	{
-		FsReadSync(mod->file, &symbol, sizeof(symbol));
+		FsReadSync(mod->file, &symbol, sizeof(symbol), NULL);
 
 		if (symbol.e_sclass == C_EXT ||
 			symbol.e_sclass == C_STAT || 

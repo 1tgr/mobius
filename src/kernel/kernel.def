@@ -27,6 +27,7 @@ EXPORTS
 	DbgWrite
 	DevAddDevice
 	DevCfgFindIrq
+	DevCfgFindMemory
 	DevFinishIo
 	DevInstallDevice
 	DevInstallNewDriver
@@ -97,6 +98,11 @@ EXPORTS
 	ProGetBoolean
 	ProGetString
 	ProLoadProfile
+	QueueAppend
+	QueueClear
+	QueueInit
+	QueuePopFirst
+	QueuePopLast
 	ScEnableSwitch
 	ScNeedSchedule
 	ScSchedule

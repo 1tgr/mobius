@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.7 2002/03/19 23:57:10 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.8 2002/04/03 23:53:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -28,6 +28,8 @@ static IMAGE_PE_HEADERS* PeGetHeaders(addr_t base)
 module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 {
     static wchar_t full_file[256];
+    static int nesting;
+
     handle_t fd;
     module_t* mod;
     IMAGE_DOS_HEADER dos;
@@ -36,39 +38,47 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     addr_t new_base;
     size_t size;
     
+    nesting++;
     FsFullPath(file, full_file);
     FOREACH (mod, proc->mod)
         if (_wcsicmp(mod->name, full_file) == 0)
         {
             mod->refs++;
+            nesting--;
             return mod;
         }
     
+    /*wprintf(L"%*sPeLoad: %s\n", nesting * 2, L"", full_file);*/
     fd = FsOpen(full_file, FILE_READ);
     if (!fd)
+    {
+        nesting--;
         return NULL;
+    }
     
     FsSeek(fd, 0, FILE_SEEK_SET);
-    size = FsReadSync(fd, &dos, sizeof(dos));
-    if (size < sizeof(dos))
+    if (!FsReadSync(fd, &dos, sizeof(dos), &size) ||
+        size < sizeof(dos))
     {
         wprintf(L"%s: only %d bytes read (%d)\n", file, size, errno);
+        nesting--;
         return NULL;
     }
     
     if (dos.e_magic != IMAGE_DOS_SIGNATURE)
     {
         wprintf(L"%s: not an executable (%S)\n", file, &dos);
+        nesting--;
         return NULL;
     }
 
     TRACE2("%s: e_lfanew = 0x%x\n", full_file, dos.e_lfanew);
     FsSeek(fd, dos.e_lfanew, FILE_SEEK_SET);
-    size = FsReadSync(fd, &pe, sizeof(pe));
-
-    if (size < sizeof(pe))
+    if (!FsReadSync(fd, &pe, sizeof(pe), &size) ||
+        size < sizeof(pe))
     {
         wprintf(L"%s: only %d bytes of PE header read (%d)\n", file, size, errno);
+        nesting--;
         return NULL;
     }
 
@@ -77,6 +87,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         char *c = (char*) &pe.Signature;
         wprintf(L"%s: not PE format (%c%c%c%c)\n", full_file, 
             c[0], c[1], c[2], c[3]);
+        nesting--;
         return NULL;
     }
 
@@ -111,6 +122,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     LIST_ADD(proc->mod, mod);
 
     PeGetHeaders(mod->base);
+    nesting--;
     return mod;
 }
 
@@ -192,7 +204,7 @@ static bool PeDoImports(process_t* proc,
 
     const char *name;
     module_t *other;
-    wchar_t name_wide[256];
+    wchar_t name_wide[16];
     size_t count;
     
     if (directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress == 0)
@@ -229,7 +241,7 @@ static bool PeDoImports(process_t* proc,
             thunk2->u1.Function = (uint32_t*) PeGetExport(other, ibn->Name, ibn->Hint);
             if (thunk2->u1.Function == NULL)
             {
-                wprintf(L"%s: import from %s!%S failed\n", name_wide, ibn->Name);
+                wprintf(L"%s: import from %s!%S failed\n", mod->name, name_wide, ibn->Name);
                 return false;
             }
         }
@@ -245,12 +257,14 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
     void *scn_base;
     uint32_t priv;
     addr_t raw_offset;
+    bool should_import;
     
     if (addr < mod->base || addr >= mod->base + mod->length)
         return false;
 
     /*wprintf(L"pePageFault: %s at %p\n", mod->name, addr);*/
     
+    should_import = true;
     if (addr >= mod->base && addr < mod->base + mod->sizeof_headers)
     {
         /*wprintf(L"%x: headers: %d bytes\n", addr, mod->sizeof_headers);*/
@@ -263,6 +277,7 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
         scn_base = (void*) mod->base;
         raw_offset = 0;
         pe = NULL;
+        should_import = false;
     }
     else
     {
@@ -327,13 +342,14 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
     if (raw_offset != (addr_t) -1)
     {
         FsSeek(mod->file, raw_offset, FILE_SEEK_SET);
-        FsReadSync(mod->file, scn_base, raw_size);
+        FsReadSync(mod->file, scn_base, raw_size, NULL);
     }
     
     if (!pe)
         pe = PeGetHeaders(mod->base);
 
-    if (!mod->imported &&
+    if (should_import &&
+        !mod->imported &&
         !PeDoImports(proc, mod, pe->OptionalHeader.DataDirectory))
     {
         wprintf(L"%s: imports failed\n", mod->name);

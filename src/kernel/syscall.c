@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.12 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.13 2002/04/03 23:53:05 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -228,4 +228,18 @@ bool SysEvtIsSignalled(handle_t evt)
 bool SysHndClose(handle_t hnd)
 {
     return HndClose(NULL, hnd, 0);
+}
+
+bool SysShutdown(unsigned type)
+{
+    switch (type)
+    {
+    case SHUTDOWN_REBOOT:
+        ArchReboot();
+        return true;
+
+    default:
+        errno = ENOTIMPL;
+        return false;
+    }
 }

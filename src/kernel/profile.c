@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.2 2002/03/14 01:27:07 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.3 2002/04/03 23:53:05 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -175,6 +175,7 @@ bool ProLoadProfile(const wchar_t *file, const wchar_t *root)
     dirent_t di;
     char *buf;
     wchar_t *wbuf;
+    size_t size;
     
     if (!FsQueryFile(file, FILE_QUERY_STANDARD, &di, sizeof(di)))
 	return false;
@@ -198,13 +199,13 @@ bool ProLoadProfile(const wchar_t *file, const wchar_t *root)
 	return false;
     }
 
-    di.length = FsReadSync(fd, buf, di.length);
+    FsReadSync(fd, buf, di.length, &size);
     FsClose(fd);
 
-    di.length = mbstowcs(wbuf, buf, di.length);
+    size = mbstowcs(wbuf, buf, size);
     free(buf);
-    if (di.length != -1)
-	wbuf[di.length] = '\0';
+    if (size != -1)
+	wbuf[size] = '\0';
 
     key = ProOpenKey(root);
     ProParseBlock(key, wbuf);

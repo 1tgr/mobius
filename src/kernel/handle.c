@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.10 2002/03/27 22:06:00 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.11 2002/04/03 23:52:54 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -37,7 +37,7 @@ bool HndClose(struct process_t *proc, handle_t hnd, uint32_t tag)
 	if (ptr->copies == 0)
 	{
 		HndSignalPtr(ptr, 0);
-		wprintf(L"HndClose(%s, %u): freeing handle\n", proc->exe, hnd);
+		/*wprintf(L"HndClose(%s, %u): freeing handle\n", proc->exe, hnd);*/
 		if (ptr->free_callback)
 			ptr->free_callback(ptr);
 		else

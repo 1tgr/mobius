@@ -170,6 +170,10 @@ SOURCE=.\profile.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\queue.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ramdisk_mb.c
 # End Source File
 # Begin Source File
@@ -187,6 +191,10 @@ SOURCE=.\thread.c
 # Begin Source File
 
 SOURCE=.\vmm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\winmgr.c
 # End Source File
 # End Group
 # Begin Group "Header Files"

@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.21 2002/03/27 22:05:59 pavlovskii Exp $ */
+/* $Id: device.c,v 1.22 2002/04/03 23:52:54 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -584,6 +584,33 @@ uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
     return dflt;
 }
 
+/*!
+ *    \brief	Finds the n'th memory resource
+ *
+ *    \param	cfg    Pointer to the device's configuration list
+ *    \param	n    Index of the memory range to find; use 0 for the first 
+ *          memory range, 1 for the second, etc.
+ *    \param	dflt	Default value to return if the specified memory range 
+ *          could not be found
+ *    \return	 The requested memory base address
+ */
+device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n)
+{
+    unsigned i, j;
+    device_resource_t *res = DEV_CFG_RESOURCES(cfg);
+
+    for (i = j = 0; i < cfg->num_resources; i++)
+	if (res[i].cls == resMemory)
+	{
+	    if (j == n)
+		return res + i;
+
+	    j++;
+	}
+
+    return NULL;
+}
+
 extern driver_t rd_driver, port_driver;
 
 /*!
@@ -619,7 +646,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 	bool (*DrvInit)(driver_t *drv);
 
 	swprintf(temp, SYS_BOOT L"/%s.drv", name);
-	/*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
+	wprintf(L"DevInstallNewDriver: loading %s\n", temp);
 
 	mod = PeLoad(&proc_idle, temp, 0);
 	if (mod == NULL)
@@ -730,6 +757,8 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 	    assert(dev->vtbl != NULL);
 	    DevAddDevice(dev, name, cfg);
 	}
+        else
+            wprintf(L"%s.%s: failed to initialise\n", driver, name);
 	return dev;
     }
     else

@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.21 2002/03/27 22:06:00 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.22 2002/04/03 23:52:54 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -445,7 +445,7 @@ bool FsClose(handle_t file)
  *    \param    bytes    Number of bytes to read
  *    \return    Number of bytes read
  */
-size_t FsReadSync(handle_t file, void *buf, size_t bytes)
+bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
 {
     request_fs_t req;
     file_t *fd;
@@ -471,11 +471,15 @@ size_t FsReadSync(handle_t file, void *buf, size_t bytes)
     req.params.fs_read.buffer = buf;
     req.params.fs_read.file = file;
     if (IoRequestSync(fsd, (request_t*) &req))
-        return req.params.fs_read.length;
+    {
+        if (bytes_read != NULL)
+            *bytes_read = req.params.fs_read.length;
+        return true;
+    }
     else
     {
         errno = req.header.result;
-        return 0;
+        return false;
     }
 }
 
