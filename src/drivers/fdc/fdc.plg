@@ -1,0 +1,55 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: fdc - Win32 Debug--------------------
+</h3>
+
+ALLUSERSPROFILE=I:\Documents and Settings\All Users
+APPDATA=I:\Documents and Settings\Tim Robinson\Application Data
+BLASTER=A220 I7 D1 T2
+CommonProgramFiles=I:\Program Files\Common Files
+COMPUTERNAME=TIM
+ComSpec=I:\WINNT\system32\cmd.exe
+HOMEDRIVE=I:
+HOMEPATH=\
+include=F:\Program Files\Microsoft Visual Studio\VC98\INCLUDE;F:\Program Files\Microsoft Visual Studio\VC98\MFC\INCLUDE;F:\Program Files\Microsoft Visual Studio\VC98\ATL\INCLUDE;f:\projects\mobius\include
+INTDIR=.\Debug
+lib=F:\Program Files\Microsoft Visual Studio\VC98\LIB;F:\Program Files\Microsoft Visual Studio\VC98\MFC\LIB
+LOGONSERVER=\\TIM
+MSDevDir=F:\Program Files\Microsoft Visual Studio\Common\MSDev98
+NUMBER_OF_PROCESSORS=1
+OS=Windows_NT
+Os2LibPath=I:\WINNT\system32\os2\dll;
+OUTDIR=.\Debug
+Path=F:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin;F:\Program Files\Microsoft Visual Studio\VC98\BIN;F:\Program Files\Microsoft Visual Studio\Common\TOOLS;F:\Program Files\Microsoft Visual Studio\Common\TOOLS\WINNT;I:\WINNT\system32;I:\WINNT;I:\WINNT\System32\Wbem
+PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH
+PROCESSOR_ARCHITECTURE=x86
+PROCESSOR_IDENTIFIER=x86 Family 6 Model 7 Stepping 3, GenuineIntel
+PROCESSOR_LEVEL=6
+PROCESSOR_REVISION=0703
+ProgramFiles=I:\Program Files
+PROMPT=$P$G
+SNDSCAPE=D:\WINDOWS
+SystemDrive=I:
+SystemRoot=I:\WINNT
+TEMP=I:\DOCUME~1\TIMROB~1\LOCALS~1\Temp
+TMP=I:\DOCUME~1\TIMROB~1\LOCALS~1\Temp
+USERDOMAIN=TIM
+USERNAME=Tim Robinson
+USERPROFILE=I:\Documents and Settings\Tim Robinson
+VIM=c:\unix\usr\local\wbin
+windir=I:\WINNT
+_ACP_LIB=F:\Program Files\Microsoft Visual Studio\VC98\LIB;F:\Program Files\Microsoft Visual Studio\VC98\MFC\LIB
+_ACP_PATH=F:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin;F:\Program Files\Microsoft Visual Studio\VC98\BIN;F:\Program Files\Microsoft Visual Studio\Common\TOOLS;F:\Program Files\Microsoft Visual Studio\Common\TOOLS\WINNT;I:\WINNT\system32;I:\WINNT;I:\WINNT\System32\Wbem
+_MSDEV_BLD_ENV_=1
+_NT_SYMBOL_PATH=f:\
+
+
+
+<h3>Results</h3>
+fdc.drv - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

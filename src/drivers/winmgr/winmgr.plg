@@ -1,0 +1,48 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: kernel - Win32 Debug--------------------
+</h3>
+
+make: Nothing to be done for `all'.
+<h3>
+--------------------Configuration: winmgr - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "D:\DOCUME~1\TIMROB~1\LOCALS~1\Temp\RSP184.tmp" with contents
+[
+kernel.lib ..\crt0dll.obj /nologo /base:"@..\..\bin\coffbase.txt,winmgr" /subsystem:windows /dll /incremental:no /pdb:"..\..\bin/winmgr.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /out:"..\..\bin/winmgr.dll" /implib:"..\..\lib/winmgr.lib" /pdbtype:sept 
+.\Debug\ClipSurface.obj
+.\Debug\common.obj
+.\Debug\console.obj
+.\Debug\DesktopWnd.obj
+.\Debug\font.obj
+.\Debug\font1.obj
+.\Debug\font2.obj
+.\Debug\gfxcons.obj
+.\Debug\main.obj
+.\Debug\MsgQueue.obj
+.\Debug\ResFont.obj
+.\Debug\surface.obj
+.\Debug\vga8.obj
+.\Debug\Window.obj
+.\Debug\WindowServer.obj
+.\Debug\winframe.obj
+.\Debug\winmgr.res
+\Projects\mobius\lib\kernelrt.lib
+]
+Creating command line "link.exe @D:\DOCUME~1\TIMROB~1\LOCALS~1\Temp\RSP184.tmp"
+<h3>Output Window</h3>
+Linking...
+LINK : warning LNK4075: ignoring /EDITANDCONTINUE due to /INCREMENTAL:NO specification
+   Creating library ..\..\lib/winmgr.lib and object ..\..\lib/winmgr.exp
+
+
+
+<h3>Results</h3>
+winmgr.dll - 0 error(s), 1 warning(s)
+</pre>
+</body>
+</html>

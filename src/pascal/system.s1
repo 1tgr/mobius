@@ -1,0 +1,66 @@
+BITS 32
+
+
+SECTION .text
+	ALIGN 16
+	GLOBAL _SYSTEM$$_INT_STRCOPY$LONGINT$POINTER$POINTER
+_SYSTEM$$_INT_STRCOPY$LONGINT$POINTER$POINTER:
+	GLOBAL FPC_SHORTSTR_COPY
+FPC_SHORTSTR_COPY:
+		push	ebp
+		mov	ebp,esp
+		push	eax
+		push	ecx
+		cld
+		mov	edi,dword [ebp+16]
+		mov	esi,dword [ebp+12]
+		xor	eax,eax
+		mov	ecx,dword [ebp+8]
+		lodsb
+		cmp	eax,ecx
+		jbe	NEAR L5
+		mov	eax,ecx
+L5:
+		stosb
+		cmp	eax,7
+		jl	NEAR L6
+		mov	ecx,edi
+		neg	ecx
+		and	ecx,3
+		sub	eax,ecx
+		rep
+		movsb
+		mov	ecx,eax
+		and	eax,3
+		shr	ecx,2
+		rep
+		movsd
+L6:
+		mov	ecx,eax
+		rep
+		movsb
+		pop	ecx
+		pop	eax
+L4:
+		leave
+		ret	12
+	ALIGN 16
+	GLOBAL _SYSTEM_init
+_SYSTEM_init:
+	GLOBAL INIT$$SYSTEM
+INIT$$SYSTEM:
+		push	ebp
+		mov	ebp,esp
+L2:
+		leave
+		ret
+	ALIGN 16
+
+SECTION .data
+
+SECTION .data
+
+SECTION .data
+
+SECTION .bss
+

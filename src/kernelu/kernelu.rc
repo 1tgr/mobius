@@ -1,0 +1,49 @@
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x0L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "080904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", " \0"
+            VALUE "FileDescription", "User-mode kernel library\0"
+            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "InternalName", "libc\0"
+            VALUE "LegalCopyright", "Copyright © 2001\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "kernelu.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "The Möbius\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x809, 1200
+    END
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    0                       "No error"
+    1                       "EDOM"
+    2                       "EILSEQ"
+    3                       "ERANGE"
+    4                       "Not implemented"
+    5                       "Invalid buffer"
+    6                       "Not found"
+    7                       "Invalid parameters"
+    8                       "No more handles available"
+END

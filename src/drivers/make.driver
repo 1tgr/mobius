@@ -1,0 +1,36 @@
+ROOT=		f:\Projects\mobius
+BIN=		$(ROOT)\bin
+LIB=		$(ROOT)\lib
+#CPPFLAGS+=	/nologo /Z7 /D__MOBIUS__ /DKERNEL /I$(ROOT)\include
+#CC=		cl
+CPPFLAGS+=	-D__MOBIUS__ -DKERNEL -Wall -nostdinc -I$(ROOT)\include
+CC=		gcc
+NASM=		nasm
+LDFLAGS+=	/nologo /debug /debugtype:coff \
+	/libpath:$(LIB) /nodefaultlib /entry:drvInit \
+	/subsystem:native /base:$(BASE)
+LIBS+=		$(LIB)/kernel.lib
+
+%.d:	%.c
+	$(CC) $(CPPFLAGS) -M -c $< -o $@
+%.o:	%.c
+	$(CC) $(CPPFLAGS) -c $< -o $@
+%.o:	%.cpp
+	$(CC) $(CPPFLAGS) -c $< -o$@
+%.d:	%.cpp
+	$(CC) $(CPPFLAGS) -MD -c $<
+%.d:	%.asm
+	$(NASM) -M $< > $@
+%.o:	%.asm
+	$(NASM) -f win32 -o $@ $<
+
+all:	$(TARGET) $(IMP)
+
+$(TARGET):	$(OBJS) $(EXP)
+	link /out:$(TARGET) $(LDFLAGS) $(OBJS) $(EXP) $(LIBS)
+#	ld -o $(TARGET) $(LDFLAGS) $(OBJS) $(EXP) $(LIBS)
+
+clean:
+	rm $(OBJS)
+	rm $(TARGET)
+	rm $(OBJS:.o=.d)

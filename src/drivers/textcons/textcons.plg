@@ -1,0 +1,26 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: textcons - Win32 Debug--------------------
+</h3>
+
+cl /nologo /D__MOBIUS__ /DKERNEL /If:\Projects\mobius\include /c textcons.cpp /Fotextcons.o
+textcons.cpp
+console.h(7) : error C2504: 'IDevice' : base class undefined
+console.h(34) : error C2504: 'IStream' : base class undefined
+console.h(53) : error C2061: syntax error : identifier 'folderitem_t'
+textcons.cpp(13) : error C2733: second C linkage of overloaded function 'drvInit' not allowed
+        textcons.cpp(12) : see declaration of 'drvInit'
+textcons.cpp(15) : error C2065: 'sysExtRegisterDevice' : undeclared identifier
+make: *** [textcons.o] Error 2
+Error executing make.
+
+
+
+<h3>Results</h3>
+textcons.dll - 6 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

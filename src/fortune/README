@@ -1,0 +1,65 @@
+Copyright (c) 2000 Shevek
+All rights reserved
+
+GNU fortune 1.0.0
+
+From an idea in BSD fortune.c - I think that this file has been
+redesigned sufficiently including major flow control modifications and a
+brand new memory model. I have tried to maintain the BSD style of the
+code. However it has been ENTIRELY rewritten and typed from scratch and
+is NOT a modified copy of fortune.c.
+
+This file is Copyright (c) to Shevek <shevek@anarres.org> and
+is distributed under the GNU Public License version 2, or such later
+version as may come into effect.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software
+   must display the following acknowledgement:
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Also included with this file is the original Notes file from the Berkeley
+fortune. If you want to create your own fortune files, you will have to get
+the Berkeley strfile, I am not including it with this distribution as it is
+of no interest to me as a coder. I am only interested in 'large' data sets,
+optimisation and other things like that. I don't care how long strfile
+takes. However, the lack of recursiveness and the bad memory model in
+fortune.c needed IMHO a revamp. This is it.
+
+Soon I hope to release a datafile set to go with the program, and hopefully
+a shell script to set them all up. However, I am currently sitting on a
+database of some 40,000 quotes from various sources and am looking at the
+mammoth task of attributing them all, sorting them out by author and
+subject, offensiveness and otherwise, and categorising them sensibly. A
+recursive fortune using the new regular expression engine is the first step
+on the way to doing this.
+
+Please send me fortune files. NOT THE STANDARD FORTUNE FILES.  But if
+you do have quotes, please send them to me, I would like to add them to
+the archive. I currently have about 40,000 quotes. Please attribute the
+quotes you send.
+
+Many thanks to the people who sent me dungeon.f, I now have the complete
+source code and have written a MUD of my own.
+
+S.
+
+<shevek@anarres.org>
+http://www.anarres.org/

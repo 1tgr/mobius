@@ -1,0 +1,495 @@
+Usage: gcc [options] file...
+Options:
+  --help                   Display this information
+  -dumpspecs               Display all of the built in spec strings
+  -dumpversion             Display the version of the compiler
+  -dumpmachine             Display the compiler's target processor
+  -print-search-dirs       Display the directories in the compiler's search path
+  -print-libgcc-file-name  Display the name of the compiler's companion library
+  -print-file-name=<lib>   Display the full path to library <lib>
+  -print-prog-name=<prog>  Display the full path to compiler component <prog>
+  -print-multi-directory   Display the root directory for versions of libgcc
+  -print-multi-lib         Display the mapping between command line options and
+                            multiple library search directories
+  -Wa,<options>            Pass comma-separated <options> on to the assembler
+  -Wp,<options>            Pass comma-separated <options> on to the preprocessor
+  -Wl,<options>            Pass comma-separated <options> on to the linker
+  -Xlinker <arg>           Pass <arg> on to the linker
+  -save-temps              Do not delete intermediate files
+  -pipe                    Use pipes rather than intermediate files
+  -specs=<file>            Override builtin specs with the contents of <file>
+  -B <directory>           Add <directory> to the compiler's search paths
+  -b <machine>             Run gcc for target <machine>, if installed
+  -V <version>             Run gcc version number <version>, if installed
+  -v                       Display the programs invoked by the compiler
+  -E                       Preprocess only; do not compile, assemble or link
+  -S                       Compile only; do not assemble or link
+  -c                       Compile and assemble, but do not link
+  -o <file>                Place the output into <file>
+  -x <language>            Specify the language of the following input files
+                            Permissable languages include: c c++ assembler none
+                            'none' means revert to the default behaviour of
+                            guessing the language based on the file's extension
+
+Options starting with -g, -f, -m, -O or -W are automatically passed on to
+the various sub-processes invoked by gcc.  In order to pass other options
+on to these processes the -W<letter> options must be used.
+Usage: cpp.exe [switches] input output
+Switches:
+  -include <file>           Include the contents of <file> before other files
+  -imacros <file>           Accept definition of marcos in <file>
+  -iprefix <path>           Specify <path> as a prefix for next two options
+  -iwithprefix <dir>        Add <dir> to the end of the system include paths
+  -iwithprefixbefore <dir>  Add <dir> to the end of the main include paths
+  -isystem <dir>            Add <dir> to the start of the system include paths
+  -idirafter <dir>          Add <dir> to the end of the system include paths
+  -I <dir>                  Add <dir> to the end of the main include paths
+  -nostdinc                 Do not search the system include directories
+  -nostdinc++               Do not search the system include directories for C++
+  -o <file>                 Put output into <file>
+  -pedantic                 Issue all warnings demanded by strict ANSI C
+  -traditional              Follow K&R pre-processor behaviour
+  -trigraphs                Support ANSI C trigraphs
+  -lang-c                   Assume that the input sources are in C
+  -lang-c89                 Assume that the input sources are in C89
+  -lang-c++                 Assume that the input sources are in C++
+  -lang-objc                Assume that the input sources are in ObjectiveC
+  -lang-objc++              Assume that the input sources are in ObjectiveC++
+  -lang-asm                 Assume that the input sources are in assembler
+  -lang-chill               Assume that the input sources are in Chill
+  -+                        Allow parsing of C++ style features
+  -w                        Inhibit warning messages
+  -Wtrigraphs               Warn if trigraphs are encountered
+  -Wno-trigraphs            Do not warn about trigraphs
+  -Wcomment{s}              Warn if one comment starts inside another
+  -Wno-comment{s}           Do not warn about comments
+  -Wtraditional             Warn if a macro argument is/would be turned into
+                             a string if -tradtional is specified
+  -Wno-traditional          Do not warn about stringification
+  -Wundef                   Warn if an undefined macro is used by #if
+  -Wno-undef                Do not warn about testing udefined macros
+  -Wimport                  Warn about the use of the #import directive
+  -Wno-import               Do not warn about the use of #import
+  -Werror                   Treat all warnings as errors
+  -Wno-error                Do not treat warnings as errors
+  -Wall                     Enable all preprocessor warnings
+  -M                        Generate make dependencies
+  -MM                       As -M, but ignore system header files
+  -MD                       As -M, but put output in a .d file
+  -MMD                      As -MD, but ignore system header files
+  -MG                       Treat missing header file as generated files
+  -g                        Include #define and #undef directives in the output
+  -D<macro>                 Define a <macro> with string '1' as its value
+  -D<macro>=<val>           Define a <macro> with <val> as its value
+  -A<question> (<answer>)   Assert the <answer> to <question>
+  -U<macro>                 Undefine <macro> 
+  -u or -undef              Do not predefine any macros
+  -v                        Display the version number
+  -H                        Print the name of header files as they are used
+  -C                        Do not discard comments
+  -dM                       Display a list of macro definitions active at end
+  -dD                       Preserve macro definitions in output
+  -dN                       As -dD except that only the names are preserved
+  -dI                       Include #include directives in the output
+  -ifoutput                 Describe skipped code blocks in output 
+  -P                        Do not generate #line directives
+  -$                        Do not include '$' in identifiers
+  -remap                    Remap file names when including files.
+  -h or --help              Display this information
+Usage: cc1.exe input [switches]
+Switches:
+  -ffixed-<register>      Mark <register> as being unavailable to the compiler
+  -fcall-used-<register>  Mark <register> as being corrupted by function calls
+  -fcall-saved-<register> Mark <register> as being preserved across functions
+  -fprefix-function-name  Add a prefix to all function names
+  -fcheck-memory-usage    Generate code to check every memory access
+  -fstrict-aliasing       Assume strict aliasing rules apply
+  -fargument-noalias-global Assume arguments do not alias each other or globals
+  -fargument-noalias      Assume arguments may alias globals but not each other
+  -fargument-alias        Specify that arguments may alias each other & globals
+  -fstack-check           Insert stack checking code into the program
+  -fpack-struct           Pack structure members together without holes
+  -fregmove               Enables a regoster move optimisation
+  -fgnu-linker            Output GNU ld formatted global initialisers
+  -fverbose-asm           Add extra commentry to assembler output
+  -ffunction-sections     place each function into its own section
+  -finhibit-size-directive Do not generate .size directives
+  -fcommon                Do not put unitialised globals in the common section
+  -ffast-math             Improve FP speed by violating ANSI & IEEE rules
+  -fbranch-probabilities  Use profiling information for branch porbabilities
+  -ftest-coverage         Create data files needed by gcov
+  -fprofile-arcs          Insert arc based program profiling code
+  -fasynchronous-exceptions Support asynchronous exceptions
+  -fsjlj-exceptions       Use setjmp/longjmp to handle exceptions
+  -fnew-exceptions        Use the new model for exception handling
+  -fexceptions            Enable exception handling
+  -fpic                   Generate position independent code, if possible
+  -fschedule-insns2       Run two passes of the instruction scheduler
+  -fschedule-insns        Reschedule instructions to avoid pipeline stalls
+  -fpretend-float         Pretend that host and target use the same FP format
+  -frerun-loop-opt        Run the loop optimiser twice
+  -frerun-cse-after-loop  Run CSE pass after loop optimisations
+  -fgcse                  Perform the global common subexpression elimination
+  -fdelayed-branch        Attempt to fill delay slots of branch instructions
+  -freg-struct-return     Return 'short' aggregates in registers
+  -fpcc-struct-return     Return 'short' aggregates in memory, not registers
+  -fcaller-saves          Enable saving registers around function calls
+  -fshared-data           Mark data as shared rather than private
+  -fsyntax-only           Check for syntax errors, then stop
+  -fkeep-static-consts    Emit static const variables even if they are not used
+  -finline                Pay attention to the 'inline' keyword
+  -fkeep-inline-functions Generate code for funcs even if they are fully inlined
+  -finline-functions      Integrate simple functions into their callers
+  -ffunction-cse          Allow function addresses to be held in registers
+  -fforce-addr            Copy memory address constants into regs before using
+  -fforce-mem             Copy memory operands into registers before using
+  -fpeephole              Enable machine specific peephole optimisations
+  -fwritable-strings      Store strings in writable data section
+  -freduce-all-givs       Strength reduce all loop general induction variables
+  -fmove-all-movables     Force all loop invariant computations out of loops
+  -funroll-all-loops      Perofm loop onrolling for all loops
+  -funroll-loops          Perform loop unrolling when interation count is known
+  -fstrength-reduce       Perform strength reduction optimisations
+  -fthread-jumps          Perform jump threading optimisations
+  -fexpensive-optimizations Perform a number of minor, expensive optimisations
+  -fcse-skip-blocks       When running CSE, follow conditional jumps
+  -fcse-follow-jumps      When running CSE, follow jumps to their targets
+  -fomit-frame-pointer    When possible do not generate stack frames
+  -fdefer-pop             Defer popping functions args from stack until later
+  -fvolatile-global       Consider all mem refs to global data to be volatile
+  -fvolatile              Consider all mem refs through pointers as volatile
+  -ffloat-store           Do not store floats in registers
+  -O[number]              Set optimisation level to [number]
+  -Os                     Optimise for space rather than speed
+  -pedantic               Issue warnings needed by strict compliance to ANSI C
+  -pedantic-errors        Like -pedantic except that errors are produced
+  -w                      Suppress warnings
+  -W                      Enable extra warnings
+  -Winline                Warn when an inlined function cannot be inlined
+  -Wuninitialized         Warn about unitialized automatic variables
+  -Wcast-align            Warn about pointer casts which increase alignment
+  -Waggregate-return      Warn about returning structures, unions or arrays
+  -Wswitch                Warn about enumerated switches missing a specific case
+  -Wshadow                Warn when one local variable shadows another
+  -Wunused                Warn when a variable is unused
+  -Wid-clash-<num>        Warn if 2 identifiers have the same first <num> chars
+  -Wlarger-than-<number>  Warn if an object is larger than <number> bytes
+  -p                      Enable function profiling
+  -a                      Enable block profiling 
+  -ax                     Enable jump profiling 
+  -o <file>               Place output into <file> 
+  -G <number>             Put global and static data smaller than <number>
+                           bytes into a special section (on some targets)
+  -gcoff                  Generate COFF format debug output
+  -gstabs+                Generate extended STABS format debug output
+  -gstabs                 Generate STABS format debug output
+  -ggdb                   Generate default extended debug format output
+  -g                      Generate default debug format output
+  -aux-info <file>        Emit declaration info into <file>.X
+  -quiet                  Do not display functions compiled or elapsed time
+  -version                Display the compiler's version
+  -d[letters]             Enable dumps from specific passes of the compiler
+  -dumpbase <file>        Base name to be used for dumps from specific passes
+  -sched-verbose-<number> Set the verbosity level of the scheduler
+  --help                  Display this information
+
+Language specific options:
+  -ansi                   Compile just for ANSI C
+  -fallow-single-precisio Do not promote floats to double if using -traditional
+  -funsigned-bitfields    Make bitfields by unsigned by default
+  -fsigned-char           Make 'char' be signed by default
+  -funsigned-char         Make 'char' be unsigned by default
+  -traditional            Attempt to support traditional K&R style C
+  -fno-asm                Do not recognise the 'asm' keyword
+  -fno-builtin            Do not recognise any built in functions
+  -fhosted                Assume normal C execution environment
+  -ffreestanding          Assume that standard libraries & main might not exist
+  -fcond-mismatch         Allow different types as args of ? operator
+  -fdollars-in-identifier Allow the use of $ inside indentifiers
+  -fno-ident              Ignore #ident directives
+  -fshort-double          Use the same size for double as for float
+  -fshort-enums           Use the smallest fitting integer to hold enums
+  -Wall                   Enable most warning messages
+  -Wbad-function-cast     Warn about casting functions to incompatible types
+  -Wcast-qual             Warn about casts which discard qualifiers
+  -Wchar-subscripts       Warn about subscripts whoes type is 'char'
+  -Wcomment               Warn if nested comments are detected
+  -Wconversion            Warn about possibly confusing type conversions
+  -Wformat                Warn about printf format anomalies
+  -Wimplicit-function-dec Warn about implicit function declarations
+  -Wimplicit-int          Warn when a declaration does not specify a type
+  -Wimport                Warn about the use of the #import directive
+  -Wno-long-long          Do not warn about using 'long long' when -pedantic
+  -Wmain                  Warn about suspicious declarations of main
+  -Wmissing-braces        Warn about possibly missing braces around initialisers
+  -Wmissing-declarations  Warn about global funcs without previous declarations
+  -Wmissing-prototypes    Warn about global funcs without prototypes
+  -Wmultichar             Warn about use of multicharacter literals
+  -Wnested-externs        Warn about externs not at file scope level
+  -Wparentheses           Warn about possible missing parentheses
+  -Wpointer-arith         Warn about function pointer arithmetic
+  -Wredundant-decls       Warn about multiple declarations of the same object
+  -Wsign-compare          Warn about signed/unsigned comparisons
+  -Wunknown-pragmas       Warn about unrecognised pragmas
+  -Wstrict-prototypes     Warn about non-prototyped function decls
+  -Wtraditional           Warn about constructs whoes meaning change in ANSI C
+  -Wtrigraphs             Warn when trigraphs are encountered
+  -Wwrite-strings         Mark strings as 'const char *'
+
+There are undocumented language specific options as well.
+
+ Options for Objective C:
+  -gen-decls              Dump decls to a .decl file
+  -fgnu-runtime           Generate code for GNU runtime envrionment
+  -fnext-runtime          Generate code for NeXT runtime environment
+  -Wselector              Warn if a selector has multiple methods
+  -Wno-protocol           Do not warn if inherited methods are unimplemented
+  -print-objc-runtime-inf Generate C header of platform specific features
+
+ Options for C++:
+  -fno-access-control     Do not obey access control semantics
+  -fall-virtual           Make all member functions virtual
+  -falt-external-template Change when template instances are emitted
+  -fcheck-new             Check the return value of new
+  -fconserve-space        Reduce size of object files
+  -fno-default-inline     Do not inline mmeber functions be default
+  -fno-rtti               Do not generate run time type descriptor information
+  -fno-for-scope          Scope of for-init-statement vars extends outside
+  -fguiding-decls         Implement guiding declarations
+  -fno-gnu-keywords       Do not recognise GNU defined keywords
+  -fhandle-exceptions     Enable exception handling
+  -fhandle-signatures     Handle signature language constructs
+  -fhonor-std             Do not ignore the namespace standard
+  -fhuge-objects          Enable support for huge objects
+  -fno-implement-inlines  Export functions even if they can be inlined
+  -fimplicit-templates    Emit implicit instatiations if needed
+  -flabels-ok             Labels can be used as first class objects
+  -fmemoize-lookups       Enable caching of member function resolutions
+  -fname-mangling-version Set the version of name mangling to use
+  -fnew-abi               Enable experimental ABI changes
+  -fno-nonnull-objects    Do not assume that a reference is always valid
+  -foperator-names        Recognise and/bitand/bitor/compl/not/or/xor
+  -fno-optional-diags     Disable optional diagnostics
+  -frepo                  Enable automatic template instantiation
+  -fsave-memoized         Save cache of member function resolutions
+  -fsquangle              Enable squashed name mangling
+  -fstats                 Display statistics accumulated during compilation
+  -fno-strict-prototype   Do not assume that empty prototype means no args
+  -ftemplate-depth-       Specify maximum template instantiation depth
+  -fthis-is-variable      Make 'this' not be type '* const'
+  -fvtable-thunks         Implement vtables using thunks
+  -fweak                  Emit common-like symbols as weak symbols
+  -fxref                  Emit cross referencing information
+  -Wreturn-type           Warn about inconsistent return types
+  -Woverloaded-virtual    Warn about overloaded virtual function names
+  -Wctor-dtor-privacy     Warn when all ctors/dtors are private
+  -Wnon-virtual-dtor      Warn about non virtual destructors
+  -Wextern-inline         Warn when a function is declared extern, then inline
+  -Wreorder               Warn when the compiler reorders code
+  -Wsynth                 Warn when synthesis behaviour differs from Cfront
+  -Wpmf-conversions       Warn when type converting pointers to member functions
+  -Weffc++                Warn about violations of Effective C++ style rules
+  -Wsign-promo            Warn when overload promotes from unsigned to signed
+  -Wold-style-cast        Warn if a C style cast is used in a program
+
+Target specific options:
+  wide-multiply           multiplies of 32 bits are 64 bits
+  no-wide-multiply        multiplies of 32 bits constrained to 32 bits
+  fancy-math-387          Generate sin, cos, sqrt for FPU
+  no-fancy-math-387       Do not generate sin, cos, sqrt for 387
+  no-fp-ret-in-387        Do not return values of functions in FPU registers
+  fp-ret-in-387           Return values of functions in FPU registers
+  no-ieee-fp              Do not use IEEE math for fp comparisons
+  ieee-fp                 Use IEEE math for fp comparisons
+  no-svr3-shlib           Uninitialized locals in .data
+  svr3-shlib              Uninitialized locals in .bss
+  no-align-double         Align doubles on word boundary
+  align-double            Align some doubles on dword boundary
+  no-rtd                  Use normal calling convention
+  rtd                     Alternate calling convention
+  pentiumpro              Optimize for Pentium Pro, Pentium II
+  pentium                 Optimize for Pentium
+  486                     Optimize for i80486
+  386                     Optimize for i80386
+  no-soft-float           Use hardware fp
+  soft-float              Do not use hardware fp
+  hard-float              Use hardware fp
+  no-80387                Do not use hardware fp
+  80387                   Use hardware fp
+  align-functions=        Function starts are aligned to this power of 2
+  align-jumps=            Jump targets are aligned to this power of 2
+  align-loops=            Loop code aligned to this power of 2
+  regparm=                Number of registers used to pass integer arguments
+  reg-alloc=              Control allocation order of integer registers
+  arch=                   Generate code for given CPU
+  cpu=                    Schedule code for given CPU
+
+There are undocumented target specific options as well.
+Usage: //f/drived/cygnus/cygwin-b20/H-i586-cygwin32/i586-cygwin32/bin/as.exe [option...] [asmfile...]
+Options:
+  -a[sub-option...]	turn on listings
+    Sub-options [default hls]:
+    c   omit false conditionals
+    d   omit debugging directives
+    h   include high-level source
+    l   include assembly
+    m   include macro expansions
+    n   omit forms processing
+    s   include symbols
+    =file set listing file name (must be last sub-option)
+  -D		          produce assembler debugging messages
+  --defsym SYM=VAL        define symbol SYM to given value
+  -f		          skip whitespace and comment preprocessing
+  --gstabs	          generate stabs debugging information
+  --help		  show this message and exit
+  -I DIR		  add DIR to search list for .include directives
+  -J		          don't warn about signed overflow
+  -K		          warn when differences altered for long displacements
+  -L,--keep-locals        keep local symbols (e.g. starting with `L')
+  -M,--mri	          assemble in MRI compatibility mode
+  --MD FILE	          write dependency information in FILE (default none)
+  -nocpp		  ignored
+  -o OBJFILE	          name the object-file output OBJFILE (default a.out)
+  -R		          fold data section into text section
+  --statistics	          print various measured statistics from execution
+  --strip-local-absolute  strip local absolute symbols
+  --traditional-format	  Use same format as native assembler when possible
+  --version		  print assembler version number and exit
+  -W			  suppress warnings
+  --itbl INSTTBL	  extend instruction set to include instructions
+			  matching the specifications defined in file INSTTBL
+  -w			  ignored
+  -X			  ignored
+  -Z			  generate object file even after errors
+  --listing-lhs-width	  set the width in words of the output data column of
+			  the listing
+  --listing-lhs-width2	  set the width in words of the continuation lines
+			  of the output data column; ignored if smaller than
+			  the width of the first line
+  --listing-rhs-width	  set the max width in characters of the lines from
+			  the source file
+  --listing-cont-lines	  set the maximum number of continuation lines used
+			  for the output data column of the listing
+-m			do long jump
+
+Report bugs to bug-gnu-utils@gnu.org
+Usage: //f/drived/cygnus/cygwin-b20/H-i586-cygwin32/i586-cygwin32/bin/ld [options] file...
+Options:
+  -a KEYWORD                  Shared library control for HP/UX compatibility
+  -A ARCH, --architecture ARCH
+                              Set architecture
+  -b TARGET, --format TARGET  Specify target for following input files
+  -c FILE, --mri-script FILE  Read MRI format linker script
+  -d, -dc, -dp                Force common symbols to be defined
+  -e ADDRESS, --entry ADDRESS Set start address
+  -E, --export-dynamic        Export all dynamic symbols
+  -f SHLIB, --auxiliary SHLIB Auxiliary filter for shared object symbol table
+  -F SHLIB, --filter SHLIB    Filter for shared object symbol table
+  -g                          Ignored
+  --gc-sections               Remove unused sections on certain targets
+  --no-gc-sections            (Don't) Remove unused sections on certain targets
+  -G SIZE, --gpsize SIZE      Small data size (if no size, same as --shared)
+  -h FILENAME, -soname FILENAME
+                              Set internal name of shared library
+  -l LIBNAME, --library LIBNAME
+                              Search for library LIBNAME
+  -L DIRECTORY, --library-path DIRECTORY
+                              Add DIRECTORY to library search path
+  -m EMULATION                Set emulation
+  -M, --print-map             Print map file on standard output
+  -n, --nmagic                Do not page align data
+  -N, --omagic                Do not page align data, do not make text readonly
+  -o FILE, --output FILE      Set output file name
+  -O                          Ignored
+  -r, -i, --relocateable      Generate relocateable output
+  -R FILE, --just-symbols FILE
+                              Just link symbols (if directory, same as --rpath)
+  -s, --strip-all             Strip all symbols
+  -S, --strip-debug           Strip debugging symbols
+  -t, --trace                 Trace file opens
+  -T FILE, --script FILE      Read linker script
+  -u SYMBOL, --undefined SYMBOL
+                              Start with undefined reference to SYMBOL
+  -v, --version               Print version information
+  -V                          Print version and emulation information
+  -x, --discard-all           Discard all local symbols
+  -X, --discard-locals        Discard temporary local symbols
+  -y SYMBOL, --trace-symbol SYMBOL
+                              Trace mentions of SYMBOL
+  -Y PATH                     Default search path for Solaris compatibility
+  -z KEYWORD                  Ignored for Solaris compatibility
+  -(, --start-group           Start a group
+  -), --end-group             End a group
+  -assert KEYWORD             Ignored for SunOS compatibility
+  -Bdynamic, -dy, -call_shared
+                              Link against shared libraries
+  -Bstatic, -dn, -non_shared, -static
+                              Do not link against shared libraries
+  -Bsymbolic                  Bind global references locally
+  --cref                      Output cross reference table
+  --defsym SYMBOL=EXPRESSION  Define a symbol
+  --dynamic-linker PROGRAM    Set the dynamic linker to use
+  -EB                         Link big-endian objects
+  -EL                         Link little-endian objects
+  --embedded-relocs           Generate embedded relocs
+  --force-exe-suffix          Force generation of file with .exe suffix
+  --help                      Print option help
+  -Map FILE                   Write a map file
+  --no-keep-memory            Use less memory and more disk I/O
+  --no-warn-mismatch          Don't warn about mismatched input files
+  --no-whole-archive          Turn off --whole-archive
+  --noinhibit-exec            Create an output file even if errors occur
+  --oformat TARGET            Specify target of output file
+  -qmagic                     Ignored for Linux compatibility
+  -Qy                         Ignored for SVR4 compatibility
+  --relax                     Relax branches on certain targets
+  --retain-symbols-file FILE  Keep only symbols listed in FILE
+  -rpath PATH                 Set runtime shared library search path
+  -rpath-link PATH            Set link time shared library search path
+  -shared, -Bshareable        Create a shared library
+  --sort-common               Sort common symbols by size
+  --split-by-file             Split output sections for each file
+  --split-by-reloc COUNT      Split output sections every COUNT relocs
+  --stats                     Print memory usage statistics
+  --task-link SYMBOL          Do task level linking
+  --traditional-format        Use same format as native linker
+  -Tbss ADDRESS               Set address of .bss section
+  -Tdata ADDRESS              Set address of .data section
+  -Ttext ADDRESS              Set address of .text section
+  -Ur                         Build global constructor/destructor tables
+  --verbose                   Output lots of information during link
+  --version-script FILE       Read version information script
+  --version-exports-section SYMBOL
+                              Take export symbols list from .exports, using SYMBOL as the version.
+  --warn-common               Warn about duplicate common symbols
+  --warn-constructors         Warn if global constructors/destructors are seen
+  --warn-multiple-gp          Warn if the multiple GP values are used
+  --warn-once                 Warn only once per undefined symbol
+  --warn-section-align        Warn if start of section changes due to alignment
+  --whole-archive             Include all objects from following archives
+  --wrap SYMBOL               Use wrapper functions for SYMBOL
+//f/drived/cygnus/cygwin-b20/H-i586-cygwin32/i586-cygwin32/bin/ld: supported targets: pe-i386 pei-i386 srec symbolsrec tekhex binary ihex
+//f/drived/cygnus/cygwin-b20/H-i586-cygwin32/i586-cygwin32/bin/ld: supported emulations: i386pe
+//f/drived/cygnus/cygwin-b20/H-i586-cygwin32/i586-cygwin32/bin/ld: emulation specific options:
+i386pe: 
+  --base_file <basefile>             Generate a base file for relocatable DLLs
+  --dll                              Set image base to the default for DLLs
+  --file-alignment <size>            Set file alignment
+  --heap <size>                      Set initial size of the heap
+  --image-base <address>             Set start address of the executable
+  --major-image-version <number>     Set version number of the executable
+  --major-os-version <number>        Set minimum required OS version
+  --major-subsystem-version <number> Set minimum required OS subsystem version
+  --minor-image-version <number>     Set revision number of the executable
+  --minor-os-version <number>        Set minimum required OS revision
+  --minor-subsystem-version <number> Set minimum required OS subsystem revision
+  --section-alignment <size>         Set section alignment
+  --stack <size>                     Set size of the initial stack
+  --subsystem <name>[:<version>]     Set required OS subsystem [& version]
+  --support-old-code                 Support interworking with old code
+
+
+Report bugs to bug-gnu-utils@gnu.org
+
+Report bugs to egcs-bugs@cygnus.com.
+Please see the file BUGS (included with the sources) first.

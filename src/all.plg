@@ -1,0 +1,19 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: all - Win32 Debug--------------------
+</h3>
+
+'make' is not recognized as an internal or external command,
+operable program or batch file.
+Error executing i:\winnt\system32\cmd.exe.
+
+
+
+<h3>Results</h3>
+all.exe - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: ps2mouse - Win32 Debug--------------------
+</h3>
+
+gcc -D__MOBIUS__ -DKERNEL -If:\Projects\mobius\include -MD -c ps2mouse.c
+link /out:f:\Projects\mobius\bin/ps2mouse.dll /nologo /debug /debugtype:coff /libpath:f:\Projects\mobius\lib /nodefaultlib /entry:drvInit /subsystem:native /base:@f:\Projects\mobius\bin\coffbase.txt,ps2mouse ps2mouse.o kernel.lib
+
+
+
+<h3>Results</h3>
+ps2mouse.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -1,0 +1,241 @@
+In file included from f:\Projects\mobius\include\os/stream.h:9,
+                 from init.c:4:
+f:\Projects\mobius\include\os/com.h:130: parse error before `HRESULT'
+f:\Projects\mobius\include\os/com.h:130: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\os/com.h:152: parse error before `}'
+f:\Projects\mobius\include\os/com.h:156: parse error before `IUnknown_QueryInterface'
+f:\Projects\mobius\include\os/com.h:156: warning: type defaults to `int' in declaration of `IUnknown_QueryInterface'
+f:\Projects\mobius\include\os/com.h:156: warning: data definition has no type or storage class
+In file included from init.c:4:
+f:\Projects\mobius\include\os/stream.h:43: parse error before `HRESULT'
+f:\Projects\mobius\include\os/stream.h:43: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\os/stream.h:44: conflicting types for `AddRef'
+f:\Projects\mobius\include\os/com.h:142: previous declaration of `AddRef'
+f:\Projects\mobius\include\os/stream.h:45: conflicting types for `Release'
+f:\Projects\mobius\include\os/com.h:151: previous declaration of `Release'
+f:\Projects\mobius\include\os/stream.h:49: warning: type defaults to `int' in declaration of `SetIoMode'
+f:\Projects\mobius\include\os/stream.h:49: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\os/stream.h:49: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\os/stream.h:49: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\os/stream.h:49: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:50: warning: type defaults to `int' in declaration of `IsReady'
+f:\Projects\mobius\include\os/stream.h:50: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\os/stream.h:50: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\os/stream.h:50: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\os/stream.h:50: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:51: warning: type defaults to `int' in declaration of `Stat'
+f:\Projects\mobius\include\os/stream.h:51: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\os/stream.h:51: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\os/stream.h:51: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\os/stream.h:51: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:52: warning: type defaults to `int' in declaration of `Seek'
+f:\Projects\mobius\include\os/stream.h:52: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\os/stream.h:52: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\os/stream.h:52: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\os/stream.h:52: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:53: parse error before `}'
+f:\Projects\mobius\include\os/stream.h:61: parse error before `IStream_SetIoMode'
+f:\Projects\mobius\include\os/stream.h:61: warning: type defaults to `int' in declaration of `IStream_SetIoMode'
+f:\Projects\mobius\include\os/stream.h:61: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:62: parse error before `IStream_IsReady'
+f:\Projects\mobius\include\os/stream.h:62: warning: type defaults to `int' in declaration of `IStream_IsReady'
+f:\Projects\mobius\include\os/stream.h:62: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:63: parse error before `IStream_Stat'
+f:\Projects\mobius\include\os/stream.h:63: warning: type defaults to `int' in declaration of `IStream_Stat'
+f:\Projects\mobius\include\os/stream.h:63: warning: data definition has no type or storage class
+f:\Projects\mobius\include\os/stream.h:64: parse error before `IStream_Seek'
+f:\Projects\mobius\include\os/stream.h:64: warning: type defaults to `int' in declaration of `IStream_Seek'
+f:\Projects\mobius\include\os/stream.h:64: warning: data definition has no type or storage class
+In file included from f:\Projects\mobius\include\gui/winserve.h:10,
+                 from init.c:5:
+f:\Projects\mobius\include\gui/surface.h:131: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:131: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/surface.h:132: conflicting types for `AddRef'
+f:\Projects\mobius\include\os/stream.h:44: previous declaration of `AddRef'
+f:\Projects\mobius\include\gui/surface.h:133: conflicting types for `Release'
+f:\Projects\mobius\include\os/stream.h:45: previous declaration of `Release'
+f:\Projects\mobius\include\gui/surface.h:135: warning: type defaults to `int' in declaration of `SetPalette'
+f:\Projects\mobius\include\gui/surface.h:135: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:135: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:135: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:135: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:136: warning: type defaults to `int' in declaration of `Blt'
+f:\Projects\mobius\include\gui/surface.h:136: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:137: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:137: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:137: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:138: warning: type defaults to `int' in declaration of `Lock'
+f:\Projects\mobius\include\gui/surface.h:138: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:138: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:138: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:138: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:139: warning: type defaults to `int' in declaration of `Unlock'
+f:\Projects\mobius\include\gui/surface.h:139: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:139: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:139: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:139: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:140: warning: type defaults to `int' in declaration of `GetSurfaceDesc'
+f:\Projects\mobius\include\gui/surface.h:140: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:140: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:140: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:140: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:143: warning: type defaults to `int' in declaration of `SetPixel'
+f:\Projects\mobius\include\gui/surface.h:143: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:143: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:143: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:143: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:146: warning: type defaults to `int' in declaration of `FillRect'
+f:\Projects\mobius\include\gui/surface.h:146: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:146: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:146: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:146: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:147: warning: type defaults to `int' in declaration of `Rect3d'
+f:\Projects\mobius\include\gui/surface.h:147: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:148: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:148: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:148: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:149: warning: type defaults to `int' in declaration of `Rect'
+f:\Projects\mobius\include\gui/surface.h:149: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:149: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:149: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:149: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:150: warning: type defaults to `int' in declaration of `GetClipRect'
+f:\Projects\mobius\include\gui/surface.h:150: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/surface.h:150: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/surface.h:150: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/surface.h:150: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:151: parse error before `}'
+f:\Projects\mobius\include\gui/surface.h:163: parse error before `ISurface_Lock'
+f:\Projects\mobius\include\gui/surface.h:163: warning: type defaults to `int' in declaration of `ISurface_Lock'
+f:\Projects\mobius\include\gui/surface.h:163: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:164: parse error before `ISurface_Unlock'
+f:\Projects\mobius\include\gui/surface.h:164: warning: type defaults to `int' in declaration of `ISurface_Unlock'
+f:\Projects\mobius\include\gui/surface.h:164: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:165: parse error before `ISurface_GetSurfaceDesc'
+f:\Projects\mobius\include\gui/surface.h:165: warning: type defaults to `int' in declaration of `ISurface_GetSurfaceDesc'
+f:\Projects\mobius\include\gui/surface.h:165: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:168: parse error before `ISurface_SetPixel'
+f:\Projects\mobius\include\gui/surface.h:168: warning: type defaults to `int' in declaration of `ISurface_SetPixel'
+f:\Projects\mobius\include\gui/surface.h:168: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:171: parse error before `ISurface_FillRect'
+f:\Projects\mobius\include\gui/surface.h:171: warning: type defaults to `int' in declaration of `ISurface_FillRect'
+f:\Projects\mobius\include\gui/surface.h:171: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:172: parse error before `ISurface_Rect3d'
+f:\Projects\mobius\include\gui/surface.h:173: warning: type defaults to `int' in declaration of `ISurface_Rect3d'
+f:\Projects\mobius\include\gui/surface.h:173: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:174: parse error before `ISurface_Rect'
+f:\Projects\mobius\include\gui/surface.h:174: warning: type defaults to `int' in declaration of `ISurface_Rect'
+f:\Projects\mobius\include\gui/surface.h:174: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/surface.h:175: parse error before `ISurface_GetClipRect'
+f:\Projects\mobius\include\gui/surface.h:175: warning: type defaults to `int' in declaration of `ISurface_GetClipRect'
+f:\Projects\mobius\include\gui/surface.h:175: warning: data definition has no type or storage class
+In file included from f:\Projects\mobius\include\gui/winserve.h:11,
+                 from init.c:5:
+f:\Projects\mobius\include\gui/font.h:10: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/font.h:10: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/font.h:11: conflicting types for `AddRef'
+f:\Projects\mobius\include\gui/surface.h:132: previous declaration of `AddRef'
+f:\Projects\mobius\include\gui/font.h:12: conflicting types for `Release'
+f:\Projects\mobius\include\gui/surface.h:133: previous declaration of `Release'
+f:\Projects\mobius\include\gui/font.h:14: warning: type defaults to `int' in declaration of `DrawText'
+f:\Projects\mobius\include\gui/font.h:14: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/font.h:15: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/font.h:15: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/font.h:15: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/font.h:16: warning: type defaults to `int' in declaration of `GetTextExtent'
+f:\Projects\mobius\include\gui/font.h:16: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/font.h:16: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/font.h:16: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/font.h:16: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/font.h:17: parse error before `}'
+In file included from init.c:5:
+f:\Projects\mobius\include\gui/winserve.h:19: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:19: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/winserve.h:20: conflicting types for `AddRef'
+f:\Projects\mobius\include\gui/font.h:11: previous declaration of `AddRef'
+f:\Projects\mobius\include\gui/winserve.h:21: conflicting types for `Release'
+f:\Projects\mobius\include\gui/font.h:12: previous declaration of `Release'
+f:\Projects\mobius\include\gui/winserve.h:25: warning: type defaults to `int' in declaration of `InvalidateRect'
+f:\Projects\mobius\include\gui/winserve.h:25: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:25: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:25: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:25: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:26: warning: type defaults to `int' in declaration of `UpdateWindow'
+f:\Projects\mobius\include\gui/winserve.h:26: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:26: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:26: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:26: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:27: warning: type defaults to `int' in declaration of `DefWndProc'
+f:\Projects\mobius\include\gui/winserve.h:27: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:27: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:27: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:27: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:29: warning: type defaults to `int' in declaration of `ClientToScreen'
+f:\Projects\mobius\include\gui/winserve.h:29: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:29: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:29: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:29: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:30: parse error before `}'
+f:\Projects\mobius\include\gui/winserve.h:41: parse error before `IWindow_InvalidateRect'
+f:\Projects\mobius\include\gui/winserve.h:41: warning: type defaults to `int' in declaration of `IWindow_InvalidateRect'
+f:\Projects\mobius\include\gui/winserve.h:41: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:42: parse error before `IWindow_UpdateWindow'
+f:\Projects\mobius\include\gui/winserve.h:42: warning: type defaults to `int' in declaration of `IWindow_UpdateWindow'
+f:\Projects\mobius\include\gui/winserve.h:42: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:43: parse error before `IWindow_DefWndProc'
+f:\Projects\mobius\include\gui/winserve.h:43: warning: type defaults to `int' in declaration of `IWindow_DefWndProc'
+f:\Projects\mobius\include\gui/winserve.h:43: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:45: parse error before `IWindow_ClientToScreen'
+f:\Projects\mobius\include\gui/winserve.h:45: warning: type defaults to `int' in declaration of `IWindow_ClientToScreen'
+f:\Projects\mobius\include\gui/winserve.h:45: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:60: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:60: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/winserve.h:79: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:79: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/winserve.h:80: conflicting types for `AddRef'
+f:\Projects\mobius\include\gui/winserve.h:20: previous declaration of `AddRef'
+f:\Projects\mobius\include\gui/winserve.h:81: conflicting types for `Release'
+f:\Projects\mobius\include\gui/winserve.h:21: previous declaration of `Release'
+f:\Projects\mobius\include\gui/winserve.h:83: warning: type defaults to `int' in declaration of `PeekMessage'
+f:\Projects\mobius\include\gui/winserve.h:83: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:83: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:83: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:83: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:84: warning: type defaults to `int' in declaration of `GetMessage'
+f:\Projects\mobius\include\gui/winserve.h:84: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:84: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:84: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:84: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:85: warning: type defaults to `int' in declaration of `DispatchMessage'
+f:\Projects\mobius\include\gui/winserve.h:85: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:85: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:85: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:85: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:86: warning: type defaults to `int' in declaration of `PostMessage'
+f:\Projects\mobius\include\gui/winserve.h:86: warning: `stdcall' attribute directive ignored
+f:\Projects\mobius\include\gui/winserve.h:86: warning: type defaults to `int' in declaration of `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:86: `HRESULT' declared as function returning a function
+f:\Projects\mobius\include\gui/winserve.h:86: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:87: parse error before `}'
+f:\Projects\mobius\include\gui/winserve.h:93: parse error before `IMsgQueue_PeekMessage'
+f:\Projects\mobius\include\gui/winserve.h:93: warning: type defaults to `int' in declaration of `IMsgQueue_PeekMessage'
+f:\Projects\mobius\include\gui/winserve.h:93: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:94: parse error before `IMsgQueue_GetMessage'
+f:\Projects\mobius\include\gui/winserve.h:94: warning: type defaults to `int' in declaration of `IMsgQueue_GetMessage'
+f:\Projects\mobius\include\gui/winserve.h:94: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:95: parse error before `IMsgQueue_DispatchMessage'
+f:\Projects\mobius\include\gui/winserve.h:95: warning: type defaults to `int' in declaration of `IMsgQueue_DispatchMessage'
+f:\Projects\mobius\include\gui/winserve.h:95: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:96: parse error before `IMsgQueue_PostMessage'
+f:\Projects\mobius\include\gui/winserve.h:96: warning: type defaults to `int' in declaration of `IMsgQueue_PostMessage'
+f:\Projects\mobius\include\gui/winserve.h:96: warning: data definition has no type or storage class
+f:\Projects\mobius\include\gui/winserve.h:102: parse error before `HRESULT'
+f:\Projects\mobius\include\gui/winserve.h:102: warning: no semicolon at end of struct or union
+f:\Projects\mobius\include\gui/winserve.h:103: conflicting types for `AddRef'
+f:\Projects\mobius\include\gui/winserve.h:80: previous declaration of `AddRef'
+f:\Projects\mobius\include\gui/winserve.h:104: conflicting types for `Release'
+f:\Projects\mobius\include\gui/winserve.h:81: previous declaration of `Release'
+f:\Projects\mobius\include\gui/winserve.h:109: parse error before `}'
+init.c: In function `exit':
+init.c:86: warning: `noreturn' function does return
+make: *** [init.o] Error 1

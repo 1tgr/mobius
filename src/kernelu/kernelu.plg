@@ -1,0 +1,105 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: kernelu - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "c:\temp\RSP12C.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /Zi /Ox /Ot /Oi /Ob2 /D "_DEBUG" /D "__MOBIUS__" /Fp"Debug/kernelu.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c 
+"F:\Projects\mobius\src\kernelu\except.c"
+"F:\Projects\mobius\src\kernelu\fs.c"
+"F:\Projects\mobius\src\kernelu\obj.c"
+"F:\Projects\mobius\src\kernelu\proc.c"
+"F:\Projects\mobius\src\kernelu\resource.c"
+"F:\Projects\mobius\src\kernelu\sys.c"
+"F:\Projects\mobius\src\kernelu\thread.c"
+"F:\Projects\mobius\src\kernelu\vmm.c"
+]
+Creating command line "cl.exe @c:\temp\RSP12C.tmp" 
+Creating temporary file "c:\temp\RSP12D.tmp" with contents
+[
+/nologo /base:"@..\..\bin\coffbase.txt,kernelu" /subsystem:windows /dll /incremental:no /pdb:"..\..\bin/kernelu.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /def:".\kernelu.def" /out:"..\..\bin/kernelu.dll" /implib:"..\..\lib/kernelu.lib" /pdbtype:sept 
+.\Debug\mbstowcs.obj
+.\Debug\memcpy.obj
+.\Debug\memmove.obj
+.\Debug\memset.obj
+.\Debug\strcmp.obj
+.\Debug\stricmp.obj
+.\Debug\strlen.obj
+.\Debug\strncmp.obj
+.\Debug\wcscat.obj
+.\Debug\wcschr.obj
+.\Debug\wcscmp.obj
+.\Debug\wcscpy.obj
+.\Debug\wcsicmp.obj
+.\Debug\wcslen.obj
+.\Debug\wcsncpy.obj
+.\Debug\wcsrchr.obj
+.\Debug\except.obj
+.\Debug\fs.obj
+.\Debug\fullpath.obj
+.\Debug\main.obj
+.\Debug\obj.obj
+.\Debug\proc.obj
+.\Debug\resource.obj
+.\Debug\sys.obj
+.\Debug\thread.obj
+.\Debug\vmm.obj
+..\crt0dll.obj
+\Projects\mobius\lib\ifproxy.lib
+]
+Creating command line "link.exe @c:\temp\RSP12D.tmp"
+<h3>Output Window</h3>
+Compiling...
+except.c
+fs.c
+obj.c
+F:\Projects\mobius\src\kernelu\obj.c(6) : warning C4013: 'asm' undefined; assuming extern returning int
+F:\Projects\mobius\src\kernelu\obj.c(6) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\obj.c(13) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\obj.c(19) : error C2143: syntax error : missing ')' before ':'
+proc.c
+F:\Projects\mobius\src\kernelu\proc.c(11) : warning C4013: 'asm' undefined; assuming extern returning int
+F:\Projects\mobius\src\kernelu\proc.c(11) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\proc.c(16) : error C2061: syntax error : identifier 'procCurrentId'
+F:\Projects\mobius\src\kernelu\proc.c(16) : error C2059: syntax error : ';'
+F:\Projects\mobius\src\kernelu\proc.c(16) : error C2059: syntax error : ')'
+resource.c
+F:\Projects\mobius\src\kernelu\resource.c(15) : error C2039: 'u' : is not a member of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+        f:\projects\mobius\include\os/pe.h(348) : see declaration of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+F:\Projects\mobius\src\kernelu\resource.c(18) : error C2039: 'u2' : is not a member of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+        f:\projects\mobius\include\os/pe.h(348) : see declaration of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+F:\Projects\mobius\src\kernelu\resource.c(22) : error C2039: 'u2' : is not a member of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+        f:\projects\mobius\include\os/pe.h(348) : see declaration of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+F:\Projects\mobius\src\kernelu\resource.c(103) : error C2039: 'u2' : is not a member of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+        f:\projects\mobius\include\os/pe.h(348) : see declaration of 'IMAGE_RESOURCE_DIRECTORY_ENTRY'
+sys.c
+F:\Projects\mobius\src\kernelu\sys.c(17) : warning C4013: 'asm' undefined; assuming extern returning int
+F:\Projects\mobius\src\kernelu\sys.c(17) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\sys.c(29) : error C2061: syntax error : identifier 'sysOpen'
+F:\Projects\mobius\src\kernelu\sys.c(29) : error C2059: syntax error : ';'
+F:\Projects\mobius\src\kernelu\sys.c(29) : error C2059: syntax error : 'type'
+F:\Projects\mobius\src\kernelu\sys.c(64) : error C2143: syntax error : missing ')' before ':'
+thread.c
+F:\Projects\mobius\src\kernelu\thread.c(47) : warning C4013: 'asm' undefined; assuming extern returning int
+F:\Projects\mobius\src\kernelu\thread.c(47) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\thread.c(58) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\thread.c(71) : error C2143: syntax error : missing ')' before ':'
+F:\Projects\mobius\src\kernelu\thread.c(79) : error C2061: syntax error : identifier 'thrGetId'
+F:\Projects\mobius\src\kernelu\thread.c(79) : error C2059: syntax error : ';'
+F:\Projects\mobius\src\kernelu\thread.c(79) : error C2059: syntax error : ')'
+vmm.c
+F:\Projects\mobius\src\kernelu\vmm.c(6) : warning C4013: 'asm' undefined; assuming extern returning int
+F:\Projects\mobius\src\kernelu\vmm.c(7) : error C2143: syntax error : missing ')' before ':'
+Error executing cl.exe.
+
+
+
+<h3>Results</h3>
+kernelu.dll - 23 error(s), 5 warning(s)
+</pre>
+</body>
+</html>

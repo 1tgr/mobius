@@ -1,0 +1,23 @@
+ROOT=		f:\Projects\mobius
+BIN=		$(ROOT)\bin
+LIB=		$(ROOT)\lib
+CPPFLAGS+=	-D__MOBIUS__ -O2 -Wall -I$(ROOT)\include -pipe
+CC=		gcc
+NASM=		nasm
+RC=		windres
+LDFLAGS+=	-L$(LIB)
+
+%.d:	%.c
+	$(CC) $(CPPFLAGS) -M -c $< -o $@
+%.o:	%.c
+	$(CC) $(CPPFLAGS) -c $< -o $@
+%.d:	%.cpp
+	$(CC) $(CPPFLAGS) -MD -c $<
+%.o:	%.cpp
+	$(CC) $(CPPFLAGS) -c $< -o $@
+%.d:	%.asm
+	$(NASM) -M $< > $@
+%.o:	%.asm
+	$(NASM) -f win32 -o $@ $<
+%.res.o: %.rc
+	$(RC) -i $< -o $@

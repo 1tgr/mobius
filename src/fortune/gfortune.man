@@ -1,0 +1,297 @@
+.\" Copyright (c) 1998 Shevek
+.\" All rights reserved.
+.\"
+.\" GNU fortune v1.0
+.\"
+.\" From an idea in BSD fortune.c - I think that this file has been redesigned
+.\" sufficiently including major flow control modifications and a brand new
+.\" memory model. I have tried to maintain the BSD style of the code. However
+.\" it has been ENTIRELY rewritten and typed from scratch and is NOT a
+.\" modified copy of fortune.c.
+.\"
+.\" This file is Copyright (c) to Shevek (shevek@white-star.com) and
+.\" is distributed under the GNU Public License version 2, or such later
+.\" version as may come into effect.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+.\" BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+.\" USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+.\" ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+.\" OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.\"	@(#)gfortune.6	1.0 (Shevek) 12/04/98
+.\"
+.TH GFORTUNE 6 "April 12, 1998"
+.UC 4
+.SH NAME
+gfortune \- print a random, possibly interesting, adage
+.SH SYNOPSIS
+.BR gfortune " [" -aeEfhilosrw "] [" -m
+.IR pattern ]
+.RB [ -L
+.IR num ]
+.RB [ -N
+.IR num ]
+.RB [ -S
+.IR num ]
+.RI [[ N "%] " file/dir/all ]
+.SH DESCRIPTION
+When
+.I gfortune
+is run with no arguments it prints out a random epigram.  Epigrams are
+divided into categories, and each category may be subdivided into those
+which are potentially offensive and those which are not.
+The options are as follows:
+.TP
+.B \-a
+Choose from all lists of maxims, both offensive and not.
+.TP
+.B \-e
+Consider all fortune files to be of equal size (see discussion below
+on selection modes).
+.TP
+.B \-E
+Consider all fortune files in each directory to be of equal size see
+discussion below on selection modes).
+.TP
+.B \-f
+Print out the list of files which would be searched, but don't
+print a fortune.
+.TP
+.B \-h
+Print a short help screen.
+.TP
+.B \-i
+Ignore case when matching regular expressions.
+.TP
+.B \-l
+Long dictums only.
+.TP
+.B \-m
+Print out all fortunes which match the regular expression
+.IR pattern .
+See
+.BR grep (1)
+for a description of patterns.
+.TP
+.B \-o
+Choose only from potentially offensive aphorisms.
+.ft B
+If you get offended, don't tell me. Quit using -o.
+.TP
+.B \-r
+Prevents recursion beyond the directories given on the command line (or the
+base default directory if none given).
+.TP
+.B \-s
+Short fortunes only.
+.TP
+.B \-w
+Wait before termination for an amount of time calculated from the
+number of characters in the message.
+This is useful if it is executed as part of the logout procedure
+to guarantee that the message can be read before the screen is cleared.
+.TP
+.B \-L
+Set the minimum length (in characters) to
+.I num
+for a 'long' fortune. (Assumes -l).
+.TP
+.B \-N
+Set the maximum length (in lines) to
+.I num
+for a fortune (normally 999).
+.TP
+.B \-S
+Set the maximum length (in characters) to
+.I num
+for a 'short' fortune. (Assumes -s).
+.PP
+
+.SH SELECTION MODES
+.B gfortune
+has three built in probability modes for selecting files. Probabilities may
+also be specified by the user.
+.PP
+.B All fortunes equal (default)
+is the default mode. This gives each fortune in all files specified the same
+probability of being displayed.
+.PP
+.BI "All files equal (" -e )
+will give all files in all nested directories under the base fortune
+directory specified equal probability. Hence subdirectories with more files
+in them have more chance of being chosen than relatively empty directories.
+.PP
+.BI "All files in directory equal (" -E )
+will give all files in each directory the same probability of being chosen.
+A file is independently selected from each directory being processed, each
+file in the directory having an equal probabiltiy of being chosen from it.
+ 
+.SH FORTUNE FILES
+The user may specify alternate sayings.  You can specify a specific file,
+a directory which contains one or more files and nested directories,
+or the special word
+.B all
+which says to use all the standard databases.
+Any of these may be preceded by a percentage, which is a number
+.I N
+between 0 and 100 inclusive, followed by a
+.BR % .
+If it is, there will be a
+.I N
+percent probability that an adage will be picked from that file
+or directory.
+If the percentages do not sum to 100, and there are specifications
+without percentages, the remaining percent will apply to those files
+and/or directories.
+.PP
+As an example, given two databases
+.B funny
+and
+.BR not-funny ,
+with
+.B funny
+twice as big, saying
+.RS
+fortune funny not-funny
+.RE
+will get you fortunes out of
+.B funny
+two-thirds of the time.
+The command
+.RS
+fortune 90% funny 10% not-funny
+.RE
+will pick out 90% of its fortunes from
+.B funny
+(the ``10% not-funny'' is unnecessary, since 10% is all that's left).
+The
+.B \-e
+option says to consider all files equal;
+thus
+.RS
+fortune \-e
+.RE
+is equivalent to
+.RS
+fortune 50% funny 50% not-funny
+.RE
+Dot files may not be added.
+.PP
+The selection modes apply to files specified on the command line as well
+as files found in subdirectories, so
+.RS
+fortune -E work people
+.RE
+will give the files 'work' and 'people' equal probability reguardless of
+their size and contents, whereas
+.RS
+gfortune work people
+.RE
+would base probability on the sizes of the files.
+
+.SH OFFENSIVENESS
+Offensive fortune files are any fortune files starting with the 9 letters
+.IR offensive ,
+for example 
+.I offensive-work
+or 
+.IR offensive-people .
+Any file in a subdirectory starting with
+.I offensive
+is also classified as offensive, as is any file in a directory of any name
+nested below that. So the file
+.RS
+/var/lib/games/fortunes/bierce/bierce-a.txt
+.RE
+is not offensive, but the files
+.RS
+/var/lib/games/fortunes/offensive-work
+.br
+/var/lib/games/fortunes/work/offensive/others
+.br
+/var/lib/games/fortunes/work/offensive/bosses/mine
+.RE
+are classified as offensive.
+
+.SH RECURSION
+.B gfortune
+will normally recurse from any starting directory it is given. An alternate
+directory may be provided on the command line, and the recursion may be
+inhibited using the
+.I -r
+flag.
+
+.SH ERROR MESSAGES
+.TP
+.B No fortunes found
+The program could not find any fortunes in the specified category,
+offensiveness or given directories. (empty files?)
+.TP
+.B Percentages must be integers
+Self explanatory, command line syntax.
+.TP
+.B Percentages must precede filenames
+Self explanatory, command line syntax.
+.TP
+.B Percentages must be <= 100%
+Self explanatory, command line syntax.
+.TP
+.B No files found
+The program could not find any fortunes in the specified category,
+offensiveness or given directories. (no files?)
+.TP
+.B Failed to add file
+The filename given on the command line is empty, not a valid fortune file,
+or is a directory with no fortune files in it.
+.TP
+.B Too many tries
+The options given fortune via
+.I -S, -L
+and
+.I -N
+options were too restrictive for gfortune to find a matching epigram within
+reasonable time.
+
+.SH BUGS
+Bloatware. Also, I can't write man pages so I'm guessing.
+
+.SH WISH LIST
+
+Might not compile elsewhere. I would like BSD, Solaris, SysV. However,
+the source uses regcomp(3) and rexeec(3).
+
+Still uses time(2).
+
+I am too lazy to do a full and consistent implementation of wait time to
+include min wait, wait per character, max wait, etc.
+.SH FILES
+/var/lib/games/fortunes/
+.br
+/usr/games/gfortune
+.SH AUTHOR
+Shevek <shevek@white-star.com>
+.PP
+Parts of this code were based on the Berkeley fortune program released
+by Ken Arnold.
+.SH "SEE ALSO"
+.BR regex (7)
+.BR grep (1)
+.BR regexec (3)
+.BR strfile (8)

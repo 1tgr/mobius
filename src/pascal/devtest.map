@@ -1,0 +1,42 @@
+ devtest
+
+ Timestamp is 3b0bb685 (Wed May 23 14:09:25 2001)
+
+ Preferred load address is 40000000
+
+ Start         Length     Name                   Class
+ 0001:00000000 00000140H .text                   CODE
+ 0002:00000000 00000050H .data                   DATA
+ 0002:00000050 00200200H .bss                    DATA
+ 0003:00000000 00000014H .idata$2                DATA
+ 0003:00000020 00000024H .idata$4                DATA
+ 0003:00000050 00000024H .idata$5                DATA
+ 0003:00000080 0000000aH .idata$6                DATA
+ 0003:00000090 0000001cH .idata$7                DATA
+
+  Address         Publics by Value              Rva+Base     Lib:Object
+
+ 0001:00000000       _PASCALTOWIDE$array_of_WCHAR$STRING 40001000     devtest.o
+ 0001:00000090       program_init               40001090     devtest.o
+ 0001:00000090       PASCALMAIN                 40001090     devtest.o
+ 0001:00000090       _main                      40001090     devtest.o
+ 0001:000000c0       _SYSTEM$$_INT_STRCOPY$LONGINT$POINTER$POINTER 400010c0     system.o
+ 0001:000000c0       FPC_SHORTSTR_COPY          400010c0     system.o
+ 0001:00000110       _SYSTEM_init               40001110     system.o
+ 0001:00000110       INIT$$SYSTEM               40001110     system.o
+ 0001:00000120       FPC_INITIALIZEUNITS        40001120     sys.o
+ 0001:00000121       FPC_DO_EXIT                40001121     sys.o
+ 0001:00000130       __cputws                   40001130     libc:ds1.o
+ 0002:00000028       FPC_RESOURCESTRINGTABLES   40002028     devtest.o
+ 0002:0000002c       INITFINAL                  4000202c     devtest.o
+ 0002:0000003c       HEAPSIZE                   4000203c     devtest.o
+ 0002:00000250       HEAP                       40002250     devtest.o
+ 0003:00000000       __head_f__Projects_mobius_lib_libc_lib 40203000     libc:dh.o
+ 0003:00000050       ___imp__cputws             40203050     libc:ds1.o
+ 0003:00000050       __imp___cputws             40203050     libc:ds1.o
+ 0003:000000a0       __f__Projects_mobius_lib_libc_lib_iname 402030a0     libc:dt.o
+
+ entry point at        0001:00000090
+
+ Static symbols
+

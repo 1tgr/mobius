@@ -1,0 +1,406 @@
+
+Allocating common symbols
+Common symbol       size              file
+
+PortCode            0x4               serial.o
+EnableIRQ           0x4               serial.o
+_con_x              0x4               wprintf.o
+ram_pager           0x4               main.o
+idt                 0x188             main.o
+mount_first         0x4               syscall.o
+PortTable           0x4               serial.o
+Port                0x4               serial.o
+irqs                0x80              main.o
+base                0x8               malloc.o
+ISR_OldO            0x4               serial.o
+tss                 0x2068            main.o
+num_pages           0x4               memory.o
+thr_idle_info       0x18              main.o
+ISR_OldS            0x4               serial.o
+_con_y              0x4               wprintf.o
+hnd_first           0x4               handle.o
+Vector              0x4               serial.o
+current             0x4               thread.o
+thr_last            0x4               thread.o
+uptime              0x4               main.o
+proc_idle_info      0x210             main.o
+Registers           0x10              serial.o
+idtr                0x8               main.o
+_gdtr               0x8               kstart.o
+proc_idle           0x58              main.o
+_gdt                0x48              kstart.o
+thr_first           0x4               thread.o
+hnd_last            0x4               handle.o
+console             0x4               wprintf.o
+pages               0x4               memory.o
+wprintf_lock        0x4               wprintf.o
+errno               0x4               main.o
+freep               0x4               malloc.o
+thr_lastid          0x4               thread.o
+_sysinfo            0x18              kstart.o
+DisableIRQ          0x4               serial.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD start.p
+LOAD dowprintf.o
+LOAD free.o
+LOAD handle.o
+LOAD i386.o
+LOAD isr.o
+LOAD kstart.o
+LOAD main.o
+LOAD malloc.o
+LOAD mbstowcs.o
+LOAD memcpy.o
+LOAD memory.o
+LOAD memset.o
+LOAD mod_pe.o
+LOAD module.o
+LOAD obj.o
+LOAD ramdisk.o
+LOAD root.o
+LOAD serial.o
+LOAD stricmp.o
+LOAD strncmp.o
+LOAD syscall.o
+LOAD thread.o
+LOAD uuid.o
+LOAD vm86.o
+LOAD vmm.o
+LOAD wcscat.o
+LOAD wcscpy.o
+LOAD wcsicmp.o
+LOAD wcslen.o
+LOAD wcsrchr.o
+LOAD wprintf.o
+
+.text           0xc0000000     0x6000
+                0xc0000000                _scode=.
+ *(.text)
+ .text          0xc0000000       0xac start.p
+                0xc00000ac                code86_end
+                0xc0000064                i386_llmemcpy
+                0xc000007b                i386_docall
+                0xc0000000                start
+                0xc000008c                code86
+ *fill*         0xc00000ac        0x4
+ .text          0xc00000b0      0x640 dowprintf.o
+                0xc00000c0                dowprintf
+ .text          0xc00006f0       0x70 free.o
+                0xc00006f0                free
+ .text          0xc0000760      0x190 handle.o
+                0xc00007c0                hndAddRef
+                0xc0000760                _hndAlloc
+                0xc00007d8                hndFree
+                0xc0000890                hndEnum
+                0xc0000840                hndSignal
+                0xc0000850                hndIsSignalled
+ .text          0xc00008f0       0x70 i386.o
+                0xc00008f0                i386_set_descriptor
+                0xc0000930                i386_set_descriptor_int
+ .text          0xc0000960      0x332 isr.o
+                0xc0000a2b                interrupt_6
+                0xc0000b1b                interrupt_18
+                0xc0000ac1                interrupt_12
+                0xc0000aa3                interrupt_10
+                0xc0000c65                irq_e
+                0xc0000c83                interrupt_30
+                0xc0000bb1                irq_2
+                0xc0000bed                irq_6
+                0xc0000a80                exception_d
+                0xc0000b0c                interrupt_17
+                0xc0000c38                irq_b
+                0xc0000bc0                irq_3
+                0xc00009d1                interrupt_0
+                0xc0000c47                irq_c
+                0xc0000a8a                exception_e
+                0xc0000a49                exception_8
+                0xc0000c0b                irq_8
+                0xc0000a0d                interrupt_4
+                0xc0000a6c                exception_b
+                0xc0000b84                interrupt_1f
+                0xc0000afd                interrupt_16
+                0xc0000a3a                interrupt_7
+                0xc0000ba2                irq_1
+                0xc0000bde                irq_5
+                0xc0000c74                irq_f
+                0xc0000b39                interrupt_1a
+                0xc0000b57                interrupt_1c
+                0xc0000b2a                interrupt_19
+                0xc0000a76                exception_c
+                0xc0000bcf                irq_4
+                0xc0000b66                interrupt_1d
+                0xc0000b48                interrupt_1b
+                0xc0000adf                interrupt_14
+                0xc00009fe                interrupt_3
+                0xc0000960                old_current
+                0xc0000a94                interrupt_f
+                0xc0000b93                irq_0
+                0xc0000b75                interrupt_1e
+                0xc0000c1a                irq_9
+                0xc0000c29                irq_a
+                0xc0000ad0                interrupt_13
+                0xc0000a53                interrupt_9
+                0xc0000c56                irq_d
+                0xc0000bfc                irq_7
+                0xc0000ab2                interrupt_11
+                0xc0000aee                interrupt_15
+                0xc00009e0                interrupt_1
+                0xc0000a1c                interrupt_5
+                0xc00009ef                interrupt_2
+                0xc0000a62                exception_a
+ *fill*         0xc0000c92        0xe
+ .text          0xc0000ca0      0x1b0 kstart.o
+                0xc0000ca0                _main
+ .text          0xc0000e50     0x1600 main.o
+                0xc0000ea4                morecore
+                0xc00010c0                dump_context
+                0xc0001648                itow
+                0xc0001cfc                picInit
+                0xc0001cb8                init8253
+                0xc0001e30                assert_fail
+                0xc0001b9c                isr
+                0xc000118c                sysPageFault
+                0xc000142c                sysV86Fault
+                0xc00019a0                exception
+                0xc0002078                main
+ .text          0xc0002450       0xf0 malloc.o
+                0xc0002480                malloc
+ .text          0xc0002540       0x40 mbstowcs.o
+                0xc0002540                mbstowcs
+ .text          0xc0002580       0x30 memcpy.o
+                0xc0002580                memcpy
+ .text          0xc00025b0      0x360 memory.o
+                0xc0002794                memTranslate
+                0xc0002624                memAlloc
+                0xc00026a4                memFree
+                0xc00026d8                memMap
+                0xc00025b0                memMark
+                0xc00027c8                memInit
+ .text          0xc0002910       0x20 memset.o
+                0xc0002910                memset
+ .text          0xc0002930     0x1040 mod_pe.o
+                0xc0002de0                CModulePe_GetName
+                0xc0002a08                CModulePe_Release
+                0xc00035f8                CModulePe_ValidatePage
+                0xc0003870                CModulePe_IPager_vtbl
+                0xc0002b7c                CModulePe_Load
+                0xc000388c                modLoadPe
+                0xc0002c78                CModulePe_GetEntryPoint
+                0xc0003850                CModulePe_IModule_vtbl
+                0xc0002e28                CModulePe_Pager_AddRef
+                0xc0002930                CModulePe_QueryInterface
+                0xc00033f0                peRelocateSection
+                0xc0002cf4                CModulePe_GetProcAddress
+                0xc0002c88                CModulePe_GetBase
+                0xc0002e44                CModulePe_Pager_Release
+                0xc00029f0                CModulePe_AddRef
+                0xc0002e00                CModulePe_Pager_QueryInterface
+                0xc0002fc0                peImport
+ .text          0xc0003970      0x500 module.o
+                0xc0003e54                procTerminate
+                0xc000397c                CPagerStack_AddRef
+                0xc0003b58                procLoad
+                0xc0003970                CPagerStack_QueryInterface
+                0xc0003994                CPagerStack_Release
+                0xc0003d78                procDelete
+                0xc0003a38                CPagerStack_ValidatePage
+ .text          0xc0003e70       0xb0 obj.o
+                0xc0003e70                objMarshal
+                0xc0003f00                objNotifyDelete
+                0xc0003ed8                objUnmarshal
+ .text          0xc0003f20      0x190 ramdisk.o
+                0xc0003f44                CPagerRamdisk_Release
+                0xc0003f20                CPagerRamdisk_QueryInterface
+                0xc0003f70                CPagerRamdisk_ValidatePage
+                0xc0003ff8                ramInit
+                0xc0004038                ramOpen
+                0xc0003f2c                CPagerRamdisk_AddRef
+ .text          0xc00040b0       0x80 root.o
+                0xc00040b0                CFolderRoot_QueryInterface
+                0xc00040bc                CFolderRoot_AddRef
+                0xc00040ec                CFolderRoot_Open
+                0xc0004110                CFolderRoot_vtbl
+                0xc00040c8                CFolderRoot_Release
+                0xc00040e0                CFolderRoot_FindNext
+                0xc00040d4                CFolderRoot_FindFirst
+ .text          0xc0004130      0x320 serial.o
+                0xc0004214                ioReadByte
+                0xc0004130                ioGetMode
+                0xc000420c                ioClearWrite
+                0xc000422c                ioWriteByte
+                0xc00041b8                ioClosePort
+                0xc00043fc                ioWriteBuffer
+                0xc0004258                ioWriteStatus
+                0xc00042e0                ioGetBaud
+                0xc0004264                ioSetBaud
+                0xc0004378                ioGetHandShake
+                0xc000413c                ioSetMode
+                0xc00043e0                ioSetControl
+                0xc00043c4                ioGetControl
+                0xc0004148                ioOpenPort
+                0xc000435c                ioSetHandShake
+                0xc0004390                ioGetStatus
+                0xc000424c                ioReadStatus
+                0xc0004204                ioClearRead
+ .text          0xc0004450       0x50 stricmp.o
+                0xc0004450                stricmp
+ .text          0xc00044a0       0x40 strncmp.o
+                0xc00044a0                strncmp
+ .text          0xc00044e0      0x6d0 syscall.o
+                0xc00048ac                syscall
+                0xc0004730                sysRegisterIrq
+                0xc0004774                sysRegisterDevice
+                0xc00046d4                sysMount
+                0xc0004818                sysInvoke
+                0xc0004554                sysOpen
+                0xc00044e0                FindMount
+ .text          0xc0004bb0      0x6c0 thread.o
+                0xc00050dc                thrSchedule
+                0xc0004e6c                thrCreate86
+                0xc0004c50                thrCreate
+                0xc00051b8                thrSleep
+                0xc00051e4                thrWaitHandle
+                0xc0005208                thrCall
+                0xc00051a8                thrContext
+                0xc0004f80                thrDelete
+                0xc0005044                thrIsReady
+ .text          0xc0005270       0x60 uuid.o
+                0xc00052a0                IID_IStream
+                0xc0005290                IID_IPager
+                0xc00052c0                IID_IBlockDevice
+                0xc0005280                IID_IModule
+                0xc0005270                IID_IUnknown
+                0xc00052b0                IID_IDevice
+ .text          0xc00052d0      0x380 vmm.o
+                0xc0005570                vmmUncommit
+                0xc0005608                vmmArea
+                0xc0005338                vmmAlloc
+                0xc00055d4                vmmInvalidate
+                0xc0005498                vmmCommit
+                0xc000543c                vmmFree
+ .text          0xc0005650       0x40 wcscat.o
+                0xc0005650                wcscat
+ .text          0xc0005690       0x30 wcscpy.o
+                0xc0005690                wcscpy
+ .text          0xc00056c0       0x90 wcsicmp.o
+                0xc00056c0                wcsicmp
+ .text          0xc0005750       0x20 wcslen.o
+                0xc0005750                wcslen
+ .text          0xc0005770       0x40 wcsrchr.o
+                0xc0005770                wcsrchr
+ .text          0xc00057b0      0x280 wprintf.o
+                0xc0005918                _cputws
+                0xc0005804                _cputws_blue
+                0xc00059e0                vwprintf
+                0xc0005a00                wprintf
+ *(.text.init)
+                0xc0005a30                _ecode=.
+                0xc0005a30                _edcode=.
+ *fill*         0xc0005a30      0x5d0
+                0xc0006000                .=ALIGN(0x1000)
+
+.data           0xc0006000     0x1000
+                0xc0006000                _bdata=.
+                0xc0006000                libc_first_ctor=.
+ *(.ctor)
+                0xc0006000                libc_last_ctor=.
+                0xc0006000                libc_first_dtor=.
+ *(.dtor)
+                0xc0006000                libc_last_dtor=.
+ *(.data)
+ .data          0xc0006000       0x20 start.p
+ .data          0xc0006020      0x1a0 main.o
+                0xc0006100                thr_idle
+                0xc00060e4                kernel_sbrk
+ .data          0xc00061c0       0x10 module.o
+                0xc00061c0                CPagerStack_vtbl
+ .data          0xc00061d0       0x10 ramdisk.o
+                0xc00061d0                CPagerRamdisk_vtbl
+ .data          0xc00061e0       0x10 root.o
+                0xc00061e8                root
+                0xc00061e0                root_folder
+ .data          0xc00061f0       0x10 serial.o
+                0xc00061f0                PortInUse
+ .data          0xc0006200       0x10 wprintf.o
+                0xc0006200                printf_mode
+ *(.data.init)
+ *(.eh_frame)
+ *(.gcc_except_table)
+ *fill*         0xc0006210      0xdf0
+                0xc0007000                .=ALIGN(0x1000)
+                0xc0007000                _edata=.
+
+.bss            0xc0007000     0x6000
+                0xc0007000                _sbss=.
+ *(.bss)
+ .bss           0xc0007000     0x3000 start.p
+                0xc0009000                kernel_pagedir
+                0xc0009000                stack_end
+ *(COMMON)
+ COMMON         0xc000a000        0x8 handle.o
+                                  0x0 (size before relaxing)
+                0xc000a000                hnd_first
+                0xc000a004                hnd_last
+ COMMON         0xc000a008       0x68 kstart.o
+                                  0x0 (size before relaxing)
+                0xc000a008                _gdtr
+                0xc000a010                _gdt
+                0xc000a058                _sysinfo
+ COMMON         0xc000a070     0x2504 main.o
+                                  0x0 (size before relaxing)
+                0xc000a070                ram_pager
+                0xc000a074                idt
+                0xc000a1fc                irqs
+                0xc000a27c                tss
+                0xc000c2e4                thr_idle_info
+                0xc000c2fc                uptime
+                0xc000c300                proc_idle_info
+                0xc000c510                idtr
+                0xc000c518                proc_idle
+                0xc000c570                errno
+ COMMON         0xc000c574        0xc malloc.o
+                                  0x0 (size before relaxing)
+                0xc000c574                base
+                0xc000c57c                freep
+ COMMON         0xc000c580        0x8 memory.o
+                                  0x0 (size before relaxing)
+                0xc000c580                num_pages
+                0xc000c584                pages
+ COMMON         0xc000c588       0x30 serial.o
+                                  0x0 (size before relaxing)
+                0xc000c588                PortCode
+                0xc000c58c                EnableIRQ
+                0xc000c590                PortTable
+                0xc000c594                Port
+                0xc000c598                ISR_OldO
+                0xc000c59c                ISR_OldS
+                0xc000c5a0                Vector
+                0xc000c5a4                Registers
+                0xc000c5b4                DisableIRQ
+ COMMON         0xc000c5b8        0x4 syscall.o
+                                  0x0 (size before relaxing)
+                0xc000c5b8                mount_first
+ COMMON         0xc000c5bc       0x10 thread.o
+                                  0x0 (size before relaxing)
+                0xc000c5bc                current
+                0xc000c5c0                thr_last
+                0xc000c5c4                thr_first
+                0xc000c5c8                thr_lastid
+ COMMON         0xc000c5cc       0x10 wprintf.o
+                                  0x0 (size before relaxing)
+                0xc000c5cc                _con_x
+                0xc000c5d0                _con_y
+                0xc000c5d4                console
+                0xc000c5d8                wprintf_lock
+ *fill*         0xc000c5dc      0xa24
+                0xc000d000                .=ALIGN(0x1000)
+                0xc000d000                _ebss=.
+                0xc000d000                _end=.
+OUTPUT(a.out coff-go32)

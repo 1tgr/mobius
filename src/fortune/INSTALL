@@ -1,0 +1,12 @@
+#!/bin/sh
+# This program is provided for the pepole who like it all packaged up for
+# them, including windoze users and the rest of that type.
+
+cat << EOM
+Installing GNU fortune
+This program is copyright to Shevek <shevek@anarres.org>
+This software is released under the GNU Public License.
+EOM
+make
+make install
+make install.man

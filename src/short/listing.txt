@@ -1,0 +1,626 @@
+Microsoft (R) COFF Binary File Dumper Version 5.00.7022
+Copyright (C) Microsoft Corp 1992-1997. All rights reserved.
+
+
+Dump of file short.exe
+
+File Type: EXECUTABLE IMAGE
+
+_mainCRTStartup:
+  40001000: 55                 push        ebp
+  40001001: 8B EC              mov         ebp,esp
+  40001003: E8 B1 04 00 00     call        400014B9
+  40001008: 50                 push        eax
+  40001009: E8 74 06 00 00     call        40001682
+  4000100E: 83 C4 04           add         esp,4
+  40001011: 5D                 pop         ebp
+  40001012: C3                 ret
+  40001013: CC                 int         3
+  40001014: CC                 int         3
+  40001015: CC                 int         3
+  40001016: CC                 int         3
+  40001017: CC                 int         3
+  40001018: CC                 int         3
+  40001019: CC                 int         3
+  4000101A: CC                 int         3
+  4000101B: CC                 int         3
+  4000101C: CC                 int         3
+  4000101D: CC                 int         3
+  4000101E: CC                 int         3
+  4000101F: CC                 int         3
+__getws:
+  40001020: 55                 push        ebp
+  40001021: 8B EC              mov         ebp,esp
+  40001023: 83 EC 08           sub         esp,8
+  40001026: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  40001029: 89 45 FC           mov         dword ptr [ebp-4],eax
+  4000102C: B9 01 00 00 00     mov         ecx,1
+  40001031: 85 C9              test        ecx,ecx
+  40001033: 0F 84 82 00 00 00  je          400010BB
+  40001039: E8 56 06 00 00     call        40001694
+  4000103E: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  40001041: 66 89 02           mov         word ptr [edx],ax
+  40001044: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  40001047: 33 C9              xor         ecx,ecx
+  40001049: 66 8B 08           mov         cx,word ptr [eax]
+  4000104C: 89 4D F8           mov         dword ptr [ebp-8],ecx
+  4000104F: 83 7D F8 00        cmp         dword ptr [ebp-8],0
+  40001053: 74 0E              je          40001063
+  40001055: 83 7D F8 08        cmp         dword ptr [ebp-8],8
+  40001059: 74 21              je          4000107C
+  4000105B: 83 7D F8 0A        cmp         dword ptr [ebp-8],0Ah
+  4000105F: 74 04              je          40001065
+  40001061: EB 39              jmp         4000109C
+  40001063: EB 51              jmp         400010B6
+  40001065: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  40001068: 66 C7 02 00 00     mov         word ptr [edx],0
+  4000106D: 6A 0A              push        0Ah
+  4000106F: E8 1A 06 00 00     call        4000168E
+  40001074: 83 C4 04           add         esp,4
+  40001077: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  4000107A: EB 3F              jmp         400010BB
+  4000107C: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  4000107F: 3B 45 08           cmp         eax,dword ptr [ebp+8]
+  40001082: 76 16              jbe         4000109A
+  40001084: 68 00 30 00 40     push        40003000h
+  40001089: E8 FA 05 00 00     call        40001688
+  4000108E: 83 C4 04           add         esp,4
+  40001091: 8B 4D FC           mov         ecx,dword ptr [ebp-4]
+  40001094: 83 E9 02           sub         ecx,2
+  40001097: 89 4D FC           mov         dword ptr [ebp-4],ecx
+  4000109A: EB 1A              jmp         400010B6
+  4000109C: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  4000109F: 33 C0              xor         eax,eax
+  400010A1: 66 8B 02           mov         ax,word ptr [edx]
+  400010A4: 50                 push        eax
+  400010A5: E8 E4 05 00 00     call        4000168E
+  400010AA: 83 C4 04           add         esp,4
+  400010AD: 8B 4D FC           mov         ecx,dword ptr [ebp-4]
+  400010B0: 83 C1 02           add         ecx,2
+  400010B3: 89 4D FC           mov         dword ptr [ebp-4],ecx
+  400010B6: E9 71 FF FF FF     jmp         4000102C
+  400010BB: 8B E5              mov         esp,ebp
+  400010BD: 5D                 pop         ebp
+  400010BE: C3                 ret
+_ShowSEHFrame:
+  400010BF: 55                 push        ebp
+  400010C0: 8B EC              mov         ebp,esp
+  400010C2: 83 EC 08           sub         esp,8
+  400010C5: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  400010C8: 8B 48 08           mov         ecx,dword ptr [eax+8]
+  400010CB: 89 4D F8           mov         dword ptr [ebp-8],ecx
+  400010CE: 8B 55 08           mov         edx,dword ptr [ebp+8]
+  400010D1: 8B 42 08           mov         eax,dword ptr [edx+8]
+  400010D4: 50                 push        eax
+  400010D5: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
+  400010D8: 8B 11              mov         edx,dword ptr [ecx]
+  400010DA: 52                 push        edx
+  400010DB: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  400010DE: 8B 48 04           mov         ecx,dword ptr [eax+4]
+  400010E1: 51                 push        ecx
+  400010E2: 8B 55 08           mov         edx,dword ptr [ebp+8]
+  400010E5: 52                 push        edx
+  400010E6: 68 08 30 00 40     push        40003008h
+  400010EB: E8 AA 05 00 00     call        4000169A
+  400010F0: 83 C4 14           add         esp,14h
+  400010F3: C7 45 FC 00 00 00  mov         dword ptr [ebp-4],0
+            00
+  400010FA: EB 09              jmp         40001105
+  400010FC: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  400010FF: 83 C0 01           add         eax,1
+  40001102: 89 45 FC           mov         dword ptr [ebp-4],eax
+  40001105: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
+  40001108: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  4000110B: 3B 51 0C           cmp         edx,dword ptr [ecx+0Ch]
+  4000110E: 7F 30              jg          40001140
+  40001110: 8B 45 F8           mov         eax,dword ptr [ebp-8]
+  40001113: 8B 48 08           mov         ecx,dword ptr [eax+8]
+  40001116: 51                 push        ecx
+  40001117: 8B 55 F8           mov         edx,dword ptr [ebp-8]
+  4000111A: 8B 42 04           mov         eax,dword ptr [edx+4]
+  4000111D: 50                 push        eax
+  4000111E: 8B 4D F8           mov         ecx,dword ptr [ebp-8]
+  40001121: 8B 11              mov         edx,dword ptr [ecx]
+  40001123: 52                 push        edx
+  40001124: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  40001127: 50                 push        eax
+  40001128: 68 7C 30 00 40     push        4000307Ch
+  4000112D: E8 68 05 00 00     call        4000169A
+  40001132: 83 C4 14           add         esp,14h
+  40001135: 8B 4D F8           mov         ecx,dword ptr [ebp-8]
+  40001138: 83 C1 0C           add         ecx,0Ch
+  4000113B: 89 4D F8           mov         dword ptr [ebp-8],ecx
+  4000113E: EB BC              jmp         400010FC
+  40001140: 8B E5              mov         esp,ebp
+  40001142: 5D                 pop         ebp
+  40001143: C3                 ret
+_WalkSEHFrames:
+  40001144: 55                 push        ebp
+  40001145: 8B EC              mov         ebp,esp
+  40001147: 51                 push        ecx
+  40001148: 53                 push        ebx
+  40001149: 56                 push        esi
+  4000114A: 57                 push        edi
+  4000114B: 68 89 11 00 40     push        40001189h
+  40001150: 68 08 31 00 40     push        40003108h
+  40001155: E8 40 05 00 00     call        4000169A
+  4000115A: 83 C4 08           add         esp,8
+  4000115D: 64 A1 00 00 00 00  mov         eax,fs:[00000000]
+  40001163: 89 45 FC           mov         dword ptr [ebp-4],eax
+  40001166: 83 7D FC 00        cmp         dword ptr [ebp-4],0
+  4000116A: 74 16              je          40001182
+  4000116C: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  4000116F: 50                 push        eax
+  40001170: E8 4A FF FF FF     call        400010BF
+  40001175: 83 C4 04           add         esp,4
+  40001178: 8B 4D FC           mov         ecx,dword ptr [ebp-4]
+  4000117B: 8B 11              mov         edx,dword ptr [ecx]
+  4000117D: 89 55 FC           mov         dword ptr [ebp-4],edx
+  40001180: EB E4              jmp         40001166
+  40001182: 5F                 pop         edi
+  40001183: 5E                 pop         esi
+  40001184: 5B                 pop         ebx
+  40001185: 8B E5              mov         esp,ebp
+  40001187: 5D                 pop         ebp
+  40001188: C3                 ret
+__except_handler3:
+  40001189: 55                 push        ebp
+  4000118A: 8B EC              mov         ebp,esp
+  4000118C: 83 EC 20           sub         esp,20h
+  4000118F: 53                 push        ebx
+  40001190: 56                 push        esi
+  40001191: 57                 push        edi
+  40001192: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  40001195: 8B 48 04           mov         ecx,dword ptr [eax+4]
+  40001198: 51                 push        ecx
+  40001199: 8B 55 08           mov         edx,dword ptr [ebp+8]
+  4000119C: 8B 02              mov         eax,dword ptr [edx]
+  4000119E: 50                 push        eax
+  4000119F: 68 54 31 00 40     push        40003154h
+  400011A4: E8 F1 04 00 00     call        4000169A
+  400011A9: 83 C4 0C           add         esp,0Ch
+  400011AC: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
+  400011AF: 89 4D F0           mov         dword ptr [ebp-10h],ecx
+  400011B2: 8B 55 10           mov         edx,dword ptr [ebp+10h]
+  400011B5: 89 55 F4           mov         dword ptr [ebp-0Ch],edx
+  400011B8: 8B 45 0C           mov         eax,dword ptr [ebp+0Ch]
+  400011BB: 89 45 E4           mov         dword ptr [ebp-1Ch],eax
+  400011BE: 8B 4D E4           mov         ecx,dword ptr [ebp-1Ch]
+  400011C1: 8D 55 F0           lea         edx,dword ptr [ebp-10h]
+  400011C4: 89 51 FC           mov         dword ptr [ecx-4],edx
+  400011C7: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  400011CA: 8B 48 0C           mov         ecx,dword ptr [eax+0Ch]
+  400011CD: 89 4D F8           mov         dword ptr [ebp-8],ecx
+  400011D0: 83 7D F8 FF        cmp         dword ptr [ebp-8],0FFh
+  400011D4: 0F 84 DB 00 00 00  je          400012B5
+  400011DA: 8B 55 E4           mov         edx,dword ptr [ebp-1Ch]
+  400011DD: 8B 42 10           mov         eax,dword ptr [edx+10h]
+  400011E0: 89 45 EC           mov         dword ptr [ebp-14h],eax
+  400011E3: 8B 4D F8           mov         ecx,dword ptr [ebp-8]
+  400011E6: 6B C9 0C           imul        ecx,ecx,0Ch
+  400011E9: 8B 55 E4           mov         edx,dword ptr [ebp-1Ch]
+  400011EC: 8B 42 08           mov         eax,dword ptr [edx+8]
+  400011EF: 8B 4C 08 04        mov         ecx,dword ptr [eax+ecx+4]
+  400011F3: 89 4D E8           mov         dword ptr [ebp-18h],ecx
+  400011F6: 8B 55 E8           mov         edx,dword ptr [ebp-18h]
+  400011F9: 52                 push        edx
+  400011FA: 8B 45 EC           mov         eax,dword ptr [ebp-14h]
+  400011FD: 50                 push        eax
+  400011FE: 8B 4D F8           mov         ecx,dword ptr [ebp-8]
+  40001201: 51                 push        ecx
+  40001202: 68 88 31 00 40     push        40003188h
+  40001207: E8 8E 04 00 00     call        4000169A
+  4000120C: 83 C4 10           add         esp,10h
+  4000120F: 8B 45 E8           mov         eax,dword ptr [ebp-18h]
+  40001212: 55                 push        ebp
+  40001213: 8B 6D EC           mov         ebp,dword ptr [ebp-14h]
+  40001216: FF D0              call        eax
+  40001218: 5D                 pop         ebp
+  40001219: 89 45 FC           mov         dword ptr [ebp-4],eax
+  4000121C: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  4000121F: 89 55 E0           mov         dword ptr [ebp-20h],edx
+  40001222: 83 7D E0 FF        cmp         dword ptr [ebp-20h],0FFh
+  40001226: 74 65              je          4000128D
+  40001228: 83 7D E0 00        cmp         dword ptr [ebp-20h],0
+  4000122C: 74 08              je          40001236
+  4000122E: 83 7D E0 01        cmp         dword ptr [ebp-20h],1
+  40001232: 74 11              je          40001245
+  40001234: EB 68              jmp         4000129E
+  40001236: 68 D4 31 00 40     push        400031D4h
+  4000123B: E8 5A 04 00 00     call        4000169A
+  40001240: 83 C4 04           add         esp,4
+  40001243: EB 59              jmp         4000129E
+  40001245: 8B 45 F8           mov         eax,dword ptr [ebp-8]
+  40001248: 6B C0 0C           imul        eax,eax,0Ch
+  4000124B: 8B 4D E4           mov         ecx,dword ptr [ebp-1Ch]
+  4000124E: 8B 51 08           mov         edx,dword ptr [ecx+8]
+  40001251: 8B 44 02 08        mov         eax,dword ptr [edx+eax+8]
+  40001255: 89 45 E8           mov         dword ptr [ebp-18h],eax
+  40001258: 8B 4D EC           mov         ecx,dword ptr [ebp-14h]
+  4000125B: 8B 51 A0           mov         edx,dword ptr [ecx-60h]
+  4000125E: 52                 push        edx
+  4000125F: 8B 45 EC           mov         eax,dword ptr [ebp-14h]
+  40001262: 50                 push        eax
+  40001263: 8B 4D E8           mov         ecx,dword ptr [ebp-18h]
+  40001266: 51                 push        ecx
+  40001267: 68 F8 31 00 40     push        400031F8h
+  4000126C: E8 29 04 00 00     call        4000169A
+  40001271: 83 C4 10           add         esp,10h
+  40001274: 8B 45 E8           mov         eax,dword ptr [ebp-18h]
+  40001277: 55                 push        ebp
+  40001278: 8B 6D EC           mov         ebp,dword ptr [ebp-14h]
+  4000127B: FF D0              call        eax
+  4000127D: 5D                 pop         ebp
+  4000127E: 68 4C 32 00 40     push        4000324Ch
+  40001283: E8 12 04 00 00     call        4000169A
+  40001288: 83 C4 04           add         esp,4
+  4000128B: EB 11              jmp         4000129E
+  4000128D: 68 60 32 00 40     push        40003260h
+  40001292: E8 03 04 00 00     call        4000169A
+  40001297: 83 C4 04           add         esp,4
+  4000129A: 33 C0              xor         eax,eax
+  4000129C: EB 29              jmp         400012C7
+  4000129E: 8B 55 F8           mov         edx,dword ptr [ebp-8]
+  400012A1: 6B D2 0C           imul        edx,edx,0Ch
+  400012A4: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  400012A7: 8B 48 08           mov         ecx,dword ptr [eax+8]
+  400012AA: 8B 14 11           mov         edx,dword ptr [ecx+edx]
+  400012AD: 89 55 F8           mov         dword ptr [ebp-8],edx
+  400012B0: E9 1B FF FF FF     jmp         400011D0
+  400012B5: 68 88 32 00 40     push        40003288h
+  400012BA: E8 DB 03 00 00     call        4000169A
+  400012BF: 83 C4 04           add         esp,4
+  400012C2: B8 01 00 00 00     mov         eax,1
+  400012C7: 5F                 pop         edi
+  400012C8: 5E                 pop         esi
+  400012C9: 5B                 pop         ebx
+  400012CA: 8B E5              mov         esp,ebp
+  400012CC: 5D                 pop         ebp
+  400012CD: C3                 ret
+_ListLineNumbers:
+  400012CE: 55                 push        ebp
+  400012CF: 8B EC              mov         ebp,esp
+  400012D1: 83 EC 1C           sub         esp,1Ch
+  400012D4: 56                 push        esi
+  400012D5: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  400012D8: 89 45 F8           mov         dword ptr [ebp-8],eax
+  400012DB: 8B 4D F8           mov         ecx,dword ptr [ebp-8]
+  400012DE: 8B 55 08           mov         edx,dword ptr [ebp+8]
+  400012E1: 03 51 3C           add         edx,dword ptr [ecx+3Ch]
+  400012E4: 89 55 EC           mov         dword ptr [ebp-14h],edx
+  400012E7: 8B 45 EC           mov         eax,dword ptr [ebp-14h]
+  400012EA: 33 C9              xor         ecx,ecx
+  400012EC: 66 8B 48 14        mov         cx,word ptr [eax+14h]
+  400012F0: 8B 55 EC           mov         edx,dword ptr [ebp-14h]
+  400012F3: 8D 44 0A 18        lea         eax,dword ptr [edx+ecx+18h]
+  400012F7: 89 45 FC           mov         dword ptr [ebp-4],eax
+  400012FA: C7 45 F4 00 00 00  mov         dword ptr [ebp-0Ch],0
+            00
+  40001301: EB 09              jmp         4000130C
+  40001303: 8B 4D F4           mov         ecx,dword ptr [ebp-0Ch]
+  40001306: 83 C1 01           add         ecx,1
+  40001309: 89 4D F4           mov         dword ptr [ebp-0Ch],ecx
+  4000130C: 8B 55 EC           mov         edx,dword ptr [ebp-14h]
+  4000130F: 33 C0              xor         eax,eax
+  40001311: 66 8B 42 06        mov         ax,word ptr [edx+6]
+  40001315: 39 45 F4           cmp         dword ptr [ebp-0Ch],eax
+  40001318: 0F 8D 96 01 00 00  jge         400014B4
+  4000131E: 6A 08              push        8
+  40001320: 68 A0 32 00 40     push        400032A0h
+  40001325: 8B 4D F4           mov         ecx,dword ptr [ebp-0Ch]
+  40001328: 6B C9 28           imul        ecx,ecx,28h
+  4000132B: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  4000132E: 03 D1              add         edx,ecx
+  40001330: 52                 push        edx
+  40001331: E8 70 03 00 00     call        400016A6
+  40001336: 83 C4 0C           add         esp,0Ch
+  40001339: 85 C0              test        eax,eax
+  4000133B: 0F 85 6E 01 00 00  jne         400014AF
+  40001341: C7 45 F0 00 00 00  mov         dword ptr [ebp-10h],0
+            00
+  40001348: EB 09              jmp         40001353
+  4000134A: 8B 45 F0           mov         eax,dword ptr [ebp-10h]
+  4000134D: 83 C0 01           add         eax,1
+  40001350: 89 45 F0           mov         dword ptr [ebp-10h],eax
+  40001353: 8B 4D EC           mov         ecx,dword ptr [ebp-14h]
+  40001356: 33 D2              xor         edx,edx
+  40001358: 66 8B 51 06        mov         dx,word ptr [ecx+6]
+  4000135C: 39 55 F0           cmp         dword ptr [ebp-10h],edx
+  4000135F: 7D 79              jge         400013DA
+  40001361: 8B 45 F4           mov         eax,dword ptr [ebp-0Ch]
+  40001364: 6B C0 28           imul        eax,eax,28h
+  40001367: 8B 4D F0           mov         ecx,dword ptr [ebp-10h]
+  4000136A: 6B C9 28           imul        ecx,ecx,28h
+  4000136D: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  40001370: 8B 75 FC           mov         esi,dword ptr [ebp-4]
+  40001373: 8B 44 02 1C        mov         eax,dword ptr [edx+eax+1Ch]
+  40001377: 3B 44 0E 14        cmp         eax,dword ptr [esi+ecx+14h]
+  4000137B: 72 58              jb          400013D5
+  4000137D: 8B 4D F4           mov         ecx,dword ptr [ebp-0Ch]
+  40001380: 6B C9 28           imul        ecx,ecx,28h
+  40001383: 8B 55 F0           mov         edx,dword ptr [ebp-10h]
+  40001386: 6B D2 28           imul        edx,edx,28h
+  40001389: 8B 45 F0           mov         eax,dword ptr [ebp-10h]
+  4000138C: 6B C0 28           imul        eax,eax,28h
+  4000138F: 8B 75 FC           mov         esi,dword ptr [ebp-4]
+  40001392: 8B 54 16 14        mov         edx,dword ptr [esi+edx+14h]
+  40001396: 8B 75 FC           mov         esi,dword ptr [ebp-4]
+  40001399: 03 54 06 10        add         edx,dword ptr [esi+eax+10h]
+  4000139D: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  400013A0: 39 54 08 1C        cmp         dword ptr [eax+ecx+1Ch],edx
+  400013A4: 73 2F              jae         400013D5
+  400013A6: 8B 4D F4           mov         ecx,dword ptr [ebp-0Ch]
+  400013A9: 6B C9 28           imul        ecx,ecx,28h
+  400013AC: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  400013AF: 8B 45 08           mov         eax,dword ptr [ebp+8]
+  400013B2: 03 44 0A 1C        add         eax,dword ptr [edx+ecx+1Ch]
+  400013B6: 8B 4D F0           mov         ecx,dword ptr [ebp-10h]
+  400013B9: 6B C9 28           imul        ecx,ecx,28h
+  400013BC: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  400013BF: 2B 44 0A 14        sub         eax,dword ptr [edx+ecx+14h]
+  400013C3: 8B 4D F0           mov         ecx,dword ptr [ebp-10h]
+  400013C6: 6B C9 28           imul        ecx,ecx,28h
+  400013C9: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  400013CC: 03 44 0A 0C        add         eax,dword ptr [edx+ecx+0Ch]
+  400013D0: 89 45 E4           mov         dword ptr [ebp-1Ch],eax
+  400013D3: EB 05              jmp         400013DA
+  400013D5: E9 70 FF FF FF     jmp         4000134A
+  400013DA: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  400013DD: 50                 push        eax
+  400013DE: 8B 4D F4           mov         ecx,dword ptr [ebp-0Ch]
+  400013E1: 6B C9 28           imul        ecx,ecx,28h
+  400013E4: 8B 55 FC           mov         edx,dword ptr [ebp-4]
+  400013E7: 33 C0              xor         eax,eax
+  400013E9: 66 8B 44 0A 22     mov         ax,word ptr [edx+ecx+22h]
+  400013EE: 50                 push        eax
+  400013EF: 68 A8 32 00 40     push        400032A8h
+  400013F4: E8 A1 02 00 00     call        4000169A
+  400013F9: 83 C4 0C           add         esp,0Ch
+  400013FC: C7 45 E8 00 00 00  mov         dword ptr [ebp-18h],0
+            00
+  40001403: C7 45 F0 00 00 00  mov         dword ptr [ebp-10h],0
+            00
+  4000140A: EB 09              jmp         40001415
+  4000140C: 8B 4D F0           mov         ecx,dword ptr [ebp-10h]
+  4000140F: 83 C1 01           add         ecx,1
+  40001412: 89 4D F0           mov         dword ptr [ebp-10h],ecx
+  40001415: 8B 55 F4           mov         edx,dword ptr [ebp-0Ch]
+  40001418: 6B D2 28           imul        edx,edx,28h
+  4000141B: 8B 45 FC           mov         eax,dword ptr [ebp-4]
+  4000141E: 33 C9              xor         ecx,ecx
+  40001420: 66 8B 4C 10 22     mov         cx,word ptr [eax+edx+22h]
+  40001425: 39 4D F0           cmp         dword ptr [ebp-10h],ecx
+  40001428: 7D 56              jge         40001480
+  4000142A: 8B 55 F0           mov         edx,dword ptr [ebp-10h]
+  4000142D: 6B D2 06           imul        edx,edx,6
+  40001430: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  40001433: 33 C9              xor         ecx,ecx
+  40001435: 66 8B 4C 10 04     mov         cx,word ptr [eax+edx+4]
+  4000143A: 85 C9              test        ecx,ecx
+  4000143C: 74 26              je          40001464
+  4000143E: 8B 55 F0           mov         edx,dword ptr [ebp-10h]
+  40001441: 6B D2 06           imul        edx,edx,6
+  40001444: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  40001447: 8B 4D 08           mov         ecx,dword ptr [ebp+8]
+  4000144A: 03 0C 10           add         ecx,dword ptr [eax+edx]
+  4000144D: 3B 4D 0C           cmp         ecx,dword ptr [ebp+0Ch]
+  40001450: 72 10              jb          40001462
+  40001452: 8B 55 F0           mov         edx,dword ptr [ebp-10h]
+  40001455: 6B D2 06           imul        edx,edx,6
+  40001458: 8B 45 E4           mov         eax,dword ptr [ebp-1Ch]
+  4000145B: 03 C2              add         eax,edx
+  4000145D: 89 45 E8           mov         dword ptr [ebp-18h],eax
+  40001460: EB 1E              jmp         40001480
+  40001462: EB 1A              jmp         4000147E
+  40001464: 8B 4D F0           mov         ecx,dword ptr [ebp-10h]
+  40001467: 6B C9 06           imul        ecx,ecx,6
+  4000146A: 8B 55 E4           mov         edx,dword ptr [ebp-1Ch]
+  4000146D: 8B 04 0A           mov         eax,dword ptr [edx+ecx]
+  40001470: 50                 push        eax
+  40001471: 68 D8 32 00 40     push        400032D8h
+  40001476: E8 1F 02 00 00     call        4000169A
+  4000147B: 83 C4 08           add         esp,8
+  4000147E: EB 8C              jmp         4000140C
+  40001480: 83 7D E8 00        cmp         dword ptr [ebp-18h],0
+  40001484: 74 1B              je          400014A1
+  40001486: 8B 4D E8           mov         ecx,dword ptr [ebp-18h]
+  40001489: 33 D2              xor         edx,edx
+  4000148B: 66 8B 51 04        mov         dx,word ptr [ecx+4]
+  4000148F: 52                 push        edx
+  40001490: 8B 45 0C           mov         eax,dword ptr [ebp+0Ch]
+  40001493: 50                 push        eax
+  40001494: 68 F4 32 00 40     push        400032F4h
+  40001499: E8 FC 01 00 00     call        4000169A
+  4000149E: 83 C4 0C           add         esp,0Ch
+  400014A1: 8B 4D E4           mov         ecx,dword ptr [ebp-1Ch]
+  400014A4: 51                 push        ecx
+  400014A5: E8 F6 01 00 00     call        400016A0
+  400014AA: 83 C4 04           add         esp,4
+  400014AD: EB 05              jmp         400014B4
+  400014AF: E9 4F FE FF FF     jmp         40001303
+  400014B4: 5E                 pop         esi
+  400014B5: 8B E5              mov         esp,ebp
+  400014B7: 5D                 pop         ebp
+  400014B8: C3                 ret
+_main:
+  400014B9: 55                 push        ebp
+  400014BA: 8B EC              mov         ebp,esp
+  400014BC: 81 EC 08 04 00 00  sub         esp,408h
+  400014C2: 68 00 01 00 00     push        100h
+  400014C7: 8D 85 FC FB FF FF  lea         eax,dword ptr [ebp+FFFFFBFCh]
+  400014CD: 50                 push        eax
+  400014CE: 6A 01              push        1
+  400014D0: 8B 0D 04 50 00 40  mov         ecx,dword ptr ds:[40005004h]
+  400014D6: 51                 push        ecx
+  400014D7: E8 E8 01 00 00     call        400016C4
+  400014DC: 83 C4 10           add         esp,10h
+  400014DF: 8D 95 FC FB FF FF  lea         edx,dword ptr [ebp+FFFFFBFCh]
+  400014E5: 52                 push        edx
+  400014E6: E8 9D 01 00 00     call        40001688
+  400014EB: 83 C4 04           add         esp,4
+  400014EE: 68 B9 14 00 40     push        400014B9h
+  400014F3: A1 04 50 00 40     mov         eax,[40005004]
+  400014F8: 50                 push        eax
+  400014F9: E8 D0 FD FF FF     call        400012CE
+  400014FE: 83 C4 08           add         esp,8
+  40001501: B9 01 00 00 00     mov         ecx,1
+  40001506: 85 C9              test        ecx,ecx
+  40001508: 0F 84 52 01 00 00  je          40001660
+  4000150E: E8 5D 01 00 00     call        40001670
+  40001513: 8B 50 14           mov         edx,dword ptr [eax+14h]
+  40001516: 83 C2 0C           add         edx,0Ch
+  40001519: 52                 push        edx
+  4000151A: 68 20 33 00 40     push        40003320h
+  4000151F: E8 76 01 00 00     call        4000169A
+  40001524: 83 C4 08           add         esp,8
+  40001527: 8D 85 FC FB FF FF  lea         eax,dword ptr [ebp+FFFFFBFCh]
+  4000152D: 50                 push        eax
+  4000152E: E8 ED FA FF FF     call        40001020
+  40001533: 83 C4 04           add         esp,4
+  40001536: 33 C9              xor         ecx,ecx
+  40001538: 66 8B 08           mov         cx,word ptr [eax]
+  4000153B: 85 C9              test        ecx,ecx
+  4000153D: 0F 84 18 01 00 00  je          4000165B
+  40001543: 6A 20              push        20h
+  40001545: 8D 95 FC FB FF FF  lea         edx,dword ptr [ebp+FFFFFBFCh]
+  4000154B: 52                 push        edx
+  4000154C: E8 6D 01 00 00     call        400016BE
+  40001551: 83 C4 08           add         esp,8
+  40001554: 89 85 F8 FB FF FF  mov         dword ptr [ebp+FFFFFBF8h],eax
+  4000155A: 83 BD F8 FB FF FF  cmp         dword ptr [ebp+FFFFFBF8h],0
+            00
+  40001561: 74 26              je          40001589
+  40001563: 8B 85 F8 FB FF FF  mov         eax,dword ptr [ebp+FFFFFBF8h]
+  40001569: 83 C0 02           add         eax,2
+  4000156C: 50                 push        eax
+  4000156D: 8D 8D FC FD FF FF  lea         ecx,dword ptr [ebp+FFFFFDFCh]
+  40001573: 51                 push        ecx
+  40001574: E8 3F 01 00 00     call        400016B8
+  40001579: 83 C4 08           add         esp,8
+  4000157C: 8B 95 F8 FB FF FF  mov         edx,dword ptr [ebp+FFFFFBF8h]
+  40001582: 66 C7 02 00 00     mov         word ptr [edx],0
+  40001587: EB 09              jmp         40001592
+  40001589: 66 C7 85 FC FD FF  mov         word ptr [ebp+FFFFFDFCh],0
+            FF 00 00
+  40001592: 68 2C 33 00 40     push        4000332Ch
+  40001597: 8D 85 FC FB FF FF  lea         eax,dword ptr [ebp+FFFFFBFCh]
+  4000159D: 50                 push        eax
+  4000159E: E8 0F 01 00 00     call        400016B2
+  400015A3: 83 C4 08           add         esp,8
+  400015A6: 85 C0              test        eax,eax
+  400015A8: 75 05              jne         400015AF
+  400015AA: E9 B1 00 00 00     jmp         40001660
+  400015AF: 68 38 33 00 40     push        40003338h
+  400015B4: 8D 8D FC FB FF FF  lea         ecx,dword ptr [ebp+FFFFFBFCh]
+  400015BA: 51                 push        ecx
+  400015BB: E8 F2 00 00 00     call        400016B2
+  400015C0: 83 C4 08           add         esp,8
+  400015C3: 85 C0              test        eax,eax
+  400015C5: 75 1D              jne         400015E4
+  400015C7: 8D 95 FC FD FF FF  lea         edx,dword ptr [ebp+FFFFFDFCh]
+  400015CD: 52                 push        edx
+  400015CE: E8 9D 00 00 00     call        40001670
+  400015D3: 8B 40 14           mov         eax,dword ptr [eax+14h]
+  400015D6: 83 C0 0C           add         eax,0Ch
+  400015D9: 50                 push        eax
+  400015DA: E8 D9 00 00 00     call        400016B8
+  400015DF: 83 C4 08           add         esp,8
+  400015E2: EB 6B              jmp         4000164F
+  400015E4: 8D 8D FC FD FF FF  lea         ecx,dword ptr [ebp+FFFFFDFCh]
+  400015EA: 51                 push        ecx
+  400015EB: 8D 95 FC FB FF FF  lea         edx,dword ptr [ebp+FFFFFBFCh]
+  400015F1: 52                 push        edx
+  400015F2: E8 D9 00 00 00     call        400016D0
+  400015F7: 83 C4 08           add         esp,8
+  400015FA: 89 45 FC           mov         dword ptr [ebp-4],eax
+  400015FD: 83 7D FC 00        cmp         dword ptr [ebp-4],0
+  40001601: 75 4C              jne         4000164F
+  40001603: 68 40 33 00 40     push        40003340h
+  40001608: 8D 85 FC FB FF FF  lea         eax,dword ptr [ebp+FFFFFBFCh]
+  4000160E: 50                 push        eax
+  4000160F: E8 98 00 00 00     call        400016AC
+  40001614: 83 C4 08           add         esp,8
+  40001617: 8D 8D FC FD FF FF  lea         ecx,dword ptr [ebp+FFFFFDFCh]
+  4000161D: 51                 push        ecx
+  4000161E: 8D 95 FC FB FF FF  lea         edx,dword ptr [ebp+FFFFFBFCh]
+  40001624: 52                 push        edx
+  40001625: E8 A6 00 00 00     call        400016D0
+  4000162A: 83 C4 08           add         esp,8
+  4000162D: 89 45 FC           mov         dword ptr [ebp-4],eax
+  40001630: 83 7D FC 00        cmp         dword ptr [ebp-4],0
+  40001634: 75 19              jne         4000164F
+  40001636: 8D 85 FC FB FF FF  lea         eax,dword ptr [ebp+FFFFFBFCh]
+  4000163C: 50                 push        eax
+  4000163D: 68 4C 33 00 40     push        4000334Ch
+  40001642: E8 53 00 00 00     call        4000169A
+  40001647: 83 C4 08           add         esp,8
+  4000164A: E9 B2 FE FF FF     jmp         40001501
+  4000164F: 8B 4D FC           mov         ecx,dword ptr [ebp-4]
+  40001652: 51                 push        ecx
+  40001653: E8 72 00 00 00     call        400016CA
+  40001658: 83 C4 04           add         esp,4
+  4000165B: E9 A1 FE FF FF     jmp         40001501
+  40001660: 33 C0              xor         eax,eax
+  40001662: 8B E5              mov         esp,ebp
+  40001664: 5D                 pop         ebp
+  40001665: C3                 ret
+  40001666: CC                 int         3
+  40001667: CC                 int         3
+  40001668: CC                 int         3
+  40001669: CC                 int         3
+  4000166A: CC                 int         3
+  4000166B: CC                 int         3
+  4000166C: CC                 int         3
+  4000166D: CC                 int         3
+  4000166E: CC                 int         3
+  4000166F: CC                 int         3
+_thrGetInfo:
+  40001670: 55                 push        ebp
+  40001671: 8B EC              mov         ebp,esp
+  40001673: 53                 push        ebx
+  40001674: 56                 push        esi
+  40001675: 57                 push        edi
+  40001676: 64 A1 04 00 00 00  mov         eax,fs:[00000004]
+  4000167C: 5F                 pop         edi
+  4000167D: 5E                 pop         esi
+  4000167E: 5B                 pop         ebx
+  4000167F: 5D                 pop         ebp
+  40001680: C3                 ret
+  40001681: CC                 int         3
+_exit:
+  40001682: FF 25 AC 40 00 40  jmp         dword ptr ds:[400040ACh]
+__cputws:
+  40001688: FF 25 98 40 00 40  jmp         dword ptr ds:[40004098h]
+_putwchar:
+  4000168E: FF 25 9C 40 00 40  jmp         dword ptr ds:[4000409Ch]
+__wgetch:
+  40001694: FF 25 94 40 00 40  jmp         dword ptr ds:[40004094h]
+_wprintf:
+  4000169A: FF 25 88 40 00 40  jmp         dword ptr ds:[40004088h]
+_free:
+  400016A0: FF 25 8C 40 00 40  jmp         dword ptr ds:[4000408Ch]
+_strncmp:
+  400016A6: FF 25 90 40 00 40  jmp         dword ptr ds:[40004090h]
+_wcscat:
+  400016AC: FF 25 B0 40 00 40  jmp         dword ptr ds:[400040B0h]
+_wcsicmp:
+  400016B2: FF 25 B4 40 00 40  jmp         dword ptr ds:[400040B4h]
+_wcscpy:
+  400016B8: FF 25 A0 40 00 40  jmp         dword ptr ds:[400040A0h]
+_wcschr:
+  400016BE: FF 25 A4 40 00 40  jmp         dword ptr ds:[400040A4h]
+_LoadString:
+  400016C4: FF 25 A8 40 00 40  jmp         dword ptr ds:[400040A8h]
+_thrWaitHandle:
+  400016CA: FF 25 80 40 00 40  jmp         dword ptr ds:[40004080h]
+_sysExec:
+  400016D0: FF 25 7C 40 00 40  jmp         dword ptr ds:[4000407Ch]
+
+     Summary
+
+        1000 .data
+        1000 .idata
+        1000 .info
+        1000 .rdata
+        1000 .rsrc
+        1000 .text

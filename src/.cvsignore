@@ -1,0 +1,10 @@
+*.o
+*.d
+boot
+gui
+guiapp
+ifproxy
+kernelrt
+tali
+timfs
+tools

@@ -1,0 +1,284 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "all"=.\src\all.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name kdebug
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name tali
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "cat"=.\src\cat\cat.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "console"=.\src\console\console.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "fortune"=.\src\fortune\fortune.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "guiapp"=.\src\guiapp\guiapp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "hello"=.\src\hello\hello.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "kernel"=.\src\kernel\kernel.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "kernelu"=.\src\kernelu\kernelu.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "libc"=.\src\libc\libc.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ls"=.\src\ls\ls.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "mount"=.\src\mount\mount.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ramdisk"=.\src\tools\ramdisk\ramdisk.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "sertest"=.\src\sertest\sertest.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "short"=.\src\short\short.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "tali"=.\src\tali\tali.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "tetris"=.\src\tetris\tetris.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name kernelu
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "timfs"=.\src\timfs\timfs.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

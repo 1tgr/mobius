@@ -1,0 +1,47 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: kdll - Win32 Debug--------------------
+</h3>
+
+cl /nologo /D__MOBIUS__ /DKERNEL /If:\Projects\mobius\include /c fat16.cpp /Fofat16.o
+fat16.cpp
+fat16.cpp(40) : error C2143: syntax error : missing ';' before '*'
+fat16.cpp(40) : error C2501: 'IBlockDevice' : missing storage-class or type specifiers
+fat16.cpp(40) : error C2501: 'm_pDevice' : missing storage-class or type specifiers
+fat16.cpp(51) : error C2629: unexpected 'class CFatFile ('
+fat16.cpp(51) : error C2238: unexpected token(s) preceding ';'
+fat16.cpp(68) : error C2629: unexpected 'class CFatFolder ('
+fat16.cpp(68) : error C2238: unexpected token(s) preceding ';'
+fat16.cpp(87) : error C2061: syntax error : identifier 'IBlockDevice'
+fat16.cpp(92) : error C2065: 'pDevice' : undeclared identifier
+fat16.cpp(98) : error C2065: 'IBlockDevice' : undeclared identifier
+fat16.cpp(98) : error C2065: 'pDev' : undeclared identifier
+fat16.cpp(98) : error C2059: syntax error : 'const'
+fat16.cpp(99) : error C2143: syntax error : missing ';' before '{'
+fat16.cpp(99) : error C2447: missing function header (old-style formal list?)
+fat16.cpp(125) : error C2065: 'm_pDevice' : undeclared identifier
+fat16.cpp(126) : error C2227: left of '->Release' must point to class/struct/union
+fat16.cpp(233) : error C2227: left of '->BlockRead' must point to class/struct/union
+fat16.cpp(266) : error C2227: left of '->BlockRead' must point to class/struct/union
+fat16.cpp(272) : error C2059: syntax error : 'const'
+fat16.cpp(273) : error C2065: 'stat' : undeclared identifier
+fat16.cpp(274) : error C2448: '<Unknown>' : function-style initializer appears to be a function definition
+fat16.cpp(399) : error C2039: 'm_pDevice' : is not a member of 'CFatFile'
+        fat16.cpp(33) : see declaration of 'CFatFile'
+fat16.cpp(399) : error C2661: 'CFatFolder::CFatFolder' : no overloaded function takes 3 parameters
+fat16.cpp(404) : error C2039: 'm_pDevice' : is not a member of 'CFatFile'
+        fat16.cpp(33) : see declaration of 'CFatFile'
+fat16.cpp(404) : error C2661: 'CFatFile::CFatFile' : no overloaded function takes 2 parameters
+make: *** [fat16.o] Error 2
+Error executing make.
+
+
+
+<h3>Results</h3>
+kdll.dll - 26 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

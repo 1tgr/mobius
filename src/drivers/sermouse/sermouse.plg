@@ -1,0 +1,18 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: sermouse - Win32 Debug--------------------
+</h3>
+
+gcc -D__MOBIUS__ -DKERNEL -O2 -Wall -If:\Projects\mobius\include -MD -c sermouse.c
+link /out:f:\Projects\mobius\bin/sermouse.drv /nologo /debug /debugtype:coff /libpath:f:\Projects\mobius\lib /nodefaultlib /entry:drvInit /subsystem:native /base:@f:\Projects\mobius\bin\coffbase.txt,sermouse sermouse.o kernel.lib
+
+
+
+<h3>Results</h3>
+sermouse.dll - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

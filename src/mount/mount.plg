@@ -1,0 +1,111 @@
+--------------------Configuration: kernelu - Win32 Debug--------------------
+Begining build with project "F:\DriveD\Projects\mobius\src\kernelu\kernelu.dsp", at root.
+Active configuration is Win32 (x86) Dynamic-Link Library (based on Win32 (x86) Dynamic-Link Library)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MTd /W3 /Gm /GX /Zi /Ox /Ot /Oi /Ob2 /D "_DEBUG" /D "__MOBIUS__" /Fp"Debug/kernelu.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c "
+			"OLE Type Library Maker" with flags "/nologo /D "_DEBUG" /mktyplib203 /o NUL /win32 "
+			"Win32 Resource Compiler" with flags "/l 0x809 /d "_DEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"kernelu.bsc" "
+			"COFF Linker for 80x86" with flags "/nologo /base:"0x10200000" /subsystem:windows /dll /incremental:no /pdb:"kernelu.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /def:".\kernelu.def" /out:"kernelu.dll" /implib:"kernelu.lib" /pdbtype:sept "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "c:\temp\RSP230.tmp" with contents </nologo /MTd /W3 /Gm /GX /Zi /Ox /Ot /Oi /Ob2 /D "_DEBUG" /D "__MOBIUS__" /Fp"Debug/kernelu.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c 
+"F:\DriveD\Projects\mobius\src\kernelu\except.c"
+>
+Creating command line "cl.exe @c:\temp\RSP230.tmp" 
+Creating temp file "c:\temp\RSP231.tmp" with contents </nologo /base:"0x10200000" /subsystem:windows /dll /incremental:no /pdb:"kernelu.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /def:".\kernelu.def" /out:"kernelu.dll" /implib:"kernelu.lib" /pdbtype:sept 
+.\Debug\except.obj
+.\Debug\fs.obj
+.\Debug\main.obj
+.\Debug\proc.obj
+.\Debug\sys.obj
+.\Debug\thread.obj
+\DriveD\Projects\mobius\src\ifproxy\ifproxy.lib>
+Creating command line "link.exe @c:\temp\RSP231.tmp" 
+Compiling...
+except.c
+Linking...
+   Creating library kernelu.lib and object kernelu.exp
+--------------------Configuration: libc - Win32 Debug--------------------
+Begining build with project "F:\DriveD\Projects\mobius\src\libc\libc.dsp", at root.
+Active configuration is Win32 (x86) Dynamic-Link Library (based on Win32 (x86) Dynamic-Link Library)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MTd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "__MOBIUS__" /Fp"Debug/libc.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c "
+			"OLE Type Library Maker" with flags "/nologo /D "_DEBUG" /mktyplib203 /o NUL /win32 "
+			"Win32 Resource Compiler" with flags "/l 0x809 /fo"Debug/libc.res" /d "_DEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"libc.bsc" "
+			"COFF Linker for 80x86" with flags "/nologo /base:"0x10000000" /subsystem:windows /dll /incremental:no /pdb:"libc.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /def:".\libc.def" /out:"libc.dll" /implib:"libc.lib" /pdbtype:sept "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "c:\temp\RSP232.tmp" with contents </nologo /base:"0x10000000" /subsystem:windows /dll /incremental:no /pdb:"libc.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /def:".\libc.def" /out:"libc.dll" /implib:"libc.lib" /pdbtype:sept 
+.\Debug\dowprintf.obj
+.\Debug\wprintf.obj
+.\Debug\iswlower.obj
+.\Debug\iswupper.obj
+.\Debug\match.obj
+.\Debug\mbstowcs.obj
+.\Debug\memcpy.obj
+.\Debug\memmove.obj
+.\Debug\memset.obj
+.\Debug\strcmp.obj
+.\Debug\stricmp.obj
+.\Debug\strlen.obj
+.\Debug\strncmp.obj
+.\Debug\towlower.obj
+.\Debug\towupper.obj
+.\Debug\unicode.obj
+.\Debug\wcscat.obj
+.\Debug\wcschr.obj
+.\Debug\wcscmp.obj
+.\Debug\wcscpy.obj
+.\Debug\wcsdup.obj
+.\Debug\wcsicmp.obj
+.\Debug\wcslen.obj
+.\Debug\wcsncpy.obj
+.\Debug\wcsrchr.obj
+.\Debug\free.obj
+.\Debug\malloc.obj
+.\Debug\core.obj
+.\Debug\cputws.obj
+.\Debug\kbhit.obj
+.\Debug\wgetch.obj
+.\Debug\wgetche.obj
+.\Debug\rand.obj
+.\Debug\srand.obj
+.\Debug\crt0pp.obj
+.\Debug\dllmain.obj
+.\Debug\resource.obj
+.\Debug\swprintf.obj
+.\Debug\libc.res
+\DriveD\Projects\mobius\src\ifproxy\ifproxy.lib
+\DriveD\Projects\mobius\src\kernelu\kernelu.lib>
+Creating command line "link.exe @c:\temp\RSP232.tmp" 
+Linking...
+   Creating library libc.lib and object libc.exp
+--------------------Configuration: mount - Win32 Debug--------------------
+Begining build with project "F:\DriveD\Projects\mobius\src\mount\mount.dsp", at root.
+Active configuration is Win32 (x86) Console Application (based on Win32 (x86) Console Application)
+
+Project's tools are:
+			"32-bit C/C++ Compiler for 80x86" with flags "/nologo /MLd /W3 /Gm /GX /Zi /Od /D "_DEBUG" /D "__MOBIUS__" /D "_MBCS" /Fp"Debug/mount.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /c "
+			"Win32 Resource Compiler" with flags "/l 0x809 /d "_DEBUG" "
+			"Browser Database Maker" with flags "/nologo /o"mount.bsc" "
+			"COFF Linker for 80x86" with flags "..\crt0.obj /nologo /base:"0x10000000" /subsystem:console /incremental:no /pdb:"mount.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /out:"mount.exe" /pdbtype:sept "
+			"Custom Build" with flags ""
+			"<Component 0xa>" with flags ""
+
+Creating temp file "c:\temp\RSP233.tmp" with contents <..\crt0.obj /nologo /base:"0x10000000" /subsystem:console /incremental:no /pdb:"mount.pdb" /debug /debugtype:coff /machine:I386 /nodefaultlib /out:"mount.exe" /pdbtype:sept 
+.\Debug\mount.obj
+\DriveD\Projects\mobius\src\ifproxy\ifproxy.lib
+\DriveD\Projects\mobius\src\kernelu\kernelu.lib
+\DriveD\Projects\mobius\src\libc\libc.lib>
+Creating command line "link.exe @c:\temp\RSP233.tmp" 
+Linking...
+
+
+
+mount.exe - 0 error(s), 0 warning(s)
