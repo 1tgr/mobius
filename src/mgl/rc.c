@@ -1,3 +1,5 @@
+/* $Id: rc.c,v 1.3 2002/03/05 16:10:42 pavlovskii Exp $ */
+
 #include <stdlib.h>
 #include <os/device.h>
 #include <os/syscall.h>

@@ -1,3 +1,5 @@
+/* $Id: mgl.h,v 1.3 2002/03/05 16:10:42 pavlovskii Exp $ */
+
 #ifndef __INTERNAL_MGL_H
 #define __INTERNAL_MGL_H
 

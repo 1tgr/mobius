@@ -1,3 +1,5 @@
+/* $Id: mgltest.c,v 1.3 2002/03/05 16:10:42 pavlovskii Exp $ */
+
 #include <os/syscall.h>
 #include <gl/mgl.h>
 #include <stdlib.h>

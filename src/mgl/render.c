@@ -1,3 +1,5 @@
+/* $Id: render.c,v 1.3 2002/03/05 16:10:42 pavlovskii Exp $ */
+
 #include "mgl.h"
 #include "render.h"
 #include <errno.h>
