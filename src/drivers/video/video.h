@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.4 2002/03/05 14:23:24 pavlovskii Exp $ */
+/* $Id: video.h,v 1.5 2002/03/06 19:36:53 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -53,9 +53,11 @@ struct video_t
     void (*vidLine)(video_t *vid, int x1, int y1, int x2, int y2, colour_t d);
     void (*vidFillRect)(video_t *vid, int x1, int y1, int x2, int y2, colour_t c);
     void (*vidTextOut)(video_t *vid, int x, int y, vga_font_t *font, 
-	    const wchar_t *str, size_t len, colour_t fg, colour_t bg);
+	const wchar_t *str, size_t len, colour_t fg, colour_t bg);
+    void (*vidFillPolygon)(video_t *vid, const point_t *points, 
+	unsigned num_points, colour_t colour);
     void (*vidStorePalette)(video_t *vid, const rgb_t *entries, unsigned first,
-	    unsigned count);
+	unsigned count);
 };
 
 #define VID_ENUM_CONTINUE	1

@@ -90,6 +90,10 @@ SOURCE=.\cupertino.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\font8x8.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\vga.c
 # End Source File
 # Begin Source File

@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.1 2002/03/05 14:23:24 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.2 2002/03/06 19:36:53 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -11,6 +11,8 @@
 /*! Physical address of the VGA frame buffer */
 static uint8_t *video_base = PHYSICAL(0xa0000);
 static videomode_t vga8_mode;
+
+void swap_int(int *a, int *b);
 
 uint8_t vga8Dither(int x, int y, colour_t clr)
 {
@@ -62,8 +64,6 @@ bool vga8SetMode(video_t *vid, videomode_t *mode)
 
     vga8_mode = vga8_modes[i].mode;
     vgaWriteRegs(regs);
-    
-    /* Clear the screen when we change modes */
     vid->vidFillRect(vid, 0, 0, vga8_mode.width, vga8_mode.height, 0);
     return true;
 }
@@ -80,6 +80,9 @@ colour_t vga8GetPixel(video_t *vid, int x, int y)
 
 void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
+    if (x2 < x1)
+	swap_int(&x1, &x2);
+
     memset(video_base + x1 + y * vga8_mode.bytesPerLine, 
 	vga8Dither(x1, y, clr),
 	x2 - x1);
@@ -143,6 +146,7 @@ video_t vga8 =
     NULL,	     /* line */
     NULL,	     /* fillrect */
     vga8TextOut,
+    NULL,	     /* fillpolygon */
     vgaStorePalette
 };
 

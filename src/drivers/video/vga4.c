@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.7 2002/03/06 01:39:27 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.8 2002/03/06 19:36:53 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -12,6 +12,8 @@
 static uint8_t *video_base = PHYSICAL(0xa0000);
 static int maskbit[640], y80[480], xconv[640], startmasks[8], endmasks[8];
 static videomode_t vga4_mode;
+
+void swap_int(int *a, int *b);
 
 uint8_t vga4Dither(int x, int y, colour_t clr)
 {
@@ -187,6 +189,9 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     uint8_t leftmask, rightmask, pix, *offset;
     volatile uint8_t a;
 
+    if (x2 < x1)
+	swap_int(&x1, &x2);
+
     pix = vga4Dither(x1, y, clr);
     offset = video_base + xconv[x1] + y80[y];
     
@@ -216,23 +221,25 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     /* rightx = end of middle region */
     rightx = x2 & -8;
     /* midpix = number of pixels in middle */
-    midpix = rightx - midx;
-
-    out16(VGA_GC_INDEX, 0xff08);
-    if (pix)
+    if (rightx > midx)
     {
-	out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
-	memset(offset, 0xff, midpix / 8);
+	midpix = rightx - midx;
+	out16(VGA_GC_INDEX, 0xff08);
+	if (pix)
+	{
+	    out16(VGA_SEQ_INDEX, 0x02 | (pix << 8));
+	    memset(offset, 0xff, midpix / 8);
+	}
+
+	if (~pix)
+	{
+	    out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
+	    memset(offset, 0, midpix / 8);
+	}
+
+	offset += midpix / 8;
     }
-
-    if (~pix)
-    {
-	out16(VGA_SEQ_INDEX, 0x02 | (~pix << 8));
-	memset(offset, 0, midpix / 8);
-    }
-
-    offset += midpix / 8;
-
+    
     /* rightpix = number of pixels to right of middle */
     rightpix = x2 - rightx;
     if (rightpix > 0)
@@ -340,6 +347,7 @@ video_t vga4 =
     NULL,	     /* line */
     NULL,	     /* fillrect */
     vga4TextOut,
+    NULL,	     /* fillpolygon */
     vgaStorePalette
 };
 
