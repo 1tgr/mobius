@@ -17,11 +17,13 @@ extern "C"
  *	@{
  */
 
-bool	ArchInit(void);
-bool	FsInit(void);
-bool	MemInit(void);
-bool	ProcInit(void);
-bool	RdInit(void);
+bool	__initcode ArchInit(void);
+bool	__initcode FsInit(void);
+bool	__initcode MemInit(void);
+bool	__initcode ProcInit(void);
+bool	__initcode RdInit(void);
+bool    __initcode ThrInit(void);
+bool    __initcode RtlInit(void);
 
 #include <kernel/fs.h>
 fsd_t *  RdMountFs(driver_t* driver, const wchar_t *dest);

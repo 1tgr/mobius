@@ -1,9 +1,10 @@
-/* $Id: window.h,v 1.4 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: window.h,v 1.5 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_WINDOW_H
 #define __GUI_WINDOW_H
 
-#include <gl/types.h>
+/*#include <gl/types.h>*/
+#include <mgl/rc.h>
 #include <os/gui.h>
 #include <list>
 
@@ -113,7 +114,7 @@ namespace os
         Window *GetNextChild(Window *child);
 
         virtual void HandleMessage(const msg_t *msg);
-        virtual void OnPaint();
+        virtual void OnPaint(mgl::Rc *rc);
         virtual void OnKeyDown(uint32_t key);
         virtual void OnKeyUp(uint32_t key);
         virtual void OnCommand(unsigned id);

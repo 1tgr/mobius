@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.13 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.14 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -35,6 +35,7 @@
 #define SYS_KeLeakBegin         0x106
 #define SYS_KeLeakEnd           0x107
 #define SYS_SysYield            0x108
+#define SYS_KeSetSingleStep     0x109
 
 #define SYS_ThrExitThread       0x200
 #define SYS_ThrWaitHandle       0x201
@@ -60,10 +61,12 @@
 #define SYS_FsRequestSync       0x408
 #define SYS_FsIoCtl             0x409
 #define SYS_FsReadDir           0x40a
+#define SYS_FsQueryHandle       0x40b
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
 #define SYS_VmmMapShared        0x502
+#define SYS_VmmMapFile          0x503
 
 #define SYS_EvtAlloc            0x600
 #define SYS_HndClose            0x601
@@ -99,6 +102,7 @@ SYSCALL(bool, SysShutdown, 4, unsigned)
 SYSCALL(void, KeLeakBegin, 0, void)
 SYSCALL(void, KeLeakEnd, 0, void)
 SYSCALL(void, SysYield, 0, void)
+SYSCALL(void, KeSetSingleStep, 4, bool)
 SYS_END_GROUP(1)
 
 /* 2 */
@@ -124,15 +128,16 @@ SYS_BEGIN_GROUP(4)
 SYSCALL(handle_t, FsCreate, 8, const wchar_t*, uint32_t)
 SYSCALL(handle_t, FsOpen, 8, const wchar_t*, uint32_t)
 SYSCALL(bool, FsClose, 4, handle_t)
-SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t*)
-SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
+SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t *)
+SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t *)
 SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
 /*SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)*/
 SYSCALL(handle_t, FsOpenDir, 4, const wchar_t*)
-SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)
-SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void*, size_t, struct fileop_t*)
+SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void *, size_t)
+SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
 SYSCALL(bool, FsIoCtl, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
 SYSCALL(bool, FsReadDir, 12, handle_t, struct dirent_t *, size_t)
+SYSCALL(bool, FsQueryHandle, 16, handle_t, uint32_t, void *, size_t)
 SYS_END_GROUP(4)
 
 /* 5 */
@@ -140,6 +145,7 @@ SYS_BEGIN_GROUP(5)
 SYSCALL(void *, VmmAlloc, 12, size_t, addr_t, uint32_t)
 SYSCALL(bool, VmmFree, 4, void*)
 SYSCALL(void *, VmmMapShared, 12, const wchar_t *, addr_t, uint32_t)
+SYSCALL(void *, VmmMapFile, 16, handle_t, addr_t, size_t, uint32_t)
 SYS_END_GROUP(5)
 
 /* 6 */

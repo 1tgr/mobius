@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.8 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.9 2002/08/04 17:22:39 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -108,6 +108,7 @@ FILE    *_wfopen( const wchar_t *filename, const wchar_t *mode );
 
 /* This isn't ANSI at all... */
 int     _cputws(const wchar_t *str, size_t count);
+int     _wdprintf(const wchar_t *fmt, ...);
 
 #ifdef _POSIX_SOURCE
 FILE    *fdopen(int fildes, const char *mode);

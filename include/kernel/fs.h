@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.9 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.10 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -45,10 +45,17 @@ struct file_t
     void *fsd_cookie;
 };
 
+#define FS_INFO_CACHE_BLOCK_SIZE    1
+#define FS_INFO_SPACE_TOTAL         2
+#define FS_INFO_SPACE_FREE          4
+
 typedef struct fs_info_t fs_info_t;
 struct fs_info_t
 {
+    uint32_t flags;
     uint64_t cache_block_size;
+    uint64_t space_total;
+    uint64_t space_free;
 };
 
 typedef struct fs_asyncio_t fs_asyncio_t;
@@ -86,7 +93,7 @@ struct __attribute__((com_interface)) fsd_t
         size_t length, fs_asyncio_t *io) = 0;
 
     virtual status_t opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie) = 0;
-    virtual status_t readdir(void *dir_cookie, uint32_t type, void *buf) = 0;
+    virtual status_t readdir(void *dir_cookie, dirent_t *buf) = 0;
     virtual void free_dir_cookie(void *dir_cookie) = 0;
 
     virtual status_t mount(const wchar_t *path, fsd_t *newfsd) = 0;
@@ -137,6 +144,14 @@ struct fsd_vtbl_t
 
 #endif
 
+typedef union dirent_all_t dirent_all_t;
+union dirent_all_t
+{
+    dirent_t dirent;
+    dirent_standard_t standard;
+    dirent_device_t device;
+};
+
 handle_t    FsCreate(const wchar_t*, uint32_t);
 handle_t    FsOpen(const wchar_t*, uint32_t);
 bool    FsClose(handle_t);
@@ -157,6 +172,8 @@ bool	FsCreateVirtualDir(const wchar_t *path);
 handle_t FsCreateFileHandle(struct process_t *proc, fsd_t *fsd, void *fsd_cookie, 
                             const wchar_t *name, uint32_t flags);
 void    FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result);
+bool    FsGuessMimeType(const wchar_t *ext, wchar_t *mimetype, size_t length);
+addr_t  RdGetFilePhysicalAddress(const wchar_t *name);
 
 /*! @} */
 

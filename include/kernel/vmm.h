@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.5 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.6 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -17,11 +17,12 @@ extern "C"
  */
 typedef struct vm_area_t vm_area_t;
 
-#define VM_AREA_NORMAL	        0
-#define VM_AREA_MAP		1
-#define VM_AREA_SHARED	        2
-#define VM_AREA_FILE	        3
-#define VM_AREA_IMAGE           4
+#define VM_AREA_EMPTY           0
+#define VM_AREA_NORMAL	        1
+#define VM_AREA_MAP		2
+#define VM_AREA_SHARED	        3
+#define VM_AREA_FILE	        4
+#define VM_AREA_IMAGE           5
 
 #define MEM_READ		1
 #define MEM_WRITE		2
@@ -40,6 +41,7 @@ struct vm_area_t
     process_t *owner;
 
     addr_t start;
+    unsigned num_pages;
     uint32_t flags;
     semaphore_t mtx_allocate;
     fileop_t pagingop;
@@ -63,12 +65,7 @@ struct vm_area_t
 void*       VmmMap(size_t pages, addr_t virt, void *dest, unsigned type, 
                    uint32_t flags);
 
-/* create a normal vm area */
 void*       VmmAlloc(size_t pages, addr_t start, uint32_t flags);
-/* create a shared vm area */
-/*void*     VmmShare(vm_area_t* area, process_t* proc, addr_t start, uint32_t flags);*/
-/* create a mapped file vm area */
-void*       VmmMapFile(addr_t start, size_t pages, handle_t file, uint32_t flags);
 bool        VmmShare(void *base, const wchar_t *name);
 
 void        VmmFree(vm_area_t* area);

@@ -1,4 +1,4 @@
-/* $Id: dialog.h,v 1.1 2002/04/03 23:29:31 pavlovskii Exp $ */
+/* $Id: dialog.h,v 1.2 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_DIALOG_H
 #define __GUI_DIALOG_H
@@ -16,7 +16,7 @@ namespace os
 
     public:
         Dialog(const wchar_t *text, const MGLrect &pos);
-        void OnPaint();
+        void OnPaint(mgl::Rc *rc);
         void OnCommand(unsigned id);
 
         //! Shows the dialog modally

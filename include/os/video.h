@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.5 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: video.h,v 1.6 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __OS_VIDEO_H
 #define __OS_VIDEO_H
@@ -115,16 +115,16 @@ struct rgb_t
 #define VID_PUTPIXEL	REQUEST_CODE(1, 0, 'v', 'p')
 #define VID_GETPIXEL	REQUEST_CODE(1, 0, 'v', 'g')*/
 
-#define VID_DRAW	    REQUEST_CODE(1, 0, 'v', 'd')
-#define VID_FILLPOLYGON	    REQUEST_CODE(1, 0, 'v', 'f')
+/*#define VID_DRAW	    REQUEST_CODE(1, 0, 'v', 'd')
+#define VID_FILLPOLYGON	    REQUEST_CODE(1, 0, 'v', 'f')*/
 #define VID_SETMODE	    REQUEST_CODE(0, 0, 'v', 'm')
 #define VID_GETMODE	    REQUEST_CODE(0, 0, 'v', 'M')
-#define VID_TEXTOUT	    REQUEST_CODE(0, 0, 'v', 't')
+/*#define VID_TEXTOUT	    REQUEST_CODE(0, 0, 'v', 't')*/
 #define VID_STOREPALETTE    REQUEST_CODE(1, 0, 'v', 'P')
 #define VID_LOADPALETTE     REQUEST_CODE(1, 0, 'v', 'Q')
 #define VID_MOVECURSOR      REQUEST_CODE(0, 0, 'v', 'c')
 
-enum
+/*enum
 {
     VID_SHAPE_FILLRECT,
     VID_SHAPE_HLINE,
@@ -144,23 +144,23 @@ struct vid_shape_t
         vid_line_t line;
         vid_pixel_t pix;
     } s;
-};
+};*/
 
 typedef union params_vid_t params_vid_t;
 union params_vid_t
 {
     videomode_t vid_setmode, vid_getmode;
     vid_palette_t vid_storepalette;
-    vid_text_t vid_textout;
+    /*vid_text_t vid_textout;*/
     point_t vid_movecursor;
 
-    struct
+    /*struct
     {
         clip_t clip;
         vid_shape_t *shapes;
         size_t length;
         uint64_t reserved;
-    } vid_draw;
+    } vid_draw;*/
 
     struct
     {

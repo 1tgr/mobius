@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: types.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GL_TYPES_H
 #define __GL_TYPES_H
@@ -62,6 +62,21 @@ struct MGLrect
         return bottom - top;
     }
 
+    void Inflate(int dx, int dy)
+    {
+        left -= dx;
+        top -= dy;
+        right += dx;
+        bottom += dy;
+    }
+
+    void Offset(int dx, int dy)
+    {
+        left += dx;
+        top += dy;
+        right += dx;
+        bottom += dy;
+    }
 #endif
 };
 
@@ -71,5 +86,18 @@ struct MGLclip
     unsigned num_rects;
     MGLrect *rects;
 };
+
+#define MGL_ALPHA(c)	((uint8_t) (((c) & 0xff000000) >> 24))
+#define MGL_RED(c)	((uint8_t) (((c) & 0x00ff0000) >> 16))
+#define MGL_GREEN(c)	((uint8_t) (((c) & 0x0000ff00) >> 8))
+#define MGL_BLUE(c)	((uint8_t) (((c) & 0x000000ff)))
+#define MGL_COLOUR4(r,g,b,a)	\
+    ((uint8_t) (b) | \
+     (uint8_t) (g) << 8 | \
+     (uint8_t) (r) << 16 | \
+     (uint8_t) (a) << 24)
+#define MGL_COLOR4(r,g,b,a)    MGL_COLOUR4(r,g,b,a)
+#define MGL_COLOUR(r,g,b)    MGL_COLOUR4(r,g,b,0)
+#define MGL_COLOR(r,g,b)    MGL_COLOR4(r,g,b,0)
 
 #endif

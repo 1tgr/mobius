@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.12 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.13 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -45,6 +45,7 @@ struct thread_t
     struct thread_info_t *info;
     addr_t kernel_esp;
     struct process_t *process;
+    bool is_kernel;
     unsigned priority;
     /*thread_queue_t *queue;
     thread_t *queue_prev, *queue_next;*/
@@ -64,8 +65,37 @@ struct thread_t
     context_v86_t v86_context;
 };
 
-extern thread_t *thr_first, *thr_last, *current;
-extern thread_t thr_idle;
+typedef struct cpu_t cpu_t;
+struct cpu_t
+{
+    cpu_t *this_cpu;
+    thread_t *current_thread;
+    thread_t thr_idle;
+    thread_info_t thr_idle_info;
+    void *arch;
+};
+
+extern thread_t *thr_first, *thr_last;//, *current;
+
+#ifdef __SMP__
+extern cpu_t thr_cpu[];
+
+extern unsigned ArchThisCpu(void);
+
+static inline cpu_t *cpu(void)
+{
+    return thr_cpu + ArchThisCpu();
+}
+
+#define ThrGetCpu(n)    (&thr_cpu[n])
+
+#else
+extern cpu_t thr_cpu_single;
+#define cpu()           (&thr_cpu_single)
+#define ThrGetCpu(n)    (&thr_cpu_single)
+#endif
+
+#define current()       (cpu()->current_thread)
 
 thread_t * 
     ThrGetCurrent(void);

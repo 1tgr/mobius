@@ -33,6 +33,7 @@ extern "C" {
 int	_flsbuf(int, FILE*);
 int	_filbuf(FILE *);
 void	_fwalk(void (*)(FILE *));
+int     _doscan(FILE *iop, const char *fmt, void **argp);
 
 extern char *__file_handle_modes;
 

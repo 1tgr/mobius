@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.9 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.10 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -49,14 +49,6 @@
 #define FILE_FORCE_OPEN         0x08
 #define FILE_CREATE_OPEN        (FILE_FORCE_CREATE | FILE_FORCE_OPEN)
 #define FILE_IS_DIRECTORY       0x10
-
-/* Flags for FsQueryFile() */
-/*! Tests for the file's presence; does not return any other information */
-#define FILE_QUERY_NONE         0
-/*! Returns \p dirent_t information for the file */
-#define FILE_QUERY_STANDARD     1
-/*! Returns \p dirent_device_t information for the device */
-#define FILE_QUERY_DEVICE       2
 
 /* Values for seek origin */
 #define FILE_SEEK_SET           0
@@ -133,6 +125,15 @@ struct fileop_t
 #define FILE_ATTR_DEVICE        0x1000
 #define FILE_ATTR_LINK          0x2000
 
+/* Flags for FsQueryFile() */
+/*! Tests for the file's presence; does not return any other information */
+#define FILE_QUERY_NONE         0
+#define FILE_QUERY_DIRENT       1
+/*! Returns \p dirent_standard_t information for the file */
+#define FILE_QUERY_STANDARD     2
+/*! Returns \p dirent_device_t information for the device */
+#define FILE_QUERY_DEVICE       3
+
 typedef struct dirent_t dirent_t;
 /*! \brief    Contains information on an entry in a directory */
 struct dirent_t
@@ -146,7 +147,7 @@ struct dirent_standard_t
 {
     uint64_t length;
     uint64_t attributes;
-    dirent_t di;
+    wchar_t mimetype[64];
 };
 
 typedef struct dirent_device_t dirent_device_t;
@@ -246,6 +247,10 @@ struct context_v86_t
 #define SHUTDOWN_REBOOT     1
 #define SHUTDOWN_POWEROFF   2
 #define SHUTDOWN_FLUSH      3
+
+/* Special handle values */
+#define HANDLE_NULL         0
+#define HANDLE_PROCESS      1
 
 /*! @} */
 

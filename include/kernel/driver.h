@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.16 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.17 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -308,6 +308,14 @@ struct device_resource_t
 #define DEV_BUS_ISA     1
 #define DEV_BUS_PCI     2
 
+typedef struct pci_location_t pci_location_t;
+struct pci_location_t
+{
+    unsigned bus;
+    unsigned dev;
+    unsigned func;
+};
+
 typedef struct device_config_t device_config_t;
 /*!    Device configuration structure */
 struct device_config_t
@@ -319,6 +327,8 @@ struct device_config_t
     uint16_t device_id;
     uint32_t subsystem;
     unsigned bus_type;
+    uint16_t device_class;
+    uint16_t reserved;
 
     union
     {
@@ -327,12 +337,7 @@ struct device_config_t
             unsigned number;
         } isa;
 
-        struct
-        {
-            unsigned bus;
-            unsigned dev;
-            unsigned func;
-        } pci;
+        pci_location_t pci;
     } location;
 };
 
@@ -365,7 +370,7 @@ struct driver_t
      *    \param    config    Device configuration (may be \p NULL )
      *    \return    A pointer to a device object
      */
-    device_t * (*add_device)(driver_t *driver, const wchar_t *name, 
+    void (*add_device)(driver_t *driver, const wchar_t *name, 
         device_config_t *config);
 
     /*!
@@ -412,7 +417,7 @@ struct __attribute__((com_interface)) device_t
     driver_t *driver;
     device_config_t *cfg;
     asyncio_t *io_first, *io_last;
-    const struct dirent_device_t *info;
+    struct device_info_t *info;
     uint32_t flags;
 };
 #else
@@ -422,7 +427,7 @@ struct device_t
     driver_t *driver;
     device_config_t *cfg;
     asyncio_t *io_first, *io_last;
-    const struct dirent_device_t *info;
+    struct device_info_t *info;
     uint32_t flags;
     const device_vtbl_t *vtbl;
 };
@@ -437,7 +442,7 @@ struct irq_t
 
 /* Kernel device driver helper routines */
 driver_t *  DevInstallNewDriver(const wchar_t *name);
-device_t *  DevInstallDevice(const wchar_t *driver, const wchar_t *name, device_config_t *cfg);
+bool        DevInstallDevice(const wchar_t *driver, const wchar_t *name, device_config_t *cfg);
 void	    DevUnloadDriver(driver_t *driver);
 
 bool	    DevRegisterIrq(uint8_t irq, device_t *dev);
@@ -454,6 +459,12 @@ void	    MemUnmapTemp(void);
 
 /* Driver entry point (you write this) */
 bool	    DrvEntry(driver_t *);
+
+/* In pci.drv (pci.lib) */
+uint32_t    PciReadConfig(const pci_location_t *loc, unsigned reg, 
+                          unsigned bytes);
+void        PciWriteConfig(const pci_location_t *loc, unsigned reg, 
+                           uint32_t v, unsigned bytes);
 
 /*! @} */
 

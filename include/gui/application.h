@@ -1,9 +1,9 @@
-/* $Id: application.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: application.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_APPLICATION_H
 #define __GUI_APPLICATION_H
 
-#include <gl/mgl.h>
+#include <mgl/rc.h>
 #include <os/gui.h>
 
 namespace os
@@ -22,7 +22,8 @@ namespace os
 
     public:
         //! MGL rendering context used by the application
-        mglrc_t *m_rc;
+        //mglrc_t *m_rc;
+        mgl::RcDevice m_rc;
 
         //! Retrieves a pointer to the process's application object
         static Application *GetApplication();

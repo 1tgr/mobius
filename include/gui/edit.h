@@ -1,4 +1,4 @@
-/* $Id: edit.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: edit.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_EDIT_H
 #define __GUI_EDIT_H
@@ -13,7 +13,7 @@ namespace os
     {
     public:
         Edit(Window *parent, const wchar_t *text, const MGLrect &pos, unsigned id);
-        void OnPaint();
+        void OnPaint(mgl::Rc *rc);
         void OnKeyDown(uint32_t key);
         void OnMouseDown(uint32_t button, MGLreal x, MGLreal y);
     };

@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.9 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.10 2002/08/04 17:22:39 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -79,12 +79,15 @@ void *  __realloc(void *_ptr, size_t _size, const char *, int);
 wchar_t *__wcsdup(const wchar_t *_str, const char *, int);
 char *  __strdup(const char *_str, const char *, int);
 
+long double _strtold(const char *s, char **sret);
+long double _atold(const char *ascii);
+
 #ifdef KERNEL
 #define malloc(x)       __malloc((x), __FILE__, __LINE__)
 #define calloc(x, n)    __calloc((x), (n), __FILE__, __LINE__)
 #define free(p)         __free((p), __FILE__, __LINE__)
 #define realloc(p, x)   __realloc((p), (x), __FILE__, __LINE__)
-#define strdup(p)       __strdup((p), __FILE__, __LINE__)
+#define _strdup(p)      __strdup((p), __FILE__, __LINE__)
 #define _wcsdup(p)      __wcsdup((p), __FILE__, __LINE__)
 #endif
 

@@ -1,8 +1,8 @@
-/* $Id: version.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: version.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 
-#undef DJGPP
+/*#undef DJGPP
 #undef __DJGPP
 #undef __DJGPP__
 
@@ -16,5 +16,4 @@
 
 #define DJGPP_MINOR 3
 #define __DJGPP_MINOR 3
-#define __DJGPP_MINOR__ 3
-
+#define __DJGPP_MINOR__ 3*/

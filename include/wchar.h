@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.10 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.11 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -139,10 +139,16 @@ void	_pwerror(const wchar_t *text);
 wchar_t *_wcserror(int _errcode);
 /*FILE	*_wfopen( const wchar_t *filename, const wchar_t *mode );*/
 
-#define iswupper(c)		((c) >= 'A' && (c) <= 'Z')
-#define iswlower(c)		((c) >= 'a' && (c) <= 'z')
-#define towupper(c)		(iswlower(c) ? (c) - 'a' + 'A' : (c))
-#define towlower(c)		(iswupper(c) ? (c) - 'A' + 'a' : (c))
+wchar_t *__wcsdup(const wchar_t* str, const char *file, int line);
+
+/*int iswupper(wint_t _c);
+int iswlower(wint_t _c);
+int towupper(wint_t _c);
+int towlower(wint_t _c);*/
+#define iswupper(_c)            ((_c) >= 'A' && (_c) <= 'Z')
+#define iswlower(_c)            ((_c) >= 'a' && (_c) <= 'z')
+#define towupper(_c)            (iswlower(_c) ? (_c) - 'a' + 'A' : (_c))
+#define towlower(_c)            (iswupper(_c) ? (_c) - 'A' + 'a' : (_c))
 #define iswdigit(c)		((c) >= '0' && (c) <= '9')
 #define iswspace(c)		((c) == '\r' || (c) == '\n' || (c) == '\t' || (c) == ' ')
 #define iswalpha(c)		(iswupper(c) || iswlower(c))
@@ -151,6 +157,20 @@ extern wchar_t *	sys_werrlist[];
 extern int		sys_nerr;
 extern const wchar_t *	__sys_werrlist[];
 extern int		__sys_nerr;
+
+typedef struct
+{
+    wchar_t __cp;
+    uint16_t __class;
+    wchar_t __uc;
+    wchar_t __lc;
+} __wchar_info_t;
+
+const __wchar_info_t *__lookup_unicode(wchar_t _cp);
+
+int _wcwidth(wchar_t ucs);
+int _wcswidth(const wchar_t *pwcs, size_t n);
+int _wcswidth_cjk(const wchar_t *pwcs, size_t n);
 
 #ifdef __cplusplus
 }

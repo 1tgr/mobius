@@ -1,4 +1,4 @@
-/* $Id: label.h,v 1.1 2002/04/03 23:29:31 pavlovskii Exp $ */
+/* $Id: label.h,v 1.2 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_LABEL_H
 #define __GUI_LABEL_H
@@ -13,7 +13,7 @@ namespace os
     {
     public:
         Label(Window *parent, const wchar_t *text, const MGLrect &pos);
-        void OnPaint();
+        void OnPaint(mgl::Rc *rc);
     };
 };
 

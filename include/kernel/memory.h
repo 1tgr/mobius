@@ -1,4 +1,4 @@
-/* $Id: memory.h,v 1.5 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: memory.h,v 1.6 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_MEMORY_H
 #define __KERNEL_MEMORY_H
 
@@ -42,6 +42,7 @@ extern page_pool_t pool_all, pool_low;
 typedef struct page_array_t page_array_t;
 struct page_array_t
 {
+    unsigned refs;
     unsigned num_pages;
     size_t mod_first_page;
     addr_t pages[1];
@@ -61,8 +62,12 @@ void	MemUnmapTemp(void);
 addr_t	MemAllocPageDir(void);
 bool	MemVerifyBuffer(const void *buf, size_t bytes);
 bool	MemLockPages(addr_t phys, unsigned pages, bool do_lock);
-page_array_t *MemCopyPageArray(unsigned num_pages, size_t mod_first_page, 
-                               const addr_t *pages);
+bool    MemIsPageLocked(addr_t phys);
+/*page_array_t *MemCopyPageArray(unsigned num_pages, size_t mod_first_page, 
+                               const addr_t *pages);*/
+page_array_t *MemCopyPageArray(page_array_t *a);
+page_array_t *MemDupPageArray(unsigned num_pages, size_t mod_first_page, 
+                              const addr_t *pages);
 page_array_t *MemCreatePageArray(const void *buf, size_t bytes);
 void    MemDeletePageArray(page_array_t *array);
 void *  MemMapPageArray(page_array_t *array, uint16_t state);

@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.6 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.7 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -44,7 +44,7 @@ struct process_t
 	unsigned handle_allocated;
 	module_t *mod_first, *mod_last;
 	struct vm_area_t *area_first, *area_last;
-	addr_t vmm_end;
+	/*addr_t vmm_end;*/
 	semaphore_t sem_vmm;
 	semaphore_t sem_lock;
 	const wchar_t *exe;

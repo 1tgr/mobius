@@ -1,4 +1,4 @@
-/* $Id: rtl.h,v 1.8 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: rtl.h,v 1.9 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __OS_RTL_H
 #define __OS_RTL_H
 
@@ -12,14 +12,13 @@ extern "C"
 
 bool	    FsFullPath(const wchar_t* src, wchar_t* dst);
 wchar_t *   ProcGetCwd();
-thread_info_t *
-	    ThrGetThreadInfo(void);
-process_info_t *
-	    ProcGetProcessInfo(void);
+thread_info_t *ThrGetThreadInfo(void);
+process_info_t *ProcGetProcessInfo(void);
 addr_t	    ProcGetExeBase(void);
 const void *ResFindResource(addr_t base, uint16_t type, uint16_t id, uint16_t language);
-bool	    ResLoadString(uint32_t base, uint16_t id, wchar_t* str, size_t str_max);
+bool	    ResLoadString(addr_t base, uint16_t id, wchar_t* str, size_t str_max);
 size_t      ResSizeOfResource(addr_t base, uint16_t type, uint16_t id, uint16_t language);
+size_t      ResGetStringLength(addr_t base, uint16_t id);
 bool        FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read);
 bool        FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_written);
 uint32_t    ConReadKey(void);

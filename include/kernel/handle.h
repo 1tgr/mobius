@@ -1,4 +1,4 @@
-/* $Id: handle.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: handle.h,v 1.5 2002/08/04 17:22:39 pavlovskii Exp $ */
 #ifndef __KERNEL_HANDLE_H
 #define __KERNEL_HANDLE_H
 
@@ -45,7 +45,7 @@ struct handle_hdr_t
 	const char *file;
 	unsigned line;
 	uint32_t copies;
-	void (*free_callback)(handle_hdr_t *);
+	void (*free_callback)(void *);
 };
 
 handle_t	_HndAlloc(struct process_t *proc, size_t size, uint32_t tag,

@@ -1,4 +1,4 @@
-/* $Id: button.h,v 1.2 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: button.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
 
 #ifndef __GUI_BUTTON_H
 #define __GUI_BUTTON_H
@@ -17,7 +17,7 @@ namespace os
 
     public:
         Button(Window *parent, const wchar_t *text, const MGLrect &pos, unsigned id);
-        void OnPaint();
+        void OnPaint(mgl::Rc *rc);
         void OnKeyDown(uint32_t key);
         void OnKeyUp(uint32_t key);
         void OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y);
