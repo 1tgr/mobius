@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.11 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.12 2002/08/19 20:00:53 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -81,11 +81,25 @@ int     system(const char *_s);
 size_t  wcstombs(char *_s, const wchar_t *_wcs, size_t _n);
 int     wctomb(char *_s, wchar_t _wchar);
 
+typedef struct __maldbg_header_t __maldbg_header_t;
+struct __maldbg_header_t
+{
+    int line;
+    const char *file;
+    __maldbg_header_t *prev, *next;
+    size_t size;
+    int tag;
+    unsigned int magic[2];
+};
+
 void *  __malloc(size_t _size, const char *, int);
 void    __free(void *_ptr, const char *, int);
 void *  __realloc(void *_ptr, size_t _size, const char *, int);
 wchar_t *__wcsdup(const wchar_t *_str, const char *, int);
 char *  __strdup(const char *_str, const char *, int);
+__maldbg_header_t *__malloc_find_block(void *addr);
+void    __malloc_leak(int tag);
+void    __malloc_leak_dump(void);
 
 long double _strtold(const char *s, char **sret);
 long double _atold(const char *ascii);

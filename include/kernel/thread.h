@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.14 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.15 2002/08/19 20:00:56 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -58,6 +58,7 @@ struct thread_t
     addr_t user_stack_top;
     void *param;
     queue_t msgqueue;
+    struct asyncio_t *aio_first, *aio_last;
 
 #ifdef i386
     bool v86_if;

@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.11 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.12 2002/08/19 20:00:52 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -10,11 +10,10 @@ extern "C" {
 
 #include <sys/types.h>
 
-/*extern int errno;*/
 int *_geterrno(void);
 #define errno   (*_geterrno())
-  
-#define SIOPENDING  -1
+
+#define SIOPENDING -1
 #define EDOM        1
 #define EILSEQ      2
 #define ERANGE      3
@@ -33,11 +32,13 @@ int *_geterrno(void);
 #define EFAULT      16
 #define ENOCLIENT   17
 #define ENOEXEC     18
+#define ECANCELLED  19
 
 #define EACCES      EACCESS
 #define EINVAL      EINVALID
 #define ENOENT      ENOTFOUND
 #define ENFILE      EMFILE
+#define ECANCELED   ECANCELLED
 
 #define ENMFILE     38
 #define EINTR       39

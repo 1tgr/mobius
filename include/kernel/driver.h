@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.18 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.19 2002/08/19 20:00:55 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -250,6 +250,7 @@ typedef struct asyncio_t asyncio_t;
 struct asyncio_t
 {
     asyncio_t *prev, *next;
+    asyncio_t *thread_prev, *thread_next;
 
     /*! Thread that owns this request */
     struct thread_t *owner;
@@ -395,12 +396,14 @@ typedef struct device_vtbl_t device_vtbl_t;
 /*!    \brief    Virtual function table for device objects */
 struct device_vtbl_t
 {
-    /*!    \brief    Initialites a request */
+    /*! \brief  Initialites a request */
     bool (*request)(device_t *dev, request_t *req);
-    /*!    \brief    Signals an interrupt */
+    /*! \brief  Signals an interrupt */
     bool (*isr)(device_t *dev, uint8_t irq);
-    /*!    \brief    Signals completion of an I/O request queued for the driver */
+    /*! \brief  Signals completion of an I/O request queued for the driver */
     void (*finishio)(device_t *dev, request_t *req);
+    /*! \brief  Cancels an I/O request queued on the driver */
+    bool (*cancelio)(device_t *dev, asyncio_t *io);
 };
 
 #define DEVICE_IO_PAGED     0
@@ -429,6 +432,7 @@ struct __cominterface device_t
     virtual bool __comcall request(request_t *req) = 0;
     virtual bool __comcall isr(uint8_t irq) = 0;
     virtual void __comcall finishio(request_t *req) = 0;
+    virtual bool __comcall cancelio(asyncio_t *io) = 0;
 
     driver_t *driver;
     device_config_t *cfg;
@@ -467,6 +471,7 @@ bool	    DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg);
 asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, 
                             page_array_t *pages, size_t user_buffer_length);
 void	    DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
+bool        DevCancelIo(asyncio_t *io);
 uint8_t	    DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
 device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n);
 void *	    DevMapBuffer(asyncio_t *io);
