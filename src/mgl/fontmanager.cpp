@@ -1,13 +1,20 @@
-/* $Id: fontmanager.cpp,v 1.1 2002/09/13 23:23:01 pavlovskii Exp $ */
+/* $Id: fontmanager.cpp,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
 
 #include <mgl/fontmanager.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include <os/defs.h>
 
 using namespace mgl;
 
+static const wchar_t *default_files[] =
+{
+    SYS_BOOT L"/lucsdm.ttf",
+    SYS_BOOT L"/luctr.ttf",
+};
+
 FontManager *FontManager::m_instance;
-Font *FontManager::m_defaults[1];
+Font *FontManager::m_defaults[_countof(default_files)];
 
 FontManager::FontManager()
 {
@@ -27,7 +34,7 @@ Font *FontManager::GetDefault(int index)
         return NULL;
 
     if (m_defaults[index] == NULL)
-        m_defaults[index] = new Font(L"/System/Boot/lucsdm.ttf", 200);
+        m_defaults[index] = new Font(default_files[index], 200);
 
     return m_defaults[index];
 }

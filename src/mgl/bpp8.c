@@ -1,3 +1,5 @@
+/* $Id: bpp8.c,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
+
 #include "bpp8.h"
 
 /* Surprisingly effective 8-bit dithering code from Paul Hsieh (qed@pobox.com) */
@@ -13,7 +15,10 @@ static int DitherTable8[4][4][2] = {
     { DS(12), DS( 6), DS(13), DS( 7) }
 };
 
-uint8_t bpp8Dither(int x, int y, colour_t clr)
+static uint8_t bpp8_dtbl[8 * 8];
+static MGLcolour bpp8_last_colour;
+
+uint8_t Bpp8Dither(int x, int y, colour_t clr)
 {
     int rb, r, g, b;
 
@@ -62,4 +67,20 @@ void bpp8GeneratePalette(rgb_t *palette)
         palette[i].blue = SC(i - 40);
     }
 #undef SC
+}
+
+uint8_t *Bpp8PrepareDitherTable(MGLcolour clr)
+{
+    unsigned x, y;
+
+    if (bpp8_last_colour != clr)
+    {
+        for (x = 0; x < 8; x++)
+            for (y = 0; y < 8; y++)
+                bpp8_dtbl[y * 8 + x] = Bpp8Dither(x, y, clr);
+
+        bpp8_last_colour = clr;
+    }
+
+    return bpp8_dtbl;
 }

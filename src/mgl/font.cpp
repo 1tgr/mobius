@@ -1,11 +1,11 @@
-/* $Id: font.cpp,v 1.1 2002/09/13 23:23:01 pavlovskii Exp $ */
+/* $Id: font.cpp,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
 
 #include <mgl/font.h>
 #include <mgl/fontmanager.h>
 #include <mgl/rc.h>
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 #include <os/defs.h>
 #include <os/syscall.h>
@@ -21,7 +21,7 @@ using namespace mgl;
 
 Font::Font(const wchar_t *filename, unsigned size_twips)
 {
-    int error, pts;
+    int error;
     dirent_standard_t di;
     FT_Open_Args args;
 
@@ -32,40 +32,15 @@ Font::Font(const wchar_t *filename, unsigned size_twips)
         return;
     }
 
-    /*_wdprintf(L"Font::Font: allocating %u bytes...", di.length);
-    m_font_data = malloc(di.length);
-    _wdprintf(L"done\n");
-
-    file = FsOpen(filename, FILE_READ);
-
-    _wdprintf(L"Reading...");
-    bytes = 0;
-    while (bytes < di.length)
-    {
-        if (FsReadSync(file, 
-            (uint8_t*) m_font_data + bytes, 
-            min(32768, di.length - bytes), 
-            &size))
-        {
-            bytes += size;
-            _wdprintf(L"%u bytes/", size);
-        }
-        else
-            _wdprintf(L"failed: %d/", errno);
-    }
-
-    _wdprintf(L"done\n");
-    FsClose(file);*/
-
-    _wdprintf(L"Font::Font: mapping file (%u bytes)...", di.length);
+    wprintf(L"Font::Font: mapping file (%u bytes)...", di.length);
     m_file = FsOpen(filename, FILE_READ);
     m_font_data = VmmMapFile(m_file, 
         NULL, 
         PAGE_ALIGN_UP(di.length) / PAGE_SIZE, 
         VM_MEM_USER | VM_MEM_READ);
-    _wdprintf(L"done (%p)\n", m_font_data);
+    wprintf(L"done (%p)\n", m_font_data);
 
-    _wdprintf(L"Loading face...");
+    wprintf(L"Loading face...");
     args.flags = ft_open_memory;
     args.memory_base = (const FT_Byte*) m_font_data;
     args.memory_size = di.length;
@@ -81,10 +56,10 @@ Font::Font(const wchar_t *filename, unsigned size_twips)
             size_twips += 20;
         } while (error != 0 && size_twips <= 6000);
 
-        _wdprintf(L"done, pts = %u, error = %u\n", pts, error);
+        wprintf(L"done, size_twips = %u, error = %u\n", size_twips, error);
     }
     else
-        _wdprintf(L"failed: error = %u\n", error);
+        wprintf(L"failed: error = %u\n", error);
 }
 
 Font::~Font()
@@ -154,7 +129,7 @@ void Font::IterateString(Rc *rc, const MGLrect& rect, const wchar_t *str,
                          void (*fn)(Rc *, FT_Bitmap *, int, int, 
                             MGLcolour, MGLcolour))
 {
-    int error, x, y, maxx, maxy, gap, hgt;
+    int error, x, y, maxx, maxy, hgt;
     rect_t trect;
 
     if (m_ft_face == NULL)
@@ -164,12 +139,12 @@ void Font::IterateString(Rc *rc, const MGLrect& rect, const wchar_t *str,
         len = wcslen(str);
 
     rc->Transform(rect, trect);
-    hgt = m_ft_face->size->metrics.height >> 6;
+    hgt = m_ft_face->size->metrics.height >> 7;
     maxx = x = trect.left;
-    maxy = y = trect.top + m_ft_face->size->metrics.ascender / 64;//+ hgt;
-    gap = hgt / 4;
+    maxy = y = trect.top + (m_ft_face->size->metrics.ascender >> 6);//+ hgt;
+    //gap = hgt / 4;
 
-    _wdprintf(L"Font::DrawText: num_glyphs = %u ", m_ft_face->num_glyphs);
+    //_wdprintf(L"Font::DrawText: num_glyphs = %u ", m_ft_face->num_glyphs);
     while (len > 0)
     {
         if (*str != '\n')
@@ -178,20 +153,20 @@ void Font::IterateString(Rc *rc, const MGLrect& rect, const wchar_t *str,
             error = 1;
 
         if (*str == '\n' ||
-            x + (m_ft_face->glyph->advance.x >> 6) > trect.right)
+            x + (m_ft_face->glyph->advance.x >> 6) > trect.right + 1)
         {
             x = trect.left;
             y += hgt;
             if (y > maxy)
                 maxy = y;
 
-            if (y > trect.bottom)
+            if (y > trect.bottom + 1)
                 break;
         }
 
         if (error == 0)
         {
-            _wdprintf(L"%c(%d)", *str, m_ft_face->glyph->bitmap_top >> 6);
+            //_wdprintf(L"%c(%d)", *str, m_ft_face->glyph->bitmap_top >> 6);
             //vid->vidHLine(vid, x + m_ft_face->glyph->bitmap_left,
                 //x + m_ft_face->glyph->bitmap_left + m_ft_face->glyph->bitmap.width,
                 //y - m_ft_face->glyph->bitmap_top,
@@ -210,18 +185,18 @@ void Font::IterateString(Rc *rc, const MGLrect& rect, const wchar_t *str,
             if (x > maxx)
                 maxx = x;
         }
-        else
-            _wdprintf(L"%c[%x]", *str, error);
+        //else
+            //_wdprintf(L"%c[%x]", *str, error);
 
         str++;
         len--;
     }
 
-    _wdprintf(L"\n");
+    //_wdprintf(L"\n");
     if (size != NULL)
     {
-        size->x = trect.left - maxx;
-        size->y = trect.top - maxy;
+        size->x = maxx - trect.left;
+        size->y = maxy - trect.top - (m_ft_face->size->metrics.descender >> 6);
     }
 }
 
@@ -234,10 +209,45 @@ MGLpoint Font::GetTextSize(Rc *rc, const wchar_t *str, int len)
     size.x = size.y = 0;
     IterateString(rc, rect, str, len, &size, NULL);
     rc->InverseTransform(size.x, size.y, ret);
+    wprintf(L"Font::GetTextSize(%s): size = (%d,%d) ret = (%d,%d)\n",
+        str, size.x, size.y, ret.x, ret.y);
     return ret;
 }
 
 void Font::DrawText(Rc *rc, const MGLrect& rect, const wchar_t *str, int len)
 {
     IterateString(rc, rect, str, len, NULL, draw_bitmap);
+}
+
+void Font::GetMetrics(Rc *rc, FontMetrics *m)
+{
+    rect_t r;
+    MGLrect ret;
+    //MGLpoint pt;
+    FT_Size_Metrics *metrics;
+
+    //r.left = m_ft_face->size->metrics.x_ppem;
+    r.left = m_ft_face->max_advance_width;
+    r.right = 0;
+    r.top = m_ft_face->ascender;
+    r.bottom = -m_ft_face->descender / 2;
+    wprintf(L"width = %d ascender = %d descender = %d height = %d\n",
+        r.left, r.top, r.bottom, m_ft_face->height);
+
+    rc->InverseTransform(r, ret);
+    /*ret.left = r.left;
+    ret.top = r.top;
+    ret.right = r.right;
+    ret.bottom = r.bottom;*/
+    //rc->InverseTransform(0, m_ft_face->height / 2, pt);
+
+    metrics = &m_ft_face->size->metrics;
+    m->char_width_max = (ret.left * metrics->x_ppem) / (m_ft_face->units_per_EM);
+    m->char_width_min = 0;
+    m->ascent = (ret.top * metrics->y_ppem) / (m_ft_face->units_per_EM);
+    m->descent = (ret.bottom * metrics->y_ppem) / (m_ft_face->units_per_EM);
+    //m->height = (pt.y * metrics->y_ppem) / (m_ft_face->units_per_EM);
+    m->height = m->ascent + m->descent;
+    wprintf(L"width = %d ascender = %d descender = %d height = %d\n",
+        m->char_width_max, m->ascent, m->descent, m->height);
 }

@@ -1,4 +1,4 @@
-/* $Id: bpp8.h,v 1.1 2002/09/13 23:23:01 pavlovskii Exp $ */
+/* $Id: bpp8.h,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
 
 #ifndef BPP8_H__
 #define BPP8_H__
@@ -12,8 +12,9 @@ extern "C"
 #include <os/video.h>
 
 extern rgb_t bpp8_palette[256];
-uint8_t bpp8Dither(int x, int y, MGLcolour clr);
-void    bpp8GeneratePalette(rgb_t *palette);
+uint8_t Bpp8Dither(int x, int y, MGLcolour clr);
+void    Bpp8GeneratePalette(rgb_t *palette);
+uint8_t *Bpp8PrepareDitherTable(MGLcolour clr);
 
 #ifdef __cplusplus
 }

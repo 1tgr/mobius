@@ -23,9 +23,11 @@ EXPORTS
     DllMainCRTStartup
     DrawText__Q23mgl4FontPQ23mgl2RcRC7MGLrectPCUwi
     GetInstance__Q23mgl11FontManager
+    GetMetrics__Q23mgl4FontPQ23mgl2RcPQ23mgl11FontMetrics
     GetTextSize__Q23mgl4FontPQ23mgl2RcPCUwi
     IterateString__Q23mgl4FontPQ23mgl2RcRC7MGLrectPCUwiP7point_tPFPQ23mgl2RcP10FT_Bitmap_iiUlUl_v
     _$_Q23mgl4Font
+    __7MGLrect
     __7MGLrectiiii
     __8MGLpoint
     __Q23mgl4FontPCUwUi

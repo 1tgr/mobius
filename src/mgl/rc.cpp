@@ -1,10 +1,11 @@
-/* $Id: rc.cpp,v 1.1 2002/09/13 23:23:01 pavlovskii Exp $ */
+/* $Id: rc.cpp,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
 
 #include <mgl/rc.h>
 
 #include <stdlib.h>
 #include <limits.h>
 #include <stddef.h>
+#include <string.h>
 
 #include "bpp8.h"
 
@@ -62,6 +63,7 @@ void Rc::Attach(Bitmap *bitmap)
             DoVLine = &Rc::VLine8;
             DoPutPixel = &Rc::PutPixel8;
             DoGetPixel = &Rc::GetPixel8;
+            DoScroll = &Rc::Scroll8;
             break;
 
         case 16:
@@ -69,6 +71,7 @@ void Rc::Attach(Bitmap *bitmap)
             DoVLine = &Rc::VLine16;
             DoPutPixel = &Rc::PutPixel16;
             DoGetPixel = &Rc::GetPixel16;
+            DoScroll = &Rc::Scroll16;
             break;
         }
     }
@@ -185,7 +188,7 @@ void Rc::FillRectGeneric(const rect_t& rect, MGLcolour clr)
 void Rc::HLine8(int x1, int x2, int y, MGLcolour clr)
 {
     BitmapLock<uint8_t*> video_base(m_bitmap);
-    uint8_t *ptr;
+    uint8_t *ptr, *dtbl;
     unsigned i;
     int ax1, ax2;
 
@@ -197,6 +200,7 @@ void Rc::HLine8(int x1, int x2, int y, MGLcolour clr)
         x1 = t;
     }
 
+    dtbl = Bpp8PrepareDitherTable(clr);
     for (i = 0; i < m_num_clip_rects; i++)
     {
         if (y >= m_clip_rects[i].top && y < m_clip_rects[i].bottom)
@@ -207,7 +211,7 @@ void Rc::HLine8(int x1, int x2, int y, MGLcolour clr)
             for (ptr = video_base + ax1 + y * m_bitmap->GetPitch();
                 ax1 < ax2;
                 ax1++, ptr++)
-                *ptr = bpp8Dither(ax1, y, clr);
+                *ptr = dtbl[(y % 8) * 8 + ax1 % 8];
         }
     }
 }
@@ -215,7 +219,7 @@ void Rc::HLine8(int x1, int x2, int y, MGLcolour clr)
 void Rc::VLine8(int x, int y1, int y2, MGLcolour clr)
 {
     BitmapLock<uint8_t*> video_base(m_bitmap);
-    uint8_t *ptr;
+    uint8_t *ptr, *dtbl;
     unsigned i;
     int ay1, ay2;
 
@@ -227,6 +231,7 @@ void Rc::VLine8(int x, int y1, int y2, MGLcolour clr)
         y1 = t;
     }
 
+    dtbl = Bpp8PrepareDitherTable(clr);
     for (i = 0; i < m_num_clip_rects; i++)
     {
         if (x >= m_clip_rects[i].left && x < m_clip_rects[i].right)
@@ -237,7 +242,7 @@ void Rc::VLine8(int x, int y1, int y2, MGLcolour clr)
             for (ptr = video_base + x + ay1 * m_bitmap->GetPitch();
                 ay1 < ay2;
                 ay1++, ptr += m_bitmap->GetPitch())
-                *ptr = bpp8Dither(x, ay1, clr);
+                *ptr = dtbl[(ay1 % 8) * 8 + x % 8];
         }
     }
 }
@@ -246,14 +251,16 @@ void Rc::PutPixel8(int x, int y, MGLcolour clr)
 {
     BitmapLock<uint8_t*> video_base(m_bitmap);
     unsigned i;
+    uint8_t *dtbl;
 
+    dtbl = Bpp8PrepareDitherTable(clr);
     for (i = 0; i < m_num_clip_rects; i++)
         if (x >= m_clip_rects[i].left &&
             y >= m_clip_rects[i].top &&
             x <  m_clip_rects[i].right &&
             y <  m_clip_rects[i].bottom)
         {
-            video_base[x + y * m_bitmap->GetPitch()] = bpp8Dither(x, y, clr);
+            video_base[x + y * m_bitmap->GetPitch()] = dtbl[(y % 8) * 8 + x % 8];
             break;
         }
 }
@@ -267,6 +274,33 @@ MGLcolour Rc::GetPixel8(int x, int y)
     return MGL_COLOUR(bpp8_palette[pix].red,
         bpp8_palette[pix].green,
         bpp8_palette[pix].blue);
+}
+
+void Rc::Scroll8(const rect_t& rect, int dx, int dy)
+{
+    BitmapLock<uint8_t*> video_base(m_bitmap);
+    int line, height;
+    unsigned bpl;
+    uint8_t *src, *dest;
+
+    // xxx -- dx ignored
+
+    bpl = m_bitmap->GetPitch();
+    if (dy > 0)
+    {
+        src = video_base + rect.left * 1 + rect.top * bpl;
+        dest = src + dy * bpl;
+    }
+    else
+    {
+        dy = -dy;
+        dest = video_base + rect.left * 1 + rect.top * bpl;
+        src = dest + dy * bpl;
+    }
+
+    height = (rect.bottom - rect.top - dy) * bpl;
+    for (line = 0; line < height; line += bpl)
+        memmove(dest + line, src + line, (rect.right - rect.left) * 1);
 }
 
 /*
@@ -382,6 +416,10 @@ MGLcolour Rc::GetPixel16(int x, int y)
     uint16_t *ptr;
     ptr = (uint16_t*) (video_base + y * m_bitmap->GetPitch());
     return Pixel16ToColour(ptr[x]);
+}
+
+void Rc::Scroll16(const rect_t& rect, int dx, int dy)
+{
 }
 
 /*
@@ -739,4 +777,15 @@ void Rc::Bevel(const MGLrect& rect, int width, int diff, bool is_raised)
     FillPolygon(pts, _countof(pts));
 
     m_state.colour_fill = old_clr;
+}
+
+void Rc::Scroll(const MGLrect& rect, MGLreal dx, MGLreal dy)
+{
+    rect_t r;
+    point_t d;
+
+    Transform(rect, r);
+    Transform(dx, dy, d);
+
+    (this->*DoScroll)(r, d.x, d.y);
 }

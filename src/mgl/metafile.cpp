@@ -1,5 +1,6 @@
-/* $Id: metafile.cpp,v 1.1 2002/09/13 23:23:01 pavlovskii Exp $ */
+/* $Id: metafile.cpp,v 1.2 2002/12/18 23:06:10 pavlovskii Exp $ */
 
+#include <mgl/types.h>
 #include <os/syscall.h>
 #include <os/defs.h>
 #include <os/video.h>
@@ -42,7 +43,7 @@ struct WMFHEAD
     uint16_t NumOfParams;    /* Not Used (always 0) */
 };
 
-typedef struct WMFRECORD
+struct WMFRECORD
 {
     uint32_t Size;          /* Total size of the record in WORDs */
     uint16_t Function;      /* Function number (defined in WINDOWS.H) */
@@ -73,14 +74,14 @@ Metafile::Metafile()
     m_objects = NULL;
     m_num_objects = 0;
     m_file = NULL;
-    _wdprintf(L"Metafile::Metafile\n");
+    wprintf(L"Metafile::Metafile\n");
 }
 
 Metafile::~Metafile()
 {
     unsigned i;
 
-    _wdprintf(L"Metafile::~Metafile: m_data = %p\n", m_data);
+    wprintf(L"Metafile::~Metafile: m_data = %p\n", m_data);
     for (i = 0; i < m_num_objects; i++)
 	free(m_objects[i]);
     free(m_objects);
@@ -124,7 +125,7 @@ bool Metafile::Open(const wchar_t *name)
         NULL, 
         PAGE_ALIGN_UP(di.length) / PAGE_SIZE, 
         VM_MEM_USER | VM_MEM_READ);
-    _wdprintf(L"Metafile::Open(%s): m_file = %u, length = %u, m_data = %p\n",
+    wprintf(L"Metafile::Open(%s): m_file = %u, length = %u, m_data = %p\n",
         name, m_file, (uint32_t) PAGE_ALIGN_UP(di.length), m_data);
     if (m_data == NULL)
         return false;
@@ -155,7 +156,7 @@ void Metafile::Draw(Rc *rc, const MGLrect& dest)
     m_window_ext.y = dims.bottom;
 
     m_dest_rect = dest;
-    _wdprintf(L"Metafile::Draw: m_data = %p\n", m_data);
+    wprintf(L"Metafile::Draw: m_data = %p\n", m_data);
     pmh = (PLACEABLEMETAHEADER*) m_data;
     if (pmh->Key == WMF_PLACEABLE_MAGIC)
 	wmfh = (WMFHEAD*) (pmh + 1);
