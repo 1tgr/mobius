@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.18 2002/09/01 16:24:39 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.19 2002/12/18 23:22:19 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -325,9 +325,9 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 	/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
 	    KbdReboot();*/
 
-	if (key >= KEY_F1 && key <= KEY_F11)
-	    TtySwitchConsoles(key - KEY_F1);
-        else if (key == KEY_F12)
+	//if (key >= KEY_F1 && key <= KEY_F11)
+	    //TtySwitchConsoles(key - KEY_F1);
+        if (key == KEY_F12)
             __asm__("int3");
 
         if (key)
