@@ -113,10 +113,6 @@ SOURCE=.\i386\isr.asm
 # End Source File
 # Begin Source File
 
-SOURCE=.\i386\Makefile
-# End Source File
-# Begin Source File
-
 SOURCE=.\i386\memory.c
 # End Source File
 # Begin Source File
@@ -125,7 +121,15 @@ SOURCE=.\i386\scdsptch.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\i386\smp.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\start.asm
+# End Source File
+# Begin Source File
+
+SOURCE=.\i386\uniproc.c
 # End Source File
 # End Group
 # Begin Source File
@@ -311,7 +315,7 @@ SOURCE=.\i386\wrappers.h
 # End Group
 # Begin Source File
 
-SOURCE=C:\BOCHS\bochs.out
+SOURCE=G:\BOCHS\bochs.out
 # End Source File
 # Begin Source File
 

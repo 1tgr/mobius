@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.20 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: main.c,v 1.21 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -50,12 +50,13 @@ static void KernelCpuMeter(void)
     }
 }
 
-static void KeInstallDevices(void)
+static void __initcode KeInstallDevices(void)
 {
     unsigned i, j, count;
     wchar_t value[10], line[256], *tok, *comma;
     const wchar_t *ptr, *driver, *device_path, *dest;
     bool is_mount;
+    device_config_t *cfg;
 
     wcscpy(value, L"0");
     for (count = 0; (ptr = ProGetString(L"Devices", value, NULL)) != NULL; count++)
@@ -135,8 +136,18 @@ static void KeInstallDevices(void)
         }
         else
         {
+            cfg = malloc(sizeof(device_config_t));
+            cfg->parent = NULL;
+            cfg->num_resources = 0;
+            cfg->resources = NULL;
+            cfg->vendor_id = 0xffff;
+            cfg->device_id = 0xffff;
+            cfg->subsystem = 0;
+            cfg->bus_type = DEV_BUS_UNKNOWN;
+            cfg->device_class = 0;
+            cfg->reserved = 0;
             wprintf(L"Installing device %s using driver %s\n", device_path, driver);
-            DevInstallDevice(driver, device_path, NULL);
+            DevInstallDevice(driver, device_path, cfg);
         }
 
         TextUpdateProgress(0, i, count - 1);
@@ -166,7 +177,9 @@ void KernelMain(void)
     TRACE0("FsInit\n");
     FsInit();
 
-    ProLoadProfile(L"/System/Boot/system.pro", L"/");
+    if (!ProLoadProfile(SYS_BOOT L"/system.pro", L"/"))
+        wprintf(L"KernelMain: unable to load " SYS_BOOT L"/system.pro\n");
+
     i386InitSerialDebug();
 
     ScEnableSwitch(true);
@@ -174,5 +187,5 @@ void KernelMain(void)
     TRACE0("Idle\n");
 
     for (;;)
-	ArchProcessorIdle();
+	    ArchProcessorIdle();
 }

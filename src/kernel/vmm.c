@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.12 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.13 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -108,7 +108,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 
     area->start = start;
     area->owner = proc;
-    area->pages = MemCopyPageArray(pages, 0, NULL);
+    area->pages = MemDupPageArray(pages, 0, NULL);
     area->name = NULL;
     area->shared_prev = area->shared_next = NULL;
     area->num_pages = pages;
@@ -330,6 +330,16 @@ bool VmmDoMapFile(vm_area_t *area, addr_t start, bool is_writing)
 
     voff = start - area->start;
     state = MemGetPageState((const void*) start);
+    if (area->owner->sem_vmm.locks != 0)
+    {
+        wprintf(L"VmmDoMapFile(%s, %x): area->owner = %s, lock eip = %p\n",
+            current()->process->exe, 
+            start, 
+            area->owner->exe, 
+            area->owner->sem_vmm.owner);
+        assert(area->owner->sem_vmm.locks == 0);
+    }
+
     SemAcquire(&area->owner->sem_vmm);
     //wprintf(L"VmmDoMapFile: start = %x ", start);
 
@@ -340,16 +350,26 @@ tryagain:
         wprintf(L"PAGE_PAGEDOUT\n");
 
     case 0: /* not committed */
+        /*
+         * xxx - need to release VMM semaphore in case something needs to be 
+         *  faulted in here?
+         */
+        SemRelease(&area->owner->sem_vmm);
+        //wprintf(L"VmmDoMapFile(%x): calling VmmMapAddressToFile...",
+            //start);
         if (!VmmMapAddressToFile(area, start, &off, &bytes, &flags))
         {
+            SemAcquire(&area->owner->sem_vmm);
             MemSetPageState((const void*) start, PAGE_READFAILED);
             SemRelease(&area->owner->sem_vmm);
             return true;
         }
 
+        //wprintf(L"done\n");
         /*wprintf(L"%s:%x: PAGE_PAGEDOUT off = %x bytes = %x flags = %x\n", 
             area->owner->exe, start, (uint32_t) off, bytes, flags);*/
 
+        SemAcquire(&area->owner->sem_vmm);
         MtxAcquire(&area->mtx_allocate);
         phys = MemAlloc();
         MemLockPages(phys, 1, true);
@@ -397,7 +417,7 @@ tryagain:
             area->pagingop.event = file;
             MemSetPageState((const void*) start, PAGE_READINPROG);
 
-            area->read_pages = MemCopyPageArray(1, 0, &phys);
+            area->read_pages = MemDupPageArray(1, 0, &phys);
             FsSeek(file, off, FILE_SEEK_SET);
             if (!FsReadPhysical(file, area->read_pages, bytes, &area->pagingop))
                 MemSetPageState((const void*) start, PAGE_READFAILED);

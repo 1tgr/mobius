@@ -1,4 +1,4 @@
-; $Id: bsp.asm,v 1.1 2002/06/22 17:22:40 pavlovskii Exp $
+; $Id: bsp.asm,v 1.2 2002/08/06 11:02:57 pavlovskii Exp $
 
 ; Definitions from John Fine's gdtnasm.inc
 
@@ -39,21 +39,25 @@ D_BIG_LIM	EQU	  80h	;Limit is in 4K units
 
 [section    .text]
 
-[global     _i386MpBspInit]
-[global     _i386MpBspInitData]
-[global     _i386MpBspInitEnd]
+[global     _i386MpApInit]
+[global     _i386MpApInitData]
+[global     _i386MpApInitEnd]
 [extern     _i386MpApEntry]
 
 start:
-_i386MpBspInit:
+_i386MpApInit:
+    ; The real-mode part of this routine is located in low memory
 [bits       16]
     mov     eax, 0x00000100
     mov     ds, ax
+
+    ; Place the stack 4096 bytes after the start of the code
     mov     ax, cs
     shl     ax, 4
     add     ax, 0x1000
     mov     esp, eax
 
+    ; Load ebx with the CPU ID for the call to i386MpApEntry later
     mov     ebx, [id - start]
 
     ; Load GDT
@@ -68,11 +72,12 @@ _i386MpBspInit:
     or      eax, 0x80000001
     mov     cr0, eax
 
-    jmp     dword 8:i386MpBspPmode
+    ; This is a far JMP, to the real i386MpApinit.pmode in kernel space
+    jmp     dword 8:.pmode
 
     align 8
 
-i386MpBspPmode:
+.pmode:
 [bits       32]
     mov     ax, 16
     mov     ss, eax
@@ -89,7 +94,7 @@ i386MpBspPmode:
 
     align 8
 
-_i386MpBspInitData:
+_i386MpApInitData:
 
 pdbr:   dd  0xdeadbeef
 id:     dd  0
@@ -115,4 +120,4 @@ gdtr:
 	db	0       ; base 32..24
 gdt_end:
 
-_i386MpBspInitEnd:
+_i386MpApInitEnd:

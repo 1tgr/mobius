@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.19 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.20 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -89,7 +89,7 @@ thread_t *ThrGetCurrent(void)
 #else
 thread_t *ThrGetCurrent(void)
 {
-    return thr_single.current_thread;
+    return thr_cpu_single.current_thread;
 }
 #endif
 

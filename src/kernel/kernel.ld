@@ -22,6 +22,10 @@ SECTIONS
      *(.fini)
     /* ??? Why is .gcc_exc here?  */
      *(.gcc_exc)
+  }
+  .dtext BLOCK(__section_alignment__) :
+  {
+     *(.dtext)
      etext = .;
     *(.gcc_except_table)
   }
@@ -35,6 +39,7 @@ SECTIONS
     __data_start__ = . ;
     *(.data)
     *(.data2)
+    *(.ddata)
     *(SORT(.data$*))
     __data_end__ = . ;
     *(.data_cygwin_nocopy)

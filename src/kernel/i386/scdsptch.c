@@ -1,8 +1,9 @@
-/* $Id: scdsptch.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: scdsptch.c,v 1.5 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/i386.h>
 #include <kernel/memory.h>
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -44,14 +45,9 @@ systab_t *i386_systab[] =
 #include <os/sysdef.h>
 };
 
-int mal_verify(int fullcheck);
-
 void i386DispatchSysCall(context_t *ctx)
 {
 	unsigned tab, code;
-
-	/*wprintf(L"Syscall(0x%lx, 0x%lx, %lu) => ", 
-		ctx->regs.eax, ctx->regs.edx, ctx->regs.ecx);*/
 
 	assert(MemVerifyBuffer((void*) ctx->regs.edx, ctx->regs.ecx));
 
@@ -66,9 +62,43 @@ void i386DispatchSysCall(context_t *ctx)
 	assert(i386_systab[tab][code].code == ctx->regs.eax);
 	assert(i386_systab[tab][code].argbytes == ctx->regs.ecx);
 
-	/*wprintf(L"[%S]", i386_systab[tab][code].name);*/
 	ctx->regs.eax = i386DoCall(i386_systab[tab][code].routine,
 		(void*) ctx->regs.edx, i386_systab[tab][code].argbytes);
+}
 
-	/*mal_verify(1);*/
+void *KeGetSysCall(unsigned id)
+{
+    unsigned tab, code;
+    tab = (id >> 8) & 0xf;
+	code = id & 0xff;
+	if (tab > _countof(i386_systab) || 
+        i386_systab[tab][code].code != id)
+	{
+        errno = ENOTFOUND;
+		return NULL;
+	}
+
+	return i386_systab[tab][code].routine;
+}
+
+void *KeSetSysCall(unsigned id, void *ptr)
+{
+    unsigned tab, code;
+    void *old;
+
+    old = KeGetSysCall(id);
+    if (ptr == NULL)
+        return old;
+
+    tab = (id >> 8) & 0xf;
+	code = id & 0xff;
+	if (tab > _countof(i386_systab) || 
+        i386_systab[tab][code].code != id)
+	{
+        errno = EINVALID;
+		return NULL;
+	}
+
+    i386_systab[tab][code].routine = ptr;
+	return old;
 }

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.26 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.27 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -161,6 +161,8 @@ uint32_t i386Isr(context_t ctx)
             old_current->cputime += SCHED_QUANTUM;
             ScNeedSchedule(true);
         }
+        else
+            wprintf(L"[%u]", ctx.intr);
         
         irq = irq_first[ctx.intr];
         i = 0;

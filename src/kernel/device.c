@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.28 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: device.c,v 1.29 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -29,7 +29,7 @@ struct device_class_t
 
 static device_class_t classes[] =
 {
-    { 0x0000, L"Undefined",     L"device" },
+    //{ 0x0000, L"Undefined",     L"device" },
     { 0x0001, L"VGA",           L"video" },
     { 0x0081, L"Disk Volume",   L"volume" },
 
@@ -522,7 +522,7 @@ device_t *IoOpenDevice(const wchar_t *name)
     info = DfsParsePath(name);
     if (info == NULL)
     {
-        wprintf(L"IoOpenDevice(%s): not found\n", name);
+        //wprintf(L"IoOpenDevice(%s): not found\n", name);
         errno = ENOTFOUND;
         return NULL;
     }
@@ -607,8 +607,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
     if (io == NULL)
         return NULL;
 
-    io->pages = MemCopyPageArray(pages->num_pages, pages->mod_first_page, 
-        pages->pages);
+    io->pages = MemCopyPageArray(pages);
     if (io->pages == NULL)
     {
         free(io);
@@ -886,9 +885,10 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
                 break;
             }
 
-            if (class == NULL)
-                class = classes + 0;
-            else
+            //if (class == NULL)
+                //class = classes + 0;
+            //else
+            if (class != NULL)
                 for (i = 0; i < _countof(classes); i++)
                     if (classes + i == class ||
                         _wcsicmp(classes[i].base, class->base) == 0)
@@ -902,8 +902,8 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
     if (info == NULL)
         return false;
 
-    wprintf(L"DevAddDevice: adding device %s to parent %p = %s\n",
-        name, parent, parent->name);
+    /*wprintf(L"DevAddDevice: adding device %s to parent %p = %s\n",
+        name, parent, parent->name);*/
 
     info->name = _wcsdup(name);
     info->is_link = false;

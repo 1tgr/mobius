@@ -1,7 +1,18 @@
 TARGET=	$(BIN)/kernel.exe
+
+# To build the SMP version, uncomment this line and comment out the other one
+#DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC -D__SMP__
+
+# To build the UP version, uncomment this line and comment out the other one
+DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
+
 ARCH=	i386/isr.o i386/i386.o i386/memory.o i386/arch.o \
-	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o \
-	i386/bsp.o
+	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o
+ifeq (,$(findstring __SMP__,$(DEFINES)))
+ARCH+=	i386/uniproc.o
+else
+ARCH+=  i386/smp.o i386/bsp.o
+endif
 OBJS=	start.o main.o thread.o \
 	proc.o handle.o fs.o vfs.o \
 	device.o io.o vmm.o \
@@ -11,7 +22,6 @@ OBJS=	start.o main.o thread.o \
 	queue.o clip.o kernel.res.o \
 	$(ARCH)
 LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc_s.lib
-DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC -D__SMP__
 DEF=	kernel.def
 IMP=	$(LIB)/kernel.lib
 EXP=	kernel.exp

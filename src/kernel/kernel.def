@@ -78,6 +78,8 @@ EXPORTS
 	KeAtomicDec
 	KeAtomicInc
 	KeInstallHooks
+        KeGetSysCall
+        KeSetSysCall
 	MemAlloc
 	MemAllocLow
 	MemAllocLowSpan
@@ -85,6 +87,7 @@ EXPORTS
 	MemCreatePageArray
 	MemCopyPageArray
 	MemDeletePageArray
+        MemDupPageArray
 	MemFree
 	MemFreeLow
 	MemLockPages

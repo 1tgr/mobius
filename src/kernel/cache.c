@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.10 2002/05/19 13:04:36 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.11 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -44,8 +44,8 @@ cache_t *CcCreateFileCache(size_t block_size)
     cc->blocks = NULL;
     cc->num_pages = 0;
     cc->pages = NULL;
-    wprintf(L"CcCreateFileCache(%p): block_size = %u block_shift = %u\n", 
-        cc, cc->block_size, cc->block_shift);
+    /*wprintf(L"CcCreateFileCache(%p): block_size = %u block_shift = %u\n", 
+        cc, cc->block_size, cc->block_shift);*/
     return cc;
 }
 
@@ -59,21 +59,21 @@ void CcDeleteFileCache(cache_t *cc)
 {
     unsigned i;
 
-    wprintf(L"CcDeleteFileCache(%p): %u blocks, %u pages: ", 
-        cc, cc->num_blocks, cc->num_pages);
+    /*wprintf(L"CcDeleteFileCache(%p): %u blocks, %u pages: ", 
+        cc, cc->num_blocks, cc->num_pages);*/
     SemAcquire(&cc->lock);
     for (i = 0; i < cc->num_pages; i++)
     {
         if (cc->pages[i] != -1)
         {
             MemFree(cc->pages[i]);
-            wprintf(L"!");
+            //wprintf(L"!");
         }
-        else
-            wprintf(L".");
+        //else
+            //wprintf(L".");
     }
 
-    wprintf(L"\n");
+    //wprintf(L"\n");
     free(cc->blocks);
     free(cc->pages);
     SemRelease(&cc->lock);
@@ -156,7 +156,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
 
     SemRelease(&cc->lock);
 
-    return MemCopyPageArray(pages_per_block, 
+    return MemDupPageArray(pages_per_block, 
         (block << cc->block_shift) % PAGE_SIZE, 
         cc->pages + page_start);
     /*ptr = MemMapTemp(cc->pages + page_start, pages_per_block, 

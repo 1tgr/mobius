@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.13 2002/06/14 13:05:37 pavlovskii Exp $ */
+/* $Id: port.c,v 1.14 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -399,8 +399,7 @@ bool PortQueueRequest(port_dir_t *dir, file_t *file, page_array_t *pages,
         return false;
     
     pio->file = file;
-    pio->pages = MemCopyPageArray(pages->num_pages, pages->mod_first_page, 
-        pages->pages);
+    pio->pages = MemCopyPageArray(pages);
 
     if (pio->pages == NULL)
     {

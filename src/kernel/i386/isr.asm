@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.7 2002/06/22 17:20:06 pavlovskii Exp $
+; $Id: isr.asm,v 1.8 2002/08/06 11:02:57 pavlovskii Exp $
 
 [bits           32]
 
@@ -17,12 +17,16 @@
 
 _SemAcquire:
     push    ebp
+
+    ; ebp = pointer to semaphore structure
     mov     ebp, [esp+8]
 
+%ifndef __SMP__
     ; Check if the semaphore has already been acquired
-    ;mov     eax, [ebp]
-    ;test    eax, eax
-    ;jnz	    .2
+    mov     eax, [ebp]
+    test    eax, eax
+    jnz     .2
+%endif
 
     ; Save EFLAGS and store in semaphore
     pushfd
@@ -39,6 +43,7 @@ _SemAcquire:
     or      eax, eax
     jnz     .1
 
+    ; Store lock eip
     mov	    eax, [esp+4]
     mov	    [ebp+4], eax
     pop     ebp

@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.13 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.14 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -207,22 +207,35 @@ void RdFreeDirCookie(fsd_t *fsd, void *dir_cookie)
  *    \return         \p true if the ramdisk was correct
  */
 
-descriptor_t arch_gdt[11];
-
 bool RdInit(void)
 {
-    /*unsigned i;
-    multiboot_module_t *mods;*/
-    /*wprintf(L"ramdisk: multiboot_info at %p, DS base = %x\n", 
-        kernel_startup.multiboot_info, 
-        arch_gdt[4].base_l | (arch_gdt[4].base_m << 16) | (arch_gdt[4].base_h << 24));
-    wprintf(L"ramdisk: number of modules = %u\n",
-        kernel_startup.multiboot_info->mods_count);*/
-    /*mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+#if 0
+    multiboot_module_t *mods;
+    unsigned i;
+    wchar_t name[17];
+    size_t len;
+    char *ch;
+
+    mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+    wprintf(L"mods = %p\n", mods);
     for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
-        wprintf(L"module %u: %S: %x=>%x\n", i, PHYSICAL(mods[i].string), 
-            mods[i].mod_start, mods[i].mod_end);*/
-    /*halt(0);*/
+    {
+        ch = strrchr(PHYSICAL(mods[i].string), '/');
+        if (ch == NULL)
+            ch = PHYSICAL(mods[i].string);
+        else
+            ch++;
+
+        len = mbstowcs(name, ch, _countof(name));
+        if (len == -1)
+            wcscpy(name, L"?");
+        else
+            name[len] = '\0';
+
+        wprintf(L"\t%s\n", name);
+    }
+#endif
+
     return true;
 }
 

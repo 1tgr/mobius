@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.16 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.17 2002/08/06 11:02:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -106,6 +106,30 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     return HndDuplicate(current()->process, &proc->hdr);
 }
 
+static void ProcCleanupProcess(void *p)
+{
+    process_t *proc;
+
+    //proc = current()->process;
+    proc = p;
+    wprintf(L"ProcCleanupProcess: proc = %s, current()->process = %s\n",
+        proc->exe, current()->process->exe);
+    //wprintf(L"Process %u exited with code %d: ", proc->id, code);
+
+    SemAcquire(&proc->sem_lock);
+
+    assert(proc->hdr.copies == 0);
+    free((wchar_t*) proc->exe);
+    SemRelease(&proc->sem_lock);
+    free(proc);
+    wprintf(L"all handles freed\n");
+    /*else
+    {
+        SemRelease(&proc->sem_lock);
+        wprintf(L"still has %u refs\n", proc->hdr.copies);
+    }*/
+}
+
 process_t *ProcCreateProcess(const wchar_t *exe)
 {
     process_t *proc;
@@ -124,6 +148,7 @@ process_t *ProcCreateProcess(const wchar_t *exe)
     proc->hdr.tag = 'proc';
     proc->hdr.file = __FILE__;
     proc->hdr.line = __LINE__;
+    proc->hdr.free_callback = ProcCleanupProcess;
 
     /* Copy number 1 is the process's handle to itself */
     proc->hdr.copies = 1;
@@ -140,6 +165,7 @@ process_t *ProcCreateProcess(const wchar_t *exe)
     KeAtomicInc(&proc_last_id);
     proc->id = proc_last_id;
 
+    /* Create a VM area spanning the whole address space */
     memset(area, 0, sizeof(vm_area_t));
     area->owner = proc;
     area->start = PAGE_SIZE;
@@ -276,22 +302,38 @@ bool ProcFirstTimeInit(process_t *proc)
 
 void ProcExitProcess(int code)
 {
-    thread_t *thr, *next;
+    thread_t *thr, *tnext;
+    vm_area_t *area, *anext;
     process_t *proc;
     unsigned i;
+    void **handles;
 
     proc = current()->process;
-    wprintf(L"Process %u exited with code %d: ", proc->id, code);
 
     SemAcquire(&proc->sem_lock);
-    HndSignalPtr(&proc->hdr, true);
+    /*proc->exit_code = code;*/ /* xxx */
 
-    for (thr = thr_first; thr; thr = next)
+    for (thr = thr_first; thr; thr = tnext)
     {
-        next = thr->all_next;
+        tnext = thr->all_next;
         if (thr->process == proc)
             ThrDeleteThread(thr);
     }
+
+    for (area = proc->area_first; area != NULL; area = anext)
+    {
+        anext = area->next;
+        if (area->type != VM_AREA_EMPTY)
+        {
+            assert(area->owner == proc);
+            //wprintf(L"ProcExitProcess: freeing area at %x...", area->start);
+            VmmFree(area);
+            free(area);
+            //wprintf(L"done\n");
+        }
+    }
+
+    proc->area_first = proc->area_last = NULL;
 
     for (i = 0; i < proc->handle_count; i++)
         if (proc->handles[i] != NULL &&
@@ -299,28 +341,27 @@ void ProcExitProcess(int code)
         {
             handle_hdr_t *hdr;
             hdr = proc->handles[i];
-            TRACE3("ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
-                i, hdr->file, hdr->line);
+            //wprintf(L"ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
+                //i, hdr->file, hdr->line);
             /*HndClose(proc, i, 0);*/
         }
 
-    free(proc->handles);
-    proc->handles = NULL;
-    proc->handle_count = 0;
+    /*for (area = proc->area_first; area != NULL; area = anext)
+    {
+        assert(area->type == VM_AREA_EMPTY);
+        anext = area->next;
+        free(area);
+    }*/
 
-    KeAtomicDec((unsigned*) &proc->hdr.copies);
-    if (proc->hdr.copies == 0)
-    {
-        free((wchar_t*) proc->exe);
-        SemRelease(&proc->sem_lock);
-        free(proc);
-        wprintf(L"all handles freed\n");
-    }
-    else
-    {
-        SemRelease(&proc->sem_lock);
-        wprintf(L"still has %u refs\n", proc->hdr.copies);
-    }
+    HndSignalPtr(&proc->hdr, true);
+    handles = proc->handles;
+    wprintf(L"ProcExitProcess: closing handle...");
+    HndClose(proc, HANDLE_PROCESS, 'proc');
+    wprintf(L"done\n");
+    free(handles);
+    SemRelease(&proc->sem_lock);
+
+    wprintf(L"ProcExitProcess: finished\n");
 }
 
 bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
