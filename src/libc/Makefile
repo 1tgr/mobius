@@ -34,7 +34,8 @@ STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/fputs.o stdio/fread.o stdio/freopen.o stdio/frlist.o \
 	stdio/fscanf.o stdio/fseek.o stdio/fsetpos.o stdio/ftell.o \
 	stdio/fwalk.o stdio/fwrite.o stdio/getc.o stdio/getchar.o \
-	stdio/gets.o stdio/getw.o stdio/perror.o stdio/printf.o \
+	stdio/gets.o stdio/getw.o stdio/perror.o stdio/pwerror.o \
+	stdio/printf.o \
 	stdio/putc.o stdio/putchar.o stdio/puts.o stdio/putw.o \
 	stdio/remove.o stdio/rename.o stdio/rewind.o stdio/scanf.o \
 	stdio/setbuf.o stdio/setbuffe.o stdio/setlineb.o stdio/setvbuf.o \

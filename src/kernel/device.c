@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.16 2002/03/04 18:56:09 pavlovskii Exp $ */
+/* $Id: device.c,v 1.17 2002/03/05 02:04:18 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -69,12 +69,14 @@ static void DevFsFinishIo(device_t *dev, request_t *req)
 static bool DevFsRequest(device_t *dev, request_t *req)
 {
     request_fs_t *req_fs = (request_fs_t*) req;
+    request_t *req_temp;
     device_file_t *file;
     device_info_t *info;
     request_dev_t *req_dev;
     size_t len;
     dirent_t *buf;
     dirent_device_t *buf_dev;
+    bool ret;
     
     switch (req->code)
     {
@@ -279,6 +281,33 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 	    HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 	    return true;
 	}
+
+    case FS_PASSTHROUGH:
+	file = HndLock(NULL, req_fs->params.fs_passthrough.file, 'file');
+	if (file == NULL)
+	{
+	    req->result = EHANDLE;
+	    return false;
+	}
+
+	req_temp = malloc(sizeof(request_t) + 
+	    req_fs->params.fs_passthrough.params_size);
+	req_temp->code = req_fs->params.fs_passthrough.code;
+	
+	memcpy(req_temp + 1, 
+	    req_fs->params.fs_passthrough.params, 
+	    req_fs->params.fs_passthrough.params_size);
+
+	ret = IoRequestSync(file->dev, req_temp);
+	req->result = req_temp->result;
+
+	memcpy(req_fs->params.fs_passthrough.params, 
+	    req_temp + 1,
+	    req_fs->params.fs_passthrough.params_size);
+
+	free(req_temp);
+	HndUnlock(NULL, req_fs->params.fs_passthrough.file, 'file');
+	return ret;
     }
 
     req->result = ENOTIMPL;

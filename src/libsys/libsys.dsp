@@ -86,6 +86,10 @@ CFG=libsys - Win32 Debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\console.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\dllmain.c
 # End Source File
 # Begin Source File
@@ -111,10 +115,10 @@ SOURCE=.\syscall.S
 # End Group
 # Begin Group "Header Files"
 
-# PROP Default_Filter "h;hpp;hxx;hm;inl"
+# PROP Default_Filter ""
 # Begin Group "os"
 
-# PROP Default_Filter ""
+# PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
 SOURCE=..\..\include\os\blkdev.h
@@ -159,11 +163,11 @@ SOURCE=..\..\include\os\syscall.h
 
 SOURCE=..\..\include\os\sysdef.h
 # End Source File
-# End Group
 # Begin Source File
 
 SOURCE=..\..\include\os\video.h
 # End Source File
+# End Group
 # End Group
 # Begin Group "Resource Files"
 

@@ -20,6 +20,7 @@ EXPORTS
 	_flsbuf
 	_fwalk
 	_geterrno
+	_pwerror
 	_read
 	_stricmp
 	_strtold

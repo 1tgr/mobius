@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.2 2002/03/04 23:50:36 pavlovskii Exp $ */
+/* $Id: line.c,v 1.3 2002/03/05 02:04:48 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -11,33 +11,6 @@
 #include <string.h>
 
 #include "common.h"
-
-uint32_t ShReadKey(void)
-{
-    handle_t keyb;
-    fileop_t op;
-    uint32_t key;
-
-    keyb = ProcGetProcessInfo()->std_in;
-
-    op.event = keyb;
-    if (!FsRead(keyb, &key, sizeof(key), &op))
-    {
-	errno = op.result;
-	return -1;
-    }
-
-    if (op.result == SIOPENDING)
-	ThrWaitHandle(op.event);
-
-    if (op.result != 0 || op.bytes == 0)
-    {
-	errno = op.result;
-	return -1;
-    }
-    
-    return key;
-}
 
 shell_line_t *ShReadLine(void)
 {
@@ -74,7 +47,7 @@ shell_line_t *ShReadLine(void)
     allocd = (read + 15) & -16;
     fflush(stdout);
     
-    while ((ch = ShReadKey()) != (uint32_t) -1)
+    while ((ch = ConReadKey()) != (uint32_t) -1)
     {
 	switch (ch)
 	{

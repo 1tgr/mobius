@@ -1,6 +1,7 @@
-/* $Id: v86.c,v 1.1 2002/03/04 19:27:37 pavlovskii Exp $ */
+/* $Id: v86.c,v 1.2 2002/03/05 02:04:48 pavlovskii Exp $ */
 
 #include <os/syscall.h>
+#include <os/rtl.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -32,7 +33,7 @@ void ShInt21(context_v86_t *ctx)
     case 1:
 	do
 	{
-	    b = (uint8_t) ShReadKey();
+	    b = (uint8_t) ConReadKey();
 	} while (b == 0);
 
 	wprintf(L"%c", b);

@@ -1,4 +1,4 @@
-/* $Id: limits.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: limits.h,v 1.3 2002/03/05 02:04:17 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_limits_h_
@@ -24,10 +24,22 @@ extern "C" {
 #define UINT_MAX 4294967295U
 #define ULONG_MAX 4294967295UL
 #define USHRT_MAX 65535
+
+#ifndef WCHAR_MIN
 #define WCHAR_MIN 0
+#endif
+
+#ifndef WCHAR_MAX
 #define WCHAR_MAX 127
+#endif
+
+#ifndef WINT_MIN
 #define WINT_MIN 0
+#endif
+
+#ifndef WINT_MAX
 #define WINT_MAX 32767
+#endif
 
 #ifndef __dj_ENFORCE_ANSI_FREESTANDING
 

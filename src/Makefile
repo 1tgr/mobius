@@ -1,4 +1,6 @@
-DIRS=	librtl libsys libc kernel/i386 kernel drivers test shell hello nasm ../bin
+DIRS=	librtl libsys libc kernel/i386 \
+	kernel drivers test shell \
+	hello nasm vidtest ../bin
 
 all:
 	make -C boot --win32

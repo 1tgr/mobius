@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.17 2002/03/04 18:56:09 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.18 2002/03/05 02:04:18 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -650,11 +650,19 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
     return ofs;
 }
 
-bool FsRequestSync(handle_t file, request_t *req)
+bool FsRequestSync(handle_t file, uint32_t code, void *params, size_t size, fileop_t *op)
 {
     file_t *fd;
     device_t *fsd;
+    request_fs_t req_fs;
     /*handle_hdr_t *ptr;*/
+    bool ret;
+
+    if (!MemVerifyBuffer(params, size))
+    {
+	op->result = EBUFFER;
+	return false;
+    }
 
     fd = HndLock(NULL, file, 'file');
     if (fd == NULL)
@@ -663,10 +671,17 @@ bool FsRequestSync(handle_t file, request_t *req)
     fsd = fd->fsd;
     HndUnlock(NULL, file, 'file');
 
+    req_fs.header.code = FS_PASSTHROUGH;
+    req_fs.params.fs_passthrough.params_size = size;
+    req_fs.params.fs_passthrough.params = params;
+    req_fs.params.fs_passthrough.file = file;
+    req_fs.params.fs_passthrough.code = code;
     /*ptr = HndGetPtr(NULL, file, 'file');
     wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
         file, fd, fd->fsd, ptr->file, ptr->line);*/
-    return IoRequestSync(fsd, req);
+    ret = IoRequestSync(fsd, &req_fs.header);
+    op->result = req_fs.header.result;
+    return ret;
 }
 
 bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t buffer_size)

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.12 2002/03/04 23:50:36 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.13 2002/03/05 02:04:48 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,21 +17,6 @@
 bool sh_exit;
 wchar_t sh_path[MAX_PATH];
 iconv_t sh_iconv;
-
-void _pwerror(const wchar_t *text)
-{
-    wchar_t str[1024];
-    int en;
-
-    en = errno;
-    if (en < 0)
-	en = 0;
-
-    if (!ResLoadString(NULL, en + 1024, str, _countof(str)))
-	swprintf(str, L"errno = %d", en);
-
-    wprintf(L"%s: %s\n", text, str);	    
-}
 
 void ShCtrlCThread(void *param)
 {

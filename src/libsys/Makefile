@@ -1,6 +1,6 @@
 EXP=    libsys.exp
 DEF=    libsys.def
-OBJS=	syscall.o port.o misc.o resource.o
+OBJS=	syscall.o port.o misc.o resource.o console.o
 BASE=	libsys
 
 include ../make.actions

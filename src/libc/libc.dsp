@@ -341,6 +341,10 @@ SOURCE=.\stdio\putw.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdio\pwerror.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\remove.c
 # End Source File
 # Begin Source File
