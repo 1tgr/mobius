@@ -74,8 +74,9 @@ bool devFsRequest(device_t* dev, request_t* req)
 		fd->file.pos = 0;
 
 		name = req->params.fs_open.name + 1;
-		wprintf(L"devFsRequest: FS_OPEN(%s)\n", name);
 		fd->dev = devOpen(name, NULL);
+		wprintf(L"devFsRequest: FS_OPEN(%s), dev = %p\n", name, dev);
+		
 		if (fd->dev == NULL)
 		{
 			req->params.fs_open.fd = NULL;
@@ -91,6 +92,7 @@ bool devFsRequest(device_t* dev, request_t* req)
 		fd = (devfile_t*) req->params.fs_read.fd;
 		assert(fd != NULL);
 
+		wprintf(L"devFsRequest: FS_READ, dev = %p\n", fd->dev);
 		req->result = devReadSync(fd->dev, 
 			fd->file.pos,
 			(void*) req->params.fs_read.buffer,
@@ -103,6 +105,7 @@ bool devFsRequest(device_t* dev, request_t* req)
 		fd = (devfile_t*) req->params.fs_write.fd;
 		assert(fd != NULL);
 
+		wprintf(L"devFsRequest: FS_WRITE, dev = %p\n", fd->dev);
 		req->result = devWriteSync(fd->dev, 
 			fd->file.pos,
 			(const void*) req->params.fs_write.buffer,
@@ -480,6 +483,10 @@ bool devRegister(const wchar_t* name, device_t* dev, device_config_t* cfg)
 	if (dev == NULL &&
 		link->dev == NULL)
 	{
+		_cputws_check(L" \n" CHECK_L2);
+		_cputws_check(name);
+		_cputws_check(L"\r\t");
+
 		drv = devInstallNewDevice(name, cfg);
 		if (drv == NULL ||
 			!drv->add_device)

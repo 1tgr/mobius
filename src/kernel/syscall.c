@@ -184,9 +184,17 @@ void syscall(context_t* ctx)
 		break;
 
 	case 0x702:
-		errno = devUserRequest(((file_t*) ctx->regs.ebx)->fsd, 
-			(request_t*) ctx->regs.ecx, (size_t) ctx->regs.edx);
-		ctx->regs.eax = errno == 0;
+		if (ctx->regs.ebx == NULL)
+		{
+			errno = EINVALID;
+			ctx->regs.eax = 0;
+		}
+		else
+		{
+			errno = devUserRequest(((file_t*) ctx->regs.ebx)->fsd, 
+				(request_t*) ctx->regs.ecx, (size_t) ctx->regs.edx);
+			ctx->regs.eax = errno == 0;
+		}
 		break;
 
 	case 0x800:

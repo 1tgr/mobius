@@ -77,7 +77,7 @@ bool vfsRequest(device_t* dev, request_t* req)
 		openreq.params.fs_open.name = path;
 		openreq.params.fs_open.name_length = sizeof(wchar_t) * (wcslen(path) + 1);
 		hr = devRequestSync((device_t*) found->data, &openreq);
-		if (hr != 0)
+		if (hr == 0)
 		{
 			req->params.fs_open.fd = openreq.params.fs_open.fd;
 			hndSignal(req->event, true);
@@ -166,7 +166,7 @@ file_t* fsOpen(const wchar_t* path)
 	req.params.fs_open.name_length = sizeof(wchar_t) * (wcslen(path) + 1);
 	hr = devRequestSync(&vfs.dev, &req);
 
-	if (hr)
+	if (hr != 0)
 	{
 		errno = hr;
 		return NULL;
@@ -179,6 +179,12 @@ bool fsClose(file_t* fd)
 {
 	request_t req;
 	status_t hr;
+
+	if (fd == NULL)
+	{
+		errno = EINVALID;
+		return false;
+	}
 
 	req.code = FS_CLOSE;
 	req.params.fs_close.fd = fd;
@@ -194,6 +200,12 @@ bool fsRead(file_t* fd, void* buffer, size_t* length)
 {
 	request_t req;
 	status_t hr;
+
+	if (fd == NULL)
+	{
+		errno = EINVALID;
+		return false;
+	}
 
 	req.code = FS_READ;
 	req.params.fs_read.buffer = (addr_t) buffer;

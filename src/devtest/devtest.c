@@ -188,7 +188,7 @@ void TestFileSystem(const wchar_t* filename)
 {
 	addr_t fd;
 	request_t req;
-	static char buf[2048];
+	static char buf[8];
 	static wchar_t wide[countof(buf) + 1];
 
 	fd = fsOpen(filename);
@@ -244,7 +244,7 @@ int main()
 	_wgetch();
 	//TestFileSystem(L"text/Keyboard Layouts/uk-cap.txt");
 	//TestFileSystem(L"/Mobius/windows/bootlog.txt");
-	TestFileSystem(L"/devices/floppy0");
+	TestFileSystem(L"/devices/keyboard");
 
 	_cputws(L"Press any key to test floppy\n");
 	_wgetch();

@@ -331,6 +331,7 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 	dword i;
 	word port, ctrl;
 	device_t* kdebug;
+	byte status;
 
 	ctx = (Keyboard*) hndAlloc(sizeof(Keyboard), NULL);
 
@@ -372,6 +373,30 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 	kdebug = devOpen(L"debugger", NULL);
 	devRegisterIrq(kdebug, 1, false);
 	devClose(kdebug);
+
+	out(port, 0xff); /*reset keyboard   */ 
+    do {
+        status = in(ctrl);
+    } while (status & 0x02);
+
+    out(ctrl, 0xAA); /*selftest   */
+    in(port);
+    out(ctrl, 0xAB); /*interface selftest   */
+    in(port);
+
+    out(ctrl, 0xAE); /*enable keyboard   */
+
+    out(port, 0xff); /*reset keyboard   */
+
+    in(port);
+    in(port);
+
+    out(ctrl, 0xAD); /*disable keyboard   */
+
+    out(ctrl, 0x60);
+    out(port, 0x01 | 0x04 | 0x20 | 0x40);
+
+    out(ctrl, 0xAE); /*enable keyboard   */
 
 #if 0
 	/* Reset keyboard and disable scanning until further down */
@@ -434,7 +459,6 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 device_t* kbdAddDevice(driver_t* drv, const wchar_t* name, 
 					   device_config_t* cfg)
 {
-	_cputws_check(L" \n" CHECK_L2 L"Keyboard\r\t");
 	return (device_t*) kbdInit(drv, cfg);
 }
 

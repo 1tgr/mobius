@@ -1,5 +1,6 @@
 *.o
 *.d
+*.ncb
 gui
 guiapp
 ifproxy
