@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.4 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: port.c,v 1.5 2002/05/05 13:54:36 pavlovskii Exp $ */
 
 #include <errno.h>
 #include <wchar.h>
@@ -11,6 +11,7 @@ bool PortListen(handle_t port)
 {
     fileop_t op;
     params_port_t params;
+    op.event = port;
     params.port_listen.port = port;
     if (FsRequestSync(port, PORT_LISTEN, &params, sizeof(params), &op))
         return true;
@@ -25,6 +26,7 @@ bool PortConnect(handle_t port, const wchar_t *remote)
 {
     fileop_t op;
     params_port_t params;
+    op.event = port;
     params.port_connect.port = port;
     params.port_connect.remote = remote;
     params.port_connect.name_size = (wcslen(remote) + 1) * sizeof(wchar_t);
@@ -41,6 +43,7 @@ handle_t PortAccept(handle_t port, uint32_t flags)
 {
     fileop_t op;
     params_port_t params;
+    op.event = port;
     params.port_accept.port = port;
     params.port_accept.flags = flags;
     if (FsRequestSync(port, PORT_ACCEPT, &params, sizeof(params), &op))

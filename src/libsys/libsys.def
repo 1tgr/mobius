@@ -9,13 +9,15 @@ EXPORTS
     FsFullPath
     FsIoCtl
     FsOpen
-    FsOpenSearch
+    FsOpenDir
     FsQueryFile
     FsRead
+    FsReadDir
     FsReadSync
     FsRequestSync
     FsSeek
     FsWrite
+    FsWriteSync
     Hello
     HndClose
     KeLeakBegin
@@ -64,3 +66,4 @@ EXPORTS
     WndSetFocus
     VmmAlloc
     VmmFree
+    VmmMapShared
