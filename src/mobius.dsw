@@ -7,6 +7,10 @@ Project: "boot"=.\boot\boot.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
+    begin source code control
+    boot
+    .\boot
+    end source code control
 }}}
 
 Package=<4>
@@ -19,6 +23,10 @@ Project: "gui"=.\gui\gui.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
+    begin source code control
+    gui
+    ..
+    end source code control
 }}}
 
 Package=<4>
@@ -31,6 +39,10 @@ Project: "kernel"=.\kernel\kernel.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
+    begin source code control
+    kernel
+    .\kernel
+    end source code control
 }}}
 
 Package=<4>
@@ -43,18 +55,10 @@ Project: "libc"=.\libc\libc.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "libiconv"=".\libiconv-1.7\libiconv.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
+    begin source code control
+    libc
+    ..
+    end source code control
 }}}
 
 Package=<4>
@@ -67,6 +71,10 @@ Project: "librtl"=.\librtl\librtl.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
+    begin source code control
+    librtl
+    ..
+    end source code control
 }}}
 
 Package=<4>
@@ -79,6 +87,10 @@ Project: "libsys"=.\libsys\libsys.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
+    begin source code control
+    libsys
+    ..\..
+    end source code control
 }}}
 
 Package=<4>

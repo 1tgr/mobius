@@ -16,7 +16,7 @@ $(TARGET_D):	$(OBJS) $(LIBS) $(EXP) .base
 
 # Normal EXE
 $(TARGET):	$(OBJS) $(LIBS)
-	$(LD) -o $(TARGET) --entry _mainCRTStartup $(OBJS) $(LDFLAGS) $(LIBS)
+	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.dll)
