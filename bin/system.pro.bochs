@@ -1,4 +1,4 @@
-# $Id: system.pro.bochs,v 1.1 2002/04/10 12:50:17 pavlovskii Exp $
+# $Id: system.pro.bochs,v 1.2 2002/04/20 12:50:08 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
@@ -28,6 +28,13 @@ key Devices
     cmos=cmos
     ps2mouse=ps2mouse
     video=video
+    ide_primary=ata
+end
+
+key Mounts
+    /hd=fat,ide0a
+    /cd=iso9660,ide1
+    /fd=fat,fdc0
 end
 
 key PCI
@@ -73,4 +80,5 @@ key PCI
 end
 
 # Program to use as the OS shell
-Shell=/System/Boot/desktop.exe
+#Shell=/System/Boot/desktop.exe
+Shell=/System/Boot/shell.exe

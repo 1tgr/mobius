@@ -1,4 +1,4 @@
-# $Id: system.pro,v 1.5 2002/04/04 00:08:42 pavlovskii Exp $
+# $Id: system.pro,v 1.6 2002/04/20 12:50:08 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
@@ -27,6 +27,32 @@ key Devices
     pci=pci
     cmos=cmos
     ps2mouse=ps2mouse
+    video=video
+    ata0=ata
+    ata1=ata
+end
+
+key Mounts
+    /hd=fat,ide0a
+    /cd=iso9660,ide1
+    /fd=fat,fdc0
+end
+
+key ISA
+    #
+    # Each key here has the form:
+    #	PNPxxxx
+    # where PNP stands for the 3-letter vendor ID, and stands for the device ID
+    # Under each key can be several values:
+    #	Description=Textual description of device
+    #	Driver=Driver to use for such devices
+    #	Device=Special name to assign to devices found
+    #
+
+    key NBL5016
+	Driver=modem
+	Device=modem
+    end
 end
 
 key PCI
@@ -49,17 +75,18 @@ key PCI
 
     key Vendor8086Device7110Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 ISA Bridge
+	Driver=isapnp
     end
 
     key Vendor8086Device7111Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 EIDE Controller
-	Driver=ata
     end
 
     key Vendor8086Device7112Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 USB Controller
+	Driver=usb
     end
-    
+
     key Vendor8086Device7113Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 Power Management Controller
     end
@@ -72,4 +99,5 @@ key PCI
 end
 
 # Program to use as the OS shell
-Shell=/System/Boot/desktop.exe
+#Shell=/System/Boot/desktop.exe
+Shell=/System/Boot/shell.exe
