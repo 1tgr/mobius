@@ -1,0 +1,27 @@
+EXP=	$(DEF:.def=.exp)
+
+all:	$(TARGET) $(TARGET_S) $(TARGET_D) $(IMP)
+
+.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
+
+# Static library
+$(TARGET_S):	$(OBJS)
+	ar rcs $(TARGET_S) $(OBJS)
+
+# DLL
+$(TARGET_D):	$(OBJS) $(LIBS) $(EXP) .base
+	$(LD) --dll -o $(TARGET_D) --image-base `cat .base` \
+		--entry _DllMainCRTStartup $(LDFLAGS) $(EXP) $(OBJS) $(LIBS)
+
+# Normal EXE
+$(TARGET):	$(OBJS) $(LIBS)
+	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
+
+$(IMP):	$(DEF)
+	dlltool -d $< -l $@ -D $(<:.def=.dll)
+
+clean:
+	rm $(OBJS:.o=.d) $(OBJS) $(EXP) $(IMP) $(TARGET_D) $(TARGET_S) $(TARGET)
+
+include $(OBJS:.o=.d)

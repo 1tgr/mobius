@@ -1,0 +1,3 @@
+NAME	tty.drv
+EXPORTS
+	TtySwitchConsoles

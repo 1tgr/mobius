@@ -1,0 +1,12 @@
+NAME kdebug.dll
+EXPORTS
+	dbgAttach
+	dbgBreak
+	dbgDumpContext
+	dbgDumpModules
+	dbgDumpStack
+	dbgDumpThreads
+	dbgFormatAddress
+	dbgIsValidEsp
+	dbgLookupModule
+	getwchar
