@@ -23,8 +23,8 @@ CFG=boot - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "boot"
+# PROP Scc_LocalPath "."
 
 !IF  "$(CFG)" == "boot - Win32 Release"
 
