@@ -4,7 +4,7 @@ LIB=		$(ROOT)/lib
 BIN=		$(ROOT)/bin
 
 #DEFINES+=	-D__STRICT_ANSI__
-CFLAGS+=	-Wall -Wno-multichar -g -nostdinc -ansi $(DEFINES)
+CFLAGS+=	-Wall -Wno-multichar -g -nostdinc $(DEFINES)
 CPPFLAGS+=	$(CFLAGS) -fno-rtti
 ASFLAGS+=	--gstabs
 CC=		gcc

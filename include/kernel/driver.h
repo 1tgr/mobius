@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.9 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.10 2002/01/10 20:50:14 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -94,6 +94,7 @@ struct IDeviceVtbl
 {
 	bool (*request)(device_t *dev, request_t *req);
 	bool (*isr)(device_t *dev, uint8_t irq);
+	void (*finishio)(device_t *dev, request_t *req);
 };
 
 #ifdef __cplusplus
@@ -101,6 +102,7 @@ struct __attribute__((com_interface)) device_t
 {
 	virtual bool request(request_t *req) = 0;
 	virtual bool isr(uint8_t irq) = 0;
+	virtual void finishio(request_t *req) = 0;
 
 	driver_t *driver;
 	device_config_t *cfg;
@@ -143,7 +145,7 @@ void	MemUnmapTemp(void);
 #define DevUnmapBuffer	MemUnmapTemp
 
 /* Some extra codes user apps aren't supposed to know about */
-#define	IO_FINISH		REQUEST_CODE(0, 0, 'i', 'f')
+/*#define	IO_FINISH		REQUEST_CODE(0, 0, 'i', 'f')*/
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.2 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.3 2002/01/10 20:50:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -40,8 +40,9 @@ struct FatFile : public file_t
 class Fat : public device
 {
 public:
-	virtual bool request(request_t *req);
-	virtual bool isr(uint8_t irq);
+	bool request(request_t *req);
+	bool isr(uint8_t irq);
+	void finishio(request_t *req);
 
 	device_t *Init(driver_t *drv, const wchar_t *path, device_t *dev);
 
@@ -588,22 +589,6 @@ bool Fat::request(request_t *req)
 		//wprintf(L"Request: starting IO, extra = %p\n", io->extra);
 		StartIo(io);
 		return true;
-
-	case IO_FINISH:
-		//wprintf(L"Request: IO_FINISH: req->original->original = %p\n",
-			//req->original->original);
-		FOREACH (io, io)
-		{
-			extra = (fat_ioextra_t*) io->extra;
-			if (req->original->original == &extra->dev_request.header)
-			{
-				StartIo(io);
-				return true;
-			}
-		}
-
-		assert(false && "Request not found");
-		return false;
 	}
 
 	req->code = ENOTIMPL;
@@ -613,6 +598,24 @@ bool Fat::request(request_t *req)
 bool Fat::isr(uint8_t irq)
 {
 	return false;
+}
+
+void Fat::finishio(request_t *req)
+{
+	asyncio_t *io;
+	fat_ioextra_t *extra;
+	//wprintf(L"Request: IO_FINISH: req->original->original = %p\n",
+		//req->original->original);
+	/*FOREACH (io, io)
+	{*/
+	io = (asyncio_t*) req->original->param;
+	extra = (fat_ioextra_t*) io->extra;
+	assert(req->original->original == &extra->dev_request.header);
+	StartIo(io);
+	/*}*/
+
+	/*assert(false && "Request not found");
+	return false;*/
 }
 
 device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)

@@ -23,7 +23,8 @@ public:
 		DEV_HANDLE_REQUEST(DEV_WRITE, onWrite, request_dev_t)
 	DEV_END_REQUEST()
 
-	virtual bool isr(uint8_t irq);
+	bool isr(uint8_t irq);
+	void finishio(request_t *req);
 
 	tty();
 	void switchTo();
@@ -395,6 +396,10 @@ bool tty::isr(uint8_t irq)
 	}
 	else
 		return false;
+}
+
+void tty::finishio(request_t *req)
+{
 }
 
 bool tty::onWrite(request_dev_t *req)

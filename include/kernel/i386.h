@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.4 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.5 2002/01/10 20:50:14 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -95,6 +95,12 @@
 
 #define PHYSMEM			0xF0000000
 #define SCHED_QUANTUM	10
+
+#define PAGETABLE_MAP		(0xffc00000)
+#define PAGEDIRECTORY_MAP	(0xffc00000 + (PAGETABLE_MAP / (1024)))
+#define ADDR_TO_PDE(v)	(addr_t*)(PAGEDIRECTORY_MAP + \
+								(((addr_t) (v) / (1024 * 1024))&(~0x3)))
+#define ADDR_TO_PTE(v)	(addr_t*)(PAGETABLE_MAP + ((((addr_t) (v) / 1024))&(~0x3)))
 
 #pragma pack (push, 1)  /* align structures to a uint8_t boundary */
 

@@ -13,8 +13,8 @@
 
 include ../../make.actions
 
-LIBDIR=$(HOME)/lib/$(ARCH)
-INCDIR=$(HOME)/include
+#LIBDIR=$(HOME)/lib/$(ARCH)
+#INCDIR=$(HOME)/include
 
 # neutralize SystemV genius
 SHELL=/bin/sh
@@ -54,7 +54,7 @@ NORMALDEFS=-DSTDHEADERS #-DHAVE_MMAP # -DSHORTNAMES -DUSESTDIO
 # SGI needs cc -xansi -D__STDC__ on Irix4.0.5.
 
 CDEBUGFLAGS=-g
-EXTRAINCLUDES=-I$(HOME)/include
+#EXTRAINCLUDES=-I$(HOME)/include
 LINT=lint
 LN = ln -s
 OLDCC = cc
@@ -202,27 +202,3 @@ files:
 # append the contents of .dep after this line.
 
 include $(OBJS:.o=.d)
-
-#_emalloc.o : _emalloc.c defs.h externs.h assert.h align.h globals.h globrename.h \
-#  trace.h 
-#_malloc.o : _malloc.c defs.h externs.h assert.h align.h globals.h globrename.h \
-#  trace.h 
-#_memalign.o : _memalign.c defs.h externs.h assert.h align.h globals.h globrename.h \
-#  trace.h 
-#_strdup.o : _strdup.c defs.h externs.h assert.h align.h globals.h globrename.h \
-#  trace.h 
-#_strsave.o : _strsave.c defs.h externs.h assert.h align.h globals.h globrename.h \
-#  trace.h 
-#botch.o : botch.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#dumpheap.o : dumpheap.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#emalloc.o : emalloc.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#getmem.o : getmem.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#leak.o : leak.c defs.h externs.h assert.h align.h globals.h globrename.h ./splay/sptree.h 
-#malloc.o : malloc.c defs.h externs.h assert.h align.h globals.c globrename.h \
-#  version.c 
-#memalign.o : memalign.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#setopts.o : setopts.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#stats.o : stats.c defs.h externs.h assert.h align.h globals.h globrename.h 
-#strdup.o : strdup.c defs.h externs.h assert.h align.h 
-#strsave.o : strsave.c defs.h externs.h assert.h align.h 
-#verify.o : verify.c defs.h externs.h assert.h align.h globals.h globrename.h 

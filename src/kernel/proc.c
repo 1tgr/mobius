@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.3 2002/01/10 20:50:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -6,6 +6,8 @@
 #include <kernel/vmm.h>
 #include <kernel/thread.h>
 #include <kernel/fs.h>
+
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <stdlib.h>
@@ -122,7 +124,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	module_t *mod;
 	thread_t *thr;
 
-	TRACE1(L"Creating process from %s\n", proc->exe);
+	TRACE1("Creating process from %s\n", proc->exe);
 
 	proc->info = info = VmmAlloc(1, NULL, 
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
@@ -153,7 +155,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	}
 
 	info->base = mod->base;
-	TRACE1(L"Successful; continuing at %lx\n", mod->entry);
+	TRACE1("Successful; continuing at %lx\n", mod->entry);
 	ctx = ThrGetContext(current);
 	ctx->eip = mod->entry;
 	return true;
@@ -173,7 +175,8 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 	wprintf(L"(%u) ProcPageFault(%s, %lx)\n", nest++, proc->exe, addr);
 #endif
 	
-	if (proc->mod_first == NULL)
+	if (proc->mod_first == NULL &&
+		addr == 0xdeadbeef)
 	{
 #ifdef DEBUG
 		nest--;

@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.13 2002/01/09 01:23:41 pavlovskii Exp $ */
+/* $Id: test.c,v 1.14 2002/01/10 20:50:17 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -105,10 +105,11 @@ int main(void)
 	wprintf(L"Now the third...\n"
 		L"...and fourth lines\n");
 	wprintf(L"Here's a tab, just for a laugh...\tHa ha!\n");
-	
-	testFileIo(L"/hd/test.txt");
+	/*printf("The Möbius Operating System\n");*/
+
+	/*testFileIo(L"/hd/test.txt");*/
 	/*testBlockDeviceIo(SYS_DEVICES L"/fdc0");*/
-	/*testCharDeviceIo(SYS_DEVICES L"/keyboard");*/
+	testCharDeviceIo(SYS_DEVICES L"/keyboard");
 
 	wprintf(L"Bye now...\n");
 	return EXIT_SUCCESS;

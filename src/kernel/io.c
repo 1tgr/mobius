@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.1 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: io.c,v 1.2 2002/01/10 20:50:15 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
@@ -13,17 +13,21 @@
 
 void IoNotifyCompletion(device_t *dev, request_t *req)
 {
-	request_t temp;
+	/*request_t temp;*/
 
 	if (req->from != NULL)
 	{
-		temp.code = IO_FINISH;
+		/*temp.code = IO_FINISH;
 		temp.result = 0;
 		temp.event = NULL;
 		temp.original = req;
 		temp.from = dev;
 		assert(req->from->vtbl->request != NULL);
 		req->from->vtbl->request(req->from, &temp);
+		req->from = NULL;*/
+		assert(req->from->vtbl->finishio != NULL);
+		req->from->vtbl->finishio(req->from, (req->original == NULL) ? 
+			req : req->original);
 		req->from = NULL;
 	}
 }
@@ -62,12 +66,13 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 		 * Operation completed synchronously. 
 		 * There might be some device expecting completion notification.
 		 */
-		/*assert(false && "Caller expected async io but device completed immediately");*/
 		IoNotifyCompletion(dev, req);
 	}
 
 	return ret;
 }
+
+int mal_verify(int fullcheck);
 
 bool IoRequestSync(device_t *dev, request_t *req)
 {
@@ -77,13 +82,14 @@ bool IoRequestSync(device_t *dev, request_t *req)
 		/*assert(req->event == NULL);*/
 		if (req->event)
 		{
+			mal_verify(1);
 			if (!EvtIsSignalled(NULL, req->event))
 			{
 				semaphore_t temp;
 				SemInit(&temp);
 				SemAcquire(&temp);
 				enable();
-					
+
 				if (/*true || */current == &thr_idle)
 				{
 					TRACE0("IoRequestSync: busy-waiting\n");
@@ -108,6 +114,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 			}
 
 			EvtFree(NULL, req->event);
+			mal_verify(1);
 		}
 
 		return true;

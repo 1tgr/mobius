@@ -1,7 +1,7 @@
-/* $Id: fs.c,v 1.9 2002/01/09 01:23:39 pavlovskii Exp $ */
-
+/* $Id: fs.c,v 1.10 2002/01/10 20:50:15 pavlovskii Exp $ */
 #include <kernel/fs.h>
 #include <kernel/driver.h>
+#include <kernel/io.h>
 
 #include <os/rtl.h>
 #include <os/defs.h>

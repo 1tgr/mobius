@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.8 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.9 2002/01/10 20:50:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -17,6 +17,7 @@ extern irq_t *irq_first[16], *irq_last[16];
 
 extern tss_t arch_tss;
 extern descriptor_t arch_gdt[];
+extern addr_t kernel_pagedir[];
 
 void TextSwitchToKernel(void);
 
@@ -171,7 +172,18 @@ uint32_t i386Isr(context_t ctx)
 		}
 		else if (ctx.intr == 14 &&
 			(ctx.error & PF_PROTECTED) == 0)
+		{
 			handled = ProcPageFault(current->process, cr2);
+			if (!handled &&
+				cr2 > 0x80000000 &&
+				kernel_pagedir[PAGE_DIRENT(cr2)])
+			{
+				cr2 = PAGE_ALIGN(cr2);
+				wprintf(L"Mapping kernel page at %x\n", cr2);
+				*ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
+				handled = true;
+			}
+		}
 		else if (ctx.intr == 0x30)
 		{
 			i386DispatchSysCall(&ctx);

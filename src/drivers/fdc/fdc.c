@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.7 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.8 2002/01/10 20:50:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -6,7 +6,7 @@
 #include <kernel/memory.h>
 #include <kernel/cache.h>
 
-/* #define DEBUG */
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <os/syscall.h>
@@ -245,7 +245,7 @@ start:
 		}
 		else
 		{
-			TRACE1(L"fdc: seeking to track %u\n", track);
+			TRACE1("fdc: seeking to track %u\n", track);
 			fdc->sensei = true;
 			FdcSendByte(fdc, CMD_SEEK);
 			FdcSendByte(fdc, 0);
@@ -376,6 +376,7 @@ start:
 	 */
 finished:
 	/* Drive has finished reading/writing, so we can turn off the motor */
+	TRACE1("fdc: finishing with code %u\n", ret);
 	FdcMotorOff(fdc);
 	free(io->extra);
 	req_dev->params.buffered.length = io->length;

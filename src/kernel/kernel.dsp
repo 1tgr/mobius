@@ -142,6 +142,10 @@ SOURCE=.\handle.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\io.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\kernel.def
 # End Source File
 # Begin Source File
@@ -210,6 +214,10 @@ SOURCE=..\..\include\kernel\fs.h
 # Begin Source File
 
 SOURCE=..\..\include\kernel\handle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\kernel\io.h
 # End Source File
 # Begin Source File
 

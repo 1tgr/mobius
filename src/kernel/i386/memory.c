@@ -1,5 +1,4 @@
-/* $Id: memory.c,v 1.6 2002/01/05 21:37:46 pavlovskii Exp $ */
-
+/* $Id: memory.c,v 1.7 2002/01/10 20:50:17 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -104,12 +103,6 @@ addr_t MemAllocLowSpan(size_t pages)
 	SemRelease(&pool_low.sem);
 	return NULL;
 }
-
-#define PAGETABLE_MAP		(0xffc00000)
-#define PAGEDIRECTORY_MAP	(0xffc00000 + (PAGETABLE_MAP / (1024)))
-#define ADDR_TO_PDE(v)	(addr_t*)(PAGEDIRECTORY_MAP + \
-								(((addr_t) (v) / (1024 * 1024))&(~0x3)))
-#define ADDR_TO_PTE(v)	(addr_t*)(PAGETABLE_MAP + ((((addr_t) (v) / 1024))&(~0x3)))
 
 bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
 {
