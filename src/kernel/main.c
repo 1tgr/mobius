@@ -1,17 +1,21 @@
-/* $Id: main.c,v 1.5 2002/01/09 01:23:41 pavlovskii Exp $ */
+/* $Id: main.c,v 1.6 2002/01/15 00:13:06 pavlovskii Exp $ */
+
+/*!
+ *	\defgroup	kernel	Kernel
+ */
+
+#include <os/syscall.h>
 
 #include <kernel/kernel.h>
-#include <kernel/memory.h>
 #include <kernel/sched.h>
-#include <kernel/arch.h>
 #include <kernel/thread.h>
-#include <kernel/proc.h>
-#include <kernel/ramdisk.h>
-#include <kernel/fs.h>
-#include <kernel/vmm.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
+#include <kernel/fs.h>
+#include <kernel/arch.h>
+#include <kernel/proc.h>
 
+#include <kernel/init.h>
 #include <stdio.h>
 
 extern char scode[];

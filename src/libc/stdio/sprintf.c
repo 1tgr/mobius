@@ -1,4 +1,4 @@
-/* $Id: sprintf.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: sprintf.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <printf.h>
 #include <stdio.h>
@@ -12,6 +12,7 @@ static bool sprintfhelp(void* pContext, const char* str, size_t len)
 }
 
 /*!	\brief Copies a formatted string to a buffer, given a va_list of arguments.
+ *
  *	Use this function instead of swprintf() when a va_list is used, rather 
  *		than a variable list of parameters in the argument list.
   *	\param	fmt	The string to be processed. Conforms to normal wprintf() 
@@ -25,6 +26,7 @@ int vsprintf(char *buffer, const char *format, va_list argptr)
 }
 
 /*!	\brief Copies a formatted string to a buffer.
+ *
  *	\param	fmt	The string to be processed. Conforms to normal wprintf() 
  *		specifications.
  *	\param	...	Arguments that control the output.

@@ -1,15 +1,14 @@
-/* $Id: rtlsup.c,v 1.6 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.7 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
+#include <kernel/sched.h>
 
 #include <os/rtl.h>
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-
-extern addr_t kernel_pagedir[];
 
 addr_t kernel_sbrk = 0xe0000000;
 unsigned con_x, con_y;
@@ -60,6 +59,8 @@ void __dj_assert(const char *test, const char *file, int line)
 		L"%S\n"
 		L"%S, line %d\n", 
 		test, file, line);
+	ScEnableSwitch(false);
+	enable();
 	for (;;);
 	/*__asm__("cli;hlt");*/
 }

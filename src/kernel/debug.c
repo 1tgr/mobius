@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.4 2002/01/06 22:46:08 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.5 2002/01/15 00:12:58 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -19,14 +19,8 @@
 #include <os/coff.h>
 #include <os/pe.h>
 
-/*!
- *  \ingroup	drivers
- *  \defgroup	kdebug	Kernel debugger
- *  @{
- */
-
-#define KSTACK_BOTTOM	0xc0000000
-#define KSTACK_TOP		0xd0000000
+#define KSTACK_BOTTOM	0x80000000
+#define KSTACK_TOP		0xe0000000
 #define USTACK_BOTTOM	0
 #define USTACK_TOP		0xc0000000
 
@@ -87,7 +81,7 @@ bool DbgLookupSymbol(module_t *mod, void* sym, addr_t* address, SYMENT *syment)
 	found = false;
 	for (i = 0; i < pe->FileHeader.NumberOfSymbols; i++)
 	{
-		FsRead(mod->file, &symbol, sizeof(symbol));
+		FsReadSync(mod->file, &symbol, sizeof(symbol));
 
 		if (symbol.e_sclass == C_EXT ||
 			symbol.e_sclass == C_STAT || 
@@ -203,11 +197,13 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 {
 	uint32_t *pebp = (uint32_t*) _ebp;
 	module_t* mod;
+	unsigned i;
 	/*SYMENT sym;
 	char *strings, *name;
 	addr_t addr;*/
 
 	wprintf(L"ebp\t\t\tReturn To\tModule\n");
+	i = 0;
 	do
 	{
 		wprintf(L"%08x\t", (uint32_t) pebp);
@@ -238,6 +234,14 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 		}
 		else
 			wprintf(L"(invalid)\n");
+		
+		i++;
+
+		if (i >= 10)
+		{
+			wprintf(L"DbgDumpStack: stopped after %u lines\n", i);
+			break;
+		}
 	} while (DbgIsValidEsp(proc, (uint32_t) pebp));
 }
 
@@ -531,5 +535,3 @@ void DbgDumpVmm(process_t *proc)
 
 	free(ary);
 }
-
-/*@} */

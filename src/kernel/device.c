@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.13 2002/01/12 02:16:07 pavlovskii Exp $ */
+/* $Id: device.c,v 1.14 2002/01/15 00:12:58 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -40,14 +40,39 @@ struct device_file_t
 	device_t *dev;
 };
 
-bool DevFsRequest(device_t *dev, request_t *req)
+static void DevFsFinishIo(device_t *dev, request_t *req)
+{
+	device_file_t *file;
+	request_dev_t *req_dev;
+	request_fs_t *req_fs;
+
+	req_dev = (request_dev_t*) req;
+	req_fs = req->param;
+	assert(req_fs != NULL);
+	assert(req_fs->header.code == FS_READ || req_fs->header.code == FS_WRITE);
+	file = HndLock(NULL, req_fs->params.buffered.file, 'file');
+	assert(file != NULL);
+
+	TRACE3("DevFsFinishIo: req_dev = %p req_fs = %p length = %u\n",
+		req_dev, req_fs, req_dev->params.buffered.length);
+	req_fs->params.buffered.length = req_dev->params.buffered.length;
+	req_fs->header.result = req_dev->header.result;
+	file->file.pos += req_dev->params.buffered.length;
+
+	HndUnlock(NULL, req_fs->params.buffered.file, 'file');
+	HndUnlock(NULL, req_fs->params.buffered.file, 'file');
+	free(req_dev);
+
+	IoNotifyCompletion(&req_fs->header);
+}
+
+static bool DevFsRequest(device_t *dev, request_t *req)
 {
 	request_fs_t *req_fs = (request_fs_t*) req;
 	device_file_t *file;
 	device_info_t *info;
-	request_dev_t req_dev;
-	bool ret;
-
+	request_dev_t *req_dev;
+	
 	switch (req->code)
 	{
 	case FS_OPEN:
@@ -106,23 +131,43 @@ bool DevFsRequest(device_t *dev, request_t *req)
 				req_fs->params.fs_write.buffer,
 				req_fs->params.fs_write.length);*/
 
-		req_dev.header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
-		req_dev.params.dev_read.buffer = req_fs->params.fs_read.buffer;
-		req_dev.params.dev_read.length = req_fs->params.fs_read.length;
-		req_dev.params.dev_read.offset = file->file.pos;
-		ret = IoRequestSync(file->dev, &req_dev.header);
+		req_dev = malloc(sizeof(request_dev_t));
+		if (req_dev == NULL)
+		{
+			req->result = ENOMEM;
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+			return false;
+		}
 
-		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-		req->result = req_dev.header.result;
-		file->file.pos += req_dev.params.dev_read.length;
-		return ret;
+		req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
+		req_dev->header.param = req;
+		req_dev->params.dev_read.buffer = req_fs->params.buffered.buffer;
+		req_dev->params.dev_read.length = req_fs->params.buffered.length;
+		req_dev->params.dev_read.offset = file->file.pos;
+
+		/*wprintf(L"DevFsRequest: req_dev = %p req_fs = %p length = %u\n",
+			req_dev, req_fs, req_dev->params.buffered.length);*/
+		if (!IoRequest(dev, file->dev, &req_dev->header))
+		{
+			req_fs->params.buffered.length = req_dev->params.buffered.length;
+			req->result = req_dev->header.result;
+			file->file.pos += req_dev->params.buffered.length;
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+			free(req_dev);
+			return false;
+		}
+		else
+		{
+			req->result = req_dev->header.result;
+			return true;
+		}
 	}
 
 	req->result = ENOTIMPL;
 	return false;
 }
 
-driver_t devfs_driver =
+static driver_t devfs_driver =
 {
 	&mod_kernel,
 	NULL,
@@ -131,13 +176,14 @@ driver_t devfs_driver =
 	DevMountFs,
 };
 
-static const IDeviceVtbl devfs_vtbl =
+static const device_vtbl_t devfs_vtbl =
 {
 	DevFsRequest,	/* request */
 	NULL,			/* isr */
+	DevFsFinishIo,	/* finishio */
 };
 
-device_t dev_fsd =
+static device_t dev_fsd =
 {
 	&devfs_driver,
 	NULL,
@@ -171,6 +217,14 @@ device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
 	return &dev_fsd;
 }
 
+/*!
+ * \brief	Connects an IRQ line with a device
+ *
+ *	The device's \p irq function is called when the specified IRQ occurs
+ *	\param	irq	The IRQ to connect
+ *	\param	dev	The device to associate with the IRQ
+ *	\return	\p true if the IRQ could be registered
+ */
 bool DevRegisterIrq(uint8_t irq, device_t *dev)
 {
 	irq_t *i;
@@ -190,6 +244,27 @@ bool DevRegisterIrq(uint8_t irq, device_t *dev)
 	return true;
 }
 
+/*!
+ *	\brief	Queues an asynchronous request on a device
+ *
+ *	This function does the following:
+ *	- Sets \p req->result to \p SIOPENDING, indicating to the originator of
+ *	the request that the request is asynchronous
+ *	- Creates a copy of the original request structure in kernel space
+ *	- Ensures that each of the buffer pages are mapped
+ *	- Locks each of the buffer pages in physical memory
+ *	- Adds an \p asyncio_t structure to the end of the device's queue
+ *
+ *	The physical addresses of each of the pages in the user buffer is stored
+ *	as an \p addr_t array immediately after the \p asyncio_t structure.
+ *
+ *	\param	dev	Device to which the request applies
+ *	\param	req	Request to be queued
+ *	\param	size	Size of the \p req structure
+ *	\param	user_buffer	Buffer in user space to lock
+ *	\param	user_buffer_length	Length, in bytes, of \p user_buffer
+ *	\return	A pointer to an \p asyncio_t structure
+ */
 asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 						   void *user_buffer,
 						   size_t user_buffer_length)
@@ -244,22 +319,19 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	return io;
 }
 
-void DevFinishIoApc(void *ptr)
+static void DevFinishIoApc(void *ptr)
 {
 	asyncio_t *io;
 
 	io = ptr;
-	wprintf(L"DevFinishIoApc(%p): ", ptr);
-	wprintf(L"io->req = %p ", io->req);
-	wprintf(L"io->req->original = %p\n", io->req->original);
+	TRACE1("DevFinishIoApc(%p): ", ptr);
+	TRACE1("io->req = %p ", io->req);
+	TRACE1("io->req->original = %p\n", io->req->original);
 	if (io->req->original != NULL)
 	{
 		assert(io->owner == current);
 		memcpy(io->req->original, io->req, io->req_size);
 	}
-
-	IoNotifyCompletion(io->dev, io->req);
-	/*EvtSignal(io->owner->process, io->req->event);*/
 
 	if (io->req->original != NULL)
 	{
@@ -269,11 +341,39 @@ void DevFinishIoApc(void *ptr)
 		free(req);
 	}
 
+	IoNotifyCompletion(io->req);
+	/*EvtSignal(io->owner->process, io->req->event);*/
+
 	free(io);
 	/* Need to free io->req->event */
 	/* No we don't, that's left to the caller */
 }
 
+/*!
+ *	\brief	Notifies the kernel that the specified asynchronous request has
+ *	been completed
+ *
+ *	This function does the following:
+ *	- Unlocks each of the pages in the original user buffer
+ *	- Removes the \p asyncio_t structure from the device's queue
+ *	- Updates the \p result field of the original request
+ *
+ *	It then queues an APC which:
+ *	- Copies the copy of the request structure (which may have been updated
+ *	by the driver between \p DevQueueRequest and \p DevFinishIo) into the
+ *	original request structure
+ *	- Calls the originator's I/O completion function, if appropriate
+ *	- Frees the \p asyncio_t structure
+ *
+ *	The APC is guaranteed to execute in the context of the request originator.
+ *	If \p DevFinishIo is called from the same context as the originator then
+ *	the APC routine is called directly.
+ *
+ *	\param	dev	Device where the asynchronous request is queued
+ *	\param	io	Asynchronous request structure
+ *	\param	result	Final result of the operation
+ *
+ */
 void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 {
 	addr_t *ptr;
@@ -291,16 +391,26 @@ void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 
 	if (io->owner == current)
 	{
-		wprintf(L"Not queueing APC\n");
+		TRACE0("Not queueing APC\n");
 		DevFinishIoApc(io);
 	}
 	else
 	{
-		wprintf(L"Queueing APC\n");
+		TRACE0("Queueing APC\n");
 		ThrQueueKernelApc(io->owner, DevFinishIoApc, io);
 	}
 }
 
+/*!
+ *	\brief	Finds the n'th IRQ resource
+ *
+ *	\param	cfg	Pointer to the device's configuration list
+ *	\param	n	Index of the IRQ to find; use 0 for the first IRQ, 1 for
+ *		the second, etc.
+ *	\param	dflt	Default value to return if the specified IRQ could not
+ *		be found
+ *	\return	The requested IRQ
+ */
 uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
 {
 	unsigned i, j;
@@ -320,6 +430,23 @@ uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
 
 extern driver_t rd_driver, port_driver;
 
+/*!
+ *	\brief	Installs a new device driver
+ *
+ *	Currently device drivers are found in \p /System/Boot, and are given names
+ *	of the form \p name.drv.
+ *
+ *	This function searches for the driver file, attempts to load it, and
+ *	calls the driver's entry point routine.
+ *
+ *	There are several built-in drivers:
+ *	- \p ram, the ramdisk device and file system driver
+ *	- \p portfs, the port file system
+ *	- \p devfs, the device file system
+ *
+ *	\param	name	Name of the device driver
+ *	\return	A pointer to a device driver
+ */
 driver_t *DevInstallNewDriver(const wchar_t *name)
 {
 	if (_wcsicmp(name, L"ram") == 0)
@@ -337,7 +464,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 
 		swprintf(temp, SYS_BOOT L"/%s.drv", name);
 		/*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
-		
+
 		mod = PeLoad(&proc_idle, temp, 0);
 		if (mod == NULL)
 			return NULL;
@@ -365,12 +492,25 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 			free(drv);
 			return NULL;
 		}
-		
+
 		LIST_ADD(drv, drv);
 		return drv;
 	}
 }
 
+/*! 
+ *	\brief	Adds a new device to the device manager's list
+ *
+ *	The new device will appear in the \p /System/Device directory, and it
+ *	will also be available via \p IoOpenDevice. This function is most often 
+ *	used by bus drivers, or other drivers that enumerate their own devices, 
+ *	to add devices that they have found.
+ *
+ *	\param	dev	Pointer to the new device object
+ *	\param	name	Name for the device
+ *	\param	cfg	Device configuration list
+ *	\return	\p true if the device was added
+ */
 bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
 {
 	device_info_t *info;
@@ -388,6 +528,11 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
 	return true;
 }
 
+/*!
+ *	\brief	Unloads a driver loaded by \p DevInstallNewDriver
+ *
+ *	\param	driver	Driver to unload
+ */
 void DevUnloadDriver(driver_t *driver)
 {
 	if (driver->mod != NULL)
@@ -395,6 +540,17 @@ void DevUnloadDriver(driver_t *driver)
 	/*free(driver);*/
 }
 
+/*!
+ *	\brief	Installs a new device
+ *
+ *	This function will ask the specified driver for the given device;
+ *	the driver is loaded if not already present.
+ *
+ *	\param	driver	Name of the device driver
+ *	\param	name	Name of the new device
+ *	\param	cfg	Configuration list to assign to the new device
+ *	\return	A pointer to the new device object
+ */
 device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
 						   device_config_t *cfg)
 {
@@ -417,6 +573,21 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 		return NULL;
 }
 
+/*!
+ *	\brief	Temporarily maps the user-mode buffer of an asynchronous request
+ *
+ *	Use this function in the interrupt routine of a driver when data need to be
+ *	written to the user buffer.
+ *
+ *	Note that the pointer returned by this function refers to the start of the
+ *	lowest page in the buffer; you must add \p io->mod_buffer_start to obtain
+ *	a usable buffer address.
+ *
+ *	Call \p DevUnmapBuffer when you have finished with the buffer returned.
+ *
+ *	\param	io	Asynchronous request structure
+ *	\return	A page-aligned pointer to the start of the buffer
+ */
 void *DevMapBuffer(asyncio_t *io)
 {
 	return MemMapTemp((addr_t*) (io + 1), io->length_pages, 

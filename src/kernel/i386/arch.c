@@ -1,16 +1,17 @@
-/* $Id: arch.c,v 1.7 2002/01/12 02:16:08 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.8 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
+#include <kernel/init.h>
 
 #include <stdio.h>
 
 #include "wrappers.h"
 
-extern char scode[];
+extern char scode[], _data_end__[];
 extern thread_info_t idle_thread_info;
 extern uint16_t con_attribs;
 extern thread_t thr_idle;
@@ -99,12 +100,34 @@ static void i386CpuId(uint32_t level, cpuid_info *cpuid)
 		/*: "eax", "ebx", "edx", "ecx"*/);
 }
 
+/*!
+ *	\brief	Initializes the i386 features of the kernel
+ *
+ *	This function is called just after \p MemInit (so paging is enabled) and
+ *	performs the following tasks:
+ *	- Rebases GDTR now that paging is enabled
+ *	- Sets up the interrupt handlers
+ *	- Installs the double fault task gate
+ *	- Sets up the user-to-kernel transition TSS
+ *	- Sets up the double fault TSS
+ *	- Reprograms the PIT to run at 100Hz
+ *	- Reprograms the PIC to put IRQs where we want them
+ *	- Enables interrupts
+ *	- Clears the screen
+ *	- Performs a CPUID
+ *	- Initializes the \p gdb remote debugging stubs
+ *
+ *	\return	\p true
+ */
 bool ArchInit(void)
 {
 	unsigned i;
 	/*uint32_t cpu;*/
 	cpuid_info cpuid1, cpuid2;
 	uint16_t *ptr;
+
+	wprintf(L"ArchInit: kernel is %u bytes (%u bytes code)\n",
+		kernel_startup.kernel_data, _data_end__ - scode);
 
 	arch_gdtr.base = (addr_t) arch_gdt;
 	arch_gdtr.limit = sizeof(arch_gdt) - 1;
@@ -203,7 +226,7 @@ void ArchSetupContext(thread_t *thr, addr_t entry, bool isKernel,
 	context_t *ctx;
 	
 	thr->kernel_esp = 
-		(addr_t) thr->kernel_stack + PAGE_SIZE - sizeof(context_t);
+		(addr_t) thr->kernel_stack + PAGE_SIZE * 2 - sizeof(context_t);
 
 	ctx = ThrGetContext(thr);
 	ctx->kernel_esp = thr->kernel_esp;
@@ -340,6 +363,8 @@ thread_t *ArchAttachToThread(thread_t *thr)
 		apc = thr->kernel_apc;
 		thr->kernel_apc = NULL;
 		apc(thr->kernel_apc_param);
+		ThrPause(current);
+		return NULL;
 	}
 
 	return old;

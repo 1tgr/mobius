@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.3 2002/01/12 02:16:07 pavlovskii Exp $ */
+/* $Id: io.c,v 1.4 2002/01/15 00:12:58 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
@@ -13,7 +13,7 @@
 
 /* Note: IoOpenDevice and IoCloseDevice are in device.c */
 
-void IoNotifyCompletion(device_t *dev, request_t *req)
+void IoNotifyCompletion(request_t *req)
 {
 	/*request_t temp;*/
 
@@ -42,6 +42,7 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 	/*req->event = NULL;*/
 	req->result = 0;
 	req->from = from;
+	req->original = NULL;
 
 	if (dev == NULL)
 	{
@@ -68,7 +69,7 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 		 * Operation completed synchronously. 
 		 * There might be some device expecting completion notification.
 		 */
-		IoNotifyCompletion(dev, req);
+		IoNotifyCompletion(req);
 	}
 
 	return ret;
@@ -88,13 +89,13 @@ void IoSyncRequestFinishIo(device_t *dev, request_t *req)
 {
 	syncrequest_t *sync;
 	sync = (syncrequest_t*) dev;
-	wprintf(L"IoSyncRequestFinish: sync = %p\n", sync);
+	TRACE1("IoSyncRequestFinish: sync = %p\n", sync);
 	SemAcquire(&sync->lock);
 	sync->is_completed = true;
 	SemRelease(&sync->lock);
 }
 
-static const IDeviceVtbl syncrequest_vtbl =
+static const device_vtbl_t syncrequest_vtbl =
 {
 	NULL,
 	NULL,
@@ -104,7 +105,6 @@ static const IDeviceVtbl syncrequest_vtbl =
 bool IoRequestSync(device_t *dev, request_t *req)
 {
 	syncrequest_t sync;
-	volatile uint8_t a_big_buffer[1024];
 
 	memset(&sync, 0, sizeof(sync));
 	sync.dev.vtbl = &syncrequest_vtbl;
@@ -115,7 +115,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 		/*assert(req->event == NULL);*/
 		if (/*req->event*/req->result == SIOPENDING)
 		{
-			mal_verify(1);
+			/*mal_verify(1);*/
 			if (!sync.is_completed /*!EvtIsSignalled(NULL, req->event)*/)
 			{
 				semaphore_t temp;
@@ -126,7 +126,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 
 				if (true || current == &thr_idle)
 				{
-					TRACE0("IoRequestSync: busy-waiting\n");
+					wprintf(L"IoRequestSync: busy-waiting\n");
 					while (!sync.is_completed/*!EvtIsSignalled(NULL, req->event)*/)
 						ArchProcessorIdle();
 				}
@@ -151,7 +151,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 			}
 
 			/*EvtFree(NULL, req->event);*/
-			mal_verify(1);
+			/*mal_verify(1);*/
 		}
 
 		return true;

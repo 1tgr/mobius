@@ -582,7 +582,7 @@ bool TtyRequest(device_t* dev, request_t* req)
 	return false;
 }
 
-static const IDeviceVtbl tty_vtbl =
+static const device_vtbl_t tty_vtbl =
 {
 	TtyRequest,
 	TtyIsr

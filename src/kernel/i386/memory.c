@@ -1,15 +1,16 @@
-/* $Id: memory.c,v 1.7 2002/01/10 20:50:17 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.8 2002/01/15 00:13:06 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
+#include <kernel/init.h>
 
 #include <string.h>
 
 #define MEM_TEMP_START	0xf8000000
 
 extern addr_t kernel_pagedir[];
-extern char scode[], ebss[], edata[];
+extern char scode[], ebss[], edata[], _data_start__[];
 extern process_t proc_idle;
 
 page_pool_t pool_low, pool_all;
@@ -54,26 +55,41 @@ static void MemFreePoolRange(page_pool_t *pool, addr_t start, addr_t end)
 	SemRelease(&pool->sem);
 }
 
+/*!
+ * \brief	Allocates one physical page
+ */
 addr_t MemAlloc(void)
 {
 	return MemAllocPool(&pool_all);
 }
 
+/*!
+ * \brief	Frees one physical page
+ */
 void MemFree(addr_t block)
 {
 	MemFreePool(&pool_all, block);
 }
 
+/*!
+ * \brief	Allocates one physical page from the low memory pool
+ */
 addr_t MemAllocLow(void)
 {
 	return MemAllocPool(&pool_low);
 }
 
+/*!
+ * \brief	Frees one low memory physical page
+ */
 void MemFreeLow(addr_t block)
 {
 	MemFreePool(&pool_low, block);
 }
 
+/*!
+ * \brief	Allocates a contiguous span of low-memory pages
+ */
 addr_t MemAllocLowSpan(size_t pages)
 {
 	unsigned start, i;
@@ -104,6 +120,9 @@ addr_t MemAllocLowSpan(size_t pages)
 	return NULL;
 }
 
+/*!
+ * \brief	Creates a virtual-to-physical mapping in the current address space
+ */
 bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
 {
 	addr_t *pde;
@@ -141,6 +160,9 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
 	return true;
 }
 
+/*!
+ * \brief	Returns the physical address associated with a virtual page
+ */
 uint32_t MemTranslate(const void *address)
 {
 	if (*ADDR_TO_PDE((addr_t) address))
@@ -149,6 +171,9 @@ uint32_t MemTranslate(const void *address)
 		return 0;
 }
 
+/*!
+ * \brief	Creates a temporary physical-to-virtual mapping
+ */
 void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 {
 	unsigned i;
@@ -170,12 +195,18 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 	return ptr;
 }
 
+/*!
+ * \brief	Unmaps all temporary physical-to-virtual mappings
+ */
 void MemUnmapTemp(void)
 {
 	MemMap(MEM_TEMP_START, 0, mem_temp_end, 0);
 	mem_temp_end = MEM_TEMP_START;
 }
 
+/*!
+ * \brief	Allocates a page directory
+ */
 addr_t MemAllocPageDir(void)
 {
 	addr_t page_dir, *pd;
@@ -189,6 +220,9 @@ addr_t MemAllocPageDir(void)
 	return page_dir;
 }
 
+/*!
+ * \brief	Verifies that the whole of a virtual buffer is accessible
+ */
 bool MemVerifyBuffer(const void *buf, size_t bytes)
 {
 	addr_t virt;
@@ -202,6 +236,9 @@ bool MemVerifyBuffer(const void *buf, size_t bytes)
 	return true;
 }
 
+/*!
+ * \brief	Locks or unlocks a region of physical memory
+ */
 bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 {
 	unsigned index;
@@ -223,11 +260,28 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 	return true;
 }
 
+/*!
+ * \brief Initializes the physical memory manager
+ *
+ *	This is the first function called by \p KernelMain. Its purpose is to get
+ *	the CPU into an environment suitable for running the rest of the kernel,
+ *	and performs the following tasks:
+ *
+ *	- Sets aside physical page pools for main and low memory
+ *	- Distinguishes between usable and unusable memory
+ *	- Sets up the initial kernel page directory
+ *	- Enables paging
+ *	- Maps the bottom 128MB of memory into the region at 0xF0000000 
+ *		(= \p PHYSMEM )
+ *
+ *	\return	\p true
+ */
 bool MemInit(void)
 {
 	unsigned num_pages;
 	addr_t *pages, pt1, pt2, phys;
 	uint32_t entry;
+	size_t kernel_code;
 
 	num_pages = kernel_startup.memory_size / PAGE_SIZE;
 
@@ -294,7 +348,24 @@ bool MemInit(void)
 	pt2 = MemAlloc();
 	kernel_pagedir[PAGE_DIRENT(kernel_startup.kernel_phys)] = pt2 | PRIV_WR | PRIV_USER | PRIV_PRES;
 	
+	kernel_code = _data_start__ - scode;
+	
+	/* Map code read-only */
 	for (phys = 0; 
+		phys < kernel_code;  
+		phys += PAGE_SIZE)
+	{
+		entry = PAGE_TABENT((addr_t) scode + phys);
+		i386_lpoke32(pt1 + entry * 4, 
+			(kernel_startup.kernel_phys + phys) | PRIV_KERN | PRIV_PRES);
+
+		entry = PAGE_TABENT((addr_t) kernel_startup.kernel_phys + phys);
+		i386_lpoke32(pt2 + entry * 4, 
+			(kernel_startup.kernel_phys + phys) | PRIV_KERN | PRIV_PRES);
+	}
+
+	/* Map data read-write */
+	for (; 
 		phys < kernel_startup.kernel_data; 
 		phys += PAGE_SIZE)
 	{
@@ -322,8 +393,10 @@ bool MemInit(void)
 		: "r" (phys));
 
 	/* Enable paging... */
+	/* xxx - set 486 CE and WP bits */
 	__asm__("mov %cr0, %eax\n"
-		"or $0x80000000, %eax\n"
+		/*"or $0x80000000, %eax\n"*/
+		"or $0xC0010000, %eax\n"
 		"mov %eax, %cr0");
 
 	/* Reload the flat selectors */

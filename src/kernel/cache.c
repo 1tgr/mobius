@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.6 2002/01/08 01:20:31 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.7 2002/01/15 00:12:58 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -19,6 +19,13 @@ struct cache_block_t
 	bool is_valid;
 };
 
+/*!
+ *	\brief	Creates a file cache object
+ *
+ *	\param	block_size	The size of one cache block. This is usually the 
+ *		file system's cluster size.
+ *	\return	A pointer to a file cache object
+ */
 cache_t *CcCreateFileCache(size_t block_size)
 {
 	cache_t *cc;
@@ -41,6 +48,12 @@ cache_t *CcCreateFileCache(size_t block_size)
 	return cc;
 }
 
+/*!
+ *	\brief	Deletes a file cache object
+ *
+ *	Any cached pages are flushed and freed.
+ *	\param	cc	A pointer to the cache object
+ */
 void CcDeleteFileCache(cache_t *cc)
 {
 	unsigned i;
@@ -58,6 +71,20 @@ void CcDeleteFileCache(cache_t *cc)
 	free(cc);
 }
 
+/*!
+ *	\brief	Locks a cache block in memory, allocating it if necessary
+ *
+ *	The block will only contain valid data if \p CcIsBlockValid returned
+ *	\p true before this function was called. This function does not
+ *	change the validity of the block.
+ *
+ *	Because blocks are reference counted, \p CcReleaseBlock must be called 
+ *	when you have finished with the block.
+ *
+ *	\param	cc	A pointer to the file cache object
+ *	\param	offset	The offset of the block in the file
+ *	\return	A pointer to the start of the block in memory
+ */
 void *CcRequestBlock(cache_t *cc, uint64_t offset)
 {
 	unsigned block, page, old, i;
@@ -113,6 +140,21 @@ void *CcRequestBlock(cache_t *cc, uint64_t offset)
 	}
 }
 
+/*!
+ *	\brief	Returns \p true if the specified cache block is valid
+ *
+ *	A block is invalid if any of the following are true:
+ *	- Its offset is beyond the extent of the cached data
+ *	- Its memory has been paged out
+ *	- It has never been made valid
+ *
+ *	To change the validity of a block, call \p CcRequestBlock followed by
+ *	\p CcReleaseBlock.
+ *
+ *	\param	cc	A pointer to the file cache object
+ *	\param	offset	The offset of the block in the file
+ *	\return	\p true if the block is valid
+ */
 bool CcIsBlockValid(cache_t *cc, uint64_t offset)
 {
 	unsigned block;
@@ -124,6 +166,17 @@ bool CcIsBlockValid(cache_t *cc, uint64_t offset)
 		return cc->blocks[block].is_valid;
 }
 
+/*!
+ *	\brief	Releases a cache block
+ *
+ *	Any memory associated with the block is made available for paging, and
+ *	the validity of the block is changed as appropriate.
+ *
+ *	\param	cc	A pointer to the file cache object
+ *	\param	offset	The offset of the block in the file
+ *	\param	isValid	Indicates whether the block's memory now contains valid
+ *		data.
+ */
 void CcReleaseBlock(cache_t *cc, uint64_t offset, bool isValid)
 {
 	unsigned block, page;

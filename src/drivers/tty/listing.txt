@@ -94,25 +94,25 @@ updateCursor__3tty():
 800f10b1:	0f af 42 24          	imul   0x24(%edx),%eax
 800f10b5:	89 c1                	mov    %eax,%ecx
 800f10b7:	66 03 4a 1c          	add    0x1c(%edx),%cx
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10bb:	b0 0e                	mov    $0xe,%al
 800f10bd:	ba d4 03 00 00       	mov    $0x3d4,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f10c2:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10c3:	89 c8                	mov    %ecx,%eax
 800f10c5:	42                   	inc    %edx
 800f10c6:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f10ca:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10cb:	ba d4 03 00 00       	mov    $0x3d4,%edx
 800f10d0:	b0 0f                	mov    $0xf,%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f10d2:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10d3:	42                   	inc    %edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f10d4:	88 c8                	mov    %cl,%al
 800f10d6:	ee                   	out    %al,(%dx)
 /mn/src/drivers/tty/tty.cpp:94
@@ -124,7 +124,7 @@ updateCursor__3tty():
 800f10dc <_switchTo__3tty>:
 switchTo__3tty():
 800f10dc:	55                   	push   %ebp
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10dd:	ba d4 03 00 00       	mov    $0x3d4,%edx
 800f10e2:	89 e5                	mov    %esp,%ebp
 800f10e4:	83 ec 10             	sub    $0x10,%esp
@@ -137,26 +137,26 @@ switchTo__3tty():
 800f10ef:	05 00 80 f4 0f       	add    $0xff48000,%eax
 800f10f4:	89 c3                	mov    %eax,%ebx
 800f10f6:	d1 eb                	shr    %ebx
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10f8:	b0 0c                	mov    $0xc,%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f10fa:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f10fb:	b9 d5 03 00 00       	mov    $0x3d5,%ecx
 800f1100:	89 d8                	mov    %ebx,%eax
 800f1102:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f1106:	89 ca                	mov    %ecx,%edx
 800f1108:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f1109:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
 800f110e:	b0 0d                	mov    $0xd,%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f1110:	89 ca                	mov    %ecx,%edx
 800f1112:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800f1113:	41                   	inc    %ecx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800f1114:	88 d8                	mov    %bl,%al
 800f1116:	89 ca                	mov    %ecx,%edx
 800f1118:	ee                   	out    %al,(%dx)
@@ -384,7 +384,7 @@ clear__3tty():
 800f12c0:	5d                   	pop    %ebp
 800f12c1:	c3                   	ret    
 
-800f12c2 <_ansi_to_vga.100>:
+800f12c2 <_ansi_to_vga.101>:
 ansi_to_vga():
 800f12c2:	00 04 02             	add    %al,(%edx,%eax,1)
 800f12c5:	06                   	push   %es
@@ -925,11 +925,11 @@ writeString__3ttyPCUwUi():
 800f17e4 <_isr__3ttyUc>:
 isr__3ttyUc():
 800f17e4:	55                   	push   %ebp
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:329
 800f17e5:	ba 60 00 00 00       	mov    $0x60,%edx
 800f17ea:	89 e5                	mov    %esp,%ebp
 800f17ec:	83 ec 08             	sub    $0x8,%esp
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800f17ef:	ec                   	in     (%dx),%al
 800f17f0:	88 c2                	mov    %al,%dl
 /mn/src/drivers/tty/tty.cpp:392

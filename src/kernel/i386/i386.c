@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.10 2002/01/12 02:16:08 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.11 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -22,6 +22,7 @@ extern addr_t kernel_pagedir[];
 void TextSwitchToKernel(void);
 
 /*! \brief	Sets up a a code or data entry in the IA32 GDT or LDT
+ *
  *	\param	item	Pointer to a descriptor table entry
  *	\param	base	Address of the base used for the descriptor
  *	\param	limit	Size of the end of the code or data referenced by the 
@@ -41,6 +42,7 @@ void i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit,
 }
 
 /*! \brief	Sets up an interrupt, task or call gate in the IA32 IDT
+ *
  *	\param	item	Pointer to an IDT entry
  *	\param	selector	The CS value referred to by the gate
  *	\param	offset	The EIP value referred to by the gate
@@ -176,10 +178,12 @@ uint32_t i386Isr(context_t ctx)
 			handled = ProcPageFault(current->process, cr2);
 			if (!handled &&
 				cr2 >= 0x80000000 &&
-				kernel_pagedir[PAGE_DIRENT(cr2)])
+				kernel_pagedir[PAGE_DIRENT(cr2)] &&
+				(*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
 			{
 				cr2 = PAGE_ALIGN(cr2);
-				wprintf(L"Mapping kernel page at %x...", cr2);
+				wprintf(L"Mapping kernel page at %x for process %u...", 
+					cr2, current->process->id);
 				*ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
 				invalidate_page((void*) cr2);
 				wprintf(L"done\n");
@@ -231,17 +235,22 @@ uint32_t i386Isr(context_t ctx)
 	}
 	
 	current->ctx_last = ctx.ctx_prev;
-	if (sc_need_schedule)
-		ScSchedule();
-	
-	if (old_current != current)
+	while (true)
 	{
-		old_current->kernel_esp = ctx.kernel_esp;
-		ArchAttachToThread(current);
-		return current->kernel_esp;
+		if (sc_need_schedule)
+			ScSchedule();
+		
+		if (old_current != current)
+		{
+			old_current->kernel_esp = ctx.kernel_esp;
+			if (ArchAttachToThread(current) == NULL)
+				ScNeedSchedule(true);
+			else
+				return current->kernel_esp;
+		}
+		else
+			return ctx.kernel_esp;
 	}
-	else
-		return ctx.kernel_esp;
 }
 
 void i386DoubleFault(uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags)

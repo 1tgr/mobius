@@ -8,11 +8,14 @@ EXPORTS
 	ThrSleep
 	ProcExitProcess
 	ProcGetProcessInfo
+	EvtAlloc
+	EvtFree
+	EvtIsSignalled
+	EvtSignal
 	FsCreate
 	FsOpen
 	FsClose
 	FsRead
 	FsWrite
 	FsSeek
-	FsRequestSync
 	VmmAlloc

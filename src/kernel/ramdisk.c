@@ -1,4 +1,4 @@
-/* $Id: ramdisk.c,v 1.3 2002/01/06 01:56:15 pavlovskii Exp $ */
+/* $Id: ramdisk.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -6,6 +6,7 @@
 #include <kernel/memory.h>
 #include <kernel/fs.h>
 #include <kernel/ramdisk.h>
+#include <kernel/init.h>
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -143,21 +144,20 @@ bool RdPageFault(addr_t virt)
 }
 */
 
-/*!	\brief Initialises the ramdisk during kernel startup.
+/*!	\brief Initializes the ramdisk during kernel startup.
  *
- *	This routine is called by main() to check the ramdisk (loaded by the
+ *	This routine is called by \p KernelMain to check the ramdisk (loaded by the
  *		second-stage boot routine) and map it into the kernel's address
  *		space. Because it is mapped into the kernel's address space,
  *		it will be mapped into subsequent address spaces as needed.
  *
  *	\note	All objects in the ramdisk (including the ramdisk header, file
  *		headers and the file data themselves) should be aligned on page 
- *		boundaries. This is done automatically by the \p ramdisk program.
+ *		boundaries. This is done automatically by the boot loader.
  *
- *	\return	A pointer to an IPager interface which will map ramdisk pages
- *		as needed.
+ *	\return	\p true if the ramdisk was correct
  */
-bool RdInit()
+bool RdInit(void)
 {
 	/*ramdisk_header = (ramdisk_t*) 0xd0000000;*/
 	ramdisk_header = PHYSICAL(kernel_startup.ramdisk_phys);
@@ -174,6 +174,7 @@ bool RdInit()
 }
 
 /*!	\brief Retrieves a pointer to a file in the ramdisk.
+ *
  *	This function should only be used to access files before device drivers 
  *		(and, hence, the ramdisk driver) are started.
  *
@@ -225,7 +226,7 @@ size_t RdFileLength(const wchar_t* name)
 	return -1;
 }
 
-static const IDeviceVtbl rdfs_vtbl =
+static const device_vtbl_t rdfs_vtbl =
 {
 	RdFsRequest,
 	NULL

@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.6 2002/01/08 01:20:31 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.7 2002/01/15 00:12:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -354,7 +354,9 @@ bool kbdRequest(device_t* dev, request_t* req)
 			return false;
 		}
 
-		io = DevQueueRequest(dev, req, sizeof(request_dev_t),
+		io = DevQueueRequest(dev, 
+			req, 
+			sizeof(request_dev_t),
 			req_dev->params.dev_read.buffer,
 			req_dev->params.dev_read.length);
 		assert(io != NULL);
@@ -372,7 +374,7 @@ bool kbdRequest(device_t* dev, request_t* req)
 	return false;
 }
 
-static const IDeviceVtbl keyboard_vtbl =
+static const device_vtbl_t keyboard_vtbl =
 {
 	kbdRequest,
 	KbdIsr

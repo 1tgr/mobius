@@ -23,7 +23,7 @@ MALLOC=	malloc-1.18/_emalloc.o malloc-1.18/_malloc.o malloc-1.18/_memalign.o \
 	malloc-1.18/dumpheap.o malloc-1.18/emalloc.o malloc-1.18/getmem.o malloc-1.18/leak.o \
 	malloc-1.18/malloc.o malloc-1.18/memalign.o malloc-1.18/setopts.o \
 	malloc-1.18/stats.o malloc-1.18/strdup.o malloc-1.18/strsave.o malloc-1.18/verify.o \
-	malloc-1.18/splay/sptree.o
+	malloc-1.18/sptree.o
 MATH=	
 STDIO=	stdio/doprintf.o stdio/dowprintf.o stdio/printf.o stdio/sprintf.o \
 	stdio/swprintf.o stdio/stdio.o stdio/wprintf.o

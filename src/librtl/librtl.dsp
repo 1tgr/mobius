@@ -28,7 +28,7 @@ CFG=librtl - Win32 Debug
 
 !IF  "$(CFG)" == "librtl - Win32 Release"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
 # PROP BASE Intermediate_Dir "Release"
@@ -37,7 +37,7 @@ CFG=librtl - Win32 Debug
 # PROP BASE Target_File "librtl.exe"
 # PROP BASE Bsc_Name "librtl.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
@@ -49,7 +49,7 @@ CFG=librtl - Win32 Debug
 
 !ELSEIF  "$(CFG)" == "librtl - Win32 Debug"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
 # PROP BASE Output_Dir "Debug"
 # PROP BASE Intermediate_Dir "Debug"
@@ -58,7 +58,7 @@ CFG=librtl - Win32 Debug
 # PROP BASE Target_File "librtl.exe"
 # PROP BASE Bsc_Name "librtl.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
@@ -97,11 +97,19 @@ SOURCE=.\fullpath.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\..\..\include\sys\types.h
+SOURCE=..\..\include\sys\types.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\include\sys\version.h
+SOURCE=..\..\include\sys\version.h
+# End Source File
+# End Group
+# Begin Group "os"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\os\rtl.h
 # End Source File
 # End Group
 # End Group

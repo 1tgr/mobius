@@ -1,4 +1,4 @@
-/* $Id: wprintf.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: wprintf.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -56,6 +56,7 @@ int vwprintf(const wchar_t* fmt, va_list ptr)
 }
 
 /*!	\brief Prints a formatted string to the standard output.
+ *
  *	\param	fmt	The string to be processed. Conforms to normal wprintf() 
  *		specifications.
  *	\param	...	Arguments that control the output.

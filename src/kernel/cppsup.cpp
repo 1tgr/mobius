@@ -1,4 +1,5 @@
 #include <kernel/kernel.h>
+#include <kernel/driver.h>
 
 void *operator new(size_t size)
 {

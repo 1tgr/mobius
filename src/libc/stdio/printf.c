@@ -1,4 +1,4 @@
-/* $Id: printf.c,v 1.3 2002/01/07 00:14:08 pavlovskii Exp $ */
+/* $Id: printf.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <stddef.h>
 #include <printf.h>
@@ -32,6 +32,7 @@ static bool kprintfhelp(void* pContext, const char* str, size_t len)
 
 /*!	\brief Prints a formatted string to the standard output, given a va_list 
  *	of arguments.
+ *
  *	Use this function instead of wprintf() when a va_list is used, rather 
  *		than a variable list of parameters in the argument list.
   *	\param	fmt	The string to be processed. Conforms to normal printf() 
@@ -53,6 +54,7 @@ int vprintf(const char* fmt, va_list ptr)
 }
 
 /*!	\brief Prints a formatted string to the standard output.
+ *
  *	\param	fmt	The string to be processed. Conforms to normal printf() 
  *		specifications.
  *	\param	...	Arguments that control the output.

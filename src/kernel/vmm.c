@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.3 2002/01/05 00:54:11 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -94,6 +94,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 }
 
 /*!	\brief Allocates an area of memory in the specified process's address space.
+ *
  *	The VmmArea() function can be used to get a vm_area_t structure from
  *		a pointer.
  *
@@ -151,6 +152,7 @@ void* VmmMapFile(addr_t start, size_t pages, handle_t file, uint32_t flags)
 }
 
 /*!	\brief Frees an area of memory allocated by the VmmAlloc() function.
+ *
  *	\param	proc	The process which contains the area
  *	\param	area	The area of memory to be freed
  */
@@ -194,11 +196,12 @@ bool VmmDoMapFile(vm_area_t *area, addr_t start, size_t pages)
 	}*/
 
 	FsSeek(area->dest.file, start - (addr_t) area->start);
-	FsRead(area->dest.file, (void*) start, pages * PAGE_SIZE);
+	FsReadSync(area->dest.file, (void*) start, pages * PAGE_SIZE);
 	return true;
 }
 
 /*!	\brief Commits an area of memory, by mapping and initialising it.
+ *
  *	This function is called by VmmAlloc() if the MEM_COMMIT flag is specified.
  *	Otherwise, it will be called when a page fault occurs in the area.
  *
@@ -302,6 +305,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, size_t pages)
 }
 
 /*!	\brief Removes an area of memory from the address space of the specified process.
+ *
  *	The physical storage associated with the area is deallocated and the area is
  *		un-mapped from the address space of the process.
  *
@@ -338,6 +342,7 @@ void VmmUncommit(vm_area_t* area)
 }
 
 /*!	\brief Updates the processor's page table cache associated with the specified area.
+ *
  *	It is necessary to invalidate pages after their linear-to-physical address
  *		mapping has changed if they are part of the current address space.
  *
@@ -356,6 +361,7 @@ void VmmInvalidate(vm_area_t* area, addr_t start, size_t pages)
 }
 
 /*!	\brief Retrieves the vm_area_t structure associated with the specified address.
+ *
  *	\param	proc	The process which contains the area
  *	\param	ptr	The linear address which will be contained within the area 
  *		returned

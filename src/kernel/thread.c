@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.4 2002/01/12 02:16:08 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.5 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -67,55 +67,123 @@ semaphore_t sc_sem;
 
 handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
 
+thread_queuent_t *ThrFindInQueue(thread_queue_t *queue, thread_t *thr)
+{
+	thread_queuent_t *ent;
+	for (ent = queue->first; ent; ent = ent->next)
+		if (ent->thr == thr)
+			return ent;
+	return NULL;
+}
+
 void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
 {
+	thread_queuent_t *ent, *entb;
+
 	SemAcquire(&queue->sem);
 
-	if (before == NULL)
+	/*assert(thr->queue == NULL);*/
+	ent = malloc(sizeof(thread_queuent_t));
+	ent->thr = thr;
+
+	if (before)
+	{
+		entb = ThrFindInQueue(queue, before);
+		assert(entb != NULL);
+	}
+	else
+		entb = NULL;
+
+	if (entb == NULL)
 	{
 		if (queue->last)
-			queue->last->queue_next = thr;
-		thr->queue_prev = queue->last;
+			/*queue->last->queue_next = thr;*/
+			queue->last->next = ent;
+
+		/*thr->queue_prev = queue->last;
 		thr->queue_next = NULL;
-		queue->last = thr;
+		queue->last = thr;*/
+		ent->prev = queue->last;
+		ent->next = NULL;
+		queue->last = ent;
 	}
 	else
 	{
-		thr->queue_next = before;
+		/*thr->queue_next = before;
 		thr->queue_prev = before->queue_prev;
 		if (before->queue_prev)
 			before->queue_prev->queue_next = thr;
-		before->queue_prev = thr;
+		before->queue_prev = thr;*/
+
+		ent->next = entb;
+		ent->prev = entb->prev;
+		if (entb->prev)
+			entb->prev->next = ent;
+		entb->prev = ent;
 	}
 
 	if (queue->first == NULL)
-		queue->first = thr;
+		queue->first = ent;
 
-	thr->queue = queue;
+	/*thr->queue = queue;*/
+	thr->queued++;
+	wprintf(L"ThrInsertQueue: thread %u added to queue %p\n",
+		thr->id, queue);
 	SemRelease(&queue->sem);
 }
 
 void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 {
-	SemAcquire(&queue->sem);
-	if (thr->queue_prev)
-		thr->queue_prev->queue_next = thr->queue_next;
-	if (thr->queue_next)
-		thr->queue_next->queue_prev = thr->queue_prev;
-	if (thr == queue->first)
-		queue->first = thr->queue_next;
-	if (thr == queue->last)
-		queue->last = thr->queue_prev;
+	thread_queuent_t *ent;
 
-	thr->queue_next = thr->queue_prev = NULL;
-	thr->queue = NULL;
+	SemAcquire(&queue->sem);
+	ent = ThrFindInQueue(queue, thr);
+	assert(ent != NULL);
+
+	if (ent->prev)
+		ent->prev->next = ent->next;
+	if (ent->next)
+		ent->next->prev = ent->prev;
+	if (queue->first == ent)
+		queue->first = ent->next;
+	if (queue->last == ent)
+		queue->last = ent->prev;
+	if (queue->current == ent)
+		queue->current = NULL;
+
+	free(ent);
+	thr->queued--;
+	/*ent->next = ent->prev = NULL;
+	thr->queue = NULL;*/
+	wprintf(L"ThrRemoveQueue: thread %u removed from queue %p\n",
+		thr->id, queue);
 	SemRelease(&queue->sem);
+}
+
+void ThrRunQueue(thread_queue_t *queue)
+{
+	thread_queuent_t *ent, *next;
+	thread_t *thr;
+
+	for (ent = queue->first; ent; ent = next)
+	{
+		next = ent->next;
+		thr = ent->thr;
+		wprintf(L"ThrRunQueue: running thread %u\n", thr->id);
+		SemAcquire(&sc_sem);
+		ThrRemoveQueue(thr, queue);
+		SemRelease(&sc_sem);
+		ThrRun(thr);
+	}
+
+	ScNeedSchedule(true);
 }
 
 void ScSchedule(void)
 {
-	thread_t *new, *next;
+	thread_t *new;
 	uint16_t *scr = PHYSICAL(0xb8000);
+	thread_queuent_t *newent;
 
 	if (sc_switch_enabled <= 0)
 		return;
@@ -126,7 +194,7 @@ void ScSchedule(void)
 	/* Wake any threads that have finished sleeping */
 	while (thr_sleeping.first != NULL)
 	{
-		new = thr_sleeping.first;
+		new = thr_sleeping.first->thr;
 		if (sc_uptime >= new->sleep_end)
 		{
 			wprintf(L"ScSchedule: running sleeping thread %u\n", new->id);
@@ -139,14 +207,8 @@ void ScSchedule(void)
 	}
 
 	/* Run any finishio routines */
-	for (new = thr_apc.first; new; new = next)
-	{
-		next = new->queue_next;
-		wprintf(L"ScSchedule: running APC thread %u\n", new->id);
-		ThrRemoveQueue(new, &thr_apc);
-		ThrRun(new);
-	}
-
+	ThrRunQueue(&thr_apc);
+	
 	if (thr_queue_ready)
 	{
 		unsigned i;
@@ -155,8 +217,8 @@ void ScSchedule(void)
 		mask = 1;
 		for (i = 0; i < 32; i++, mask <<= 1)
 			/*if (thr_queue_ready & mask)*/
-			if ((new = thr_priority[i].current) ||
-				(new = thr_priority[i].first))
+			if ((newent = thr_priority[i].current) ||
+				(newent = thr_priority[i].first))
 			{
 				/*if (thr_priority[i].current == NULL)
 					new = thr_priority[i].first;
@@ -164,10 +226,11 @@ void ScSchedule(void)
 					new = thr_priority[i].current;
 
 				assert(new != NULL);*/
-				thr_priority[i].current = new->queue_next;
+				thr_priority[i].current = newent->next;
 				if (thr_priority[i].current == NULL)
 					thr_priority[i].current = thr_priority[i].first;
 
+				new = newent->thr;
 				new->span++;
 				if (new->span > 10)
 					new->span = 0;
@@ -210,7 +273,7 @@ void ScNeedSchedule(bool need)
 bool ThrAllocateThreadInfo(thread_t *thr)
 {
 	assert(thr->process == current->process);
-	
+
 	thr->info = VmmAlloc(PAGE_ALIGN_UP(sizeof(thread_info_t)) / PAGE_SIZE,
 		NULL,
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
@@ -245,16 +308,18 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 	}*/
 
 	SemAcquire(&thr_kernel_stack_sem);
-	/* thr->kernel_stack points to the lower end of the stack */
-	thr->kernel_stack = thr_kernel_stack_end - PAGE_SIZE * 2;
-	thr_kernel_stack_end -= PAGE_SIZE * 3;
-
+	
 	/*
 	 * This works as long as:
 	 *	-- all thread stacks sit in the same 4MB page table
 	 *	-- the first thread is created by the idle process
 	 */
 
+#if 0
+	/* One stack page, two guard pages */
+	/* thr->kernel_stack points to the lower end of the stack */
+	thr->kernel_stack = thr_kernel_stack_end - PAGE_SIZE * 2;
+	
 	/* Unmap the thread's kernel stack upper guard page */
 	MemMap((addr_t) thr->kernel_stack + PAGE_SIZE,
 		NULL,
@@ -271,6 +336,32 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 		NULL,
 		(addr_t) thr->kernel_stack,
 		0);
+#else
+	/* Two stack pages, one guard page */
+	/* thr->kernel_stack points to the lower end of the stack */
+	thr->kernel_stack = thr_kernel_stack_end - PAGE_SIZE * 2;
+	
+	/* Map the thread's kernel stack */
+	thr->kernel_stack_phys = MemAlloc();
+	MemMap((addr_t) thr->kernel_stack, 
+		thr->kernel_stack_phys, 
+		(addr_t) thr->kernel_stack + PAGE_SIZE,
+		PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+
+	thr->kernel_stack_phys = MemAlloc();
+	MemMap((addr_t) thr->kernel_stack + PAGE_SIZE, 
+		thr->kernel_stack_phys, 
+		(addr_t) thr->kernel_stack + PAGE_SIZE * 2,
+		PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+
+	/* Unmap the thread's kernel stack lower guard page */
+	MemMap((addr_t) thr->kernel_stack - PAGE_SIZE,
+		NULL,
+		(addr_t) thr->kernel_stack,
+		0);
+#endif
+
+	thr_kernel_stack_end -= PAGE_SIZE * 3;
 	SemRelease(&thr_kernel_stack_sem);
 
 	if (isKernel)
@@ -316,8 +407,17 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 
 void ThrDeleteThread(thread_t *thr)
 {
-	if (thr->queue)
-		ThrRemoveQueue(thr, thr->queue);
+	/*if (thr->queue)
+		ThrRemoveQueue(thr, thr->queue);*/
+	if (ThrFindInQueue(thr_priority + thr->priority, thr))
+	{
+		wprintf(L"ThrDeleteThread: dequeuing running thread\n");
+		ThrPause(thr);
+	}
+	
+	wprintf(L"ThrDeleteThread: thread %u queued %u times\n",
+		thr->id, thr->queued);
+	assert(thr->queued == 0);
 
 	if (thr_priority[thr->priority].first == NULL)
 		thr_queue_ready &= ~(1 << thr->priority);
@@ -370,9 +470,8 @@ bool ThrRun(thread_t *thr)
 	if (thr->priority > _countof(thr_priority))
 		return false;
 
-	ThrInsertQueue(thr, thr_priority + thr->priority, NULL);
-	
 	SemAcquire(&sc_sem);
+	ThrInsertQueue(thr, thr_priority + thr->priority, NULL);
 	thr_queue_ready |= 1 << thr->priority;
 	SemRelease(&sc_sem);
 	return true;
@@ -380,32 +479,37 @@ bool ThrRun(thread_t *thr)
 
 void ThrPause(thread_t *thr)
 {
-	if (thr->queue == thr_priority + thr->priority &&
-		thr_priority[thr->priority].first == NULL)
+	thread_queue_t *queue;
+
+	queue = thr_priority + thr->priority;
+	/*if (thr->queue != NULL)*/
+		ThrRemoveQueue(thr, queue);
+
+	if (/*thr->queue == thr_priority + thr->priority &&
+		thr_priority[thr->priority].first == NULL*/
+		queue->first == NULL)
 	{
 		SemAcquire(&sc_sem);
 		thr_queue_ready &= ~(1 << thr->priority);
 		SemRelease(&sc_sem);
 	}
-
-	if (thr->queue != NULL)
-		ThrRemoveQueue(thr, thr->queue);
 }
 
 void ThrSleep(thread_t *thr, unsigned ms)
 {
 	unsigned end;
-	thread_t *sleep;
+	thread_queuent_t *sleep;
 
 	end = sc_uptime + ms;
-	for (sleep = thr_sleeping.first; sleep; sleep = sleep->queue_next)
-		if (sleep->sleep_end > end)
+	for (sleep = thr_sleeping.first; sleep; sleep = sleep->next)
+		if (sleep->thr->sleep_end > end)
 			break;
 	
 	ThrPause(thr);
 	thr->sleep_end = end;
-	
-	ThrInsertQueue(thr, &thr_sleeping, sleep);
+	SemAcquire(&sc_sem);
+	ThrInsertQueue(thr, &thr_sleeping, sleep->thr);
+	SemRelease(&sc_sem);
 	/* wprintf(L"ThrSleep: thread %d sleeping until %u\n", thr->id, thr->sleep_end); */
 	ScNeedSchedule(true);
 }
@@ -420,8 +524,17 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 
 	wprintf(L"ThrWaitHandle: waiting on %s:%S:%d(%lx)\n", 
 		current->process->exe, ptr->file, ptr->line, handle);
+	if (ptr->signals)
+	{
+		wprintf(L"ThrWaitHandle: already signalled...\n");
+		ptr->signals--;
+		return true;
+	}
+
 	ThrPause(thr);
+	SemAcquire(&sc_sem);
 	ThrInsertQueue(thr, &ptr->waiting, NULL);
+	SemRelease(&sc_sem);
 	ScNeedSchedule(true);
 	return true;
 }
@@ -429,7 +542,9 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
 {
 	assert(thr->kernel_apc == NULL);
+	SemAcquire(&sc_sem);
 	thr->kernel_apc = fn;
 	thr->kernel_apc_param = param;
 	ThrInsertQueue(thr, &thr_apc, NULL);
+	SemRelease(&sc_sem);
 }

@@ -1,4 +1,4 @@
-/* $Id: fullpath.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: fullpath.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <os/rtl.h>
 #include <wchar.h>
@@ -21,6 +21,7 @@ wchar_t* wcsbscan(const wchar_t* str, const wchar_t* sub)
 }
 
 /*!	\brief Construct a path from the root to the specified file
+ *
  *	Handles ., .. and current directory/drive references correctly
  *
  *  \param	src     source path for input

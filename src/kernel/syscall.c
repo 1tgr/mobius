@@ -1,5 +1,4 @@
-/* $Id: syscall.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
-
+/* $Id: syscall.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -8,9 +7,6 @@
 
 #include <wchar.h>
 
-#undef ThrWaitHandle
-#undef ThrSleep
-
 int Hello(int a, int b)
 {
 	wprintf(L"Hello, world! %d %d\n", a, b);
@@ -18,6 +14,7 @@ int Hello(int a, int b)
 }
 
 extern uint16_t con_attribs;
+int _cputws(const wchar_t *str, size_t count);
 
 int DbgWrite(const wchar_t *str, size_t count)
 {
@@ -62,4 +59,29 @@ bool SysThrWaitHandle(handle_t hnd)
 void SysThrSleep(unsigned ms)
 {
 	ThrSleep(current, ms);
+}
+
+/*
+ * These are the user-mode equivalents of the handle.c event functions.
+ * To save one layer of indirection, they patch straight through to the 
+ *	HndXXX equivalents.
+ */
+handle_t SysEvtAlloc(void)
+{
+	return HndAlloc(NULL, 0, 'evnt');
+}
+
+void SysEvtSignal(handle_t evt)
+{
+	HndSignal(NULL, evt, 'evnt', true);
+}
+
+bool SysEvtFree(handle_t evt)
+{
+	return HndFree(NULL, evt, 'evnt');
+}
+
+bool SysEvtIsSignalled(handle_t evt)
+{
+	return HndIsSignalled(NULL, evt, 'evnt');
 }

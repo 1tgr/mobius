@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.11 2002/01/12 02:16:07 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.12 2002/01/15 00:12:56 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -748,7 +748,7 @@ bool AtaPartitionRequest(device_t *dev, request_t *req)
 	}
 }
 
-static const IDeviceVtbl ata_partition_vtbl =
+static const device_vtbl_t ata_partition_vtbl =
 {
 	AtaPartitionRequest,
 	NULL
@@ -825,7 +825,7 @@ void AtaFormatString(char *dest, const char *src, size_t count)
 		*ch = '\0';
 }
 
-static const IDeviceVtbl ata_drive_vtbl =
+static const device_vtbl_t ata_drive_vtbl =
 {
 	AtaDriveRequest,
 	NULL
@@ -961,7 +961,7 @@ typedef struct
 } bios_params_t;
 #pragma pack(pop)
 
-static const IDeviceVtbl ata_controller_vtbl =
+static const device_vtbl_t ata_controller_vtbl =
 {
 	AtaCtrlRequest,
 	AtaCtrlIsr

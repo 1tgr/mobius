@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.3 2002/01/08 01:20:31 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.4 2002/01/15 00:12:58 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -115,7 +115,8 @@ void HndSignal(struct process_t *proc, handle_t hnd, uint32_t tag, bool sig)
 {
 	handle_hdr_t *ptr;
 
-	/*wprintf(L"HndSignal: %lx(%.4S)\n", hnd, &tag);*/
+	if (hnd != 7)
+		wprintf(L"HndSignal: %lx(%.4S)\n", hnd, &tag);
 	ptr = HndGetPtr(proc, hnd, tag);
 	if (ptr != NULL)
 		HndSignalPtr(ptr, sig);
@@ -165,6 +166,9 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 	if (proc == NULL)
 		proc = current->process;
 
+	/*wprintf(L"HndDuplicate: handles = %p handle_count = %u\n", 
+		proc->handles, proc->handle_count);*/
+
 	proc->handle_count++;
 	proc->handles = realloc(proc->handles, proc->handle_count * sizeof(void*));
 	proc->handles[proc->handle_count - 1] = ptr;
@@ -175,8 +179,6 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 
 void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 {
-	thread_t *thr, *next;
-
 	if (sig)
 		ptr->signals++;
 	else
@@ -186,16 +188,37 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 		ptr->waiting.first != NULL)
 	{
 		wprintf(L"HndSignalPtr(%S:%d): resuming threads: ", ptr->file, ptr->line);
-		for (thr = ptr->waiting.first; thr; thr = next)
+		ThrRunQueue(&ptr->waiting);
+		/*for (thr = ptr->waiting.first; thr; thr = next)
 		{
 			wprintf(L"%u ", thr->id);
 			next = thr->queue_next;
 			ThrRemoveQueue(thr, &ptr->waiting);
 			ThrRun(thr);
-		}
+		}*/
 
 		wprintf(L"\n");
 		assert(ptr->waiting.first == NULL);
-		/*ptr->signals--;*/
+		ptr->signals--;
 	}
+}
+
+handle_t EvtAlloc(process_t *proc)
+{
+	return HndAlloc(proc, 0, 'evnt');
+}
+
+void EvtSignal(process_t *proc, handle_t evt)
+{
+	HndSignal(proc, evt, 'evnt', true);
+}
+
+bool EvtFree(process_t *proc, handle_t evt)
+{
+	return HndFree(proc, evt, 'evnt');
+}
+
+bool EvtIsSignalled(process_t *proc, handle_t evt)
+{
+	return HndIsSignalled(proc, evt, 'evnt');
 }

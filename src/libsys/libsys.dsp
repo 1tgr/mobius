@@ -129,10 +129,6 @@ SOURCE=..\..\..\include\os\port.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\os\rtl.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\os\syscall.h
 # End Source File
 # Begin Source File

@@ -1,4 +1,4 @@
-/* $Id: oldfat.c,v 1.1 2002/01/08 01:30:29 pavlovskii Exp $ */
+/* $Id: oldfat.c,v 1.2 2002/01/15 00:12:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -616,7 +616,7 @@ bool FatRequest(device_t *dev, request_t *req)
 	return false;
 }
 
-static const IDeviceVtbl fat_vtbl =
+static const device_vtbl_t fat_vtbl =
 {
 	FatRequest,
 	NULL

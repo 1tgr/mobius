@@ -11,7 +11,7 @@ IMP=            $(LIB)/libsys.lib
 LIBS=           
 include ../make.actions
 
-all:	$(TARGET_D) $(TARGET_S) $(IMP)
+all:	$(TARGET_D) $(TARGET_S) $(IMP) sysdef.i
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.dll)
@@ -23,5 +23,8 @@ $(TARGET_D):	 dllmain.o $(TARGET_S) $(EXP) $(LIBS) .base
 	$(LD) --dll -o $@ --entry _DllMainCRTStartup \
 		--image-base `cat .base` \
 		dllmain.o $(EXP) $(TARGET_S) $(LIBS)
+
+sysdef.i:	sysdef.c
+	gcc -E $< -o $@ -I$(INCLUDE)
 
 include $(OBJS:.o=.d)

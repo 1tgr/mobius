@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: port.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <errno.h>
 #include <wchar.h>
@@ -6,7 +6,7 @@
 #include <os/syscall.h>
 #include <os/device.h>
 
-bool PortListen(handle_t port)
+/*bool PortListen(handle_t port)
 {
 	request_port_t req;
 	req.header.code = PORT_LISTEN;
@@ -38,3 +38,4 @@ handle_t PortAccept(handle_t port, uint32_t flags)
 		return NULL;
 	}
 }
+*/

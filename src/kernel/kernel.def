@@ -35,6 +35,10 @@ EXPORTS
 	DevQueueRequest
 	DevRegisterIrq
 	DevUnloadDriver
+	EvtAlloc
+	EvtFree
+	EvtIsSignalled
+	EvtSignal
 	FsClose
 	FsCreate
 	FsCreateVirtualDir
@@ -43,9 +47,11 @@ EXPORTS
 	FsMount
 	FsOpen
 	FsRead
+	FsReadSync
 	FsRequestSync
 	FsSeek
 	FsWrite
+	FsWriteSync
 	Hello
 	HndDuplicate
 	HndFree
@@ -134,39 +140,21 @@ EXPORTS
 	__dj_movedata_rev
 	__get_eh_context
 	__free
-	__m_botch
-	__m_delete_record
-	__m_install_record
-	__m_prnode
 	__malloc
 	__nothing
 	__realloc
-	__spadd
-	__spdelete
-	__spinit
-	__splookup
-	__spscan
-	__spstats
+	__strdup
+	__wcsdup
 	_cputws
-	_mal_mmap
-	_mal_sbrk
-	_malloc_binmax
 	_stricmp
-	_wcsdup
 	_wcsicmp
 	_wcsmatch
 	_wcsnicmp
-	calloc
-	cfree
 	doprintf
 	dowprintf
-	ecalloc
 	edata
-	emalloc
 	end
-	erealloc
 	exit
-	free
 	i386DispatchSysCall
 	i386DoCall
 	i386IdentifyCpu
@@ -181,7 +169,6 @@ EXPORTS
 	mal_dumpleaktrace
 	mal_leaktrace
 	mal_mmap
-	malloc
 	mbstowcs
 	memcpy
 	memmove

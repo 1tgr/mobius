@@ -74,9 +74,9 @@ PROGS=
 
 DEFINES= $(NORMALDEFS) $(DEBUGDEFS)
 
-SPLAYOBJ = splay/sptree.o
-SPLAYSRC = splay/sptree.c
-SPLAYHDR = splay/sptree.h
+SPLAYOBJ = sptree.o
+SPLAYSRC = sptree.c
+SPLAYHDR = sptree.h
 
 SRCS =  _emalloc.c _malloc.c _memalign.c \
 	_strdup.c _strsave.c botch.c \
@@ -107,7 +107,7 @@ TESTS = testmalloc.c test.out teststomp.c tests regress \
 
 EXTRAS = splay
 
-INCLUDES=-I./splay $(EXTRAINCLUDES)
+INCLUDES=$(EXTRAINCLUDES)
 
 CFLAGS += $(CDEBUGFLAGS) $(INCLUDES) $(DEFINES)
 
@@ -138,9 +138,9 @@ $(LIBMALLOC): $(OBJS) $(SPLAYOBJ)
 	-$(RANLIB) $(LIBMALLOC)
 	touch .lib$(EXT)
 
-$(SPLAYOBJ): .foo
-	cd splay; $(MAKE) $(MFLAGS) DEFINES="$(DEFINES)" \
-		LIBMALLOC=../$(LIBMALLOC) CC="$(CC)"
+#$(SPLAYOBJ): .foo
+#	cd splay; $(MAKE) $(MFLAGS) DEFINES="$(DEFINES)" \
+#		LIBMALLOC=../$(LIBMALLOC) CC="$(CC)"
 
 out$(EXT): $(PROGS)
 	rm -f out$(EXT)
@@ -167,7 +167,7 @@ cleanprogs:
 
 clean:
 	-rm -f *.o \#* *~ core a.out gmon.out mon.out onefile.c *.sL prof.out
-	cd splay; $(MAKE) clean
+#	cd splay; $(MAKE) clean
 
 veryclean: clean cleanprogs
 	make EXT= cleanprogs

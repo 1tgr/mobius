@@ -1,4 +1,4 @@
-/* $Id: scdsptch.c,v 1.3 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: scdsptch.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/i386.h>
 #include <kernel/memory.h>
@@ -70,5 +70,5 @@ void i386DispatchSysCall(context_t *ctx)
 	ctx->regs.eax = i386DoCall(i386_systab[tab][code].routine,
 		(void*) ctx->regs.edx, i386_systab[tab][code].argbytes);
 
-	mal_verify(1);
+	/*mal_verify(1);*/
 }

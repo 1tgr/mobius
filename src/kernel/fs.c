@@ -1,10 +1,15 @@
-/* $Id: fs.c,v 1.10 2002/01/10 20:50:15 pavlovskii Exp $ */
-#include <kernel/fs.h>
+/* $Id: fs.c,v 1.11 2002/01/15 00:12:58 pavlovskii Exp $ */
 #include <kernel/driver.h>
+#include <kernel/fs.h>
 #include <kernel/io.h>
+#include <kernel/init.h>
+
+#define DEBUG
+#include <kernel/debug.h>
 
 #include <os/rtl.h>
 #include <os/defs.h>
+#include <os/syscall.h>
 
 #include <errno.h>
 #include <wchar.h>
@@ -28,7 +33,7 @@ struct vfs_dir_t
 	vfs_mount_t *vfs_mount_first, *vfs_mount_last;
 };
 
-bool VfsRequest(device_t *dev, request_t *req)
+static bool VfsRequest(device_t *dev, request_t *req)
 {
 	vfs_dir_t *dir = (vfs_dir_t*) dev;
 	request_fs_t *req_fs = (request_fs_t*) req;
@@ -50,13 +55,13 @@ bool VfsRequest(device_t *dev, request_t *req)
 		else
 			len = ch - req_fs->params.fs_open.name;
 
-		/*wprintf(L"Path: %s Name: %s Len: %d\n", 
+		/*TRACE3("Path: %s Name: %s Len: %d\n", 
 			req_fs->params.fs_open.name, ch, len);*/
 
 		FOREACH (mount, dir->vfs_mount)
 			if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
 			{
-				/*wprintf(L"=> %p\n", mount->fsd);*/
+				/*TRACE1("=> %p\n", mount->fsd);*/
 				req_fs->params.fs_open.name += len;
 				return mount->fsd->vtbl->request(mount->fsd, req);
 			}
@@ -81,7 +86,7 @@ bool VfsRequest(device_t *dev, request_t *req)
 		if (*ch == '\0')
 		{
 			/* Mounting on this directory */
-			/*wprintf(L"VfsRequest(FS_MOUNT): mounting %p as %*s\n",
+			/*TRACE3("VfsRequest(FS_MOUNT): mounting %p as %*s\n",
 				req_fs->params.fs_mount.fsd, 
 				len,
 				req_fs->params.fs_mount.name);*/
@@ -99,12 +104,12 @@ bool VfsRequest(device_t *dev, request_t *req)
 		else
 		{
 			/* Mounting on a subdirectory */
-			/*wprintf(L"VfsRequest(FS_MOUNT): mounting on subdirectory %s\n", ch);*/
+			/*TRACE1("VfsRequest(FS_MOUNT): mounting on subdirectory %s\n", ch);*/
 
 			FOREACH (mount, dir->vfs_mount)
 				if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
 				{
-					/*wprintf(L"=> %p\n", mount->fsd);*/
+					/*TRACE1("=> %p\n", mount->fsd);*/
 					req_fs->params.fs_mount.name += len;
 					return mount->fsd->vtbl->request(mount->fsd, req);
 				}
@@ -118,11 +123,43 @@ bool VfsRequest(device_t *dev, request_t *req)
 	return false;
 }
 
+static void VfsFinishIo(device_t *dev, request_t *req)
+{
+	fileop_t *op;
+	request_fs_t *req_fs;
+
+	if (req->code == FS_READ)
+		wprintf(L"VfsFinishIo: req = %p op = %p code = %x: ", 
+			req, req->param, req->code);
+
+	assert(req->code == FS_READ || req->code == FS_WRITE);
+	op = req->param;
+	op->result = req->result;
+	req_fs = (request_fs_t*) req;
+	if (req->code == FS_READ || req->code == FS_WRITE)
+		op->bytes = req_fs->params.buffered.length;
+
+	if (req->code == FS_READ)
+		wprintf(L"finished io: event = %u bytes = %u result = %u\n",
+			op->event, op->bytes, op->result);
+
+	EvtSignal(NULL, op->event);
+	/*free(req);*/
+}
+
 static bool FsCheckAccess(file_t *file, uint32_t mask)
 {
 	return (file->flags & mask) == mask;
 }
 
+/*!
+ *	\brief	Creates a file
+ *
+ *	\param	path	Full path specification for the file
+ *	\param	flags	Bitmask of access flags for the file
+ *	\sa	\p FILE_READ, \p FILE_WRITE
+ *	\return	Handle to the new file
+ */
 handle_t FsCreate(const wchar_t *path, uint32_t flags)
 {
 	request_fs_t req;
@@ -145,6 +182,14 @@ handle_t FsCreate(const wchar_t *path, uint32_t flags)
 	}
 }
 
+/*!
+ *	\brief	Opens a file
+ *
+ *	\param	path	Full path specification for the file
+ *	\param	flags	Bitmask of access flags for the file
+ *	\sa	\p FILE_READ, \p FILE_WRITE
+ *	\return	Handle to the file
+ */
 handle_t FsOpen(const wchar_t *path, uint32_t flags)
 {
 	request_fs_t req;
@@ -167,6 +212,12 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
 	}
 }
 
+/*!
+ *	\brief	Closes a file
+ *
+ *	\param	file	Handle of the file to close
+ *	\return	\p true if the handle was valid
+ */
 bool FsClose(handle_t file)
 {
 	request_fs_t req;
@@ -191,7 +242,20 @@ bool FsClose(handle_t file)
 	}
 }
 
-size_t FsRead(handle_t file, void *buf, size_t bytes)
+/*!
+ *	\brief	Reads from a file synchronously
+ *
+ *	This function will block until the read completes.
+ *	\p errno will be updated with an error code if the read fails.
+ *
+ *	The file must have \p FILE_READ access.
+ *
+ *	\param	file	Handle of the file to read from
+ *	\param	buf	Buffer to read into
+ *	\param	bytes	Number of bytes to read
+ *	\return	Number of bytes read
+ */
+size_t FsReadSync(handle_t file, void *buf, size_t bytes)
 {
 	request_fs_t req;
 	file_t *fd;
@@ -225,7 +289,20 @@ size_t FsRead(handle_t file, void *buf, size_t bytes)
 	}
 }
 
-size_t FsWrite(handle_t file, const void *buf, size_t bytes)
+/*!
+ *	\brief	Writes to a file synchronously
+ *
+ *	This function will block until the write completes.
+ *	\p errno will be updated with an error code if the write fails.
+ *
+ *	The file must have \p FILE_WRITE access.
+ *
+ *	\param	file	Handle of the file to write to
+ *	\param	buf	Buffer to write out of
+ *	\param	bytes	Number of bytes to write
+ *	\return	Number of bytes written
+ */
+size_t FsWriteSync(handle_t file, const void *buf, size_t bytes)
 {
 	request_fs_t req;
 	file_t *fd;
@@ -257,6 +334,108 @@ size_t FsWrite(handle_t file, const void *buf, size_t bytes)
 	}
 }
 
+static bool FsReadWrite(handle_t file, void *buf, size_t bytes, fileop_t *op,
+						bool isRead)
+{
+	request_fs_t *req;
+	file_t *fd;
+	device_t *fsd;
+
+	fd = HndLock(NULL, file, 'file');
+	if (fd == NULL)
+	{
+		op->result = EHANDLE;
+		return false;
+	}
+
+	if (!FsCheckAccess(fd, isRead ? FILE_READ : FILE_WRITE))
+	{
+		HndUnlock(NULL, file, 'file');
+		op->result = EACCESS;
+		op->bytes = 0;
+		return false;
+	}
+
+	fsd = fd->fsd;
+	HndUnlock(NULL, file, 'file');
+
+	req = malloc(sizeof(request_fs_t));
+	if (req == NULL)
+	{
+		op->result = ENOMEM;
+		return false;
+	}
+
+	if (isRead)
+		TRACE3("FsReadWrite: %s req = %p op = %p: ",
+			isRead ? L"read" : L"write", req, op);
+
+	req->header.code = isRead ? FS_READ : FS_WRITE;
+	req->header.param = op;
+	req->params.buffered.buffer = buf;
+	req->params.buffered.length = bytes;
+	req->params.buffered.file = file;
+	
+	if (!IoRequest(root, fsd, &req->header))
+	{
+		if (isRead)
+			TRACE1("failed (%d)\n", req->header.result);
+		op->result = req->header.result;
+		op->bytes = req->params.buffered.length;
+		free(req);
+		EvtSignal(NULL, op->event);
+		return false;
+	}
+	else
+	{
+		if (isRead)
+			TRACE1("succeeded (%d)\n", req->header.result);
+		op->result = req->header.result;
+		return true;
+	}
+}
+
+/*!
+ *	\brief	Reads from a file asynchronously
+ *
+ *	The file must have \p FILE_READ access.
+ *
+ *	\param	file	Handle of the file to read from
+ *	\param	buf	Buffer to read into
+ *	\param	bytes	Number of bytes to read
+ *	\param	op	\p fileop_t structure that receives the results of the read
+ *	\return	\p true if the read could be started
+ */
+bool FsRead(handle_t file, void *buf, size_t bytes, struct fileop_t *op)
+{
+	return FsReadWrite(file, buf, bytes, op, true);
+}
+
+/*!
+ *	\brief	Writes to a file asynchronously
+ *
+ *	The file must have \p FILE_WRITE access.
+ *
+ *	\param	file	Handle of the file to read from
+ *	\param	buf	Buffer to write out of
+ *	\param	bytes	Number of bytes to write
+ *	\param	op	\p fileop_t structure that receives the results of the write
+ *	\return	\p true if the write could be started
+ */
+bool FsWrite(handle_t file, const void *buf, size_t bytes, struct fileop_t *op)
+{
+	return FsReadWrite(file, (void*) buf, bytes, op, false);
+}
+
+/*!
+ *	\brief	Seeks to a location in a file
+ *
+ *	Subsequent reads and writes will take place starting at the location
+ *	specified.
+ *	\param	file	Handle to the file to seek
+ *	\param	ofs	New offset, relative to the beginning of the file
+ *	\return	New offset, or 0 if the handle was invalid
+ */
 addr_t FsSeek(handle_t file, addr_t ofs)
 {
 	file_t *fd;
@@ -316,6 +495,17 @@ static bool FsMountDevice(const wchar_t *path, device_t *dev)
 	}
 }
 
+/*!
+ *	\brief	Mounts a file system in a directory
+ *
+ *	The target directory must support the \p FS_MOUNT requests. Virtual
+ *	folders (e.g. \p / and \p /System) support this.
+ *
+ *	\param	path	Full path specification of the new mount point
+ *	\param	filesys	Name of the file system driver to use
+ *	\param	dev	Device for the file system to use
+ *	\return	\p true if the file system was mounted
+ */
 bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
 {
 	driver_t *driver;
@@ -352,12 +542,21 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
 		return true;
 }
 
-static const IDeviceVtbl vfs_vtbl =
+static const device_vtbl_t vfs_vtbl =
 {
 	VfsRequest,
-	NULL
+	NULL,
+	VfsFinishIo,
 };
 
+/*!
+ *	\brief	Creates a new virtual directory
+ *
+ *	This effectively creates a new virtual file system and mounts it at
+ *	\p path.
+ *	\param	path	Full path specification for the new directory
+ *	\return	\p true if the directory was created
+ */
 bool FsCreateVirtualDir(const wchar_t *path)
 {
 	vfs_dir_t *dir;
@@ -378,6 +577,19 @@ bool FsCreateVirtualDir(const wchar_t *path)
 	return true;
 }
 
+/*!
+ *	\brief	Initializes the filing system
+ *
+ *	This function is called to mount any system and boot file systems. It 
+ *	will mount:
+ *	- The ramdisk on \p /System/Boot
+ *	- The port file system on \p /System/Ports
+ *	- The device file system on \p /System/Devices
+ *	- (\p /System/Devices/ide0a on \p /hd using \p fat )
+ *	- \p /System/Devices/fdc0 on \p /hd using \p fat
+ *
+ *	\return	\p true if all devices were mounted correctly
+ */
 bool FsInit(void)
 {
 	bool b;

@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.3 2002/01/05 00:54:11 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -46,7 +46,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 		return NULL;
 	
 	FsSeek(fd, 0);
-	size = FsRead(fd, &dos, sizeof(dos));
+	size = FsReadSync(fd, &dos, sizeof(dos));
 	if (size < sizeof(dos))
 	{
 		wprintf(L"%s: only %d bytes read (%d)\n", file, size, errno);
@@ -60,7 +60,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 	}
 
 	FsSeek(fd, dos.e_lfanew);
-	FsRead(fd, &pe, sizeof(pe));
+	FsReadSync(fd, &pe, sizeof(pe));
 
 	if (pe.Signature != IMAGE_NT_SIGNATURE)
 	{
@@ -314,7 +314,7 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
 	if (raw_offset != (addr_t) -1)
 	{
 		FsSeek(mod->file, raw_offset);
-		FsRead(mod->file, scn_base, raw_size);
+		FsReadSync(mod->file, scn_base, raw_size);
 	}
 	
 	if (!pe)

@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.8 2002/01/10 20:50:14 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.9 2002/01/15 00:12:57 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -6,7 +6,7 @@
 #include <kernel/memory.h>
 #include <kernel/cache.h>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <os/syscall.h>
@@ -523,7 +523,7 @@ void FdcRemove(fdc_t *fdc)
 	/* DevUnregisterIrq(6, &fdc->dev); */
 }
 
-static const IDeviceVtbl fdc_vtbl =
+static const device_vtbl_t fdc_vtbl =
 {
 	FdcRequest,
 	FdcIsr

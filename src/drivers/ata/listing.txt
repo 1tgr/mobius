@@ -16,27 +16,27 @@ nsleep():
 80031008 <_AtaReset>:
 AtaReset():
 80031008:	55                   	push   %ebp
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031009:	b0 06                	mov    $0x6,%al
 8003100b:	89 e5                	mov    %esp,%ebp
 8003100d:	83 ec 14             	sub    $0x14,%esp
 80031010:	53                   	push   %ebx
 /mn/src/drivers/ata/ata.c:233
 80031011:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031014:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031018:	81 c2 06 02 00 00    	add    $0x206,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 8003101e:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:235
 8003101f:	83 c4 f4             	add    $0xfffffff4,%esp
 80031022:	68 90 01 00 00       	push   $0x190
 80031027:	e8 d4 ff ff ff       	call   80031000 <_nsleep>
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 8003102c:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031030:	b0 00                	mov    $0x0,%al
 80031032:	81 c2 06 02 00 00    	add    $0x206,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031038:	ee                   	out    %al,(%dx)
 80031039:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
 8003103c:	89 ec                	mov    %ebp,%esp
@@ -74,7 +74,7 @@ AtaWaitForStatus():
 /mn/src/drivers/ata/ata.c:253
 80031070:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031074:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 80031077:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:253
 80031078:	0f b6 c0             	movzbl %al,%eax
@@ -301,7 +301,7 @@ AtaIssueCommand():
 /mn/src/drivers/ata/ata.c:296
 8003120d:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031211:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 80031214:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:296
 80031215:	84 c0                	test   %al,%al
@@ -321,16 +321,16 @@ AtaIssueCommand():
 80031238:	eb 38                	jmp    80031272 <_AtaIssueCommand+0x10e>
 /mn/src/drivers/ata/ata.c:300
 8003123a:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 8003123c:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031240:	83 c2 06             	add    $0x6,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031243:	8a 45 c0             	mov    0xffffffc0(%ebp),%al
 80031246:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:305
 80031247:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003124b:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 8003124e:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:305
 8003124f:	84 c0                	test   %al,%al
@@ -351,40 +351,40 @@ AtaIssueCommand():
 80031277:	31 c0                	xor    %eax,%eax
 80031279:	eb 7c                	jmp    800312f7 <_AtaIssueCommand+0x193>
 8003127b:	90                   	nop    
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 8003127c:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031280:	b0 08                	mov    $0x8,%al
 80031282:	81 c2 06 02 00 00    	add    $0x206,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031288:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031289:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003128d:	b0 00                	mov    $0x0,%al
 8003128f:	42                   	inc    %edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031290:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031291:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031295:	83 c2 02             	add    $0x2,%edx
 80031298:	8a 07                	mov    (%edi),%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 8003129a:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 8003129b:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003129f:	83 c2 03             	add    $0x3,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800312a2:	8a 45 ff             	mov    0xffffffff(%ebp),%al
 800312a5:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800312a6:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 800312aa:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800312ad:	8a 45 e0             	mov    0xffffffe0(%ebp),%al
 800312b0:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800312b1:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 800312b5:	83 c2 05             	add    $0x5,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800312b8:	8a 45 d0             	mov    0xffffffd0(%ebp),%al
 800312bb:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:317
@@ -392,12 +392,12 @@ AtaIssueCommand():
 800312bf:	83 c4 f4             	add    $0xfffffff4,%esp
 800312c2:	50                   	push   %eax
 800312c3:	e8 28 15 00 00       	call   800327f0 <_SemAcquire>
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800312c8:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 800312cc:	83 c4 10             	add    $0x10,%esp
 800312cf:	83 c2 07             	add    $0x7,%edx
 800312d2:	8a 47 08             	mov    0x8(%edi),%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800312d5:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:319
 800312d6:	8a 47 08             	mov    0x8(%edi),%al
@@ -546,7 +546,7 @@ AtapiIssuePacket():
 /mn/src/drivers/ata/ata.c:344
 800313d6:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 800313da:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800313dd:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:344
 800313de:	84 c0                	test   %al,%al
@@ -565,17 +565,17 @@ AtapiIssuePacket():
 /mn/src/drivers/ata/ata.c:347
 80031401:	eb 39                	jmp    8003143c <_AtapiIssuePacket+0x78>
 80031403:	90                   	nop    
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031404:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031408:	8a 46 30             	mov    0x30(%esi),%al
 8003140b:	83 c2 06             	add    $0x6,%edx
 8003140e:	0c 40                	or     $0x40,%al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031410:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:352
 80031411:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031415:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 80031418:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:352
 80031419:	84 c0                	test   %al,%al
@@ -596,44 +596,44 @@ AtapiIssuePacket():
 80031441:	31 c0                	xor    %eax,%eax
 80031443:	eb 7a                	jmp    800314bf <_AtapiIssuePacket+0xfb>
 80031445:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031448:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003144c:	b0 00                	mov    $0x0,%al
 8003144e:	42                   	inc    %edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 8003144f:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031450:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031454:	83 c2 02             	add    $0x2,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031457:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031458:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003145c:	83 c2 03             	add    $0x3,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 8003145f:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031460:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031464:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031467:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 80031468:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003146c:	b0 80                	mov    $0x80,%al
 8003146e:	83 c2 05             	add    $0x5,%edx
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 80031471:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:364
 80031472:	8d 43 18             	lea    0x18(%ebx),%eax
 80031475:	83 c4 f4             	add    $0xfffffff4,%esp
 80031478:	50                   	push   %eax
 80031479:	e8 72 13 00 00       	call   800327f0 <_SemAcquire>
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 8003147e:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031482:	b0 a0                	mov    $0xa0,%al
 80031484:	83 c2 07             	add    $0x7,%edx
 80031487:	83 c4 10             	add    $0x10,%esp
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 8003148a:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:366
 8003148b:	c6 83 9c 00 00 00 a0 	movb   $0xa0,0x9c(%ebx)
@@ -651,9 +651,9 @@ AtapiIssuePacket():
 /mn/src/drivers/ata/ata.c:370
 800314a7:	0f b7 4b 14          	movzwl 0x14(%ebx),%ecx
 800314ab:	90                   	nop    
-/mn/include/kernel/i386.h:311
+/mn/include/kernel/i386.h:319
 800314ac:	0f b7 04 77          	movzwl (%edi,%esi,2),%eax
-/mn/include/kernel/i386.h:312
+/mn/include/kernel/i386.h:320
 800314b0:	89 ca                	mov    %ecx,%edx
 800314b2:	66 ef                	out    %ax,(%dx)
 /mn/src/drivers/ata/ata.c:370
@@ -744,7 +744,7 @@ AtaWaitForInterrupt():
 80031569:	74 11                	je     8003157c <_AtaWaitForInterrupt+0xa4>
 8003156b:	0f b7 46 14          	movzwl 0x14(%esi),%eax
 8003156f:	8d 50 01             	lea    0x1(%eax),%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 80031572:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:403
 80031573:	84 c0                	test   %al,%al
@@ -952,7 +952,7 @@ AtapiTransferCount():
 /mn/src/drivers/ata/ata.c:465
 800316eb:	0f b7 58 14          	movzwl 0x14(%eax),%ebx
 800316ef:	8d 53 05             	lea    0x5(%ebx),%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800316f2:	ec                   	in     (%dx),%al
 800316f3:	88 c2                	mov    %al,%dl
 /mn/src/drivers/ata/ata.c:465
@@ -961,7 +961,7 @@ AtapiTransferCount():
 800316f8:	8d 43 04             	lea    0x4(%ebx),%eax
 /mn/src/drivers/ata/ata.c:466
 800316fb:	c1 e1 08             	shl    $0x8,%ecx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800316fe:	89 c2                	mov    %eax,%edx
 80031700:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:467
@@ -1003,10 +1003,10 @@ AtapiReadAndDiscard():
 80031736:	39 ce                	cmp    %ecx,%esi
 80031738:	73 18                	jae    80031752 <_AtapiReadAndDiscard+0x42>
 8003173a:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:328
+/mn/include/kernel/i386.h:336
 8003173c:	8b 45 08             	mov    0x8(%ebp),%eax
 8003173f:	0f b7 50 14          	movzwl 0x14(%eax),%edx
-/mn/include/kernel/i386.h:330
+/mn/include/kernel/i386.h:338
 80031743:	66 ed                	in     (%dx),%ax
 /mn/src/drivers/ata/ata.c:481
 80031745:	66 89 03             	mov    %ax,(%ebx)
@@ -1028,7 +1028,7 @@ AtapiReadAndDiscard():
 8003175f:	8b 45 08             	mov    0x8(%ebp),%eax
 80031762:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 80031766:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:330
+/mn/include/kernel/i386.h:338
 80031768:	66 ed                	in     (%dx),%ax
 /mn/src/drivers/ata/ata.c:486
 8003176a:	83 c1 fe             	add    $0xfffffffe,%ecx
@@ -1037,10 +1037,10 @@ AtapiReadAndDiscard():
 /mn/src/drivers/ata/ata.c:490
 80031772:	85 c9                	test   %ecx,%ecx
 80031774:	74 12                	je     80031788 <_AtapiReadAndDiscard+0x78>
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:329
 80031776:	8b 45 08             	mov    0x8(%ebp),%eax
 80031779:	0f b7 50 14          	movzwl 0x14(%eax),%edx
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:331
 8003177d:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:492
 8003177e:	eb 08                	jmp    80031788 <_AtapiReadAndDiscard+0x78>
@@ -1172,7 +1172,7 @@ AtapiPacketInterrupt():
 /mn/src/drivers/ata/ata.c:514
 80031889:	0f b7 41 14          	movzwl 0x14(%ecx),%eax
 8003188d:	83 c0 02             	add    $0x2,%eax
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 80031890:	89 c2                	mov    %eax,%edx
 80031892:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:514
@@ -1383,7 +1383,7 @@ AtaCtrlIsr():
 80031a79:	8b 45 08             	mov    0x8(%ebp),%eax
 80031a7c:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 80031a80:	83 c2 07             	add    $0x7,%edx
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:331
 80031a83:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:573
 80031a84:	8b 55 08             	mov    0x8(%ebp),%edx
@@ -1440,18 +1440,18 @@ AtaCtrlIsr():
 80031aff:	57                   	push   %edi
 80031b00:	68 be 19 03 80       	push   $0x800319be
 80031b05:	e8 ee 0c 00 00       	call   800327f8 <_wprintf>
-/mn/include/kernel/i386.h:335
+/mn/include/kernel/i386.h:343
 80031b0a:	8b 45 08             	mov    0x8(%ebp),%eax
 80031b0d:	83 c4 10             	add    $0x10,%esp
-/mn/include/kernel/i386.h:336
+/mn/include/kernel/i386.h:344
 80031b10:	8b 4e 1c             	mov    0x1c(%esi),%ecx
-/mn/include/kernel/i386.h:335
+/mn/include/kernel/i386.h:343
 80031b13:	03 7e 24             	add    0x24(%esi),%edi
-/mn/include/kernel/i386.h:336
+/mn/include/kernel/i386.h:344
 80031b16:	d1 e9                	shr    %ecx
-/mn/include/kernel/i386.h:335
+/mn/include/kernel/i386.h:343
 80031b18:	0f b7 50 14          	movzwl 0x14(%eax),%edx
-/mn/include/kernel/i386.h:336
+/mn/include/kernel/i386.h:344
 80031b1c:	f3 66 6d             	repz insw (%dx),%es:(%edi)
 /mn/src/drivers/ata/ata.c:600
 80031b1f:	e8 9c 0c 00 00       	call   800327c0 <_MemUnmapTemp>
@@ -2265,23 +2265,23 @@ AtaInitController():
 800321d0:	e8 33 ee ff ff       	call   80031008 <_AtaReset>
 /mn/src/drivers/ata/ata.c:853
 800321d5:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:329
 800321d8:	83 c4 20             	add    $0x20,%esp
 /mn/src/drivers/ata/ata.c:853
 800321db:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800321df:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800321e2:	ec                   	in     (%dx),%al
 800321e3:	88 c1                	mov    %al,%cl
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:314
 800321e5:	f6 d0                	not    %al
-/mn/include/kernel/i386.h:307
+/mn/include/kernel/i386.h:315
 800321e7:	ee                   	out    %al,(%dx)
 /mn/src/drivers/ata/ata.c:855
 800321e8:	8b 45 08             	mov    0x8(%ebp),%eax
 800321eb:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800321ef:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:324
+/mn/include/kernel/i386.h:332
 800321f2:	ec                   	in     (%dx),%al
 /mn/src/drivers/ata/ata.c:855
 800321f3:	38 c8                	cmp    %cl,%al
@@ -2420,7 +2420,7 @@ AtaInitController():
 800323a3:	83 c7 48             	add    $0x48,%edi
 800323a6:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800323aa:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:330
+/mn/include/kernel/i386.h:338
 800323ac:	66 ed                	in     (%dx),%ax
 /mn/src/drivers/ata/ata.c:890
 800323ae:	66 89 04 4e          	mov    %ax,(%esi,%ecx,2)

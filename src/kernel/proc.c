@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.3 2002/01/10 20:50:16 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -69,6 +69,7 @@ process_t proc_idle =
 	NULL,						/* area_last */
 	0xe8000000,					/* vmm_end */
 	{ 0 },						/* sem_vmm */
+	{ 0 },						/* sem_lock */
 	L"kernel",					/* exe */
 	&proc_idle_info,			/* info */
 };
@@ -105,6 +106,7 @@ void ProcDeleteProcess(process_t *proc)
 {
 	thread_t *thr, *next;
 
+	SemAcquire(&proc->sem_lock);
 	for (thr = thr_first; thr; thr = next)
 	{
 		next = thr->all_next;
@@ -113,6 +115,7 @@ void ProcDeleteProcess(process_t *proc)
 	}
 
 	free((wchar_t*) proc->exe);
+	SemRelease(&proc->sem_lock);
 	free(proc);
 }
 
@@ -124,12 +127,16 @@ bool ProcFirstTimeInit(process_t *proc)
 	module_t *mod;
 	thread_t *thr;
 
+	/*SemAcquire(&proc->sem_lock);*/
 	TRACE1("Creating process from %s\n", proc->exe);
 
 	proc->info = info = VmmAlloc(1, NULL, 
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
 	if (info == NULL)
+	{
+		SemRelease(&proc->sem_lock);
 		return false;
+	}
 
 	ch = wcsrchr(proc->exe, '/');
 	if (ch == NULL)
@@ -151,6 +158,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	if (mod == NULL)
 	{
 		wprintf(L"ProcCreateProcess: failed to load %s\n", proc->exe);
+		SemRelease(&proc->sem_lock);
 		return false;
 	}
 
@@ -158,6 +166,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	TRACE1("Successful; continuing at %lx\n", mod->entry);
 	ctx = ThrGetContext(current);
 	ctx->eip = mod->entry;
+	/*SemRelease(&proc->sem_lock);*/
 	return true;
 }
 
@@ -234,6 +243,14 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 	return false;
 }
 
+/*!
+ *	\brief	Initializes the idle process
+ *
+ *	This function sets up the idle process's initial handle table and
+ *	physical page directory pointer.
+ *
+ *	\return	\p true
+ */
 bool ProcInit(void)
 {
 	proc_idle.handle_count = 2;

@@ -1,8 +1,8 @@
-/* $Id: wctomb.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: wctomb.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
 
 #include <stdlib.h>
 
 int wctomb(char *_s, wchar_t _wchar)
 {
-	return wcstombs(_s, _wchar, 1);
+	return wcstombs(_s, &_wchar, 1);
 }
