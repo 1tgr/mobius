@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# $Id: Makefile,v 1.1 2002/02/27 20:31:42 pavlovskii Exp $
+# $Id: Makefile,v 1.2 2002/03/07 15:52:03 pavlovskii Exp $
 #
 # Auto-configuring Makefile for the Netwide Assembler.
 #
@@ -8,7 +8,7 @@
 # redistributable under the licence given in the file "Licence"
 # distributed in the NASM archive.
 
-include ../make.actions
+include ../make.conf
 
 srcdir		= .
 prefix		= /cygdrive/f

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.12 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.13 2002/03/07 15:51:51 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -103,20 +103,20 @@ struct device_resource_t
         resMemory,
         resIo,
         resIrq
-    } type;
+    } cls;
 
     union
     {
         struct
         {
-            addr_t start;
-            size_t bytes;
+            addr_t base;
+            size_t length;
         } memory;
 
         struct
         {
-            uint16_t start;
-            unsigned count;
+            uint16_t base;
+            unsigned length;
         } io;
 
         uint8_t irq;
@@ -128,9 +128,12 @@ typedef struct device_config_t device_config_t;
 struct device_config_t
 {
     device_t *parent;
-    unsigned resource_count;
+    unsigned num_resources;
+    device_resource_t *resources;
     uint16_t vendor_id;
     uint16_t device_id;
+    uint32_t subsystem;
+    unsigned pci_bus, pci_dev, pci_func;
 };
 
 #define DEV_CFG_RESOURCES(cfg)    ((device_resource_t*) ((cfg) + 1))
@@ -227,26 +230,23 @@ struct irq_t
 };
 
 /* Kernel device driver helper routines */
-driver_t *    DevInstallNewDriver(const wchar_t *name);
-device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
-                           device_config_t *cfg);
-void    DevUnloadDriver(driver_t *driver);
+driver_t *  DevInstallNewDriver(const wchar_t *name);
+device_t *  DevInstallDevice(const wchar_t *driver, const wchar_t *name, device_config_t *cfg);
+void	    DevUnloadDriver(driver_t *driver);
 
-bool    DevRegisterIrq(uint8_t irq, device_t *dev);
-bool    DevAddDevice(device_t *dev, const wchar_t *name, 
-                     device_config_t *cfg);
-asyncio_t*    DevQueueRequest(device_t *dev, request_t *req, size_t size,
-                            void *user_buffer,
-                            size_t user_buffer_length);
-void    DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
-uint8_t    DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
-void *    DevMapBuffer(asyncio_t *io);
+bool	    DevRegisterIrq(uint8_t irq, device_t *dev);
+bool	    DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg);
+asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, void *user_buffer,
+			    size_t user_buffer_length);
+void	    DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
+uint8_t	    DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
+void *	    DevMapBuffer(asyncio_t *io);
 
-void    MemUnmapTemp(void);
-#define DevUnmapBuffer    MemUnmapTemp
+void	    MemUnmapTemp(void);
+#define	    DevUnmapBuffer    MemUnmapTemp
 
 /* Driver entry point (you write this) */
-bool	DrvEntry(driver_t *);
+bool	    DrvEntry(driver_t *);
 
 /*! @} */
 

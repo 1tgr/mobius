@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.6 2002/03/05 02:04:17 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.7 2002/03/07 15:51:51 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -136,6 +136,7 @@ wchar_t *_wcsdup(const wchar_t *s);
 #endif
 int		_wcsmatch(const wchar_t *mask, const wchar_t *name);
 void	_pwerror(const wchar_t *text);
+/*FILE	*_wfopen( const wchar_t *filename, const wchar_t *mode );*/
 
 #define iswupper(c)		((c) >= 'A' && (c) <= 'Z')
 #define iswlower(c)		((c) >= 'a' && (c) <= 'z')

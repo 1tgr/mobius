@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.7 2002/03/06 19:36:53 pavlovskii Exp $ */
+/* $Id: video.c,v 1.8 2002/03/07 15:51:52 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -16,8 +16,8 @@ void swap_int(int *a, int *b)
     *a = temp;
 }
 
-extern uint8_t font8x8[];
-vga_font_t _Font = { 0, 256, 8, font8x8 };
+extern uint8_t font1[];
+vga_font_t _Font = { 0, 256, 8, font1 };
 
 typedef struct request_vid_t request_vid_t;
 struct request_vid_t

@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.2 2002/03/06 19:36:53 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.3 2002/03/07 15:51:52 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -29,7 +29,7 @@ struct
     const uint8_t *regs;
 } vga8_modes[] =
 {
-    /* width, height, bpp, bpl, regs, cookie */
+    /* width, height, bpp, bpl, cookie, regs */
     { { 320,    200,    8,  0,  0x13, },	mode13h },
 };
 

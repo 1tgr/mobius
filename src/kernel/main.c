@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.13 2002/03/04 23:50:35 pavlovskii Exp $ */
+/* $Id: main.c,v 1.14 2002/03/07 15:52:03 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -19,8 +19,6 @@
 #include <kernel/init.h>
 #include <stdio.h>
 
-extern char scode[];
-extern unsigned sc_uptime;
 extern process_t proc_idle;
 
 void SemInit(semaphore_t *sem)
@@ -31,8 +29,6 @@ void SemInit(semaphore_t *sem)
 
 void KernelMain(void)
 {
-    device_t *dev;
-    
     MemInit();
     ArchInit();
     
@@ -54,24 +50,15 @@ void KernelMain(void)
     DevInstallDevice(L"cmos", L"cmos", NULL);
     DevInstallDevice(L"video", L"video", NULL);
     
-    dev = IoOpenDevice(L"ide0a");
-    wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
-    FsMount(L"/hd", L"fat", dev);
-
-    dev = IoOpenDevice(L"fdc0");
-    wprintf(L"KernelMain: Mounting fdc0(%p) on /fd using fat\n", dev);
-    FsMount(L"/fd", L"fat", dev);
-
-    /*proc = ProcCreateProcess(SYS_BOOT L"/shell.exe");
-    ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
+    FsMount(L"/hd", L"fat", IoOpenDevice(L"ide0a"));
+    FsMount(L"/fd", L"fat", IoOpenDevice(L"fdc0"));
+    
     ProcSpawnProcess(SYS_BOOT L"/shell.exe", proc_idle.info);
-    /*proc_idle.info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
-    proc_idle.info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
-    ProcSpawnProcess(SYS_BOOT L"/shell.exe");*/
-
     ScEnableSwitch(true);
-
+    
     wprintf(L"Idle\n");
+    DevInstallDevice(L"pci", L"pci", NULL);
+    
     for (;;)
 	ArchProcessorIdle();
 }

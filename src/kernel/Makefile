@@ -15,7 +15,7 @@ LDFLAGS=	--image-base 0xC0000000 --subsystem native \
 	--file-alignment 0x1000 --section-alignment 0x1000
 CPPFLAGS+=	-fvtable-thunks
 
-include ../make.actions
+include ../make.conf
 
 all:	$(ARCH) $(TARGET) $(IMP)
 

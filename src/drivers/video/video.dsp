@@ -90,6 +90,10 @@ SOURCE=.\cupertino.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\font1.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\font8x8.c
 # End Source File
 # Begin Source File

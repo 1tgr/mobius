@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.4 2002/03/05 16:22:26 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.5 2002/03/07 15:52:03 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -49,7 +49,7 @@ void KeyboardThread(void *param)
 	
 	if (ch != 0)
 	{
-	    params.vid_textout.buffer = (addr_t) &ch;
+	    params.vid_textout.buffer = &ch;
 	    params.vid_textout.length = sizeof(ch);
 	    params.vid_textout.foreColour = 15;
 	    params.vid_textout.backColour = (colour_t) -1;
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	_pwerror(L"VID_DRAW");
     }
 
-    params.vid_textout.buffer = (addr_t) str;
+    params.vid_textout.buffer = str;
     params.vid_textout.length = wcslen(str) * sizeof(wchar_t);
     params.vid_textout.x = 100;
     params.vid_textout.y = 100;

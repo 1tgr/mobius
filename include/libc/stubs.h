@@ -27,6 +27,7 @@ extern "C" {
 #define lseek __lseek
 #define mkdir __mkdir
 #define open __open
+#define wopen __wopen
 #define read __read
 #define tzset __tzset
 #define write __write

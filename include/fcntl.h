@@ -1,4 +1,4 @@
-/* $Id: fcntl.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: fcntl.h,v 1.4 2002/03/07 15:51:51 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_fcntl_h_
@@ -56,6 +56,7 @@ extern "C" {
 extern int _fmode; /* O_TEXT or O_BINARY */
 
 int	open(const char *_path, int _oflag, ...);
+int	wopen(const wchar_t *_path, int _oflag, ...);
 int	creat(const char *_path, unsigned _mode);
 int	fcntl(int _fildes, int _cmd, ...);
 

@@ -2,7 +2,7 @@ TARGET=	libi386.lib
 OBJS=	isr.o i386.o memory.o arch.o scdsptch.o
 DEFINES=-Di386 -DKERNEL
 
-include ../../make.actions
+include ../../make.conf
 
 $(TARGET):	$(OBJS)
 	ar rcs $(TARGET) $(OBJS)

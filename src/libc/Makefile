@@ -4,7 +4,7 @@ DEF=	libc.def
 DEFINES=-D__LIBC_STATIC
 BASE=	libc
 
-include ../make.actions
+include ../make.conf
 
 TARGET_D=	$(BIN)/libc.dll
 TARGET_S=	$(LIB)/libc_s.lib
@@ -43,7 +43,7 @@ STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/stdin.o stdio/stdiohk.o stdio/stdio.o stdio/stdout.o \
 	stdio/stdprn.o stdio/swprintf.o stdio/tmpfile.o stdio/tmpnam.o \
 	stdio/ungetc.o stdio/vfprintf.o stdio/vprintf.o stdio/vsprintf.o \
-	stdio/wprintf.o
+	stdio/wprintf.o stdio/wfopen.o
 STDLIB=	stdlib/abort.o stdlib/abs.o stdlib/atexit.o stdlib/atof.o \
 	stdlib/atoi.o stdlib/atol.o stdlib/atold.o stdlib/bsdqsort.o \
 	stdlib/bsearch.o stdlib/div.o stdlib/exit.o \
@@ -68,34 +68,26 @@ SYS=	sys/access.o sys/close.o sys/cputs.o sys/cputws.o \
 	sys/creatnew.o sys/float_dx.o sys/fmode.o sys/getenv.o \
 	sys/huge_val.o sys/isatty.o \
 	sys/lseek.o sys/main.o sys/open.o sys/read.o \
-	sys/sbrk.o sys/towc.o sys/write.o
+	sys/sbrk.o sys/towc.o sys/wopen.o sys/write.o 
 
 OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 	$(MALLOC) $(MATH) $(SETJMP) $(STDARG) \
 	$(STDIO) $(STDLIB) $(STRING) $(TIME) \
 	$(RTL) $(SYS)
 
-all:	$(TARGET_D) $(IMP) $(TARGET_S)
+#all:	$(TARGET_D) $(IMP) $(TARGET_S)
 
 # Import library for DLL
-$(IMP):	$(DEF)
-	dlltool -d $< -l $@ -D $(<:.def=.dll)
+#$(IMP):	$(DEF)
+#	dlltool -d $< -l $@ -D $(<:.def=.dll)
 
-$(TARGET_S):	$(OBJS)
-	ar rcs $(TARGET_S) $(OBJS)
+#$(TARGET_S):	$(OBJS)
+#	ar rcs $(TARGET_S) $(OBJS)
 
-$(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS) .base
-	$(LD) -g --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
-		--image-base `cat .base` \
-		$(EXP) dllmain.o \
-		$(TARGET_S) $(LIBS)
+#$(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS) .base
+#	$(LD) -g --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
+#		--image-base `cat .base` \
+#		$(EXP) dllmain.o \
+#		$(TARGET_S) $(LIBS)
 
-clean:
-	rm $(OBJS:.o=.d)
-	rm $(OBJS)
-	rm $(EXP)
-	rm $(IMP)
-	rm $(TARGET_D)
-	rm $(TARGET_S)
-
-include $(OBJS:.o=.d)
+include ../make.actions

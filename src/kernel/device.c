@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.18 2002/03/06 01:39:27 pavlovskii Exp $ */
+/* $Id: device.c,v 1.19 2002/03/07 15:51:53 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -563,8 +563,8 @@ uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
     unsigned i, j;
     device_resource_t *res = DEV_CFG_RESOURCES(cfg);
 
-    for (i = j = 0; i < cfg->resource_count; i++)
-	if (res[i].type == resIrq)
+    for (i = j = 0; i < cfg->num_resources; i++)
+	if (res[i].cls == resIrq)
 	{
 	    if (j == n)
 		return res[i].u.irq;

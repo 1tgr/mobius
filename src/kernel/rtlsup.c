@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.10 2002/03/07 15:52:03 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -63,13 +63,13 @@ void TextSwitchToKernel(void)
 void __dj_assert(const char *test, const char *file, int line)
 {
 	TextSwitchToKernel();
-	wprintf(L"Assertion failed!\n"
-		L"%S\n"
-		L"%S, line %d\n", 
-		test, file, line);
+	wprintf(L"Assertion failed: %S, line %d\n"
+		L"%S\n",
+		file, line, test);
 	ScEnableSwitch(false);
-	enable();
-	for (;;);
+	__asm__("int3");
+	/*enable();
+	for (;;);*/
 	/*__asm__("cli;hlt");*/
 }
 

@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.12 2002/03/06 19:39:31 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.13 2002/03/07 15:51:52 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -250,7 +250,8 @@ handle_t Fat::AllocFile(const fat_dirent_t *di, uint32_t flags)
     for (i = 0; i < num_clusters; i++)
     {
 	*ptr++ = cluster;
-	cluster = GetNextCluster(cluster);
+	if (!IS_EOC_CLUSTER(cluster))
+	    cluster = GetNextCluster(cluster);
     }
 
     assert(IS_EOC_CLUSTER(cluster));

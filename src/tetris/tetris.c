@@ -1,3 +1,5 @@
+/* $Id: tetris.c,v 1.3 2002/03/07 15:52:03 pavlovskii Exp $ */
+
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
 #include <errno.h>

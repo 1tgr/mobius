@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.6 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.7 2002/03/07 15:51:51 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -103,8 +103,8 @@ int 	vfprintf(FILE *_stream, const char *_format, va_list _ap);
 int 	vprintf(const char *_format, va_list _ap);
 int 	vsprintf(char *_s, const char *_format, va_list _ap);
 
-/* Putting wprintf() in stdio.h isn't ANSI but I don't care */
 int 	wprintf(const wchar_t *_format, ...);
+FILE	*_wfopen( const wchar_t *filename, const wchar_t *mode );
 
 /* This isn't ANSI at all... */
 int		_cputws(const wchar_t *str, size_t count);

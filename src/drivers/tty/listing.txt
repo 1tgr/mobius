@@ -614,7 +614,7 @@ doEscape__3ttycUiPCUi():
 800f1561:	16                   	push   %ss
 800f1562:	0f 80 ee 17 0f 80    	jo     1e2d56 <__size_of_heap_reserve__+0xe2d56>
 800f1568:	84 16                	test   %dl,(%esi)
-800f156a:	0f 80 85 ff 74 18    	jo     988414f5 <.stab+0x18748965>
+800f156a:	0f 80 85 ff 74 18    	jo     988414f5 <.stab+0x18748959>
 /mn/src/drivers/tty/tty.cpp:202
 800f1570:	8b 4d 14             	mov    0x14(%ebp),%ecx
 800f1573:	8b 83 30 02 00 00    	mov    0x230(%ebx),%eax
@@ -784,7 +784,7 @@ doEscape__3ttycUiPCUi():
 800f1740:	e5 17                	in     $0x17,%eax
 800f1742:	0f 80 74 17 0f 80    	jo     1e2ebc <__size_of_heap_reserve__+0xe2ebc>
 800f1748:	8c 17                	movl   %ss,(%edi)
-800f174a:	0f 80 66 81 a3 20    	jo     a0b298b6 <.stab+0x20a30d26>
+800f174a:	0f 80 66 81 a3 20    	jo     a0b298b6 <.stab+0x20a30d1a>
 /mn/src/drivers/tty/tty.cpp:269
 800f1750:	02 00                	add    (%eax),%al
 800f1752:	00 00                	add    %al,(%eax)

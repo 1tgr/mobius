@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.18 2002/03/05 02:04:18 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.19 2002/03/07 15:51:53 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -632,11 +632,10 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
     switch (origin)
     {
     case FILE_SEEK_SET:
-        fd->pos = ofs;
         break;
 
     case FILE_SEEK_CUR:
-        fd->pos += ofs;
+        ofs += fd->pos;
         break;
 
     case FILE_SEEK_END:
@@ -645,6 +644,7 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
         break;
     }
 
+    fd->pos = ofs;
     HndUnlock(NULL, file, 'file');
 
     return ofs;

@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.14 2002/03/05 02:46:57 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.15 2002/03/07 15:52:03 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,7 +240,7 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 
 static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
 {
-    static char buf[2048];
+    static char buf[512];
 
     handle_t file;
     size_t len;
@@ -298,16 +298,23 @@ static void ShTypeOutput(const void *buf, addr_t origin, size_t len)
 
 void ShCmdType(const wchar_t *command, wchar_t *params)
 {
+    FILE *f;
+
     params = ShPrompt(L" File? ", params);
     if (*params == '\0')
 	return;
 
-    ShDumpFile(params, ShTypeOutput);
+    /*ShDumpFile(params, ShTypeOutput);*/
+    f = _wfopen(params, L"rt");
+    if (f == NULL)
+    	_pwerror(params);
+    else
+        fclose(f);
 }
 
 static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
 {
-    const uint8_t *ptr;
+    /*const uint8_t *ptr;
     int i, j;
 
     ptr = (const uint8_t*) buf;
@@ -322,7 +329,7 @@ static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
 	}
 
 	wprintf(L"\n");
-    }
+    }*/
 }
 
 void ShCmdDump(const wchar_t *command, wchar_t *params)

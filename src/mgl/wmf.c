@@ -1,7 +1,9 @@
-/* $Id: wmf.c,v 1.1 2002/03/06 19:31:41 pavlovskii Exp $ */
+/* $Id: wmf.c,v 1.2 2002/03/07 15:52:03 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/defs.h>
+#include <os/video.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -15,25 +17,7 @@
 
 #include "wmfdefs.h"
 
-static uint8_t palette[16][4] =
-{
-    { 0, 0, 0, 0 },
-    { 128, 0, 0, 0 },
-    { 0, 128, 0, 0 },
-    { 128, 128, 0, 0 },
-    { 0, 0, 128, 0 },
-    { 128, 0, 128, 0 },
-    { 0, 128, 128, 0 },
-    { 128, 128, 128, 0 },
-    { 192, 192, 192, 0 },
-    { 255, 0, 0, 0 },
-    { 0, 255, 0, 0 },
-    { 255, 255, 0, 0 },
-    { 0, 0, 255, 0 },
-    { 255, 0, 255, 0 },
-    { 0, 255, 255, 0 },
-    { 255, 255, 255, 0 },
-};
+extern rgb_t palette[16 + 50];
 
 #undef WMF_FUNCTION
 #define WMF_FUNCTION(name, code)    { #name, WMF_##name, code },
@@ -85,9 +69,9 @@ MGLcolour WmfGetMglColour(uint32_t clr)
     bestindex = 0;
     for (i = 0; i < _countof(palette); i++)
     {
-	dist = (palette[i][2] - r) * (palette[i][2] - r) +
-	    (palette[i][1] - g) * (palette[i][1] - g) +
-	    (palette[i][0] - b) * (palette[i][0] - b);
+	dist = (palette[i].red - r) * (palette[i].red - r) +
+	    (palette[i].green - g) * (palette[i].green - g) +
+	    (palette[i].blue - b) * (palette[i].blue - b);
 	if (dist < best)
 	{
 	    best = dist;
@@ -103,6 +87,7 @@ wmf_t *WmfOpen(const wchar_t *name)
     wmf_t *wmf;
     handle_t file;
     dirent_t di;
+    MGLrect dims;
 
     if (!FsQueryFile(name, FILE_QUERY_STANDARD, &di, sizeof(di)))
     {
@@ -143,6 +128,11 @@ wmf_t *WmfOpen(const wchar_t *name)
     wmf->stock_pen.colour = 0;
     wmf->selected.ptr[wmfBrush] = &wmf->stock_brush;
     wmf->selected.ptr[wmfPen] = &wmf->stock_pen;
+    mglGetDimensions(NULL, &dims);
+    wmf->window_org.x = dims.left;
+    wmf->window_org.y = dims.top;
+    wmf->window_ext.x = dims.right;
+    wmf->window_ext.y = dims.bottom;
     return wmf;
 }
 
@@ -258,8 +248,10 @@ void WmfDeleteObject(wmf_t *wmf, unsigned num)
 
 void WmfMapPoint(wmf_t *wmf, int16_t x, int16_t y, MGLpoint *pt)
 {
-    pt->x = (MGLreal) x / 50;
-    pt->y = (MGLreal) y / 50;
+    MGLrect dims;
+    mglGetDimensions(NULL, &dims);
+    pt->x = (((MGLreal) x - wmf->window_org.x) * dims.right) / wmf->window_ext.x;
+    pt->y = (((MGLreal) y - wmf->window_org.y) * dims.bottom) / wmf->window_ext.y;
 }
 
 void WMF_SETBKCOLOR (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
@@ -272,10 +264,27 @@ void WMF_SETSTRETCHBLTMODE (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) 
 void WMF_SETTEXTCHAREXTRA (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
 void WMF_SETTEXTCOLOR (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
 void WMF_SETTEXTJUSTIFICATION (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
-void WMF_SETWINDOWORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
-void WMF_SETWINDOWEXT (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
-void WMF_SETVIEWPORTORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
-void WMF_SETVIEWPORTEXT (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
+
+void WMF_SETWINDOWORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params)
+{
+    wmf->window_org.x = params[1];
+    wmf->window_org.y = params[0];
+}
+
+void WMF_SETWINDOWEXT (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params)
+{
+    wmf->window_ext.x = params[1];
+    wmf->window_ext.y = params[0];
+}
+
+void WMF_SETVIEWPORTORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params)
+{
+}
+
+void WMF_SETVIEWPORTEXT (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params)
+{
+}
+
 void WMF_OFFSETWINDOWORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
 void WMF_SCALEWINDOWEXT (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 
 void WMF_OFFSETVIEWPORTORG (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 

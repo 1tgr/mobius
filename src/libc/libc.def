@@ -10,6 +10,7 @@ EXPORTS
 	__main
 	__open
 	__sbrk
+	__wopen
 	_atold
 	_cputs
 	_cputws
@@ -179,3 +180,4 @@ EXPORTS
 	wcsrchr
 	wcstombs
 	wprintf
+	_wfopen

@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.1 2002/03/05 01:59:07 pavlovskii Exp $ */
+/* $Id: video.h,v 1.2 2002/03/07 15:51:51 pavlovskii Exp $ */
 
 #ifndef __OS_VIDEO_H
 #define __OS_VIDEO_H
@@ -50,7 +50,7 @@ struct vid_pixel_t
 typedef struct vid_text_t vid_text_t;
 struct vid_text_t
 {
-    addr_t buffer;
+    const void *buffer;
     size_t length;
     int x, y;
     colour_t foreColour, backColour;
@@ -59,7 +59,7 @@ struct vid_text_t
 typedef struct vid_palette_t vid_palette_t;
 struct vid_palette_t
 {
-    addr_t entries;
+    const void *entries;
     size_t length;
     uint32_t first_index;
     uint32_t reserved;
@@ -98,10 +98,11 @@ struct rgb_t
 #define VID_GETPIXEL	REQUEST_CODE(1, 0, 'v', 'g')*/
 
 #define VID_DRAW	    REQUEST_CODE(1, 0, 'v', 'd')
-#define VID_SETMODE	       REQUEST_CODE(0, 0, 'v', 'm')
-#define VID_TEXTOUT	       REQUEST_CODE(0, 0, 'v', 't')
+#define VID_FILLPOLYGON	    REQUEST_CODE(1, 0, 'v', 'f')
+#define VID_SETMODE	    REQUEST_CODE(0, 0, 'v', 'm')
+#define VID_TEXTOUT	    REQUEST_CODE(0, 0, 'v', 't')
 #define VID_STOREPALETTE    REQUEST_CODE(1, 0, 'v', 'P')
-#define VID_LOADPALETTE        REQUEST_CODE(1, 0, 'v', 'Q')
+#define VID_LOADPALETTE     REQUEST_CODE(1, 0, 'v', 'Q')
 
 enum
 {
@@ -138,6 +139,14 @@ union params_vid_t
 	size_t length;
 	uint64_t reserved;
     } vid_draw;
+
+    struct
+    {
+	point_t *points;
+	size_t length;
+	colour_t colour;
+	uint32_t reserved;
+    } vid_fillpolygon;
 };
 
 #ifdef __cplusplus
