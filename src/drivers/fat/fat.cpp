@@ -1,10 +1,11 @@
-/* $Id: fat.cpp,v 1.1 2002/01/08 01:30:29 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.2 2002/01/09 01:23:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
 #include <kernel/cache.h>
+#include <kernel/io.h>
 #include <os/fs.h>
 
 #include <kernel/device>
@@ -108,7 +109,7 @@ FatDirectory *Fat::AllocDir(const fat_dirent_t *di)
 		TRACE2("\tReading root directory: %u bytes at sector %u\n",
 			size,
 			m_root_start);
-		bytes = DevRead(m_device, 
+		bytes = IoReadSync(m_device, 
 			m_root_start * SECTOR_SIZE, 
 			dir + 1, 
 			size);
@@ -482,7 +483,7 @@ start:
 				ClusterToOffset(extra->clusters[extra->cluster_index]);
 
 			//wprintf(L"FatStartIo: req = %p\n", &extra->dev_request.header);
-			if (!DevRequest(this, m_device, &extra->dev_request.header))
+			if (!IoRequest(this, m_device, &extra->dev_request.header))
 			{
 				wprintf(L"Fat::StartIo: request failed straight away\n");
 				DevUnmapBuffer();
@@ -625,7 +626,7 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
 	m_device = dev;
 
 	TRACE0("\tReading boot sector\n");
-	length = DevRead(dev, 0, &m_bpb, sizeof(m_bpb));
+	length = IoReadSync(dev, 0, &m_bpb, sizeof(m_bpb));
 	if (length < sizeof(m_bpb))
 	{
 		TRACE1("Read failed: length = %u\n", length);
@@ -661,7 +662,7 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
 	length = m_bpb.sectors_per_fat * 
 		m_bpb.bytes_per_sector;
 	TRACE0("\tReading FAT\n");
-	if (DevRead(m_device, 
+	if (IoReadSync(m_device, 
 		m_bpb.reserved_sectors * 
 			m_bpb.bytes_per_sector,
 		m_fat,

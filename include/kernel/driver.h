@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.8 2002/01/06 18:36:14 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.9 2002/01/09 01:23:39 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -11,7 +11,10 @@ extern "C"
 #include <kernel/handle.h>
 #include <os/device.h>
 
+#ifndef __DEVICE_T_DEFINED
 typedef struct device_t device_t;
+#define __DEVICE_T_DEFINED
+#endif
 
 typedef struct asyncio_t asyncio_t;
 struct asyncio_t
@@ -120,18 +123,12 @@ struct irq_t
 	device_t *dev;
 };
 
-/* Device interface routines */
-bool	DevRequest(device_t *from, device_t *dev, request_t *req);
-bool	DevRequestSync(device_t *dev, request_t *req);
+/* Kernel device driver helper routines */
 driver_t *	DevInstallNewDriver(const wchar_t *name);
 device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
 						   device_config_t *cfg);
 void	DevUnloadDriver(driver_t *driver);
-device_t *	DevOpen(const wchar_t *name);
-void	DevClose(device_t *dev);
-size_t	DevRead(device_t *dev, uint64_t ofs, void *buf, size_t size);
 
-/* Kernel device driver helper routines */
 bool	DevRegisterIrq(uint8_t irq, device_t *dev);
 bool	DevAddDevice(device_t *dev, const wchar_t *name, 
 					 device_config_t *cfg);

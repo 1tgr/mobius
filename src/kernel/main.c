@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.4 2002/01/06 18:36:16 pavlovskii Exp $ */
+/* $Id: main.c,v 1.5 2002/01/09 01:23:41 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -10,6 +10,7 @@
 #include <kernel/fs.h>
 #include <kernel/vmm.h>
 #include <kernel/driver.h>
+#include <kernel/io.h>
 
 #include <stdio.h>
 
@@ -72,7 +73,7 @@ void KernelMain(void)
 	/*proc = ProcCreateProcess(SYS_BOOT L"/console.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
 
-	dev = DevOpen(L"fdc0");
+	dev = IoOpenDevice(L"fdc0");
 	wprintf(L"KernelMain: Mounting fdc0(%p) on /hd using fat\n", dev);
 	FsMount(L"/hd", L"fat", dev);
 

@@ -27,18 +27,13 @@ EXPORTS
 	DbgWrite
 	DevAddDevice
 	DevCfgFindIrq
-	DevClose
 	DevFinishIo
 	DevInstallDevice
 	DevInstallNewDriver
 	DevMapBuffer
 	DevMountFs
-	DevOpen
 	DevQueueRequest
-	DevRead
 	DevRegisterIrq
-	DevRequest
-	DevRequestSync
 	DevUnloadDriver
 	FsClose
 	FsCreate
@@ -62,8 +57,12 @@ EXPORTS
 	HndSignal
 	HndSignalPtr
 	HndUnlock
-	KernelEntry
-	KernelMain
+	IoCloseDevice
+	IoOpenDevice
+	IoNotifyCompletion
+	IoReadSync
+	IoRequest
+	IoRequestSync
 	MemAlloc
 	MemAllocLow
 	MemAllocLowSpan

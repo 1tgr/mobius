@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.12 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: test.c,v 1.13 2002/01/09 01:23:41 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,10 +27,10 @@ void testFileIo(const wchar_t *name)
 		return;
 	}
 
-	for (i = 0; i < 8; i++)
+	for (i = 0; i < 16; i++)
 	{
 		FsSeek(file, 0);
-		wprintf(L"\x1b[%um", i + 30);
+		wprintf(L"\x1b[%um", (i % 8) + 30);
 		while ((len = FsRead(file, key, sizeof(key))))
 		{
 			if (len < sizeof(key))
@@ -106,8 +106,8 @@ int main(void)
 		L"...and fourth lines\n");
 	wprintf(L"Here's a tab, just for a laugh...\tHa ha!\n");
 	
-	/*testFileIo(L"/hd/test.txt");*/
-	testBlockDeviceIo(SYS_DEVICES L"/fdc0");
+	testFileIo(L"/hd/test.txt");
+	/*testBlockDeviceIo(SYS_DEVICES L"/fdc0");*/
 	/*testCharDeviceIo(SYS_DEVICES L"/keyboard");*/
 
 	wprintf(L"Bye now...\n");

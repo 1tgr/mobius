@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.8 2002/01/06 22:46:08 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.9 2002/01/09 01:23:39 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -136,7 +136,7 @@ handle_t FsCreate(const wchar_t *path, uint32_t flags)
 	req.params.fs_create.name_size = (wcslen(fullname) * sizeof(wchar_t)) + 1;
 	req.params.fs_create.file = NULL;
 	req.params.fs_create.flags = flags;
-	if (DevRequestSync(root, (request_t*) &req))
+	if (IoRequestSync(root, (request_t*) &req))
 		return req.params.fs_create.file;
 	else
 	{
@@ -158,7 +158,7 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
 	req.params.fs_open.name_size = (wcslen(fullname) * sizeof(wchar_t)) + 1;
 	req.params.fs_open.file = NULL;
 	req.params.fs_open.flags = flags;
-	if (DevRequestSync(root, (request_t*) &req))
+	if (IoRequestSync(root, (request_t*) &req))
 		return req.params.fs_open.file;
 	else
 	{
@@ -182,7 +182,7 @@ bool FsClose(handle_t file)
 
 	req.header.code = FS_CLOSE;
 	req.params.fs_close.file = file;
-	if (DevRequestSync(fsd, (request_t*) &req))
+	if (IoRequestSync(fsd, (request_t*) &req))
 		return true;
 	else
 	{
@@ -216,7 +216,7 @@ size_t FsRead(handle_t file, void *buf, size_t bytes)
 	req.params.fs_read.length = bytes;
 	req.params.fs_read.buffer = buf;
 	req.params.fs_read.file = file;
-	if (DevRequestSync(fsd, (request_t*) &req))
+	if (IoRequestSync(fsd, (request_t*) &req))
 		return req.params.fs_read.length;
 	else
 	{
@@ -248,7 +248,7 @@ size_t FsWrite(handle_t file, const void *buf, size_t bytes)
 	req.params.fs_write.length = bytes;
 	req.params.fs_write.buffer = buf;
 	req.params.fs_write.file = file;
-	if (DevRequestSync(fsd, (request_t*) &req))
+	if (IoRequestSync(fsd, (request_t*) &req))
 		return req.params.fs_write.length;
 	else
 	{
@@ -287,7 +287,7 @@ bool FsRequestSync(handle_t file, request_t *req)
 	/*ptr = HndGetPtr(NULL, file, 'file');
 	wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
 		file, fd, fd->fsd, ptr->file, ptr->line);*/
-	return DevRequestSync(fsd, req);
+	return IoRequestSync(fsd, req);
 }
 
 static bool FsMountDevice(const wchar_t *path, device_t *dev)
@@ -296,7 +296,7 @@ static bool FsMountDevice(const wchar_t *path, device_t *dev)
 	
 	if (wcscmp(path, L"/") == 0)
 	{
-		DevClose(root);
+		IoCloseDevice(root);
 		root = dev;
 		return true;
 	}
@@ -306,7 +306,7 @@ static bool FsMountDevice(const wchar_t *path, device_t *dev)
 		req.params.fs_mount.name = path;
 		req.params.fs_mount.name_size = (wcslen(path) * sizeof(wchar_t)) + 1;
 		req.params.fs_mount.fsd = dev;
-		if (DevRequestSync(root, (request_t*) &req))
+		if (IoRequestSync(root, (request_t*) &req))
 			return true;
 		else
 		{
@@ -345,7 +345,7 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, device_t *dev)
 	assert(fsd->vtbl->request != NULL);
 	if (!FsMountDevice(path, fsd))
 	{
-		DevClose(fsd);
+		IoCloseDevice(fsd);
 		return false;
 	}
 	else

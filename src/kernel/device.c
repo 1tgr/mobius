@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.11 2002/01/08 01:20:31 pavlovskii Exp $ */
+/* $Id: device.c,v 1.12 2002/01/09 01:23:39 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -7,6 +7,7 @@
 #include <kernel/debug.h>
 #include <kernel/fs.h>
 #include <kernel/memory.h>
+#include <kernel/io.h>
 
 #include <stdio.h>
 #include <wchar.h>
@@ -109,7 +110,7 @@ bool DevFsRequest(device_t *dev, request_t *req)
 		req_dev.params.dev_read.buffer = req_fs->params.fs_read.buffer;
 		req_dev.params.dev_read.length = req_fs->params.fs_read.length;
 		req_dev.params.dev_read.offset = file->file.pos;
-		ret = DevRequestSync(file->dev, &req_dev.header);
+		ret = IoRequestSync(file->dev, &req_dev.header);
 
 		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 		req->result = req_dev.header.result;
@@ -145,117 +146,12 @@ device_t dev_fsd =
 	&devfs_vtbl,
 };
 
-device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
-{
-	return &dev_fsd;
-}
+/*
+ * IoOpenDevice and IoCloseDevice are in device.c to save io.c knowing about
+ *	device_info_t.
+ */
 
-static void DevNotifyCompletion(device_t *dev, request_t *req)
-{
-	request_t temp;
-
-	if (req->from != NULL)
-	{
-		temp.code = IO_FINISH;
-		temp.result = 0;
-		temp.event = NULL;
-		temp.original = req;
-		temp.from = dev;
-		assert(req->from->vtbl->request != NULL);
-		req->from->vtbl->request(req->from, &temp);
-		req->from = NULL;
-	}
-}
-
-bool DevRequest(device_t *from, device_t *dev, request_t *req)
-{
-	bool ret;
-
-	TRACE1("\t\tDevRequest: dev = %p\n", dev);
-	req->event = NULL;
-	req->result = 0;
-	req->from = from;
-
-	if (dev == NULL)
-	{
-		wprintf(L"DevRequest fails on NULL device\n");
-		return false;
-	}
-
-	if (dev->vtbl == NULL)
-	{
-		wprintf(L"DevRequest fails on NULL vtbl\n");
-		return false;
-	}
-
-	if (dev->vtbl->request == NULL)
-	{
-		wprintf(L"DevRequest fails on NULL request function\n");
-		return false;
-	}
-
-	ret = dev->vtbl->request(dev, req);
-	if (ret && req->event == NULL)
-	{
-		/*
-		 * Operation completed synchronously. 
-		 * There might be some device expecting completion notification.
-		 */
-		/*assert(false && "Caller expected async io but device completed immediately");*/
-		DevNotifyCompletion(dev, req);
-	}
-
-	return ret;
-}
-
-bool DevRequestSync(device_t *dev, request_t *req)
-{
-	TRACE1("\tDevRequestSync: dev = %p\n", dev);
-	if (DevRequest(NULL, dev, req))
-	{
-		/*assert(req->event == NULL);*/
-		if (req->event)
-		{
-			if (!EvtIsSignalled(NULL, req->event))
-			{
-				semaphore_t temp;
-				SemInit(&temp);
-				SemAcquire(&temp);
-				enable();
-					
-				if (/*true || */current == &thr_idle)
-				{
-					TRACE0("DevRequestSync: busy-waiting\n");
-					while (!EvtIsSignalled(NULL, req->event))
-						ArchProcessorIdle();
-				}
-				else
-				{
-					wprintf(L"DevRequestSync: doing proper wait\n");
-					ThrWaitHandle(current, req->event, 'evnt');
-					
-					while (!EvtIsSignalled(NULL, req->event))
-					{
-						ArchProcessorIdle();
-						wprintf(L"X");
-					}
-
-					/*assert(false && "Reached this bit");*/
-				}
-
-				SemRelease(&temp);
-			}
-
-			EvtFree(NULL, req->event);
-		}
-
-		return true;
-	}
-	else
-		return false;
-}
-
-device_t *DevOpen(const wchar_t *name)
+device_t *IoOpenDevice(const wchar_t *name)
 {
 	device_info_t *info;
 
@@ -266,8 +162,13 @@ device_t *DevOpen(const wchar_t *name)
 	return NULL;
 }
 
-void DevClose(device_t *dev)
+void IoCloseDevice(device_t *dev)
 {
+}
+
+device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
+{
+	return &dev_fsd;
 }
 
 bool DevRegisterIrq(uint8_t irq, device_t *dev)
@@ -355,7 +256,7 @@ void DevFinishIoApc(void *ptr)
 		memcpy(io->req->original, io->req, io->req_size);
 	}
 
-	DevNotifyCompletion(io->dev, io->req);
+	IoNotifyCompletion(io->dev, io->req);
 	EvtSignal(io->owner->process, io->req->event);
 
 	if (io->req->original != NULL)
@@ -413,21 +314,6 @@ uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
 		}
 
 	return dflt;
-}
-
-size_t DevRead(device_t *dev, uint64_t ofs, void *buf, size_t size)
-{
-	request_dev_t req;
-	req.header.code = DEV_READ;
-	req.params.dev_read.offset = ofs;
-	req.params.dev_read.buffer = buf;
-	req.params.dev_read.length = size;
-
-	TRACE1("DevRead: dev = %p\n", dev);
-	if (DevRequestSync(dev, &req.header))
-		return req.params.dev_read.length;
-	else
-		return (size_t) -1;
 }
 
 extern driver_t rd_driver, port_driver;

@@ -1,4 +1,4 @@
-/* $Id: mbstowcs.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: mbstowcs.c,v 1.3 2002/01/09 01:23:41 pavlovskii Exp $ */
 
 #include <wchar.h>
 #include <errno.h>
@@ -37,7 +37,7 @@ size_t mbstowcs(wchar_t *wcstr, const char *mbstr, size_t count)
 		case 3:
 			*wcstr = (b[0] & 0x0f) << 12 | 
 				(b[1] & 0x3f) << 6 | 
-				(b[1] & 0x3f);
+				(b[2] & 0x3f);
 			break;
 		}
 

@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.3 2001/11/05 23:47:41 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.4 2002/01/09 01:23:39 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -139,6 +139,7 @@ int		_wcsmatch(const wchar_t *mask, const wchar_t *name);
 #define towupper(c)		(iswlower(c) ? (c) - 'a' + 'A' : (c))
 #define towlower(c)		(iswupper(c) ? (c) - 'A' + 'a' : (c))
 #define iswdigit(c)		((c) >= '0' && (c) <= '9')
+#define iswspace(c)		((c) == '\r' || (c) == '\n' || (c) == '\t' || (c) == ' ')
 
 #ifdef __cplusplus
 }

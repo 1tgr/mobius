@@ -7,7 +7,7 @@ Disassembly of section .text:
 nsleep():
 80031000:	55                   	push   %ebp
 80031001:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/ata/ata.c:229
+/mn/src/drivers/ata/ata.c:230
 80031003:	89 ec                	mov    %ebp,%esp
 80031005:	5d                   	pop    %ebp
 80031006:	c3                   	ret    
@@ -21,14 +21,14 @@ AtaReset():
 8003100b:	89 e5                	mov    %esp,%ebp
 8003100d:	83 ec 14             	sub    $0x14,%esp
 80031010:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:232
+/mn/src/drivers/ata/ata.c:233
 80031011:	8b 5d 08             	mov    0x8(%ebp),%ebx
 /mn/include/kernel/i386.h:299
 80031014:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031018:	81 c2 06 02 00 00    	add    $0x206,%edx
 /mn/include/kernel/i386.h:300
 8003101e:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:234
+/mn/src/drivers/ata/ata.c:235
 8003101f:	83 c4 f4             	add    $0xfffffff4,%esp
 80031022:	68 90 01 00 00       	push   $0x190
 80031027:	e8 d4 ff ff ff       	call   80031000 <_nsleep>
@@ -47,9 +47,9 @@ AtaReset():
 AtaNeedReset():
 80031040:	55                   	push   %ebp
 80031041:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/ata/ata.c:239
-80031043:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/src/drivers/ata/ata.c:240
+80031043:	8b 45 08             	mov    0x8(%ebp),%eax
+/mn/src/drivers/ata/ata.c:241
 80031046:	c6 80 9e 00 00 00 01 	movb   $0x1,0x9e(%eax)
 8003104d:	89 ec                	mov    %ebp,%esp
 8003104f:	5d                   	pop    %ebp
@@ -64,35 +64,35 @@ AtaWaitForStatus():
 8003105a:	57                   	push   %edi
 8003105b:	56                   	push   %esi
 8003105c:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:244
+/mn/src/drivers/ata/ata.c:245
 8003105d:	8b 5d 08             	mov    0x8(%ebp),%ebx
 80031060:	8b 7d 10             	mov    0x10(%ebp),%edi
-/mn/src/drivers/ata/ata.c:249
+/mn/src/drivers/ata/ata.c:250
 80031063:	e8 98 17 00 00       	call   80032800 <_SysUpTime>
 80031068:	8d b0 88 13 00 00    	lea    0x1388(%eax),%esi
 8003106e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:252
+/mn/src/drivers/ata/ata.c:253
 80031070:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031074:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:317
 80031077:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:252
-80031078:	0f b6 c0             	movzbl %al,%eax
 /mn/src/drivers/ata/ata.c:253
+80031078:	0f b6 c0             	movzbl %al,%eax
+/mn/src/drivers/ata/ata.c:254
 8003107b:	23 45 0c             	and    0xc(%ebp),%eax
 8003107e:	39 f8                	cmp    %edi,%eax
 80031080:	74 16                	je     80031098 <_AtaWaitForStatus+0x44>
 80031082:	e8 79 17 00 00       	call   80032800 <_SysUpTime>
 80031087:	39 f0                	cmp    %esi,%eax
 80031089:	72 e5                	jb     80031070 <_AtaWaitForStatus+0x1c>
-/mn/src/drivers/ata/ata.c:257
+/mn/src/drivers/ata/ata.c:258
 8003108b:	83 c4 f4             	add    $0xfffffff4,%esp
 8003108e:	53                   	push   %ebx
 8003108f:	e8 ac ff ff ff       	call   80031040 <_AtaNeedReset>
-/mn/src/drivers/ata/ata.c:258
+/mn/src/drivers/ata/ata.c:259
 80031094:	31 c0                	xor    %eax,%eax
 80031096:	eb 05                	jmp    8003109d <_AtaWaitForStatus+0x49>
-/mn/src/drivers/ata/ata.c:254
+/mn/src/drivers/ata/ata.c:255
 80031098:	b8 01 00 00 00       	mov    $0x1,%eax
 8003109d:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 800310a0:	5b                   	pop    %ebx
@@ -101,7 +101,7 @@ AtaWaitForStatus():
 800310a3:	89 ec                	mov    %ebp,%esp
 800310a5:	5d                   	pop    %ebp
 800310a6:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:259
+/mn/src/drivers/ata/ata.c:260
 800310a7:	90                   	nop    
 800310a8:	90                   	nop    
 800310a9:	90                   	nop    
@@ -213,37 +213,37 @@ AtaIssueCommand():
 8003116a:	57                   	push   %edi
 8003116b:	56                   	push   %esi
 8003116c:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:262
+/mn/src/drivers/ata/ata.c:263
 8003116d:	8b 45 08             	mov    0x8(%ebp),%eax
 80031170:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/ata/ata.c:266
-80031173:	8b 58 34             	mov    0x34(%eax),%ebx
 /mn/src/drivers/ata/ata.c:267
+80031173:	8b 58 34             	mov    0x34(%eax),%ebx
+/mn/src/drivers/ata/ata.c:268
 80031176:	8a 50 30             	mov    0x30(%eax),%dl
 80031179:	88 55 c0             	mov    %dl,0xffffffc0(%ebp)
-/mn/src/drivers/ata/ata.c:268
+/mn/src/drivers/ata/ata.c:269
 8003117c:	f6 c2 40             	test   $0x40,%dl
 8003117f:	74 1f                	je     800311a0 <_AtaIssueCommand+0x3c>
-/mn/src/drivers/ata/ata.c:270
+/mn/src/drivers/ata/ata.c:271
 80031181:	8a 47 04             	mov    0x4(%edi),%al
 80031184:	88 45 ff             	mov    %al,0xffffffff(%ebp)
-/mn/src/drivers/ata/ata.c:271
+/mn/src/drivers/ata/ata.c:272
 80031187:	8b 47 04             	mov    0x4(%edi),%eax
 8003118a:	89 c2                	mov    %eax,%edx
 8003118c:	c1 ea 08             	shr    $0x8,%edx
 8003118f:	88 55 e0             	mov    %dl,0xffffffe0(%ebp)
-/mn/src/drivers/ata/ata.c:272
+/mn/src/drivers/ata/ata.c:273
 80031192:	89 c2                	mov    %eax,%edx
-/mn/src/drivers/ata/ata.c:273
-80031194:	c1 e8 18             	shr    $0x18,%eax
-/mn/src/drivers/ata/ata.c:272
-80031197:	c1 ea 10             	shr    $0x10,%edx
-/mn/src/drivers/ata/ata.c:273
-8003119a:	24 0f                	and    $0xf,%al
 /mn/src/drivers/ata/ata.c:274
+80031194:	c1 e8 18             	shr    $0x18,%eax
+/mn/src/drivers/ata/ata.c:273
+80031197:	c1 ea 10             	shr    $0x10,%edx
+/mn/src/drivers/ata/ata.c:274
+8003119a:	24 0f                	and    $0xf,%al
+/mn/src/drivers/ata/ata.c:275
 8003119c:	eb 46                	jmp    800311e4 <_AtaIssueCommand+0x80>
 8003119e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:275
+/mn/src/drivers/ata/ata.c:276
 800311a0:	8b 48 28             	mov    0x28(%eax),%ecx
 800311a3:	85 c9                	test   %ecx,%ecx
 800311a5:	74 45                	je     800311ec <_AtaIssueCommand+0x88>
@@ -251,59 +251,59 @@ AtaIssueCommand():
 800311aa:	89 45 ac             	mov    %eax,0xffffffac(%ebp)
 800311ad:	85 c0                	test   %eax,%eax
 800311af:	74 3b                	je     800311ec <_AtaIssueCommand+0x88>
-/mn/src/drivers/ata/ata.c:279
-800311b1:	0f af c8             	imul   %eax,%ecx
 /mn/src/drivers/ata/ata.c:280
+800311b1:	0f af c8             	imul   %eax,%ecx
+/mn/src/drivers/ata/ata.c:281
 800311b4:	8b 47 04             	mov    0x4(%edi),%eax
 800311b7:	89 45 a8             	mov    %eax,0xffffffa8(%ebp)
 800311ba:	31 d2                	xor    %edx,%edx
 800311bc:	f7 f1                	div    %ecx
 800311be:	89 c6                	mov    %eax,%esi
-/mn/src/drivers/ata/ata.c:281
+/mn/src/drivers/ata/ata.c:282
 800311c0:	89 d0                	mov    %edx,%eax
 800311c2:	31 d2                	xor    %edx,%edx
 800311c4:	f7 75 ac             	divl   0xffffffac(%ebp)
 800311c7:	89 45 a4             	mov    %eax,0xffffffa4(%ebp)
-/mn/src/drivers/ata/ata.c:282
+/mn/src/drivers/ata/ata.c:283
 800311ca:	8b 45 a8             	mov    0xffffffa8(%ebp),%eax
 800311cd:	31 d2                	xor    %edx,%edx
 800311cf:	f7 75 ac             	divl   0xffffffac(%ebp)
 800311d2:	fe c2                	inc    %dl
-/mn/src/drivers/ata/ata.c:283
-800311d4:	89 f0                	mov    %esi,%eax
-/mn/src/drivers/ata/ata.c:282
-800311d6:	88 55 ff             	mov    %dl,0xffffffff(%ebp)
-/mn/src/drivers/ata/ata.c:283
-800311d9:	88 45 e0             	mov    %al,0xffffffe0(%ebp)
 /mn/src/drivers/ata/ata.c:284
+800311d4:	89 f0                	mov    %esi,%eax
+/mn/src/drivers/ata/ata.c:283
+800311d6:	88 55 ff             	mov    %dl,0xffffffff(%ebp)
+/mn/src/drivers/ata/ata.c:284
+800311d9:	88 45 e0             	mov    %al,0xffffffe0(%ebp)
+/mn/src/drivers/ata/ata.c:285
 800311dc:	89 f2                	mov    %esi,%edx
 800311de:	c1 ea 08             	shr    $0x8,%edx
-/mn/src/drivers/ata/ata.c:285
-800311e1:	8a 45 a4             	mov    0xffffffa4(%ebp),%al
-/mn/src/drivers/ata/ata.c:284
-800311e4:	88 55 d0             	mov    %dl,0xffffffd0(%ebp)
-/mn/src/drivers/ata/ata.c:285
-800311e7:	08 45 c0             	or     %al,0xffffffc0(%ebp)
 /mn/src/drivers/ata/ata.c:286
+800311e1:	8a 45 a4             	mov    0xffffffa4(%ebp),%al
+/mn/src/drivers/ata/ata.c:285
+800311e4:	88 55 d0             	mov    %dl,0xffffffd0(%ebp)
+/mn/src/drivers/ata/ata.c:286
+800311e7:	08 45 c0             	or     %al,0xffffffc0(%ebp)
+/mn/src/drivers/ata/ata.c:287
 800311ea:	eb 0c                	jmp    800311f8 <_AtaIssueCommand+0x94>
-/mn/src/drivers/ata/ata.c:288
+/mn/src/drivers/ata/ata.c:289
 800311ec:	c6 45 d0 00          	movb   $0x0,0xffffffd0(%ebp)
 800311f0:	c6 45 e0 00          	movb   $0x0,0xffffffe0(%ebp)
 800311f4:	c6 45 ff 00          	movb   $0x0,0xffffffff(%ebp)
-/mn/src/drivers/ata/ata.c:290
+/mn/src/drivers/ata/ata.c:291
 800311f8:	80 bb 9e 00 00 00 00 	cmpb   $0x0,0x9e(%ebx)
 800311ff:	74 0c                	je     8003120d <_AtaIssueCommand+0xa9>
-/mn/src/drivers/ata/ata.c:291
+/mn/src/drivers/ata/ata.c:292
 80031201:	83 c4 f4             	add    $0xfffffff4,%esp
 80031204:	53                   	push   %ebx
 80031205:	e8 fe fd ff ff       	call   80031008 <_AtaReset>
 8003120a:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/ata/ata.c:295
+/mn/src/drivers/ata/ata.c:296
 8003120d:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031211:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:317
 80031214:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:295
+/mn/src/drivers/ata/ata.c:296
 80031215:	84 c0                	test   %al,%al
 80031217:	7d 23                	jge    8003123c <_AtaIssueCommand+0xd8>
 80031219:	83 c4 fc             	add    $0xfffffffc,%esp
@@ -314,24 +314,23 @@ AtaIssueCommand():
 80031229:	83 c4 10             	add    $0x10,%esp
 8003122c:	84 c0                	test   %al,%al
 8003122e:	75 0c                	jne    8003123c <_AtaIssueCommand+0xd8>
-/mn/src/drivers/ata/ata.c:297
+/mn/src/drivers/ata/ata.c:298
 80031230:	83 c4 f4             	add    $0xfffffff4,%esp
 80031233:	68 c0 10 03 80       	push   $0x800310c0
-/mn/src/drivers/ata/ata.c:298
+/mn/src/drivers/ata/ata.c:299
 80031238:	eb 38                	jmp    80031272 <_AtaIssueCommand+0x10e>
 8003123a:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:299
 8003123c:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031240:	83 c2 06             	add    $0x6,%edx
 /mn/include/kernel/i386.h:300
 80031243:	8a 45 c0             	mov    0xffffffc0(%ebp),%al
 80031246:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:304
+/mn/src/drivers/ata/ata.c:305
 80031247:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 8003124b:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:317
 8003124e:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:304
+/mn/src/drivers/ata/ata.c:305
 8003124f:	84 c0                	test   %al,%al
 80031251:	7d 29                	jge    8003127c <_AtaIssueCommand+0x118>
 80031253:	83 c4 fc             	add    $0xfffffffc,%esp
@@ -342,11 +341,11 @@ AtaIssueCommand():
 80031263:	83 c4 10             	add    $0x10,%esp
 80031266:	84 c0                	test   %al,%al
 80031268:	75 12                	jne    8003127c <_AtaIssueCommand+0x118>
-/mn/src/drivers/ata/ata.c:306
+/mn/src/drivers/ata/ata.c:307
 8003126a:	83 c4 f4             	add    $0xfffffff4,%esp
 8003126d:	68 20 11 03 80       	push   $0x80031120
 80031272:	e8 81 15 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:307
+/mn/src/drivers/ata/ata.c:308
 80031277:	31 c0                	xor    %eax,%eax
 80031279:	eb 7c                	jmp    800312f7 <_AtaIssueCommand+0x193>
 8003127b:	90                   	nop    
@@ -386,7 +385,7 @@ AtaIssueCommand():
 /mn/include/kernel/i386.h:300
 800312b8:	8a 45 d0             	mov    0xffffffd0(%ebp),%al
 800312bb:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:316
+/mn/src/drivers/ata/ata.c:317
 800312bc:	8d 43 18             	lea    0x18(%ebx),%eax
 800312bf:	83 c4 f4             	add    $0xfffffff4,%esp
 800312c2:	50                   	push   %eax
@@ -398,20 +397,20 @@ AtaIssueCommand():
 800312d2:	8a 47 08             	mov    0x8(%edi),%al
 /mn/include/kernel/i386.h:300
 800312d5:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:318
-800312d6:	8a 47 08             	mov    0x8(%edi),%al
-/mn/src/drivers/ata/ata.c:320
-800312d9:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/ata/ata.c:318
-800312dc:	88 83 9c 00 00 00    	mov    %al,0x9c(%ebx)
-/mn/src/drivers/ata/ata.c:320
-800312e2:	8d 43 18             	lea    0x18(%ebx),%eax
 /mn/src/drivers/ata/ata.c:319
-800312e5:	c6 83 9d 00 00 00 80 	movb   $0x80,0x9d(%ebx)
+800312d6:	8a 47 08             	mov    0x8(%edi),%al
+/mn/src/drivers/ata/ata.c:321
+800312d9:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/ata/ata.c:319
+800312dc:	88 83 9c 00 00 00    	mov    %al,0x9c(%ebx)
+/mn/src/drivers/ata/ata.c:321
+800312e2:	8d 43 18             	lea    0x18(%ebx),%eax
 /mn/src/drivers/ata/ata.c:320
+800312e5:	c6 83 9d 00 00 00 80 	movb   $0x80,0x9d(%ebx)
+/mn/src/drivers/ata/ata.c:321
 800312ec:	50                   	push   %eax
 800312ed:	e8 f6 14 00 00       	call   800327e8 <_SemRelease>
-/mn/src/drivers/ata/ata.c:321
+/mn/src/drivers/ata/ata.c:322
 800312f2:	b8 01 00 00 00       	mov    $0x1,%eax
 800312f7:	8d 65 88             	lea    0xffffff88(%ebp),%esp
 800312fa:	5b                   	pop    %ebx
@@ -420,7 +419,7 @@ AtaIssueCommand():
 800312fd:	89 ec                	mov    %ebp,%esp
 800312ff:	5d                   	pop    %ebp
 80031300:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:322
+/mn/src/drivers/ata/ata.c:323
 80031301:	90                   	nop    
 80031302:	90                   	nop    
 80031303:	90                   	nop    
@@ -537,17 +536,17 @@ AtapiIssuePacket():
 800313ca:	57                   	push   %edi
 800313cb:	56                   	push   %esi
 800313cc:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:339
+/mn/src/drivers/ata/ata.c:340
 800313cd:	8b 75 08             	mov    0x8(%ebp),%esi
 800313d0:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/ata/ata.c:340
+/mn/src/drivers/ata/ata.c:341
 800313d3:	8b 5e 34             	mov    0x34(%esi),%ebx
-/mn/src/drivers/ata/ata.c:343
+/mn/src/drivers/ata/ata.c:344
 800313d6:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 800313da:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:317
 800313dd:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:343
+/mn/src/drivers/ata/ata.c:344
 800313de:	84 c0                	test   %al,%al
 800313e0:	7d 22                	jge    80031404 <_AtapiIssuePacket+0x40>
 800313e2:	83 c4 fc             	add    $0xfffffffc,%esp
@@ -558,10 +557,10 @@ AtapiIssuePacket():
 800313f2:	83 c4 10             	add    $0x10,%esp
 800313f5:	84 c0                	test   %al,%al
 800313f7:	75 0b                	jne    80031404 <_AtapiIssuePacket+0x40>
-/mn/src/drivers/ata/ata.c:345
+/mn/src/drivers/ata/ata.c:346
 800313f9:	83 c4 f4             	add    $0xfffffff4,%esp
 800313fc:	68 20 13 03 80       	push   $0x80031320
-/mn/src/drivers/ata/ata.c:346
+/mn/src/drivers/ata/ata.c:347
 80031401:	eb 39                	jmp    8003143c <_AtapiIssuePacket+0x78>
 80031403:	90                   	nop    
 /mn/include/kernel/i386.h:299
@@ -571,12 +570,12 @@ AtapiIssuePacket():
 8003140e:	0c 40                	or     $0x40,%al
 /mn/include/kernel/i386.h:300
 80031410:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:351
+/mn/src/drivers/ata/ata.c:352
 80031411:	0f b7 53 14          	movzwl 0x14(%ebx),%edx
 80031415:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:317
 80031418:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:351
+/mn/src/drivers/ata/ata.c:352
 80031419:	84 c0                	test   %al,%al
 8003141b:	7d 2b                	jge    80031448 <_AtapiIssuePacket+0x84>
 8003141d:	83 c4 fc             	add    $0xfffffffc,%esp
@@ -587,11 +586,11 @@ AtapiIssuePacket():
 8003142d:	83 c4 10             	add    $0x10,%esp
 80031430:	84 c0                	test   %al,%al
 80031432:	75 14                	jne    80031448 <_AtapiIssuePacket+0x84>
-/mn/src/drivers/ata/ata.c:353
+/mn/src/drivers/ata/ata.c:354
 80031434:	83 c4 f4             	add    $0xfffffff4,%esp
 80031437:	68 80 13 03 80       	push   $0x80031380
 8003143c:	e8 b7 13 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:354
+/mn/src/drivers/ata/ata.c:355
 80031441:	31 c0                	xor    %eax,%eax
 80031443:	eb 7a                	jmp    800314bf <_AtapiIssuePacket+0xfb>
 80031445:	8d 76 00             	lea    0x0(%esi),%esi
@@ -622,7 +621,7 @@ AtapiIssuePacket():
 8003146e:	83 c2 05             	add    $0x5,%edx
 /mn/include/kernel/i386.h:300
 80031471:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:363
+/mn/src/drivers/ata/ata.c:364
 80031472:	8d 43 18             	lea    0x18(%ebx),%eax
 80031475:	83 c4 f4             	add    $0xfffffff4,%esp
 80031478:	50                   	push   %eax
@@ -634,20 +633,20 @@ AtapiIssuePacket():
 80031487:	83 c4 10             	add    $0x10,%esp
 /mn/include/kernel/i386.h:300
 8003148a:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:365
-8003148b:	c6 83 9c 00 00 00 a0 	movb   $0xa0,0x9c(%ebx)
-/mn/src/drivers/ata/ata.c:367
-80031492:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/ata/ata.c:366
-80031495:	c6 83 9d 00 00 00 80 	movb   $0x80,0x9d(%ebx)
+8003148b:	c6 83 9c 00 00 00 a0 	movb   $0xa0,0x9c(%ebx)
+/mn/src/drivers/ata/ata.c:368
+80031492:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/ata/ata.c:367
+80031495:	c6 83 9d 00 00 00 80 	movb   $0x80,0x9d(%ebx)
+/mn/src/drivers/ata/ata.c:368
 8003149c:	8d 43 18             	lea    0x18(%ebx),%eax
 8003149f:	50                   	push   %eax
-/mn/src/drivers/ata/ata.c:369
+/mn/src/drivers/ata/ata.c:370
 800314a0:	31 f6                	xor    %esi,%esi
-/mn/src/drivers/ata/ata.c:367
+/mn/src/drivers/ata/ata.c:368
 800314a2:	e8 41 13 00 00       	call   800327e8 <_SemRelease>
-/mn/src/drivers/ata/ata.c:369
+/mn/src/drivers/ata/ata.c:370
 800314a7:	0f b7 4b 14          	movzwl 0x14(%ebx),%ecx
 800314ab:	90                   	nop    
 /mn/include/kernel/i386.h:304
@@ -655,11 +654,11 @@ AtapiIssuePacket():
 /mn/include/kernel/i386.h:305
 800314b0:	89 ca                	mov    %ecx,%edx
 800314b2:	66 ef                	out    %ax,(%dx)
-/mn/src/drivers/ata/ata.c:369
+/mn/src/drivers/ata/ata.c:370
 800314b4:	46                   	inc    %esi
 800314b5:	83 fe 05             	cmp    $0x5,%esi
 800314b8:	76 f2                	jbe    800314ac <_AtapiIssuePacket+0xe8>
-/mn/src/drivers/ata/ata.c:372
+/mn/src/drivers/ata/ata.c:373
 800314ba:	b8 01 00 00 00       	mov    $0x1,%eax
 800314bf:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 800314c2:	5b                   	pop    %ebx
@@ -668,7 +667,7 @@ AtapiIssuePacket():
 800314c5:	89 ec                	mov    %ebp,%esp
 800314c7:	5d                   	pop    %ebp
 800314c8:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:373
+/mn/src/drivers/ata/ata.c:374
 800314c9:	90                   	nop    
 800314ca:	25 00 30 00 32       	and    $0x32003000,%eax
 800314cf:	00 78 00             	add    %bh,0x0(%eax)
@@ -683,78 +682,78 @@ AtaWaitForInterrupt():
 800314db:	83 ec 10             	sub    $0x10,%esp
 800314de:	56                   	push   %esi
 800314df:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:378
+/mn/src/drivers/ata/ata.c:379
 800314e0:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/ata/ata.c:384
+/mn/src/drivers/ata/ata.c:385
 800314e3:	e8 18 13 00 00       	call   80032800 <_SysUpTime>
 800314e8:	8d 98 10 27 00 00    	lea    0x2710(%eax),%ebx
-/mn/src/drivers/ata/ata.c:386
+/mn/src/drivers/ata/ata.c:387
 800314ee:	eb 28                	jmp    80031518 <_AtaWaitForInterrupt+0x40>
-/mn/src/drivers/ata/ata.c:388
-800314f0:	e8 eb 12 00 00       	call   800327e0 <_ArchProcessorIdle>
 /mn/src/drivers/ata/ata.c:389
+800314f0:	e8 eb 12 00 00       	call   800327e0 <_ArchProcessorIdle>
+/mn/src/drivers/ata/ata.c:390
 800314f5:	8a 86 9d 00 00 00    	mov    0x9d(%esi),%al
 800314fb:	83 c4 f8             	add    $0xfffffff8,%esp
 800314fe:	0f b6 c0             	movzbl %al,%eax
 80031501:	50                   	push   %eax
 80031502:	68 ca 14 03 80       	push   $0x800314ca
 80031507:	e8 ec 12 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:390
+/mn/src/drivers/ata/ata.c:391
 8003150c:	e8 ef 12 00 00       	call   80032800 <_SysUpTime>
 80031511:	83 c4 10             	add    $0x10,%esp
 80031514:	39 d8                	cmp    %ebx,%eax
 80031516:	77 3c                	ja     80031554 <_AtaWaitForInterrupt+0x7c>
-/mn/src/drivers/ata/ata.c:392
+/mn/src/drivers/ata/ata.c:393
 80031518:	8a 86 9d 00 00 00    	mov    0x9d(%esi),%al
 8003151e:	84 c0                	test   %al,%al
 80031520:	7c ce                	jl     800314f0 <_AtaWaitForInterrupt+0x18>
-/mn/src/drivers/ata/ata.c:395
+/mn/src/drivers/ata/ata.c:396
 80031522:	83 c4 f4             	add    $0xfffffff4,%esp
 80031525:	8d 5e 18             	lea    0x18(%esi),%ebx
 80031528:	53                   	push   %ebx
 80031529:	e8 c2 12 00 00       	call   800327f0 <_SemAcquire>
-/mn/src/drivers/ata/ata.c:396
+/mn/src/drivers/ata/ata.c:397
 8003152e:	8a 86 9d 00 00 00    	mov    0x9d(%esi),%al
 80031534:	83 c4 10             	add    $0x10,%esp
 80031537:	24 e1                	and    $0xe1,%al
 80031539:	89 d9                	mov    %ebx,%ecx
 8003153b:	3c 40                	cmp    $0x40,%al
 8003153d:	75 1d                	jne    8003155c <_AtaWaitForInterrupt+0x84>
-/mn/src/drivers/ata/ata.c:400
+/mn/src/drivers/ata/ata.c:401
 8003153f:	8a 86 9d 00 00 00    	mov    0x9d(%esi),%al
-/mn/src/drivers/ata/ata.c:399
-80031545:	31 db                	xor    %ebx,%ebx
 /mn/src/drivers/ata/ata.c:400
+80031545:	31 db                	xor    %ebx,%ebx
+/mn/src/drivers/ata/ata.c:401
 80031547:	0c 80                	or     $0x80,%al
 80031549:	88 86 9d 00 00 00    	mov    %al,0x9d(%esi)
-/mn/src/drivers/ata/ata.c:401
+/mn/src/drivers/ata/ata.c:402
 8003154f:	eb 2b                	jmp    8003157c <_AtaWaitForInterrupt+0xa4>
 80031551:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:391
+/mn/src/drivers/ata/ata.c:392
 80031554:	b8 02 00 00 00       	mov    $0x2,%eax
 80031559:	eb 2c                	jmp    80031587 <_AtaWaitForInterrupt+0xaf>
 8003155b:	90                   	nop    
-/mn/src/drivers/ata/ata.c:402
+/mn/src/drivers/ata/ata.c:403
 8003155c:	8a 86 9d 00 00 00    	mov    0x9d(%esi),%al
-/mn/src/drivers/ata/ata.c:405
+/mn/src/drivers/ata/ata.c:406
 80031562:	bb 01 00 00 00       	mov    $0x1,%ebx
-/mn/src/drivers/ata/ata.c:402
+/mn/src/drivers/ata/ata.c:403
 80031567:	a8 01                	test   $0x1,%al
 80031569:	74 11                	je     8003157c <_AtaWaitForInterrupt+0xa4>
 8003156b:	0f b7 46 14          	movzwl 0x14(%esi),%eax
 8003156f:	8d 50 01             	lea    0x1(%eax),%edx
 /mn/include/kernel/i386.h:317
 80031572:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:402
+/mn/src/drivers/ata/ata.c:403
 80031573:	84 c0                	test   %al,%al
 80031575:	7d 05                	jge    8003157c <_AtaWaitForInterrupt+0xa4>
-/mn/src/drivers/ata/ata.c:403
+/mn/src/drivers/ata/ata.c:404
 80031577:	bb 03 00 00 00       	mov    $0x3,%ebx
-/mn/src/drivers/ata/ata.c:407
+/mn/src/drivers/ata/ata.c:408
 8003157c:	83 c4 f4             	add    $0xfffffff4,%esp
 8003157f:	51                   	push   %ecx
 80031580:	e8 63 12 00 00       	call   800327e8 <_SemRelease>
-/mn/src/drivers/ata/ata.c:408
+/mn/src/drivers/ata/ata.c:409
 80031585:	89 d8                	mov    %ebx,%eax
 80031587:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 8003158a:	5b                   	pop    %ebx
@@ -770,52 +769,52 @@ AtaIssueSimpleCommand():
 80031593:	83 ec 10             	sub    $0x10,%esp
 80031596:	56                   	push   %esi
 80031597:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:416
+/mn/src/drivers/ata/ata.c:417
 80031598:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/ata/ata.c:412
+/mn/src/drivers/ata/ata.c:413
 8003159b:	8b 75 08             	mov    0x8(%ebp),%esi
 8003159e:	8b 45 0c             	mov    0xc(%ebp),%eax
-/mn/src/drivers/ata/ata.c:416
+/mn/src/drivers/ata/ata.c:417
 800315a1:	50                   	push   %eax
 800315a2:	56                   	push   %esi
 800315a3:	e8 bc fb ff ff       	call   80031164 <_AtaIssueCommand>
 800315a8:	83 c4 10             	add    $0x10,%esp
 800315ab:	84 c0                	test   %al,%al
 800315ad:	74 25                	je     800315d4 <_AtaIssueSimpleCommand+0x44>
-/mn/src/drivers/ata/ata.c:418
+/mn/src/drivers/ata/ata.c:419
 800315af:	83 c4 f4             	add    $0xfffffff4,%esp
 800315b2:	8b 46 34             	mov    0x34(%esi),%eax
 800315b5:	50                   	push   %eax
 800315b6:	e8 1d ff ff ff       	call   800314d8 <_AtaWaitForInterrupt>
 800315bb:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/ata/ata.c:420
+/mn/src/drivers/ata/ata.c:421
 800315bd:	83 c4 10             	add    $0x10,%esp
 800315c0:	83 fb 02             	cmp    $0x2,%ebx
 800315c3:	75 14                	jne    800315d9 <_AtaIssueSimpleCommand+0x49>
-/mn/src/drivers/ata/ata.c:421
+/mn/src/drivers/ata/ata.c:422
 800315c5:	83 c4 f4             	add    $0xfffffff4,%esp
 800315c8:	8b 46 34             	mov    0x34(%esi),%eax
 800315cb:	50                   	push   %eax
 800315cc:	e8 37 fa ff ff       	call   80031008 <_AtaReset>
-/mn/src/drivers/ata/ata.c:422
+/mn/src/drivers/ata/ata.c:423
 800315d1:	eb 06                	jmp    800315d9 <_AtaIssueSimpleCommand+0x49>
 800315d3:	90                   	nop    
-/mn/src/drivers/ata/ata.c:424
+/mn/src/drivers/ata/ata.c:425
 800315d4:	bb 01 00 00 00       	mov    $0x1,%ebx
-/mn/src/drivers/ata/ata.c:426
+/mn/src/drivers/ata/ata.c:427
 800315d9:	8b 46 34             	mov    0x34(%esi),%eax
-/mn/src/drivers/ata/ata.c:427
+/mn/src/drivers/ata/ata.c:428
 800315dc:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-/mn/src/drivers/ata/ata.c:426
-800315df:	c6 80 9c 00 00 00 00 	movb   $0x0,0x9c(%eax)
 /mn/src/drivers/ata/ata.c:427
+800315df:	c6 80 9c 00 00 00 00 	movb   $0x0,0x9c(%eax)
+/mn/src/drivers/ata/ata.c:428
 800315e6:	89 d8                	mov    %ebx,%eax
 800315e8:	5b                   	pop    %ebx
 800315e9:	5e                   	pop    %esi
 800315ea:	89 ec                	mov    %ebp,%esp
 800315ec:	5d                   	pop    %ebp
 800315ed:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:428
+/mn/src/drivers/ata/ata.c:429
 800315ee:	90                   	nop    
 800315ef:	90                   	nop    
 800315f0:	90                   	nop    
@@ -874,16 +873,16 @@ AtaServiceCtrlRequest():
 8003165f:	83 ec 10             	sub    $0x10,%esp
 80031662:	56                   	push   %esi
 80031663:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:431
-80031664:	8b 75 08             	mov    0x8(%ebp),%esi
 /mn/src/drivers/ata/ata.c:432
+80031664:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/ata/ata.c:433
 80031667:	8b 5e 08             	mov    0x8(%esi),%ebx
-/mn/src/drivers/ata/ata.c:434
+/mn/src/drivers/ata/ata.c:435
 8003166a:	85 db                	test   %ebx,%ebx
 8003166c:	74 6c                	je     800316da <_AtaServiceCtrlRequest+0x7e>
-/mn/src/drivers/ata/ata.c:436
-8003166e:	8b 53 0c             	mov    0xc(%ebx),%edx
 /mn/src/drivers/ata/ata.c:437
+8003166e:	8b 53 0c             	mov    0xc(%ebx),%edx
+/mn/src/drivers/ata/ata.c:438
 80031671:	8b 02                	mov    (%edx),%eax
 80031673:	3d 63 61 00 00       	cmp    $0x6163,%eax
 80031678:	74 0a                	je     80031684 <_AtaServiceCtrlRequest+0x28>
@@ -891,17 +890,17 @@ AtaServiceCtrlRequest():
 8003167f:	74 17                	je     80031698 <_AtaServiceCtrlRequest+0x3c>
 80031681:	eb 3d                	jmp    800316c0 <_AtaServiceCtrlRequest+0x64>
 80031683:	90                   	nop    
-/mn/src/drivers/ata/ata.c:440
+/mn/src/drivers/ata/ata.c:441
 80031684:	83 c4 f8             	add    $0xfffffff8,%esp
 80031687:	8d 42 18             	lea    0x18(%edx),%eax
 8003168a:	50                   	push   %eax
 8003168b:	8b 42 14             	mov    0x14(%edx),%eax
 8003168e:	50                   	push   %eax
 8003168f:	e8 d0 fa ff ff       	call   80031164 <_AtaIssueCommand>
-/mn/src/drivers/ata/ata.c:443
+/mn/src/drivers/ata/ata.c:444
 80031694:	eb 12                	jmp    800316a8 <_AtaServiceCtrlRequest+0x4c>
 80031696:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:446
+/mn/src/drivers/ata/ata.c:447
 80031698:	83 c4 f8             	add    $0xfffffff8,%esp
 8003169b:	8d 42 18             	lea    0x18(%edx),%eax
 8003169e:	50                   	push   %eax
@@ -911,34 +910,34 @@ AtaServiceCtrlRequest():
 800316a8:	83 c4 10             	add    $0x10,%esp
 800316ab:	84 c0                	test   %al,%al
 800316ad:	75 2b                	jne    800316da <_AtaServiceCtrlRequest+0x7e>
-/mn/src/drivers/ata/ata.c:448
+/mn/src/drivers/ata/ata.c:449
 800316af:	83 c4 fc             	add    $0xfffffffc,%esp
 800316b2:	6a 0b                	push   $0xb
 800316b4:	53                   	push   %ebx
 800316b5:	56                   	push   %esi
 800316b6:	e8 1d 11 00 00       	call   800327d8 <_DevFinishIo>
-/mn/src/drivers/ata/ata.c:449
+/mn/src/drivers/ata/ata.c:450
 800316bb:	eb 1d                	jmp    800316da <_AtaServiceCtrlRequest+0x7e>
 800316bd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:452
+/mn/src/drivers/ata/ata.c:453
 800316c0:	83 c4 f8             	add    $0xfffffff8,%esp
 800316c3:	52                   	push   %edx
 800316c4:	68 00 16 03 80       	push   $0x80031600
 800316c9:	e8 2a 11 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:454
+/mn/src/drivers/ata/ata.c:455
 800316ce:	83 c4 fc             	add    $0xfffffffc,%esp
 800316d1:	6a 07                	push   $0x7
 800316d3:	53                   	push   %ebx
 800316d4:	56                   	push   %esi
 800316d5:	e8 fe 10 00 00       	call   800327d8 <_DevFinishIo>
-/mn/src/drivers/ata/ata.c:457
+/mn/src/drivers/ata/ata.c:458
 800316da:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 800316dd:	5b                   	pop    %ebx
 800316de:	5e                   	pop    %esi
 800316df:	89 ec                	mov    %ebp,%esp
 800316e1:	5d                   	pop    %ebp
 800316e2:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:458
+/mn/src/drivers/ata/ata.c:459
 800316e3:	90                   	nop    
 
 800316e4 <_AtapiTransferCount>:
@@ -946,35 +945,35 @@ AtapiTransferCount():
 800316e4:	55                   	push   %ebp
 800316e5:	89 e5                	mov    %esp,%ebp
 800316e7:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:461
+/mn/src/drivers/ata/ata.c:462
 800316e8:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/ata/ata.c:464
+/mn/src/drivers/ata/ata.c:465
 800316eb:	0f b7 58 14          	movzwl 0x14(%eax),%ebx
 800316ef:	8d 53 05             	lea    0x5(%ebx),%edx
 /mn/include/kernel/i386.h:317
 800316f2:	ec                   	in     (%dx),%al
 800316f3:	88 c2                	mov    %al,%dl
-/mn/src/drivers/ata/ata.c:464
-800316f5:	0f b6 ca             	movzbl %dl,%ecx
-/mn/src/drivers/ata/ata.c:466
-800316f8:	8d 43 04             	lea    0x4(%ebx),%eax
 /mn/src/drivers/ata/ata.c:465
+800316f5:	0f b6 ca             	movzbl %dl,%ecx
+/mn/src/drivers/ata/ata.c:467
+800316f8:	8d 43 04             	lea    0x4(%ebx),%eax
+/mn/src/drivers/ata/ata.c:466
 800316fb:	c1 e1 08             	shl    $0x8,%ecx
 /mn/include/kernel/i386.h:317
 800316fe:	89 c2                	mov    %eax,%edx
 80031700:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:466
+/mn/src/drivers/ata/ata.c:467
 80031701:	0f b6 c0             	movzbl %al,%eax
-/mn/src/drivers/ata/ata.c:467
+/mn/src/drivers/ata/ata.c:468
 80031704:	5b                   	pop    %ebx
-/mn/src/drivers/ata/ata.c:466
-80031705:	09 c1                	or     %eax,%ecx
 /mn/src/drivers/ata/ata.c:467
+80031705:	09 c1                	or     %eax,%ecx
+/mn/src/drivers/ata/ata.c:468
 80031707:	89 ec                	mov    %ebp,%esp
 80031709:	89 c8                	mov    %ecx,%eax
 8003170b:	5d                   	pop    %ebp
 8003170c:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:468
+/mn/src/drivers/ata/ata.c:469
 8003170d:	8d 76 00             	lea    0x0(%esi),%esi
 
 80031710 <_AtapiReadAndDiscard>:
@@ -985,18 +984,18 @@ AtapiReadAndDiscard():
 80031716:	57                   	push   %edi
 80031717:	56                   	push   %esi
 80031718:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:475
+/mn/src/drivers/ata/ata.c:476
 80031719:	83 c4 f4             	add    $0xfffffff4,%esp
 8003171c:	8b 45 08             	mov    0x8(%ebp),%eax
 8003171f:	50                   	push   %eax
 80031720:	e8 bf ff ff ff       	call   800316e4 <_AtapiTransferCount>
 80031725:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/ata/ata.c:477
+/mn/src/drivers/ata/ata.c:478
 80031727:	89 f9                	mov    %edi,%ecx
 80031729:	3b 7d 10             	cmp    0x10(%ebp),%edi
 8003172c:	76 03                	jbe    80031731 <_AtapiReadAndDiscard+0x21>
 8003172e:	8b 4d 10             	mov    0x10(%ebp),%ecx
-/mn/src/drivers/ata/ata.c:479
+/mn/src/drivers/ata/ata.c:480
 80031731:	31 f6                	xor    %esi,%esi
 80031733:	8b 5d 0c             	mov    0xc(%ebp),%ebx
 80031736:	39 ce                	cmp    %ecx,%esi
@@ -1007,19 +1006,19 @@ AtapiReadAndDiscard():
 8003173f:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 /mn/include/kernel/i386.h:323
 80031743:	66 ed                	in     (%dx),%ax
-/mn/src/drivers/ata/ata.c:480
+/mn/src/drivers/ata/ata.c:481
 80031745:	66 89 03             	mov    %ax,(%ebx)
-/mn/src/drivers/ata/ata.c:479
-80031748:	83 c6 02             	add    $0x2,%esi
 /mn/src/drivers/ata/ata.c:480
+80031748:	83 c6 02             	add    $0x2,%esi
+/mn/src/drivers/ata/ata.c:481
 8003174b:	83 c3 02             	add    $0x2,%ebx
-/mn/src/drivers/ata/ata.c:479
+/mn/src/drivers/ata/ata.c:480
 8003174e:	39 ce                	cmp    %ecx,%esi
 80031750:	72 ea                	jb     8003173c <_AtapiReadAndDiscard+0x2c>
-/mn/src/drivers/ata/ata.c:482
+/mn/src/drivers/ata/ata.c:483
 80031752:	39 cf                	cmp    %ecx,%edi
 80031754:	76 2a                	jbe    80031780 <_AtapiReadAndDiscard+0x70>
-/mn/src/drivers/ata/ata.c:485
+/mn/src/drivers/ata/ata.c:486
 80031756:	29 cf                	sub    %ecx,%edi
 80031758:	89 f9                	mov    %edi,%ecx
 8003175a:	83 f9 01             	cmp    $0x1,%ecx
@@ -1029,11 +1028,11 @@ AtapiReadAndDiscard():
 80031766:	89 f6                	mov    %esi,%esi
 /mn/include/kernel/i386.h:323
 80031768:	66 ed                	in     (%dx),%ax
-/mn/src/drivers/ata/ata.c:485
+/mn/src/drivers/ata/ata.c:486
 8003176a:	83 c1 fe             	add    $0xfffffffe,%ecx
 8003176d:	83 f9 01             	cmp    $0x1,%ecx
 80031770:	77 f6                	ja     80031768 <_AtapiReadAndDiscard+0x58>
-/mn/src/drivers/ata/ata.c:489
+/mn/src/drivers/ata/ata.c:490
 80031772:	85 c9                	test   %ecx,%ecx
 80031774:	74 12                	je     80031788 <_AtapiReadAndDiscard+0x78>
 /mn/include/kernel/i386.h:314
@@ -1041,14 +1040,14 @@ AtapiReadAndDiscard():
 80031779:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 /mn/include/kernel/i386.h:316
 8003177d:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:491
-8003177e:	eb 08                	jmp    80031788 <_AtapiReadAndDiscard+0x78>
 /mn/src/drivers/ata/ata.c:492
+8003177e:	eb 08                	jmp    80031788 <_AtapiReadAndDiscard+0x78>
+/mn/src/drivers/ata/ata.c:493
 80031780:	3b 4d 10             	cmp    0x10(%ebp),%ecx
 80031783:	73 03                	jae    80031788 <_AtapiReadAndDiscard+0x78>
-/mn/src/drivers/ata/ata.c:494
+/mn/src/drivers/ata/ata.c:495
 80031785:	89 7d 10             	mov    %edi,0x10(%ebp)
-/mn/src/drivers/ata/ata.c:496
+/mn/src/drivers/ata/ata.c:497
 80031788:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 8003178b:	8b 45 10             	mov    0x10(%ebp),%eax
 8003178e:	5b                   	pop    %ebx
@@ -1057,7 +1056,7 @@ AtapiReadAndDiscard():
 80031791:	89 ec                	mov    %ebp,%esp
 80031793:	5d                   	pop    %ebp
 80031794:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:497
+/mn/src/drivers/ata/ata.c:498
 80031795:	8d 74 26 00          	lea    0x0(%esi,1),%esi
 80031799:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
 800317a0:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
@@ -1159,25 +1158,25 @@ AtapiPacketInterrupt():
 80031872:	57                   	push   %edi
 80031873:	56                   	push   %esi
 80031874:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:507
+/mn/src/drivers/ata/ata.c:508
 80031875:	8b 4d 08             	mov    0x8(%ebp),%ecx
 80031878:	8b 75 0c             	mov    0xc(%ebp),%esi
-/mn/src/drivers/ata/ata.c:511
-8003187b:	8d 5e 14             	lea    0x14(%esi),%ebx
 /mn/src/drivers/ata/ata.c:512
+8003187b:	8d 5e 14             	lea    0x14(%esi),%ebx
+/mn/src/drivers/ata/ata.c:513
 8003187e:	8a 81 9d 00 00 00    	mov    0x9d(%ecx),%al
 80031884:	24 08                	and    $0x8,%al
 80031886:	0f b6 f8             	movzbl %al,%edi
-/mn/src/drivers/ata/ata.c:513
+/mn/src/drivers/ata/ata.c:514
 80031889:	0f b7 41 14          	movzwl 0x14(%ecx),%eax
 8003188d:	83 c0 02             	add    $0x2,%eax
 /mn/include/kernel/i386.h:317
 80031890:	89 c2                	mov    %eax,%edx
 80031892:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:513
+/mn/src/drivers/ata/ata.c:514
 80031893:	83 e0 03             	and    $0x3,%eax
 80031896:	09 c7                	or     %eax,%edi
-/mn/src/drivers/ata/ata.c:516
+/mn/src/drivers/ata/ata.c:517
 80031898:	83 ff 03             	cmp    $0x3,%edi
 8003189b:	74 4f                	je     800318ec <_AtapiPacketInterrupt+0x80>
 8003189d:	77 09                	ja     800318a8 <_AtapiPacketInterrupt+0x3c>
@@ -1189,56 +1188,56 @@ AtapiPacketInterrupt():
 800318ab:	74 1b                	je     800318c8 <_AtapiPacketInterrupt+0x5c>
 800318ad:	eb 61                	jmp    80031910 <_AtapiPacketInterrupt+0xa4>
 800318af:	90                   	nop    
-/mn/src/drivers/ata/ata.c:520
+/mn/src/drivers/ata/ata.c:521
 800318b0:	83 c4 f4             	add    $0xfffffff4,%esp
 800318b3:	68 a0 17 03 80       	push   $0x800317a0
 800318b8:	e8 3b 0f 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:521
-800318bd:	c7 46 04 0b 00 00 00 	movl   $0xb,0x4(%esi)
 /mn/src/drivers/ata/ata.c:522
+800318bd:	c7 46 04 0b 00 00 00 	movl   $0xb,0x4(%esi)
+/mn/src/drivers/ata/ata.c:523
 800318c4:	eb 5f                	jmp    80031925 <_AtapiPacketInterrupt+0xb9>
 800318c6:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:526
+/mn/src/drivers/ata/ata.c:527
 800318c8:	83 c4 fc             	add    $0xfffffffc,%esp
 800318cb:	68 ff ff 00 00       	push   $0xffff
 800318d0:	8b 43 10             	mov    0x10(%ebx),%eax
 800318d3:	50                   	push   %eax
 800318d4:	51                   	push   %ecx
 800318d5:	e8 36 fe ff ff       	call   80031710 <_AtapiReadAndDiscard>
-/mn/src/drivers/ata/ata.c:527
+/mn/src/drivers/ata/ata.c:528
 800318da:	01 43 10             	add    %eax,0x10(%ebx)
-/mn/src/drivers/ata/ata.c:530
-800318dd:	c1 e8 0b             	shr    $0xb,%eax
 /mn/src/drivers/ata/ata.c:531
-800318e0:	28 43 18             	sub    %al,0x18(%ebx)
+800318dd:	c1 e8 0b             	shr    $0xb,%eax
 /mn/src/drivers/ata/ata.c:532
+800318e0:	28 43 18             	sub    %al,0x18(%ebx)
+/mn/src/drivers/ata/ata.c:533
 800318e3:	01 43 14             	add    %eax,0x14(%ebx)
-/mn/src/drivers/ata/ata.c:542
+/mn/src/drivers/ata/ata.c:543
 800318e6:	31 c0                	xor    %eax,%eax
 800318e8:	eb 40                	jmp    8003192a <_AtapiPacketInterrupt+0xbe>
 800318ea:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:548
+/mn/src/drivers/ata/ata.c:549
 800318ec:	80 7b 18 00          	cmpb   $0x0,0x18(%ebx)
 800318f0:	74 33                	je     80031925 <_AtapiPacketInterrupt+0xb9>
-/mn/src/drivers/ata/ata.c:550
+/mn/src/drivers/ata/ata.c:551
 800318f2:	83 c4 f8             	add    $0xfffffff8,%esp
 800318f5:	0f b6 43 18          	movzbl 0x18(%ebx),%eax
 800318f9:	50                   	push   %eax
 800318fa:	68 e0 17 03 80       	push   $0x800317e0
 800318ff:	e8 f4 0e 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:551
+/mn/src/drivers/ata/ata.c:552
 80031904:	c7 46 04 0b 00 00 00 	movl   $0xb,0x4(%esi)
-/mn/src/drivers/ata/ata.c:554
+/mn/src/drivers/ata/ata.c:555
 8003190b:	eb 18                	jmp    80031925 <_AtapiPacketInterrupt+0xb9>
 8003190d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:558
+/mn/src/drivers/ata/ata.c:559
 80031910:	83 c4 f8             	add    $0xfffffff8,%esp
 80031913:	57                   	push   %edi
 80031914:	68 40 18 03 80       	push   $0x80031840
 80031919:	e8 da 0e 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:559
-8003191e:	c7 46 04 07 00 00 00 	movl   $0x7,0x4(%esi)
 /mn/src/drivers/ata/ata.c:560
+8003191e:	c7 46 04 07 00 00 00 	movl   $0x7,0x4(%esi)
+/mn/src/drivers/ata/ata.c:561
 80031925:	b8 01 00 00 00       	mov    $0x1,%eax
 8003192a:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 8003192d:	5b                   	pop    %ebx
@@ -1247,7 +1246,7 @@ AtapiPacketInterrupt():
 80031930:	89 ec                	mov    %ebp,%esp
 80031932:	5d                   	pop    %ebp
 80031933:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:562
+/mn/src/drivers/ata/ata.c:563
 80031934:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
 8003193a:	8d bf 00 00 00 00    	lea    0x0(%edi),%edi
 80031940:	46                   	inc    %esi
@@ -1378,35 +1377,35 @@ AtaCtrlIsr():
 80031a76:	57                   	push   %edi
 80031a77:	56                   	push   %esi
 80031a78:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:572
+/mn/src/drivers/ata/ata.c:573
 80031a79:	8b 45 08             	mov    0x8(%ebp),%eax
 80031a7c:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 80031a80:	83 c2 07             	add    $0x7,%edx
 /mn/include/kernel/i386.h:316
 80031a83:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:572
+/mn/src/drivers/ata/ata.c:573
 80031a84:	8b 55 08             	mov    0x8(%ebp),%edx
 80031a87:	88 82 9d 00 00 00    	mov    %al,0x9d(%edx)
-/mn/src/drivers/ata/ata.c:575
-80031a8d:	8b 72 08             	mov    0x8(%edx),%esi
 /mn/src/drivers/ata/ata.c:576
+80031a8d:	8b 72 08             	mov    0x8(%edx),%esi
+/mn/src/drivers/ata/ata.c:577
 80031a90:	85 f6                	test   %esi,%esi
 80031a92:	0f 84 0a 01 00 00    	je     80031ba2 <_AtaCtrlIsr+0x132>
-/mn/src/drivers/ata/ata.c:580
-80031a98:	8b 7e 0c             	mov    0xc(%esi),%edi
 /mn/src/drivers/ata/ata.c:581
-80031a9b:	b3 00                	mov    $0x0,%bl
+80031a98:	8b 7e 0c             	mov    0xc(%esi),%edi
 /mn/src/drivers/ata/ata.c:582
-80031a9d:	c7 47 04 00 00 00 00 	movl   $0x0,0x4(%edi)
+80031a9b:	b3 00                	mov    $0x0,%bl
 /mn/src/drivers/ata/ata.c:583
+80031a9d:	c7 47 04 00 00 00 00 	movl   $0x0,0x4(%edi)
+/mn/src/drivers/ata/ata.c:584
 80031aa4:	8b 07                	mov    (%edi),%eax
 80031aa6:	3d 63 61 00 00       	cmp    $0x6163,%eax
 80031aab:	75 7b                	jne    80031b28 <_AtaCtrlIsr+0xb8>
-/mn/src/drivers/ata/ata.c:587
+/mn/src/drivers/ata/ata.c:588
 80031aad:	8b 46 28             	mov    0x28(%esi),%eax
-/mn/src/drivers/ata/ata.c:585
+/mn/src/drivers/ata/ata.c:586
 80031ab0:	8d 5e 28             	lea    0x28(%esi),%ebx
-/mn/src/drivers/ata/ata.c:587
+/mn/src/drivers/ata/ata.c:588
 80031ab3:	50                   	push   %eax
 80031ab4:	8b 46 1c             	mov    0x1c(%esi),%eax
 80031ab7:	50                   	push   %eax
@@ -1414,7 +1413,7 @@ AtaCtrlIsr():
 80031abc:	50                   	push   %eax
 80031abd:	68 40 19 03 80       	push   $0x80031940
 80031ac2:	e8 31 0d 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:592
+/mn/src/drivers/ata/ata.c:593
 80031ac7:	83 c4 fc             	add    $0xfffffffc,%esp
 80031aca:	6a 03                	push   $0x3
 80031acc:	8b 46 20             	mov    0x20(%esi),%eax
@@ -1422,17 +1421,17 @@ AtaCtrlIsr():
 80031ad0:	53                   	push   %ebx
 80031ad1:	e8 fa 0c 00 00       	call   800327d0 <_MemMapTemp>
 80031ad6:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/ata/ata.c:595
+/mn/src/drivers/ata/ata.c:596
 80031ad8:	83 c4 20             	add    $0x20,%esp
 80031adb:	85 ff                	test   %edi,%edi
 80031add:	75 19                	jne    80031af8 <_AtaCtrlIsr+0x88>
 80031adf:	83 c4 fc             	add    $0xfffffffc,%esp
-80031ae2:	68 53 02 00 00       	push   $0x253
+80031ae2:	68 54 02 00 00       	push   $0x254
 80031ae7:	68 ac 19 03 80       	push   $0x800319ac
 80031aec:	68 b2 19 03 80       	push   $0x800319b2
 80031af1:	e8 d2 0c 00 00       	call   800327c8 <___dj_assert>
 80031af6:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:596
+/mn/src/drivers/ata/ata.c:597
 80031af8:	83 c4 fc             	add    $0xfffffffc,%esp
 80031afb:	8b 46 24             	mov    0x24(%esi),%eax
 80031afe:	50                   	push   %eax
@@ -1452,15 +1451,15 @@ AtaCtrlIsr():
 80031b18:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 /mn/include/kernel/i386.h:329
 80031b1c:	f3 66 6d             	repz insw (%dx),%es:(%edi)
-/mn/src/drivers/ata/ata.c:599
+/mn/src/drivers/ata/ata.c:600
 80031b1f:	e8 9c 0c 00 00       	call   800327c0 <_MemUnmapTemp>
-/mn/src/drivers/ata/ata.c:601
+/mn/src/drivers/ata/ata.c:602
 80031b24:	eb 5a                	jmp    80031b80 <_AtaCtrlIsr+0x110>
 80031b26:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:602
+/mn/src/drivers/ata/ata.c:603
 80031b28:	3d 70 61 00 00       	cmp    $0x6170,%eax
 80031b2d:	75 15                	jne    80031b44 <_AtaCtrlIsr+0xd4>
-/mn/src/drivers/ata/ata.c:603
+/mn/src/drivers/ata/ata.c:604
 80031b2f:	83 c4 f8             	add    $0xfffffff8,%esp
 80031b32:	57                   	push   %edi
 80031b33:	8b 55 08             	mov    0x8(%ebp),%edx
@@ -1470,12 +1469,12 @@ AtaCtrlIsr():
 80031b3e:	83 c4 10             	add    $0x10,%esp
 80031b41:	eb 39                	jmp    80031b7c <_AtaCtrlIsr+0x10c>
 80031b43:	90                   	nop    
-/mn/src/drivers/ata/ata.c:606
+/mn/src/drivers/ata/ata.c:607
 80031b44:	83 c4 f8             	add    $0xfffffff8,%esp
 80031b47:	50                   	push   %eax
 80031b48:	68 e0 19 03 80       	push   $0x800319e0
 80031b4d:	e8 a6 0c 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:607
+/mn/src/drivers/ata/ata.c:608
 80031b52:	8b 07                	mov    (%edi),%eax
 80031b54:	83 c4 10             	add    $0x10,%esp
 80031b57:	3d 63 61 00 00       	cmp    $0x6163,%eax
@@ -1483,30 +1482,30 @@ AtaCtrlIsr():
 80031b5e:	3d 70 61 00 00       	cmp    $0x6170,%eax
 80031b63:	74 17                	je     80031b7c <_AtaCtrlIsr+0x10c>
 80031b65:	83 c4 fc             	add    $0xfffffffc,%esp
-80031b68:	68 60 02 00 00       	push   $0x260
+80031b68:	68 61 02 00 00       	push   $0x261
 80031b6d:	68 ac 19 03 80       	push   $0x800319ac
 80031b72:	68 20 1a 03 80       	push   $0x80031a20
 80031b77:	e8 4c 0c 00 00       	call   800327c8 <___dj_assert>
-/mn/src/drivers/ata/ata.c:611
+/mn/src/drivers/ata/ata.c:612
 80031b7c:	84 db                	test   %bl,%bl
 80031b7e:	74 22                	je     80031ba2 <_AtaCtrlIsr+0x132>
-/mn/src/drivers/ata/ata.c:613
+/mn/src/drivers/ata/ata.c:614
 80031b80:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/ata/ata.c:614
+/mn/src/drivers/ata/ata.c:615
 80031b83:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/ata/ata.c:613
-80031b86:	c6 80 9c 00 00 00 00 	movb   $0x0,0x9c(%eax)
 /mn/src/drivers/ata/ata.c:614
+80031b86:	c6 80 9c 00 00 00 00 	movb   $0x0,0x9c(%eax)
+/mn/src/drivers/ata/ata.c:615
 80031b8d:	6a 00                	push   $0x0
 80031b8f:	56                   	push   %esi
 80031b90:	50                   	push   %eax
 80031b91:	e8 42 0c 00 00       	call   800327d8 <_DevFinishIo>
-/mn/src/drivers/ata/ata.c:615
+/mn/src/drivers/ata/ata.c:616
 80031b96:	83 c4 f4             	add    $0xfffffff4,%esp
 80031b99:	8b 55 08             	mov    0x8(%ebp),%edx
 80031b9c:	52                   	push   %edx
 80031b9d:	e8 ba fa ff ff       	call   8003165c <_AtaServiceCtrlRequest>
-/mn/src/drivers/ata/ata.c:619
+/mn/src/drivers/ata/ata.c:620
 80031ba2:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80031ba5:	b8 01 00 00 00       	mov    $0x1,%eax
 80031baa:	5b                   	pop    %ebx
@@ -1515,7 +1514,7 @@ AtaCtrlIsr():
 80031bad:	89 ec                	mov    %ebp,%esp
 80031baf:	5d                   	pop    %ebp
 80031bb0:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:620
+/mn/src/drivers/ata/ata.c:621
 80031bb1:	8d 76 00             	lea    0x0(%esi),%esi
 
 80031bb4 <_AtaCtrlRequest>:
@@ -1525,10 +1524,10 @@ AtaCtrlRequest():
 80031bb7:	83 ec 10             	sub    $0x10,%esp
 80031bba:	56                   	push   %esi
 80031bbb:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:623
+/mn/src/drivers/ata/ata.c:624
 80031bbc:	8b 5d 0c             	mov    0xc(%ebp),%ebx
 80031bbf:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/ata/ata.c:628
+/mn/src/drivers/ata/ata.c:629
 80031bc2:	8b 03                	mov    (%ebx),%eax
 80031bc4:	3d 70 61 00 00       	cmp    $0x6170,%eax
 80031bc9:	74 35                	je     80031c00 <_AtaCtrlRequest+0x4c>
@@ -1539,17 +1538,17 @@ AtaCtrlRequest():
 80031bd9:	8d 76 00             	lea    0x0(%esi),%esi
 80031bdc:	3d 52 64 00 00       	cmp    $0x6452,%eax
 80031be1:	75 7d                	jne    80031c60 <_AtaCtrlRequest+0xac>
-/mn/src/drivers/ata/ata.c:631
+/mn/src/drivers/ata/ata.c:632
 80031be3:	83 c4 fc             	add    $0xfffffffc,%esp
-80031be6:	68 77 02 00 00       	push   $0x277
+80031be6:	68 78 02 00 00       	push   $0x278
 80031beb:	68 ac 19 03 80       	push   $0x800319ac
 80031bf0:	56                   	push   %esi
 80031bf1:	e8 c2 0b 00 00       	call   800327b8 <___free>
-/mn/src/drivers/ata/ata.c:632
+/mn/src/drivers/ata/ata.c:633
 80031bf6:	b8 01 00 00 00       	mov    $0x1,%eax
 80031bfb:	eb 6c                	jmp    80031c69 <_AtaCtrlRequest+0xb5>
 80031bfd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:636
+/mn/src/drivers/ata/ata.c:637
 80031c00:	0f b6 43 2c          	movzbl 0x2c(%ebx),%eax
 80031c04:	83 c4 f4             	add    $0xfffffff4,%esp
 80031c07:	c1 e0 0b             	shl    $0xb,%eax
@@ -1560,18 +1559,18 @@ AtaCtrlRequest():
 80031c11:	53                   	push   %ebx
 80031c12:	56                   	push   %esi
 80031c13:	e8 98 0b 00 00       	call   800327b0 <_DevQueueRequest>
-/mn/src/drivers/ata/ata.c:639
+/mn/src/drivers/ata/ata.c:640
 80031c18:	83 c4 20             	add    $0x20,%esp
 80031c1b:	80 be 9c 00 00 00 00 	cmpb   $0x0,0x9c(%esi)
 80031c22:	75 3c                	jne    80031c60 <_AtaCtrlRequest+0xac>
-/mn/src/drivers/ata/ata.c:640
+/mn/src/drivers/ata/ata.c:641
 80031c24:	83 c4 f4             	add    $0xfffffff4,%esp
 80031c27:	56                   	push   %esi
 80031c28:	e8 2f fa ff ff       	call   8003165c <_AtaServiceCtrlRequest>
-/mn/src/drivers/ata/ata.c:641
+/mn/src/drivers/ata/ata.c:642
 80031c2d:	eb 31                	jmp    80031c60 <_AtaCtrlRequest+0xac>
 80031c2f:	90                   	nop    
-/mn/src/drivers/ata/ata.c:645
+/mn/src/drivers/ata/ata.c:646
 80031c30:	0f b6 43 18          	movzbl 0x18(%ebx),%eax
 80031c34:	83 c4 f4             	add    $0xfffffff4,%esp
 80031c37:	c1 e0 09             	shl    $0x9,%eax
@@ -1582,20 +1581,20 @@ AtaCtrlRequest():
 80031c41:	53                   	push   %ebx
 80031c42:	56                   	push   %esi
 80031c43:	e8 68 0b 00 00       	call   800327b0 <_DevQueueRequest>
-/mn/src/drivers/ata/ata.c:648
+/mn/src/drivers/ata/ata.c:649
 80031c48:	83 c4 20             	add    $0x20,%esp
 80031c4b:	80 be 9c 00 00 00 00 	cmpb   $0x0,0x9c(%esi)
 80031c52:	75 a2                	jne    80031bf6 <_AtaCtrlRequest+0x42>
-/mn/src/drivers/ata/ata.c:649
+/mn/src/drivers/ata/ata.c:650
 80031c54:	83 c4 f4             	add    $0xfffffff4,%esp
 80031c57:	56                   	push   %esi
 80031c58:	e8 ff f9 ff ff       	call   8003165c <_AtaServiceCtrlRequest>
-/mn/src/drivers/ata/ata.c:650
+/mn/src/drivers/ata/ata.c:651
 80031c5d:	eb 97                	jmp    80031bf6 <_AtaCtrlRequest+0x42>
 80031c5f:	90                   	nop    
-/mn/src/drivers/ata/ata.c:653
-80031c60:	c7 43 04 04 00 00 00 	movl   $0x4,0x4(%ebx)
 /mn/src/drivers/ata/ata.c:654
+80031c60:	c7 43 04 04 00 00 00 	movl   $0x4,0x4(%ebx)
+/mn/src/drivers/ata/ata.c:655
 80031c67:	31 c0                	xor    %eax,%eax
 80031c69:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80031c6c:	5b                   	pop    %ebx
@@ -1603,7 +1602,7 @@ AtaCtrlRequest():
 80031c6e:	89 ec                	mov    %ebp,%esp
 80031c70:	5d                   	pop    %ebp
 80031c71:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:655
+/mn/src/drivers/ata/ata.c:656
 80031c72:	89 f6                	mov    %esi,%esi
 
 80031c74 <_AtaDriveRequest>:
@@ -1614,142 +1613,142 @@ AtaDriveRequest():
 80031c7a:	57                   	push   %edi
 80031c7b:	56                   	push   %esi
 80031c7c:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:658
+/mn/src/drivers/ata/ata.c:659
 80031c7d:	8b 75 0c             	mov    0xc(%ebp),%esi
 80031c80:	8b 7d 08             	mov    0x8(%ebp),%edi
-/mn/src/drivers/ata/ata.c:663
+/mn/src/drivers/ata/ata.c:664
 80031c83:	8b 1e                	mov    (%esi),%ebx
 80031c85:	81 fb 72 64 00 80    	cmp    $0x80006472,%ebx
 80031c8b:	74 0c                	je     80031c99 <_AtaDriveRequest+0x25>
 80031c8d:	81 fb 77 64 00 80    	cmp    $0x80006477,%ebx
 80031c93:	0f 85 0b 01 00 00    	jne    80031da4 <_AtaDriveRequest+0x130>
-/mn/src/drivers/ata/ata.c:667
+/mn/src/drivers/ata/ata.c:668
 80031c99:	80 7f 38 00          	cmpb   $0x0,0x38(%edi)
 80031c9d:	0f 84 8d 00 00 00    	je     80031d30 <_AtaDriveRequest+0xbc>
-/mn/src/drivers/ata/ata.c:673
+/mn/src/drivers/ata/ata.c:674
 80031ca3:	81 fb 72 64 00 80    	cmp    $0x80006472,%ebx
 80031ca9:	74 0d                	je     80031cb8 <_AtaDriveRequest+0x44>
-/mn/src/drivers/ata/ata.c:675
-80031cab:	c7 46 04 07 00 00 00 	movl   $0x7,0x4(%esi)
 /mn/src/drivers/ata/ata.c:676
+80031cab:	c7 46 04 07 00 00 00 	movl   $0x7,0x4(%esi)
+/mn/src/drivers/ata/ata.c:677
 80031cb2:	e9 f4 00 00 00       	jmp    80031dab <_AtaDriveRequest+0x137>
 80031cb7:	90                   	nop    
-/mn/src/drivers/ata/ata.c:679
+/mn/src/drivers/ata/ata.c:680
 80031cb8:	c7 45 c0 00 00 00 00 	movl   $0x0,0xffffffc0(%ebp)
 80031cbf:	c7 45 c4 00 00 00 00 	movl   $0x0,0xffffffc4(%ebp)
 80031cc6:	c7 45 c8 00 00 00 00 	movl   $0x0,0xffffffc8(%ebp)
-/mn/src/drivers/ata/ata.c:681
+/mn/src/drivers/ata/ata.c:682
 80031ccd:	8b 4e 20             	mov    0x20(%esi),%ecx
 80031cd0:	8b 5e 24             	mov    0x24(%esi),%ebx
 80031cd3:	0f ac d9 0b          	shrd   $0xb,%ebx,%ecx
 80031cd7:	c1 eb 0b             	shr    $0xb,%ebx
-/mn/src/drivers/ata/ata.c:683
+/mn/src/drivers/ata/ata.c:684
 80031cda:	c6 45 c0 28          	movb   $0x28,0xffffffc0(%ebp)
-/mn/src/drivers/ata/ata.c:681
+/mn/src/drivers/ata/ata.c:682
 80031cde:	89 ca                	mov    %ecx,%edx
-/mn/src/drivers/ata/ata.c:684
+/mn/src/drivers/ata/ata.c:685
 80031ce0:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/ata/ata.c:687
+/mn/src/drivers/ata/ata.c:688
 80031ce2:	88 55 c5             	mov    %dl,0xffffffc5(%ebp)
-/mn/src/drivers/ata/ata.c:684
+/mn/src/drivers/ata/ata.c:685
 80031ce5:	c1 e8 18             	shr    $0x18,%eax
 80031ce8:	88 45 c2             	mov    %al,0xffffffc2(%ebp)
-/mn/src/drivers/ata/ata.c:685
+/mn/src/drivers/ata/ata.c:686
 80031ceb:	89 d0                	mov    %edx,%eax
 80031ced:	c1 e8 10             	shr    $0x10,%eax
 80031cf0:	88 45 c3             	mov    %al,0xffffffc3(%ebp)
-/mn/src/drivers/ata/ata.c:686
+/mn/src/drivers/ata/ata.c:687
 80031cf3:	89 d0                	mov    %edx,%eax
 80031cf5:	c1 e8 08             	shr    $0x8,%eax
 80031cf8:	88 45 c4             	mov    %al,0xffffffc4(%ebp)
-/mn/src/drivers/ata/ata.c:689
+/mn/src/drivers/ata/ata.c:690
 80031cfb:	8b 56 18             	mov    0x18(%esi),%edx
 80031cfe:	c1 ea 0b             	shr    $0xb,%edx
-/mn/src/drivers/ata/ata.c:694
-80031d01:	c7 45 d0 70 61 00 00 	movl   $0x6170,0xffffffd0(%ebp)
-/mn/src/drivers/ata/ata.c:691
-80031d08:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/ata/ata.c:692
-80031d0a:	88 55 c8             	mov    %dl,0xffffffc8(%ebp)
-/mn/src/drivers/ata/ata.c:691
-80031d0d:	66 c1 e8 08          	shr    $0x8,%ax
 /mn/src/drivers/ata/ata.c:695
-80031d11:	89 7d e4             	mov    %edi,0xffffffe4(%ebp)
-/mn/src/drivers/ata/ata.c:691
-80031d14:	88 45 c7             	mov    %al,0xffffffc7(%ebp)
-/mn/src/drivers/ata/ata.c:698
-80031d17:	8b 45 c0             	mov    0xffffffc0(%ebp),%eax
+80031d01:	c7 45 d0 70 61 00 00 	movl   $0x6170,0xffffffd0(%ebp)
+/mn/src/drivers/ata/ata.c:692
+80031d08:	89 d0                	mov    %edx,%eax
+/mn/src/drivers/ata/ata.c:693
+80031d0a:	88 55 c8             	mov    %dl,0xffffffc8(%ebp)
+/mn/src/drivers/ata/ata.c:692
+80031d0d:	66 c1 e8 08          	shr    $0x8,%ax
 /mn/src/drivers/ata/ata.c:696
+80031d11:	89 7d e4             	mov    %edi,0xffffffe4(%ebp)
+/mn/src/drivers/ata/ata.c:692
+80031d14:	88 45 c7             	mov    %al,0xffffffc7(%ebp)
+/mn/src/drivers/ata/ata.c:699
+80031d17:	8b 45 c0             	mov    0xffffffc0(%ebp),%eax
+/mn/src/drivers/ata/ata.c:697
 80031d1a:	88 55 fc             	mov    %dl,0xfffffffc(%ebp)
-/mn/src/drivers/ata/ata.c:698
+/mn/src/drivers/ata/ata.c:699
 80031d1d:	89 45 e8             	mov    %eax,0xffffffe8(%ebp)
 80031d20:	8b 45 c4             	mov    0xffffffc4(%ebp),%eax
-/mn/src/drivers/ata/ata.c:697
-80031d23:	89 4d f8             	mov    %ecx,0xfffffff8(%ebp)
 /mn/src/drivers/ata/ata.c:698
+80031d23:	89 4d f8             	mov    %ecx,0xfffffff8(%ebp)
+/mn/src/drivers/ata/ata.c:699
 80031d26:	89 45 ec             	mov    %eax,0xffffffec(%ebp)
 80031d29:	8b 45 c8             	mov    0xffffffc8(%ebp),%eax
-/mn/src/drivers/ata/ata.c:701
+/mn/src/drivers/ata/ata.c:702
 80031d2c:	eb 40                	jmp    80031d6e <_AtaDriveRequest+0xfa>
 80031d2e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:707
+/mn/src/drivers/ata/ata.c:708
 80031d30:	8b 46 18             	mov    0x18(%esi),%eax
 80031d33:	c1 e8 09             	shr    $0x9,%eax
 80031d36:	88 45 b0             	mov    %al,0xffffffb0(%ebp)
-/mn/src/drivers/ata/ata.c:708
-80031d39:	8b 56 20             	mov    0x20(%esi),%edx
 /mn/src/drivers/ata/ata.c:709
+80031d39:	8b 56 20             	mov    0x20(%esi),%edx
+/mn/src/drivers/ata/ata.c:710
 80031d3c:	b0 20                	mov    $0x20,%al
-/mn/src/drivers/ata/ata.c:708
+/mn/src/drivers/ata/ata.c:709
 80031d3e:	8b 4e 24             	mov    0x24(%esi),%ecx
 80031d41:	0f ac ca 09          	shrd   $0x9,%ecx,%edx
 80031d45:	c1 e9 09             	shr    $0x9,%ecx
 80031d48:	89 55 b4             	mov    %edx,0xffffffb4(%ebp)
-/mn/src/drivers/ata/ata.c:709
+/mn/src/drivers/ata/ata.c:710
 80031d4b:	81 fb 77 64 00 80    	cmp    $0x80006477,%ebx
 80031d51:	75 02                	jne    80031d55 <_AtaDriveRequest+0xe1>
 80031d53:	b0 30                	mov    $0x30,%al
 80031d55:	88 45 b8             	mov    %al,0xffffffb8(%ebp)
-/mn/src/drivers/ata/ata.c:713
+/mn/src/drivers/ata/ata.c:714
 80031d58:	8b 45 b0             	mov    0xffffffb0(%ebp),%eax
-/mn/src/drivers/ata/ata.c:711
+/mn/src/drivers/ata/ata.c:712
 80031d5b:	c7 45 d0 63 61 00 00 	movl   $0x6163,0xffffffd0(%ebp)
-/mn/src/drivers/ata/ata.c:713
+/mn/src/drivers/ata/ata.c:714
 80031d62:	89 45 e8             	mov    %eax,0xffffffe8(%ebp)
 80031d65:	8b 45 b8             	mov    0xffffffb8(%ebp),%eax
-/mn/src/drivers/ata/ata.c:712
-80031d68:	89 7d e4             	mov    %edi,0xffffffe4(%ebp)
 /mn/src/drivers/ata/ata.c:713
+80031d68:	89 7d e4             	mov    %edi,0xffffffe4(%ebp)
+/mn/src/drivers/ata/ata.c:714
 80031d6b:	89 55 ec             	mov    %edx,0xffffffec(%ebp)
 80031d6e:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
-/mn/src/drivers/ata/ata.c:714
+/mn/src/drivers/ata/ata.c:715
 80031d71:	8b 46 1c             	mov    0x1c(%esi),%eax
 80031d74:	89 45 f4             	mov    %eax,0xfffffff4(%ebp)
-/mn/src/drivers/ata/ata.c:718
+/mn/src/drivers/ata/ata.c:719
 80031d77:	83 c4 fc             	add    $0xfffffffc,%esp
 80031d7a:	8d 45 d0             	lea    0xffffffd0(%ebp),%eax
 80031d7d:	50                   	push   %eax
 80031d7e:	8b 47 34             	mov    0x34(%edi),%eax
 80031d81:	50                   	push   %eax
 80031d82:	6a 00                	push   $0x0
-80031d84:	e8 1f 0a 00 00       	call   800327a8 <_DevRequest>
+80031d84:	e8 1f 0a 00 00       	call   800327a8 <_IoRequest>
 80031d89:	84 c0                	test   %al,%al
 80031d8b:	74 0f                	je     80031d9c <_AtaDriveRequest+0x128>
-/mn/src/drivers/ata/ata.c:720
+/mn/src/drivers/ata/ata.c:721
 80031d8d:	8b 45 d8             	mov    0xffffffd8(%ebp),%eax
 80031d90:	89 46 08             	mov    %eax,0x8(%esi)
-/mn/src/drivers/ata/ata.c:721
+/mn/src/drivers/ata/ata.c:722
 80031d93:	b8 01 00 00 00       	mov    $0x1,%eax
 80031d98:	eb 13                	jmp    80031dad <_AtaDriveRequest+0x139>
 80031d9a:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:725
+/mn/src/drivers/ata/ata.c:726
 80031d9c:	8b 45 d4             	mov    0xffffffd4(%ebp),%eax
 80031d9f:	89 46 04             	mov    %eax,0x4(%esi)
-/mn/src/drivers/ata/ata.c:726
+/mn/src/drivers/ata/ata.c:727
 80031da2:	eb 07                	jmp    80031dab <_AtaDriveRequest+0x137>
-/mn/src/drivers/ata/ata.c:730
-80031da4:	c7 46 04 04 00 00 00 	movl   $0x4,0x4(%esi)
 /mn/src/drivers/ata/ata.c:731
+80031da4:	c7 46 04 04 00 00 00 	movl   $0x4,0x4(%esi)
+/mn/src/drivers/ata/ata.c:732
 80031dab:	31 c0                	xor    %eax,%eax
 80031dad:	8d 65 98             	lea    0xffffff98(%ebp),%esp
 80031db0:	5b                   	pop    %ebx
@@ -1758,7 +1757,7 @@ AtaDriveRequest():
 80031db3:	89 ec                	mov    %ebp,%esp
 80031db5:	5d                   	pop    %ebp
 80031db6:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:732
+/mn/src/drivers/ata/ata.c:733
 80031db7:	90                   	nop    
 
 80031db8 <_AtaPartitionRequest>:
@@ -1766,21 +1765,21 @@ AtaPartitionRequest():
 80031db8:	55                   	push   %ebp
 80031db9:	89 e5                	mov    %esp,%ebp
 80031dbb:	83 ec 08             	sub    $0x8,%esp
-/mn/src/drivers/ata/ata.c:735
+/mn/src/drivers/ata/ata.c:736
 80031dbe:	8b 4d 0c             	mov    0xc(%ebp),%ecx
 80031dc1:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/ata/ata.c:739
+/mn/src/drivers/ata/ata.c:740
 80031dc4:	8b 01                	mov    (%ecx),%eax
 80031dc6:	3d 72 64 00 80       	cmp    $0x80006472,%eax
 80031dcb:	74 07                	je     80031dd4 <_AtaPartitionRequest+0x1c>
 80031dcd:	3d 77 64 00 80       	cmp    $0x80006477,%eax
 80031dd2:	75 0d                	jne    80031de1 <_AtaPartitionRequest+0x29>
-/mn/src/drivers/ata/ata.c:743
+/mn/src/drivers/ata/ata.c:744
 80031dd4:	8b 42 14             	mov    0x14(%edx),%eax
 80031dd7:	c1 e0 09             	shl    $0x9,%eax
 80031dda:	01 41 20             	add    %eax,0x20(%ecx)
 80031ddd:	83 51 24 00          	adcl   $0x0,0x24(%ecx)
-/mn/src/drivers/ata/ata.c:746
+/mn/src/drivers/ata/ata.c:747
 80031de1:	8b 42 1c             	mov    0x1c(%edx),%eax
 80031de4:	83 c4 f8             	add    $0xfffffff8,%esp
 80031de7:	8b 50 10             	mov    0x10(%eax),%edx
@@ -1792,7 +1791,7 @@ AtaPartitionRequest():
 80031df2:	0f be c0             	movsbl %al,%eax
 80031df5:	5d                   	pop    %ebp
 80031df6:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:748
+/mn/src/drivers/ata/ata.c:749
 80031df7:	90                   	nop    
 
 80031df8 <_ata_partition_vtbl>:
@@ -1847,17 +1846,17 @@ AtaPartitionDevice():
 80031e6f:	81 ec 4c 02 00 00    	sub    $0x24c,%esp
 80031e75:	57                   	push   %edi
 80031e76:	56                   	push   %esi
-/mn/src/drivers/ata/ata.c:773
+/mn/src/drivers/ata/ata.c:774
 80031e77:	8d bd d0 fd ff ff    	lea    0xfffffdd0(%ebp),%edi
 80031e7d:	53                   	push   %ebx
 80031e7e:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/ata/ata.c:757
+/mn/src/drivers/ata/ata.c:758
 80031e81:	8b 75 0c             	mov    0xc(%ebp),%esi
-/mn/src/drivers/ata/ata.c:773
+/mn/src/drivers/ata/ata.c:774
 80031e84:	57                   	push   %edi
 80031e85:	68 00 1e 03 80       	push   $0x80031e00
 80031e8a:	e8 69 09 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:774
+/mn/src/drivers/ata/ata.c:775
 80031e8f:	83 c4 f4             	add    $0xfffffff4,%esp
 80031e92:	68 00 02 00 00       	push   $0x200
 80031e97:	57                   	push   %edi
@@ -1865,96 +1864,96 @@ AtaPartitionDevice():
 80031e9a:	6a 00                	push   $0x0
 80031e9c:	8b 45 08             	mov    0x8(%ebp),%eax
 80031e9f:	50                   	push   %eax
-80031ea0:	e8 fb 08 00 00       	call   800327a0 <_DevRead>
+80031ea0:	e8 fb 08 00 00       	call   800327a0 <_IoReadSync>
 80031ea5:	83 c4 30             	add    $0x30,%esp
 80031ea8:	85 c0                	test   %eax,%eax
 80031eaa:	0f 84 c2 00 00 00    	je     80031f72 <_AtaPartitionDevice+0x106>
-/mn/src/drivers/ata/ata.c:777
+/mn/src/drivers/ata/ata.c:778
 80031eb0:	83 c4 f8             	add    $0xfffffff8,%esp
 80031eb3:	8d 5d d0             	lea    0xffffffd0(%ebp),%ebx
 80031eb6:	56                   	push   %esi
 80031eb7:	53                   	push   %ebx
 80031eb8:	e8 db 08 00 00       	call   80032798 <_wcscpy>
-/mn/src/drivers/ata/ata.c:778
+/mn/src/drivers/ata/ata.c:779
 80031ebd:	83 c4 f4             	add    $0xfffffff4,%esp
 80031ec0:	56                   	push   %esi
 80031ec1:	e8 ca 08 00 00       	call   80032790 <_wcslen>
-/mn/src/drivers/ata/ata.c:781
+/mn/src/drivers/ata/ata.c:782
 80031ec6:	31 f6                	xor    %esi,%esi
-/mn/src/drivers/ata/ata.c:778
-80031ec8:	8d 04 43             	lea    (%ebx,%eax,2),%eax
-/mn/src/drivers/ata/ata.c:781
-80031ecb:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/ata/ata.c:778
-80031ece:	89 85 cc fd ff ff    	mov    %eax,0xfffffdcc(%ebp)
 /mn/src/drivers/ata/ata.c:779
+80031ec8:	8d 04 43             	lea    (%ebx,%eax,2),%eax
+/mn/src/drivers/ata/ata.c:782
+80031ecb:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/ata/ata.c:779
+80031ece:	89 85 cc fd ff ff    	mov    %eax,0xfffffdcc(%ebp)
+/mn/src/drivers/ata/ata.c:780
 80031ed4:	66 c7 40 02 00 00    	movw   $0x0,0x2(%eax)
-/mn/src/drivers/ata/ata.c:781
+/mn/src/drivers/ata/ata.c:782
 80031eda:	c7 85 c8 fd ff ff 00 	movl   $0x0,0xfffffdc8(%ebp)
 80031ee1:	00 00 00 
-/mn/src/drivers/ata/ata.c:783
+/mn/src/drivers/ata/ata.c:784
 80031ee4:	83 c4 fc             	add    $0xfffffffc,%esp
-80031ee7:	68 0f 03 00 00       	push   $0x30f
+80031ee7:	68 10 03 00 00       	push   $0x310
 80031eec:	68 ac 19 03 80       	push   $0x800319ac
 80031ef1:	6a 20                	push   $0x20
 80031ef3:	e8 90 08 00 00       	call   80032788 <___malloc>
 80031ef8:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/ata/ata.c:784
+/mn/src/drivers/ata/ata.c:785
 80031efa:	31 c0                	xor    %eax,%eax
 80031efc:	89 df                	mov    %ebx,%edi
 80031efe:	fc                   	cld    
 80031eff:	b9 08 00 00 00       	mov    $0x8,%ecx
 80031f04:	f3 ab                	repz stos %eax,%es:(%edi)
-/mn/src/drivers/ata/ata.c:787
+/mn/src/drivers/ata/ata.c:788
 80031f06:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/ata/ata.c:786
-80031f09:	c7 43 10 f8 1d 03 80 	movl   $0x80031df8,0x10(%ebx)
 /mn/src/drivers/ata/ata.c:787
+80031f09:	c7 43 10 f8 1d 03 80 	movl   $0x80031df8,0x10(%ebx)
+/mn/src/drivers/ata/ata.c:788
 80031f10:	8b 02                	mov    (%edx),%eax
 80031f12:	89 03                	mov    %eax,(%ebx)
-/mn/src/drivers/ata/ata.c:789
+/mn/src/drivers/ata/ata.c:790
 80031f14:	8b 8d c8 fd ff ff    	mov    0xfffffdc8(%ebp),%ecx
 80031f1a:	8b 54 0d 96          	mov    0xffffff96(%ebp,%ecx,1),%edx
 80031f1e:	89 53 14             	mov    %edx,0x14(%ebx)
-/mn/src/drivers/ata/ata.c:790
+/mn/src/drivers/ata/ata.c:791
 80031f21:	8b 44 0d 9a          	mov    0xffffff9a(%ebp,%ecx,1),%eax
-/mn/src/drivers/ata/ata.c:791
-80031f25:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/ata/ata.c:790
-80031f28:	89 43 18             	mov    %eax,0x18(%ebx)
-/mn/src/drivers/ata/ata.c:791
-80031f2b:	89 4b 1c             	mov    %ecx,0x1c(%ebx)
 /mn/src/drivers/ata/ata.c:792
+80031f25:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mn/src/drivers/ata/ata.c:791
+80031f28:	89 43 18             	mov    %eax,0x18(%ebx)
+/mn/src/drivers/ata/ata.c:792
+80031f2b:	89 4b 1c             	mov    %ecx,0x1c(%ebx)
+/mn/src/drivers/ata/ata.c:793
 80031f2e:	50                   	push   %eax
 80031f2f:	52                   	push   %edx
 80031f30:	8d 46 61             	lea    0x61(%esi),%eax
 80031f33:	50                   	push   %eax
 80031f34:	68 20 1e 03 80       	push   $0x80031e20
 80031f39:	e8 ba 08 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:795
+/mn/src/drivers/ata/ata.c:796
 80031f3e:	89 f2                	mov    %esi,%edx
 80031f40:	8b 85 cc fd ff ff    	mov    0xfffffdcc(%ebp),%eax
 80031f46:	83 c2 61             	add    $0x61,%edx
-/mn/src/drivers/ata/ata.c:796
+/mn/src/drivers/ata/ata.c:797
 80031f49:	83 c4 20             	add    $0x20,%esp
 80031f4c:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/ata/ata.c:795
-80031f4f:	66 89 10             	mov    %dx,(%eax)
 /mn/src/drivers/ata/ata.c:796
+80031f4f:	66 89 10             	mov    %dx,(%eax)
+/mn/src/drivers/ata/ata.c:797
 80031f52:	6a 00                	push   $0x0
 80031f54:	8d 4d d0             	lea    0xffffffd0(%ebp),%ecx
 80031f57:	51                   	push   %ecx
-/mn/src/drivers/ata/ata.c:781
+/mn/src/drivers/ata/ata.c:782
 80031f58:	46                   	inc    %esi
-/mn/src/drivers/ata/ata.c:796
+/mn/src/drivers/ata/ata.c:797
 80031f59:	53                   	push   %ebx
 80031f5a:	e8 21 08 00 00       	call   80032780 <_DevAddDevice>
-/mn/src/drivers/ata/ata.c:781
+/mn/src/drivers/ata/ata.c:782
 80031f5f:	83 c4 10             	add    $0x10,%esp
 80031f62:	83 85 c8 fd ff ff 10 	addl   $0x10,0xfffffdc8(%ebp)
 80031f69:	83 fe 03             	cmp    $0x3,%esi
 80031f6c:	0f 86 72 ff ff ff    	jbe    80031ee4 <_AtaPartitionDevice+0x78>
-/mn/src/drivers/ata/ata.c:798
+/mn/src/drivers/ata/ata.c:799
 80031f72:	8d a5 a8 fd ff ff    	lea    0xfffffda8(%ebp),%esp
 80031f78:	5b                   	pop    %ebx
 80031f79:	5e                   	pop    %esi
@@ -1970,30 +1969,30 @@ _swab():
 80031f81:	89 e5                	mov    %esp,%ebp
 80031f83:	56                   	push   %esi
 80031f84:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:803
-80031f85:	8b 5d 10             	mov    0x10(%ebp),%ebx
-/mn/src/drivers/ata/ata.c:801
-80031f88:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/ata/ata.c:803
-80031f8b:	83 e3 fe             	and    $0xfffffffe,%ebx
-/mn/src/drivers/ata/ata.c:801
-80031f8e:	8b 4d 0c             	mov    0xc(%ebp),%ecx
 /mn/src/drivers/ata/ata.c:804
+80031f85:	8b 5d 10             	mov    0x10(%ebp),%ebx
+/mn/src/drivers/ata/ata.c:802
+80031f88:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/ata/ata.c:804
+80031f8b:	83 e3 fe             	and    $0xfffffffe,%ebx
+/mn/src/drivers/ata/ata.c:802
+80031f8e:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+/mn/src/drivers/ata/ata.c:805
 80031f91:	85 db                	test   %ebx,%ebx
 80031f93:	7e 1a                	jle    80031faf <__swab+0x2f>
 80031f95:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:806
-80031f98:	8a 11                	mov    (%ecx),%dl
-/mn/src/drivers/ata/ata.c:804
-80031f9a:	83 c3 fe             	add    $0xfffffffe,%ebx
 /mn/src/drivers/ata/ata.c:807
+80031f98:	8a 11                	mov    (%ecx),%dl
+/mn/src/drivers/ata/ata.c:805
+80031f9a:	83 c3 fe             	add    $0xfffffffe,%ebx
+/mn/src/drivers/ata/ata.c:808
 80031f9d:	8a 46 01             	mov    0x1(%esi),%al
 80031fa0:	88 01                	mov    %al,(%ecx)
-/mn/src/drivers/ata/ata.c:804
+/mn/src/drivers/ata/ata.c:805
 80031fa2:	83 c6 02             	add    $0x2,%esi
-/mn/src/drivers/ata/ata.c:808
+/mn/src/drivers/ata/ata.c:809
 80031fa5:	88 51 01             	mov    %dl,0x1(%ecx)
-/mn/src/drivers/ata/ata.c:804
+/mn/src/drivers/ata/ata.c:805
 80031fa8:	83 c1 02             	add    $0x2,%ecx
 80031fab:	85 db                	test   %ebx,%ebx
 80031fad:	7f e9                	jg     80031f98 <__swab+0x18>
@@ -2002,7 +2001,7 @@ _swab():
 80031fb1:	89 ec                	mov    %ebp,%esp
 80031fb3:	5d                   	pop    %ebp
 80031fb4:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:810
+/mn/src/drivers/ata/ata.c:811
 80031fb5:	8d 76 00             	lea    0x0(%esi),%esi
 
 80031fb8 <_AtaFormatString>:
@@ -2012,40 +2011,40 @@ AtaFormatString():
 80031fbb:	83 ec 10             	sub    $0x10,%esp
 80031fbe:	56                   	push   %esi
 80031fbf:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:813
+/mn/src/drivers/ata/ata.c:814
 80031fc0:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/ata/ata.c:817
+/mn/src/drivers/ata/ata.c:818
 80031fc3:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/ata/ata.c:813
+/mn/src/drivers/ata/ata.c:814
 80031fc6:	8b 45 0c             	mov    0xc(%ebp),%eax
 80031fc9:	8b 75 10             	mov    0x10(%ebp),%esi
-/mn/src/drivers/ata/ata.c:817
+/mn/src/drivers/ata/ata.c:818
 80031fcc:	56                   	push   %esi
 80031fcd:	53                   	push   %ebx
 80031fce:	50                   	push   %eax
 80031fcf:	e8 ac ff ff ff       	call   80031f80 <__swab>
-/mn/src/drivers/ata/ata.c:818
-80031fd4:	89 da                	mov    %ebx,%edx
 /mn/src/drivers/ata/ata.c:819
+80031fd4:	89 da                	mov    %ebx,%edx
+/mn/src/drivers/ata/ata.c:820
 80031fd6:	31 c0                	xor    %eax,%eax
 80031fd8:	39 f0                	cmp    %esi,%eax
 80031fda:	73 0f                	jae    80031feb <_AtaFormatString+0x33>
-/mn/src/drivers/ata/ata.c:820
+/mn/src/drivers/ata/ata.c:821
 80031fdc:	80 3c 18 20          	cmpb   $0x20,(%eax,%ebx,1)
 80031fe0:	74 04                	je     80031fe6 <_AtaFormatString+0x2e>
-/mn/src/drivers/ata/ata.c:821
+/mn/src/drivers/ata/ata.c:822
 80031fe2:	8d 54 18 01          	lea    0x1(%eax,%ebx,1),%edx
-/mn/src/drivers/ata/ata.c:819
+/mn/src/drivers/ata/ata.c:820
 80031fe6:	40                   	inc    %eax
 80031fe7:	39 f0                	cmp    %esi,%eax
 80031fe9:	72 f1                	jb     80031fdc <_AtaFormatString+0x24>
-/mn/src/drivers/ata/ata.c:822
+/mn/src/drivers/ata/ata.c:823
 80031feb:	85 d2                	test   %edx,%edx
 80031fed:	74 0a                	je     80031ff9 <_AtaFormatString+0x41>
 80031fef:	8d 04 1e             	lea    (%esi,%ebx,1),%eax
 80031ff2:	39 c2                	cmp    %eax,%edx
 80031ff4:	73 03                	jae    80031ff9 <_AtaFormatString+0x41>
-/mn/src/drivers/ata/ata.c:824
+/mn/src/drivers/ata/ata.c:825
 80031ff6:	c6 02 00             	movb   $0x0,(%edx)
 80031ff9:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80031ffc:	5b                   	pop    %ebx
@@ -2053,7 +2052,7 @@ AtaFormatString():
 80031ffe:	89 ec                	mov    %ebp,%esp
 80032000:	5d                   	pop    %ebp
 80032001:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:825
+/mn/src/drivers/ata/ata.c:826
 80032002:	89 f6                	mov    %esi,%esi
 
 80032004 <_ata_drive_vtbl>:
@@ -2254,23 +2253,23 @@ AtaInitController():
 800321b1:	57                   	push   %edi
 800321b2:	56                   	push   %esi
 800321b3:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:848
+/mn/src/drivers/ata/ata.c:849
 800321b4:	8b 55 08             	mov    0x8(%ebp),%edx
 800321b7:	83 c4 f8             	add    $0xfffffff8,%esp
 800321ba:	0f b7 42 14          	movzwl 0x14(%edx),%eax
 800321be:	50                   	push   %eax
 800321bf:	68 20 20 03 80       	push   $0x80032020
 800321c4:	e8 2f 06 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:851
+/mn/src/drivers/ata/ata.c:852
 800321c9:	83 c4 f4             	add    $0xfffffff4,%esp
 800321cc:	8b 4d 08             	mov    0x8(%ebp),%ecx
 800321cf:	51                   	push   %ecx
 800321d0:	e8 33 ee ff ff       	call   80031008 <_AtaReset>
-/mn/src/drivers/ata/ata.c:852
+/mn/src/drivers/ata/ata.c:853
 800321d5:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/include/kernel/i386.h:314
 800321d8:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/ata/ata.c:852
+/mn/src/drivers/ata/ata.c:853
 800321db:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800321df:	83 c2 04             	add    $0x4,%edx
 /mn/include/kernel/i386.h:317
@@ -2280,35 +2279,35 @@ AtaInitController():
 800321e5:	f6 d0                	not    %al
 /mn/include/kernel/i386.h:300
 800321e7:	ee                   	out    %al,(%dx)
-/mn/src/drivers/ata/ata.c:854
+/mn/src/drivers/ata/ata.c:855
 800321e8:	8b 45 08             	mov    0x8(%ebp),%eax
 800321eb:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800321ef:	83 c2 04             	add    $0x4,%edx
 /mn/include/kernel/i386.h:317
 800321f2:	ec                   	in     (%dx),%al
-/mn/src/drivers/ata/ata.c:854
+/mn/src/drivers/ata/ata.c:855
 800321f3:	38 c8                	cmp    %cl,%al
 800321f5:	75 14                	jne    8003220b <_AtaInitController+0x63>
-/mn/src/drivers/ata/ata.c:856
+/mn/src/drivers/ata/ata.c:857
 800321f7:	83 c4 f8             	add    $0xfffffff8,%esp
 800321fa:	0f b6 c0             	movzbl %al,%eax
 800321fd:	50                   	push   %eax
 800321fe:	68 a0 20 03 80       	push   $0x800320a0
 80032203:	e8 f0 05 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:858
+/mn/src/drivers/ata/ata.c:859
 80032208:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/ata/ata.c:860
+/mn/src/drivers/ata/ata.c:861
 8003220b:	83 c4 f8             	add    $0xfffffff8,%esp
 8003220e:	8b 55 08             	mov    0x8(%ebp),%edx
 80032211:	52                   	push   %edx
 80032212:	6a 0e                	push   $0xe
 80032214:	e8 5f 05 00 00       	call   80032778 <_DevRegisterIrq>
-/mn/src/drivers/ata/ata.c:861
+/mn/src/drivers/ata/ata.c:862
 80032219:	83 c4 f8             	add    $0xfffffff8,%esp
 8003221c:	6a 00                	push   $0x0
 8003221e:	68 00 40 00 00       	push   $0x4000
 80032223:	e8 48 05 00 00       	call   80032770 <_ArchMaskIrq>
-/mn/src/drivers/ata/ata.c:863
+/mn/src/drivers/ata/ata.c:864
 80032228:	8b 4d 08             	mov    0x8(%ebp),%ecx
 8003222b:	8d 85 f0 fd ff ff    	lea    0xfffffdf0(%ebp),%eax
 80032231:	83 c1 58             	add    $0x58,%ecx
@@ -2318,11 +2317,11 @@ AtaInitController():
 80032241:	89 8d 58 fd ff ff    	mov    %ecx,0xfffffd58(%ebp)
 80032247:	89 85 78 fd ff ff    	mov    %eax,0xfffffd78(%ebp)
 8003224d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/ata/ata.c:865
+/mn/src/drivers/ata/ata.c:866
 80032250:	8b 9d 7c fd ff ff    	mov    0xfffffd7c(%ebp),%ebx
-/mn/src/drivers/ata/ata.c:868
+/mn/src/drivers/ata/ata.c:869
 80032256:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/ata/ata.c:865
+/mn/src/drivers/ata/ata.c:866
 80032259:	c1 e3 04             	shl    $0x4,%ebx
 8003225c:	8b 4d 08             	mov    0x8(%ebp),%ecx
 8003225f:	89 d8                	mov    %ebx,%eax
@@ -2330,23 +2329,23 @@ AtaInitController():
 80032267:	2b 85 7c fd ff ff    	sub    0xfffffd7c(%ebp),%eax
 8003226d:	8d 34 85 00 00 00 00 	lea    0x0(,%eax,4),%esi
 80032274:	89 0c 16             	mov    %ecx,(%esi,%edx,1)
-/mn/src/drivers/ata/ata.c:866
+/mn/src/drivers/ata/ata.c:867
 80032277:	8a 85 7c fd ff ff    	mov    0xfffffd7c(%ebp),%al
 8003227d:	c0 e0 04             	shl    $0x4,%al
 80032280:	0c a0                	or     $0xa0,%al
 80032282:	88 44 0e 54          	mov    %al,0x54(%esi,%ecx,1)
-/mn/src/drivers/ata/ata.c:868
+/mn/src/drivers/ata/ata.c:869
 80032286:	8b 85 7c fd ff ff    	mov    0xfffffd7c(%ebp),%eax
 8003228c:	50                   	push   %eax
 8003228d:	68 d4 20 03 80       	push   $0x800320d4
 80032292:	e8 61 05 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:871
-80032297:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/ata/ata.c:870
-8003229a:	c6 85 f8 fd ff ff ec 	movb   $0xec,0xfffffdf8(%ebp)
-/mn/src/drivers/ata/ata.c:871
-800322a1:	c6 44 16 5c 00       	movb   $0x0,0x5c(%esi,%edx,1)
 /mn/src/drivers/ata/ata.c:872
+80032297:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/ata/ata.c:871
+8003229a:	c6 85 f8 fd ff ff ec 	movb   $0xec,0xfffffdf8(%ebp)
+/mn/src/drivers/ata/ata.c:872
+800322a1:	c6 44 16 5c 00       	movb   $0x0,0x5c(%esi,%edx,1)
+/mn/src/drivers/ata/ata.c:873
 800322a6:	83 c4 f8             	add    $0xfffffff8,%esp
 800322a9:	8b 8d 78 fd ff ff    	mov    0xfffffd78(%ebp),%ecx
 800322af:	8d 7c 32 24          	lea    0x24(%edx,%esi,1),%edi
@@ -2357,14 +2356,14 @@ AtaInitController():
 800322bd:	89 9d 4c fd ff ff    	mov    %ebx,0xfffffd4c(%ebp)
 800322c3:	85 c0                	test   %eax,%eax
 800322c5:	74 55                	je     8003231c <_AtaInitController+0x174>
-/mn/src/drivers/ata/ata.c:875
+/mn/src/drivers/ata/ata.c:876
 800322c7:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/ata/ata.c:874
-800322ca:	c6 85 f8 fd ff ff a1 	movb   $0xa1,0xfffffdf8(%ebp)
 /mn/src/drivers/ata/ata.c:875
+800322ca:	c6 85 f8 fd ff ff a1 	movb   $0xa1,0xfffffdf8(%ebp)
+/mn/src/drivers/ata/ata.c:876
 800322d1:	68 ea 20 03 80       	push   $0x800320ea
 800322d6:	e8 1d 05 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:877
+/mn/src/drivers/ata/ata.c:878
 800322db:	83 c4 f8             	add    $0xfffffff8,%esp
 800322de:	8b 85 78 fd ff ff    	mov    0xfffffd78(%ebp),%eax
 800322e4:	50                   	push   %eax
@@ -2373,20 +2372,20 @@ AtaInitController():
 800322eb:	83 c4 20             	add    $0x20,%esp
 800322ee:	85 c0                	test   %eax,%eax
 800322f0:	74 22                	je     80032314 <_AtaInitController+0x16c>
-/mn/src/drivers/ata/ata.c:879
+/mn/src/drivers/ata/ata.c:880
 800322f2:	83 c4 f4             	add    $0xfffffff4,%esp
 800322f5:	68 08 21 03 80       	push   $0x80032108
 800322fa:	e8 f9 04 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:880
+/mn/src/drivers/ata/ata.c:881
 800322ff:	8b 95 7c fd ff ff    	mov    0xfffffd7c(%ebp),%edx
 80032305:	83 c4 10             	add    $0x10,%esp
 80032308:	42                   	inc    %edx
 80032309:	89 95 50 fd ff ff    	mov    %edx,0xfffffd50(%ebp)
 8003230f:	e9 b3 02 00 00       	jmp    800325c7 <_AtaInitController+0x41f>
-/mn/src/drivers/ata/ata.c:883
+/mn/src/drivers/ata/ata.c:884
 80032314:	8b 4d 08             	mov    0x8(%ebp),%ecx
 80032317:	c6 44 0e 5c 01       	movb   $0x1,0x5c(%esi,%ecx,1)
-/mn/src/drivers/ata/ata.c:888
+/mn/src/drivers/ata/ata.c:889
 8003231c:	8d 85 36 fe ff ff    	lea    0xfffffe36(%ebp),%eax
 80032322:	8d 95 14 fe ff ff    	lea    0xfffffe14(%ebp),%edx
 80032328:	89 85 54 fd ff ff    	mov    %eax,0xfffffd54(%ebp)
@@ -2416,78 +2415,78 @@ AtaInitController():
 80032391:	8b 45 08             	mov    0x8(%ebp),%eax
 80032394:	42                   	inc    %edx
 80032395:	89 95 50 fd ff ff    	mov    %edx,0xfffffd50(%ebp)
-/mn/src/drivers/ata/ata.c:887
-8003239b:	8d b5 00 fe ff ff    	lea    0xfffffe00(%ebp),%esi
 /mn/src/drivers/ata/ata.c:888
+8003239b:	8d b5 00 fe ff ff    	lea    0xfffffe00(%ebp),%esi
+/mn/src/drivers/ata/ata.c:889
 800323a1:	31 c9                	xor    %ecx,%ecx
 800323a3:	83 c7 48             	add    $0x48,%edi
 800323a6:	0f b7 50 14          	movzwl 0x14(%eax),%edx
 800323aa:	89 f6                	mov    %esi,%esi
 /mn/include/kernel/i386.h:323
 800323ac:	66 ed                	in     (%dx),%ax
-/mn/src/drivers/ata/ata.c:889
+/mn/src/drivers/ata/ata.c:890
 800323ae:	66 89 04 4e          	mov    %ax,(%esi,%ecx,2)
-/mn/src/drivers/ata/ata.c:888
+/mn/src/drivers/ata/ata.c:889
 800323b2:	41                   	inc    %ecx
 800323b3:	81 f9 ff 00 00 00    	cmp    $0xff,%ecx
 800323b9:	76 f1                	jbe    800323ac <_AtaInitController+0x204>
-/mn/src/drivers/ata/ata.c:891
+/mn/src/drivers/ata/ata.c:892
 800323bb:	83 c4 fc             	add    $0xfffffffc,%esp
 800323be:	6a 28                	push   $0x28
 800323c0:	8b 95 54 fd ff ff    	mov    0xfffffd54(%ebp),%edx
 800323c6:	52                   	push   %edx
 800323c7:	52                   	push   %edx
 800323c8:	e8 eb fb ff ff       	call   80031fb8 <_AtaFormatString>
-/mn/src/drivers/ata/ata.c:892
+/mn/src/drivers/ata/ata.c:893
 800323cd:	83 c4 fc             	add    $0xfffffffc,%esp
 800323d0:	6a 14                	push   $0x14
 800323d2:	8b 8d 5c fd ff ff    	mov    0xfffffd5c(%ebp),%ecx
 800323d8:	51                   	push   %ecx
 800323d9:	51                   	push   %ecx
 800323da:	e8 d9 fb ff ff       	call   80031fb8 <_AtaFormatString>
-/mn/src/drivers/ata/ata.c:895
+/mn/src/drivers/ata/ata.c:896
 800323df:	8b 85 4c fd ff ff    	mov    0xfffffd4c(%ebp),%eax
-/mn/src/drivers/ata/ata.c:903
+/mn/src/drivers/ata/ata.c:904
 800323e5:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/ata/ata.c:895
+/mn/src/drivers/ata/ata.c:896
 800323e8:	2b 85 7c fd ff ff    	sub    0xfffffd7c(%ebp),%eax
 800323ee:	8d 1c 85 00 00 00 00 	lea    0x0(,%eax,4),%ebx
 800323f5:	8b 95 68 fd ff ff    	mov    0xfffffd68(%ebp),%edx
 800323fb:	0f b7 85 02 fe ff ff 	movzwl 0xfffffe02(%ebp),%eax
 80032402:	89 04 13             	mov    %eax,(%ebx,%edx,1)
-/mn/src/drivers/ata/ata.c:896
+/mn/src/drivers/ata/ata.c:897
 80032405:	0f b7 85 06 fe ff ff 	movzwl 0xfffffe06(%ebp),%eax
 8003240c:	8b 8d 64 fd ff ff    	mov    0xfffffd64(%ebp),%ecx
 80032412:	89 04 0b             	mov    %eax,(%ebx,%ecx,1)
-/mn/src/drivers/ata/ata.c:897
+/mn/src/drivers/ata/ata.c:898
 80032415:	0f b7 85 0c fe ff ff 	movzwl 0xfffffe0c(%ebp),%eax
 8003241c:	89 04 3b             	mov    %eax,(%ebx,%edi,1)
-/mn/src/drivers/ata/ata.c:898
+/mn/src/drivers/ata/ata.c:899
 8003241f:	8b 85 60 fd ff ff    	mov    0xfffffd60(%ebp),%eax
 80032425:	c7 04 03 00 00 00 00 	movl   $0x0,(%ebx,%eax,1)
-/mn/src/drivers/ata/ata.c:899
+/mn/src/drivers/ata/ata.c:900
 8003242c:	8b 0c 13             	mov    (%ebx,%edx,1),%ecx
 8003242f:	8b 95 64 fd ff ff    	mov    0xfffffd64(%ebp),%edx
 80032435:	0f af 0c 13          	imul   (%ebx,%edx,1),%ecx
 80032439:	0f af 0c 3b          	imul   (%ebx,%edi,1),%ecx
-/mn/src/drivers/ata/ata.c:903
+/mn/src/drivers/ata/ata.c:904
 8003243d:	f6 85 67 fe ff ff 02 	testb  $0x2,0xfffffe67(%ebp)
 80032444:	74 26                	je     8003246c <_AtaInitController+0x2c4>
 80032446:	81 f9 00 00 10 00    	cmp    $0x100000,%ecx
 8003244c:	76 1e                	jbe    8003246c <_AtaInitController+0x2c4>
-/mn/src/drivers/ata/ata.c:908
+/mn/src/drivers/ata/ata.c:909
 8003244e:	83 c4 f4             	add    $0xfffffff4,%esp
 80032451:	68 24 21 03 80       	push   $0x80032124
 80032456:	e8 9d 03 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:909
-8003245b:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/ata/ata.c:911
-8003245e:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/ata/ata.c:909
-80032461:	80 4c 0b 54 40       	orb    $0x40,0x54(%ebx,%ecx,1)
 /mn/src/drivers/ata/ata.c:910
+8003245b:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mn/src/drivers/ata/ata.c:912
+8003245e:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/ata/ata.c:910
+80032461:	80 4c 0b 54 40       	orb    $0x40,0x54(%ebx,%ecx,1)
+/mn/src/drivers/ata/ata.c:911
 80032466:	8b 8d 72 fe ff ff    	mov    0xfffffe72(%ebp),%ecx
-/mn/src/drivers/ata/ata.c:913
+/mn/src/drivers/ata/ata.c:914
 8003246c:	8b b5 4c fd ff ff    	mov    0xfffffd4c(%ebp),%esi
 80032472:	c1 e9 0b             	shr    $0xb,%ecx
 80032475:	89 f0                	mov    %esi,%eax
@@ -2497,41 +2496,41 @@ AtaInitController():
 80032489:	8d 14 85 00 00 00 00 	lea    0x0(,%eax,4),%edx
 80032490:	83 3c 1a 00          	cmpl   $0x0,(%edx,%ebx,1)
 80032494:	75 61                	jne    800324f7 <_AtaInitController+0x34f>
-/mn/src/drivers/ata/ata.c:916
+/mn/src/drivers/ata/ata.c:917
 80032496:	8b 8d 68 fd ff ff    	mov    0xfffffd68(%ebp),%ecx
 8003249c:	8b 04 0a             	mov    (%edx,%ecx,1),%eax
 8003249f:	89 04 1a             	mov    %eax,(%edx,%ebx,1)
-/mn/src/drivers/ata/ata.c:917
+/mn/src/drivers/ata/ata.c:918
 800324a2:	8b 45 08             	mov    0x8(%ebp),%eax
 800324a5:	8b 8d 64 fd ff ff    	mov    0xfffffd64(%ebp),%ecx
 800324ab:	83 c0 40             	add    $0x40,%eax
 800324ae:	89 85 2c fd ff ff    	mov    %eax,0xfffffd2c(%ebp)
 800324b4:	8b 0c 0a             	mov    (%edx,%ecx,1),%ecx
 800324b7:	89 0c 02             	mov    %ecx,(%edx,%eax,1)
-/mn/src/drivers/ata/ata.c:918
+/mn/src/drivers/ata/ata.c:919
 800324ba:	8b 0c 3a             	mov    (%edx,%edi,1),%ecx
 800324bd:	8b 45 08             	mov    0x8(%ebp),%eax
 800324c0:	89 4c 02 3c          	mov    %ecx,0x3c(%edx,%eax,1)
-/mn/src/drivers/ata/ata.c:919
+/mn/src/drivers/ata/ata.c:920
 800324c4:	81 3c 1a 00 04 00 00 	cmpl   $0x400,(%edx,%ebx,1)
 800324cb:	76 2a                	jbe    800324f7 <_AtaInitController+0x34f>
 800324cd:	8b 8d 2c fd ff ff    	mov    0xfffffd2c(%ebp),%ecx
 800324d3:	90                   	nop    
-/mn/src/drivers/ata/ata.c:921
+/mn/src/drivers/ata/ata.c:922
 800324d4:	89 f0                	mov    %esi,%eax
 800324d6:	2b 85 7c fd ff ff    	sub    0xfffffd7c(%ebp),%eax
 800324dc:	c1 e0 02             	shl    $0x2,%eax
 800324df:	8b 14 08             	mov    (%eax,%ecx,1),%edx
 800324e2:	01 d2                	add    %edx,%edx
 800324e4:	89 14 08             	mov    %edx,(%eax,%ecx,1)
-/mn/src/drivers/ata/ata.c:922
+/mn/src/drivers/ata/ata.c:923
 800324e7:	8b 14 18             	mov    (%eax,%ebx,1),%edx
 800324ea:	d1 ea                	shr    %edx
 800324ec:	89 14 18             	mov    %edx,(%eax,%ebx,1)
-/mn/src/drivers/ata/ata.c:923
+/mn/src/drivers/ata/ata.c:924
 800324ef:	81 fa 00 04 00 00    	cmp    $0x400,%edx
 800324f5:	77 dd                	ja     800324d4 <_AtaInitController+0x32c>
-/mn/src/drivers/ata/ata.c:926
+/mn/src/drivers/ata/ata.c:927
 800324f7:	83 c4 fc             	add    $0xfffffffc,%esp
 800324fa:	8b 8d 5c fd ff ff    	mov    0xfffffd5c(%ebp),%ecx
 80032500:	51                   	push   %ecx
@@ -2553,7 +2552,7 @@ AtaInitController():
 8003253b:	50                   	push   %eax
 8003253c:	68 40 21 03 80       	push   $0x80032140
 80032541:	e8 b2 02 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:934
+/mn/src/drivers/ata/ata.c:935
 80032546:	a1 00 30 03 80       	mov    0x80033000,%eax
 8003254b:	83 c4 20             	add    $0x20,%esp
 8003254e:	8b 95 7c fd ff ff    	mov    0xfffffd7c(%ebp),%edx
@@ -2565,47 +2564,47 @@ AtaInitController():
 80032561:	8b 8d 6c fd ff ff    	mov    0xfffffd6c(%ebp),%ecx
 80032567:	51                   	push   %ecx
 80032568:	e8 fb 01 00 00       	call   80032768 <_swprintf>
-/mn/src/drivers/ata/ata.c:938
+/mn/src/drivers/ata/ata.c:939
 8003256d:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/ata/ata.c:942
+/mn/src/drivers/ata/ata.c:943
 80032570:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/ata/ata.c:937
-80032573:	8b 85 74 fd ff ff    	mov    0xfffffd74(%ebp),%eax
-/mn/src/drivers/ata/ata.c:941
-80032579:	8d 74 1a 24          	lea    0x24(%edx,%ebx,1),%esi
-/mn/src/drivers/ata/ata.c:937
-8003257d:	c7 04 03 04 20 03 80 	movl   $0x80032004,(%ebx,%eax,1)
 /mn/src/drivers/ata/ata.c:938
+80032573:	8b 85 74 fd ff ff    	mov    0xfffffd74(%ebp),%eax
+/mn/src/drivers/ata/ata.c:942
+80032579:	8d 74 1a 24          	lea    0x24(%edx,%ebx,1),%esi
+/mn/src/drivers/ata/ata.c:938
+8003257d:	c7 04 03 04 20 03 80 	movl   $0x80032004,(%ebx,%eax,1)
+/mn/src/drivers/ata/ata.c:939
 80032584:	8b 02                	mov    (%edx),%eax
 80032586:	8b 8d 44 fd ff ff    	mov    0xfffffd44(%ebp),%ecx
 8003258c:	89 04 0b             	mov    %eax,(%ebx,%ecx,1)
-/mn/src/drivers/ata/ata.c:939
+/mn/src/drivers/ata/ata.c:940
 8003258f:	8b 85 58 fd ff ff    	mov    0xfffffd58(%ebp),%eax
 80032595:	89 14 03             	mov    %edx,(%ebx,%eax,1)
-/mn/src/drivers/ata/ata.c:942
+/mn/src/drivers/ata/ata.c:943
 80032598:	6a 00                	push   $0x0
 8003259a:	8b 95 6c fd ff ff    	mov    0xfffffd6c(%ebp),%edx
 800325a0:	52                   	push   %edx
 800325a1:	56                   	push   %esi
 800325a2:	e8 d9 01 00 00       	call   80032780 <_DevAddDevice>
-/mn/src/drivers/ata/ata.c:944
+/mn/src/drivers/ata/ata.c:945
 800325a7:	83 c4 20             	add    $0x20,%esp
 800325aa:	8b 4d 08             	mov    0x8(%ebp),%ecx
 800325ad:	80 7c 0b 5c 00       	cmpb   $0x0,0x5c(%ebx,%ecx,1)
 800325b2:	75 13                	jne    800325c7 <_AtaInitController+0x41f>
-/mn/src/drivers/ata/ata.c:945
+/mn/src/drivers/ata/ata.c:946
 800325b4:	83 c4 f8             	add    $0xfffffff8,%esp
 800325b7:	8b 85 6c fd ff ff    	mov    0xfffffd6c(%ebp),%eax
 800325bd:	50                   	push   %eax
 800325be:	56                   	push   %esi
 800325bf:	e8 a8 f8 ff ff       	call   80031e6c <_AtaPartitionDevice>
 800325c4:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/ata/ata.c:863
+/mn/src/drivers/ata/ata.c:864
 800325c7:	8b 95 50 fd ff ff    	mov    0xfffffd50(%ebp),%edx
 800325cd:	89 95 7c fd ff ff    	mov    %edx,0xfffffd7c(%ebp)
 800325d3:	83 fa 01             	cmp    $0x1,%edx
 800325d6:	0f 86 74 fc ff ff    	jbe    80032250 <_AtaInitController+0xa8>
-/mn/src/drivers/ata/ata.c:948
+/mn/src/drivers/ata/ata.c:949
 800325dc:	8d a5 08 fd ff ff    	lea    0xfffffd08(%ebp),%esp
 800325e2:	b8 01 00 00 00       	mov    $0x1,%eax
 800325e7:	5b                   	pop    %ebx
@@ -2614,7 +2613,7 @@ AtaInitController():
 800325ea:	89 ec                	mov    %ebp,%esp
 800325ec:	5d                   	pop    %ebp
 800325ed:	c3                   	ret    
-/mn/src/drivers/ata/ata.c:949
+/mn/src/drivers/ata/ata.c:950
 800325ee:	89 f6                	mov    %esi,%esi
 
 800325f0 <_ata_controller_vtbl>:
@@ -2676,85 +2675,85 @@ AtaAddController():
 80032659:	89 e5                	mov    %esp,%ebp
 8003265b:	83 ec 24             	sub    $0x24,%esp
 8003265e:	53                   	push   %ebx
-/mn/src/drivers/ata/ata.c:981
+/mn/src/drivers/ata/ata.c:982
 8003265f:	8d 45 fc             	lea    0xfffffffc(%ebp),%eax
 80032662:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/ata/ata.c:980
-80032665:	c7 45 fc 00 00 00 00 	movl   $0x0,0xfffffffc(%ebp)
 /mn/src/drivers/ata/ata.c:981
+80032665:	c7 45 fc 00 00 00 00 	movl   $0x0,0xfffffffc(%ebp)
+/mn/src/drivers/ata/ata.c:982
 8003266c:	6a 01                	push   $0x1
 8003266e:	6a 01                	push   $0x1
 80032670:	50                   	push   %eax
 80032671:	e8 5a 01 00 00       	call   800327d0 <_MemMapTemp>
-/mn/src/drivers/ata/ata.c:982
+/mn/src/drivers/ata/ata.c:983
 80032676:	83 c4 10             	add    $0x10,%esp
 80032679:	85 c0                	test   %eax,%eax
 8003267b:	75 17                	jne    80032694 <_AtaAddController+0x3c>
 8003267d:	83 c4 fc             	add    $0xfffffffc,%esp
-80032680:	68 d6 03 00 00       	push   $0x3d6
+80032680:	68 d7 03 00 00       	push   $0x3d7
 80032685:	68 ac 19 03 80       	push   $0x800319ac
 8003268a:	68 f8 25 03 80       	push   $0x800325f8
 8003268f:	e8 34 01 00 00       	call   800327c8 <___dj_assert>
-/mn/src/drivers/ata/ata.c:984
+/mn/src/drivers/ata/ata.c:985
 80032694:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/ata/ata.c:983
-80032697:	8b 98 d4 11 00 00    	mov    0x11d4(%eax),%ebx
 /mn/src/drivers/ata/ata.c:984
+80032697:	8b 98 d4 11 00 00    	mov    0x11d4(%eax),%ebx
+/mn/src/drivers/ata/ata.c:985
 8003269d:	53                   	push   %ebx
 8003269e:	68 20 26 03 80       	push   $0x80032620
 800326a3:	e8 50 01 00 00       	call   800327f8 <_wprintf>
-/mn/src/drivers/ata/ata.c:995
+/mn/src/drivers/ata/ata.c:996
 800326a8:	e8 13 01 00 00       	call   800327c0 <_MemUnmapTemp>
-/mn/src/drivers/ata/ata.c:997
+/mn/src/drivers/ata/ata.c:998
 800326ad:	83 c4 10             	add    $0x10,%esp
 800326b0:	85 db                	test   %ebx,%ebx
 800326b2:	74 6f                	je     80032723 <_AtaAddController+0xcb>
-/mn/src/drivers/ata/ata.c:999
+/mn/src/drivers/ata/ata.c:1000
 800326b4:	83 c4 fc             	add    $0xfffffffc,%esp
-800326b7:	68 e7 03 00 00       	push   $0x3e7
+800326b7:	68 e8 03 00 00       	push   $0x3e8
 800326bc:	68 ac 19 03 80       	push   $0x800319ac
 800326c1:	68 a0 00 00 00       	push   $0xa0
 800326c6:	e8 bd 00 00 00       	call   80032788 <___malloc>
 800326cb:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/ata/ata.c:1004
+/mn/src/drivers/ata/ata.c:1005
 800326cd:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/ata/ata.c:1000
-800326d0:	c7 43 10 f0 25 03 80 	movl   $0x800325f0,0x10(%ebx)
 /mn/src/drivers/ata/ata.c:1001
+800326d0:	c7 43 10 f0 25 03 80 	movl   $0x800325f0,0x10(%ebx)
+/mn/src/drivers/ata/ata.c:1002
 800326d7:	8b 45 08             	mov    0x8(%ebp),%eax
 800326da:	89 03                	mov    %eax,(%ebx)
-/mn/src/drivers/ata/ata.c:1002
+/mn/src/drivers/ata/ata.c:1003
 800326dc:	8b 45 10             	mov    0x10(%ebp),%eax
 800326df:	89 43 04             	mov    %eax,0x4(%ebx)
-/mn/src/drivers/ata/ata.c:1004
+/mn/src/drivers/ata/ata.c:1005
 800326e2:	8d 43 18             	lea    0x18(%ebx),%eax
-/mn/src/drivers/ata/ata.c:1003
-800326e5:	66 c7 43 14 f0 01    	movw   $0x1f0,0x14(%ebx)
 /mn/src/drivers/ata/ata.c:1004
+800326e5:	66 c7 43 14 f0 01    	movw   $0x1f0,0x14(%ebx)
+/mn/src/drivers/ata/ata.c:1005
 800326eb:	50                   	push   %eax
 800326ec:	e8 6f 00 00 00       	call   80032760 <_SemInit>
-/mn/src/drivers/ata/ata.c:1007
+/mn/src/drivers/ata/ata.c:1008
 800326f1:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/ata/ata.c:1005
+/mn/src/drivers/ata/ata.c:1006
 800326f4:	ff 05 00 30 03 80    	incl   0x80033000
-/mn/src/drivers/ata/ata.c:1007
+/mn/src/drivers/ata/ata.c:1008
 800326fa:	83 c4 f4             	add    $0xfffffff4,%esp
 800326fd:	53                   	push   %ebx
 800326fe:	e8 a5 fa ff ff       	call   800321a8 <_AtaInitController>
 80032703:	83 c4 10             	add    $0x10,%esp
 80032706:	84 c0                	test   %al,%al
 80032708:	74 06                	je     80032710 <_AtaAddController+0xb8>
-/mn/src/drivers/ata/ata.c:1013
+/mn/src/drivers/ata/ata.c:1014
 8003270a:	89 d8                	mov    %ebx,%eax
 8003270c:	eb 17                	jmp    80032725 <_AtaAddController+0xcd>
 8003270e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/ata/ata.c:1009
+/mn/src/drivers/ata/ata.c:1010
 80032710:	83 c4 fc             	add    $0xfffffffc,%esp
-80032713:	68 f1 03 00 00       	push   $0x3f1
+80032713:	68 f2 03 00 00       	push   $0x3f2
 80032718:	68 ac 19 03 80       	push   $0x800319ac
 8003271d:	53                   	push   %ebx
 8003271e:	e8 95 00 00 00       	call   800327b8 <___free>
-/mn/src/drivers/ata/ata.c:1016
+/mn/src/drivers/ata/ata.c:1017
 80032723:	31 c0                	xor    %eax,%eax
 80032725:	8b 5d d8             	mov    0xffffffd8(%ebp),%ebx
 80032728:	89 ec                	mov    %ebp,%esp
@@ -2765,11 +2764,11 @@ AtaAddController():
 DrvInit():
 8003272c:	55                   	push   %ebp
 8003272d:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/ata/ata.c:1020
-8003272f:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/src/drivers/ata/ata.c:1021
-80032732:	c7 40 0c 58 26 03 80 	movl   $0x80032658,0xc(%eax)
+8003272f:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/src/drivers/ata/ata.c:1022
+80032732:	c7 40 0c 58 26 03 80 	movl   $0x80032658,0xc(%eax)
+/mn/src/drivers/ata/ata.c:1023
 80032739:	89 ec                	mov    %ebp,%esp
 8003273b:	b8 01 00 00 00       	mov    $0x1,%eax
 80032740:	5d                   	pop    %ebp
@@ -2821,7 +2820,7 @@ DrvInit():
 80032777:	90                   	nop    
 
 80032778 <_DevRegisterIrq>:
-80032778:	ff 25 a0 40 03 80    	jmp    *0x800340a0
+80032778:	ff 25 9c 40 03 80    	jmp    *0x8003409c
 8003277e:	90                   	nop    
 8003277f:	90                   	nop    
 
@@ -2845,12 +2844,12 @@ DrvInit():
 8003279e:	90                   	nop    
 8003279f:	90                   	nop    
 
-800327a0 <_DevRead>:
-800327a0:	ff 25 9c 40 03 80    	jmp    *0x8003409c
+800327a0 <_IoReadSync>:
+800327a0:	ff 25 a0 40 03 80    	jmp    *0x800340a0
 800327a6:	90                   	nop    
 800327a7:	90                   	nop    
 
-800327a8 <_DevRequest>:
+800327a8 <_IoRequest>:
 800327a8:	ff 25 a4 40 03 80    	jmp    *0x800340a4
 800327ae:	90                   	nop    
 800327af:	90                   	nop    

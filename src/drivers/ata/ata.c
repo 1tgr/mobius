@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.9 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.10 2002/01/09 01:23:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -7,6 +7,7 @@
 #include <kernel/thread.h>
 #include <kernel/memory.h>
 #include <kernel/cache.h>
+#include <kernel/io.h>
 
 #include <os/syscall.h>
 
@@ -715,7 +716,7 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 				req_dev->params.dev_read.buffer;
 		}
 
-		if (DevRequest(NULL, &drive->ctrl->dev, &ctrl_req.header))
+		if (IoRequest(NULL, &drive->ctrl->dev, &ctrl_req.header))
 		{
 			req->event = ctrl_req.header.event;
 			return true;
@@ -771,7 +772,7 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 	} sec0;
 
 	wprintf(L"bytes = %p\n", sec0.bytes);
-	if (!DevRead(dev, 0, sec0.bytes, sizeof(sec0.bytes)))
+	if (!IoReadSync(dev, 0, sec0.bytes, sizeof(sec0.bytes)))
 		return;
 
 	wcscpy(name, base_name);
