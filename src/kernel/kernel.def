@@ -12,6 +12,7 @@ EXPORTS
 	CcIsBlockValid
 	CcRequestBlock
 	CcReleaseBlock
+	DbgDumpBuffer
 	DbgDumpModules
 	DbgDumpStack
 	DbgDumpThreads
@@ -35,7 +36,6 @@ EXPORTS
 	DevRegisterIrq
 	DevUnloadDriver
 	EvtAlloc
-	EvtFree
 	EvtIsSignalled
 	EvtSignal
 	FsClose
@@ -44,6 +44,7 @@ EXPORTS
 	FsFullPath
 	FsMount
 	FsOpen
+	FsOpenSearch
 	FsRead
 	FsReadSync
 	FsRequestSync
@@ -51,9 +52,8 @@ EXPORTS
 	FsWrite
 	FsWriteSync
 	Hello
+	HndClose
 	HndDuplicate
-	HndFree
-	HndFreePtr
 	HndGetPtr
 	HndIsSignalled
 	HndLock
@@ -87,7 +87,6 @@ EXPORTS
 	PeUnload
 	PortMountFs
 	ProcCreateProcess
-	ProcDeleteProcess
 	ProcExitProcess
 	ProcFirstTimeInit
 	ProcGetCwd
@@ -110,6 +109,7 @@ EXPORTS
 	ThrDeleteThread
 	ThrExitThread
 	ThrGetContext
+	ThrGetUserContext
 	ThrInsertQueue
 	ThrPause
 	ThrQueueKernelApc

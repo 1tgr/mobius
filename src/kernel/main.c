@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.7 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: main.c,v 1.8 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -14,6 +14,7 @@
 #include <kernel/fs.h>
 #include <kernel/arch.h>
 #include <kernel/proc.h>
+#include <kernel/debug.h>
 
 #include <kernel/init.h>
 #include <stdio.h>
@@ -59,11 +60,10 @@ void KernelMain(void)
 	process_t *proc;
 	device_t *dev;
 	
-	if (kernel_startup.memory_size > 256 * 1024 * 1024)
-		kernel_startup.memory_size = 256 * 1024 * 1024;
-
 	MemInit();
 	ArchInit();
+	
+	DbgDumpBuffer((void*) 0xc000ffcf, 16);
 
 	wprintf(L"ProcInit\n");
 	ProcInit();
@@ -81,8 +81,12 @@ void KernelMain(void)
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
 
 	dev = IoOpenDevice(L"fdc0");
-	wprintf(L"KernelMain: Mounting fdc0(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);
+	wprintf(L"KernelMain: Mounting fdc0(%p) on /fd using fat\n", dev);
+	FsMount(L"/fd", L"fat", dev);
+
+	/*dev = IoOpenDevice(L"ide0a");
+	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
+	FsMount(L"/hd", L"fat", dev);*/
 
 	DevInstallDevice(L"tty", L"tty0", NULL);
 	DevInstallDevice(L"keyboard", L"keyboard", NULL);

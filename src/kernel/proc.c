@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.5 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.6 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -7,7 +7,7 @@
 #include <kernel/thread.h>
 #include <kernel/fs.h>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <stdlib.h>
@@ -60,7 +60,7 @@ process_t proc_idle =
 	NULL,						/* next */
 	(addr_t) kernel_stack_end,	/* stack_end */
 	0,							/* page_dir_phys */
-	kernel_pagedir,				/* page_dir */
+	/*kernel_pagedir,*/				/* page_dir */
 	NULL,						/* handles */
 	0,							/* handle_count */
 	&mod_kernel,				/* mod_first */
@@ -82,12 +82,14 @@ process_t *ProcCreateProcess(const wchar_t *exe)
 	if (proc == NULL)
 		return NULL;
 
-	/*wprintf(L"ProcCreateProcess(%s)\n", exe);*/
 	memset(proc, 0, sizeof(*proc));
 	proc->page_dir_phys = MemAllocPageDir();
 	proc->hdr.tag = 'proc';
 	proc->hdr.file = __FILE__;
 	proc->hdr.line = __LINE__;
+
+	/* Copy number 1 is the process's handle to itself */
+	proc->hdr.copies = 1;
 	proc->handle_count = 2;
 	proc->handles = malloc(proc->handle_count * sizeof(void*));
 	proc->handles[0] = NULL;
@@ -98,25 +100,10 @@ process_t *ProcCreateProcess(const wchar_t *exe)
 	proc->info = NULL;
 	proc->id = ++proc_last_id;
 
+	wprintf(L"ProcCreateProcess(%s): page dir = %x\n", 
+		exe, proc->page_dir_phys);
 	LIST_ADD(proc, proc);
 	return proc;
-}
-
-void ProcDeleteProcess(process_t *proc)
-{
-	thread_t *thr, *next;
-
-	SemAcquire(&proc->sem_lock);
-	for (thr = thr_first; thr; thr = next)
-	{
-		next = thr->all_next;
-		if (thr->process == proc)
-			ThrDeleteThread(thr);
-	}
-
-	free((wchar_t*) proc->exe);
-	SemRelease(&proc->sem_lock);
-	free(proc);
 }
 
 bool ProcFirstTimeInit(process_t *proc)
@@ -126,9 +113,13 @@ bool ProcFirstTimeInit(process_t *proc)
 	wchar_t *ch;
 	module_t *mod;
 	thread_t *thr;
+	uint32_t cr3;
 
 	/*SemAcquire(&proc->sem_lock);*/
-	TRACE1("Creating process from %s\n", proc->exe);
+	__asm__("mov %%cr3,%0" : "=r" (cr3));
+	TRACE3("Creating process from %s: page dir = %x = %x\n", 
+		proc->exe, proc->page_dir_phys, cr3);
+	wprintf(L"401000 => %x\n", MemTranslate((void*) 0x401000));
 
 	proc->info = info = VmmAlloc(1, NULL, 
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
@@ -170,11 +161,61 @@ bool ProcFirstTimeInit(process_t *proc)
 	}
 
 	info->base = mod->base;
-	TRACE1("Successful; continuing at %lx\n", mod->entry);
-	ctx = ThrGetContext(current);
+	/*ctx = ThrGetContext(current);*/
+	ctx = ThrGetUserContext(current);
 	ctx->eip = mod->entry;
+	TRACE2("Successful; continuing at %lx, ctx = %p\n", ctx->eip, ctx);
 	/*SemRelease(&proc->sem_lock);*/
 	return true;
+}
+
+void ProcExitProcess(int code)
+{
+	thread_t *thr, *next;
+	process_t *proc;
+	unsigned i;
+
+	proc = current->process;
+	wprintf(L"Process %u exited with code %d: ", proc->id, code);
+	
+	SemAcquire(&proc->sem_lock);
+	HndSignalPtr(&proc->hdr, true);
+
+	for (thr = thr_first; thr; thr = next)
+	{
+		next = thr->all_next;
+		if (thr->process == proc)
+			ThrDeleteThread(thr);
+	}
+
+	for (i = 0; i < proc->handle_count; i++)
+		if (proc->handles[i] != NULL &&
+			proc->handles[i] != proc)
+		{
+			handle_hdr_t *hdr;
+			hdr = proc->handles[i];
+			wprintf(L"ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
+				i, hdr->file, hdr->line);
+			/*HndClose(proc, i, 0);*/
+		}
+
+	free(proc->handles);
+	proc->handles = NULL;
+	proc->handle_count = 0;
+
+	proc->hdr.copies--;
+	if (proc->hdr.copies == 0)
+	{
+		free((wchar_t*) proc->exe);
+		SemRelease(&proc->sem_lock);
+		free(proc);
+		wprintf(L"all handles freed\n");
+	}
+	else
+	{
+		SemRelease(&proc->sem_lock);
+		wprintf(L"still has %u refs\n", proc->hdr.copies);
+	}
 }
 
 bool ProcPageFault(process_t *proc, addr_t addr)
@@ -264,7 +305,7 @@ bool ProcInit(void)
 	proc_idle.handles = malloc(proc_idle.handle_count * sizeof(void*));
 	proc_idle.handles[0] = NULL;
 	proc_idle.handles[1] = &proc_idle;
-	proc_idle.page_dir_phys = (addr_t) proc_idle.page_dir 
+	proc_idle.page_dir_phys = (addr_t) kernel_pagedir/*proc_idle.page_dir */
 		- (addr_t) scode 
 		+ kernel_startup.kernel_phys;
 	return true;

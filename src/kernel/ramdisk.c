@@ -1,4 +1,4 @@
-/* $Id: ramdisk.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: ramdisk.c,v 1.5 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -35,6 +35,7 @@ bool RdFsRequest(device_t* dev, request_t* req)
 	wchar_t name[16];
 	uint8_t *ptr;
 	size_t len;
+	dirent_t *buf;
 
 	switch (req->code)
 	{
@@ -86,29 +87,86 @@ bool RdFsRequest(device_t* dev, request_t* req)
 		
 		return true;
 
+	case FS_OPENSEARCH:
+		assert(req_fs->params.fs_opensearch.name[0] == '/');
+		req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(ramfd_t), 'file');
+		fd = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		if (fd == NULL)
+		{
+			req->result = errno;
+			return false;
+		}
+
+		fd->file.fsd = dev;
+		fd->file.pos = 0;
+		fd->file.flags = FILE_READ;
+		fd->ram = NULL;
+		HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		return true;
+
 	case FS_CLOSE:
-		HndFree(NULL, req_fs->params.fs_close.file, 'file');
+		HndClose(NULL, req_fs->params.fs_close.file, 'file');
 		return true;
 
 	case FS_READ:
 		fd = HndLock(NULL, req_fs->params.fs_read.file, 'file');
 		assert(fd != NULL);
 	
-		if (fd->file.pos + req_fs->params.fs_read.length >= fd->ram->length)
-			req_fs->params.fs_read.length = fd->ram->length - fd->file.pos;
+		if (fd->ram != NULL)
+		{
+			/* Normal file */
+			if (fd->file.pos + req_fs->params.fs_read.length >= fd->ram->length)
+				req_fs->params.fs_read.length = fd->ram->length - fd->file.pos;
 
-		ptr = (uint8_t*) ramdisk_header + fd->ram->offset + (uint32_t) fd->file.pos;
-		/*wprintf(L"RdFsRequest: read %x (%S) at %x => %x = %08x\n",
-			fd->ram->offset,
-			fd->ram->name,
-			(uint32_t) fd->file.pos, 
-			(addr_t) ptr,
-			*(uint32_t*) ptr);*/
+			ptr = (uint8_t*) ramdisk_header + fd->ram->offset + (uint32_t) fd->file.pos;
+			/*wprintf(L"RdFsRequest: read %x (%S) at %x => %x = %08x\n",
+				fd->ram->offset,
+				fd->ram->name,
+				(uint32_t) fd->file.pos, 
+				(addr_t) ptr,
+				*(uint32_t*) ptr);*/
 
-		memcpy((void*) req_fs->params.fs_read.buffer, 
-			ptr,
-			req_fs->params.fs_read.length);
-		fd->file.pos += req_fs->params.fs_read.length;
+			memcpy((void*) req_fs->params.fs_read.buffer, 
+				ptr,
+				req_fs->params.fs_read.length);
+			fd->file.pos += req_fs->params.fs_read.length;
+		}
+		else
+		{
+			/* Search */
+			if (fd->file.pos >= ramdisk_header->num_files)
+			{
+				req->result = EEOF;
+				HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+				return false;
+			}
+			
+			file = ramdisk_files + fd->file.pos;
+			len = req_fs->params.fs_read.length;
+
+			req_fs->params.fs_read.length = 0;
+			buf = req_fs->params.fs_read.buffer;
+			while (req_fs->params.fs_read.length < len)
+			{
+				size_t temp;
+				temp = mbstowcs(buf->name, file->name, _countof(buf->name));
+				if (temp == -1)
+					wcscpy(buf->name, L"?");
+				else
+					buf->name[temp] = '\0';
+
+				buf->length = file->length;
+				buf->standard_attributes = FILE_ATTR_READ_ONLY;
+
+				buf++;
+				file++;
+				req_fs->params.fs_read.length += sizeof(dirent_t);
+
+				fd->file.pos++;
+				if (fd->file.pos >= ramdisk_header->num_files)
+					break;
+			}
+		}
 
 		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 		return true;

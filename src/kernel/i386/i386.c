@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.12 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.13 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -189,6 +189,8 @@ uint32_t i386Isr(context_t ctx)
 
 		if (!handled)
 		{
+			/*uint8_t *eip;*/
+
 			TextSwitchToKernel();
 
 			wprintf(L"Thread %s/%u: Interrupt %ld at %lx:%08lx: %08lx\n", 
@@ -217,7 +219,14 @@ uint32_t i386Isr(context_t ctx)
 
 			DbgDumpStack(current->process, ctx.regs.ebp);
 			ArchDbgDumpContext(&ctx);
+			DbgDumpBuffer((char*) ctx.eip - 8, 16);
 
+			/*eip = (uint8_t*) ctx.eip;
+			wprintf(L"%02x ", eip[0]);
+			wprintf(L"%02x ", eip[1]);
+			wprintf(L"%02x\n", eip[2]);*/
+
+			halt(0);
 			if (current->process == &proc_idle)
 				i386TrapToDebugger(&ctx);
 			else
@@ -234,10 +243,10 @@ uint32_t i386Isr(context_t ctx)
 		if (old_current != current)
 		{
 			old_current->kernel_esp = ctx.kernel_esp;
-			if (ArchAttachToThread(current) == NULL)
-				ScNeedSchedule(true);
-			else
+			if (ArchAttachToThread(current, old_current != current))
 				return current->kernel_esp;
+			else
+				ScNeedSchedule(true);
 		}
 		else
 			return ctx.kernel_esp;
@@ -255,5 +264,5 @@ void i386DoubleFault(uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags)
 	wprintf(L"at %x: ", arch_tss.eip);
 	wprintf(L"esp0 = %x\n", arch_tss.esp0);
 	_cputws(L"System halted\n", 14);
-	__asm__("hlt");
+	__asm__("cli ; hlt" : : "a" (arch_tss.eip));
 }

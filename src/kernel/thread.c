@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.6 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.7 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -483,6 +483,16 @@ void ThrDeleteThread(thread_t *thr)
 context_t* ThrGetContext(thread_t* thr)
 {
 	return (context_t*) (thr->kernel_esp - 4);
+}
+
+context_t *ThrGetUserContext(thread_t *thr)
+{
+	context_t *ctx;
+	for (ctx = thr->ctx_last; 
+		ctx != NULL && (ctx->cs & 3) != 3; 
+		ctx = ctx->ctx_prev)
+		;
+	return ctx;
 }
 
 bool ThrRun(thread_t *thr)

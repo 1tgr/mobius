@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.16 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: test.c,v 1.17 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,9 +9,7 @@
 #include <os/syscall.h>
 #include <os/port.h>
 #include <os/defs.h>
-
-process_info_t *ProcGetProcessInfo(void);
-int _cputws(const wchar_t *str, size_t count);
+#include <os/rtl.h>
 
 static char key[2048];
 static wchar_t str[_countof(key) * 2 + 1];
@@ -93,7 +91,7 @@ void testFileIo(const wchar_t *name)
 		ThrSleep(5000);
 	}
 
-	EvtFree(op.event);
+	HndClose(op.event);
 	FsClose(file);
 }
 
@@ -140,7 +138,7 @@ void testBlockDeviceIo(const wchar_t *name)
 		DbgWrite(L"Finished\n", 9);
 		wprintf(L"Finished: op.result = %d, op.bytes = %u\n",
 			op.result, op.bytes);
-		EvtFree(op.event);
+		HndClose(op.event);
 	}
 	FsClose(file);
 }
@@ -193,7 +191,7 @@ void testCharDeviceIo(const wchar_t *name)
 			DbgWrite(L"Finished\n", 9);
 			wprintf(L"Finished: op.result = %d, op.bytes = %u\n",
 				op.result, op.bytes);
-			EvtFree(op.event);
+			HndClose(op.event);
 		}
 	}
 

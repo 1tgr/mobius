@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.5 2002/01/15 00:12:58 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.6 2002/02/22 15:31:20 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -534,4 +534,24 @@ void DbgDumpVmm(process_t *proc)
 			ary[i]->pages);
 
 	free(ary);
+}
+
+void DbgDumpBuffer(const void* buf, size_t size)
+{
+	const uint8_t *ptr;
+	int i, j;
+
+	ptr = (const uint8_t*) buf;
+	for (j = 0; j < size; j += i, ptr += i)
+	{
+		wprintf(L"%08x ", (addr_t) ptr);
+		for (i = 0; i < 16; i++)
+		{
+			wprintf(L"%02x ", ptr[i]);
+			if (i + j >= size)
+				break;
+		}
+
+		wprintf(L"\n");
+	}
 }

@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.9 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.10 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -189,8 +189,8 @@ bool ArchInit(void)
 	for (i = 0; i < 80 * 25; i++)
 		ptr[i] = con_attribs | ' ';
 
-	wprintf(L"ArchInit: kernel is %u bytes (%u bytes code)\n",
-		kernel_startup.kernel_data, _data_end__ - scode);
+	wprintf(L"ArchInit: kernel is %uKB (%uKB code)\n",
+		kernel_startup.kernel_data / 1024, (_data_end__ - scode) / 1024);
 
 	/*cpu = i386IdentifyCpu();
 	switch (cpu)
@@ -204,7 +204,7 @@ bool ArchInit(void)
 		break;
 
 	case 5:*/
-		i386CpuId(0, &cpuid1);
+		/*i386CpuId(0, &cpuid1);
 		if (cpuid1.eax_0.max_eax > 0)
 			i386CpuId(1, &cpuid2);
 		else
@@ -212,7 +212,7 @@ bool ArchInit(void)
 
 		wprintf(L"Detected %.12S CPU, %u:%u:%u\n",
 			cpuid1.eax_0.vendorid, 
-			cpuid2.eax_1.stepping, cpuid2.eax_1.model, cpuid2.eax_1.family);
+			cpuid2.eax_1.stepping, cpuid2.eax_1.model, cpuid2.eax_1.family);*/
 		/*break;
 	}*/
 
@@ -306,7 +306,7 @@ void ArchDbgBreak(void)
 
 void ArchDbgDumpContext(const context_t* ctx)
 {
-	while (ctx != NULL)
+	if (ctx != NULL)
 	{
 		wprintf(L"---- Context at %p: ----\n", ctx);
 		wprintf(L" EAX %08x\t EBX %08x\t ECX %08x\t EDX %08x\n",
@@ -324,17 +324,37 @@ void ArchDbgDumpContext(const context_t* ctx)
 		/*ArchProcessorIdle();*/
 		ctx = ctx->ctx_prev;
 	}
+
+	if (ctx != NULL)
+		wprintf(L"---- Next context at %p ----\n", ctx);
 }
 
-thread_t *ArchAttachToThread(thread_t *thr)
+/*!
+ *	\brief	Switches to a new execution context and address space
+ *
+ *	Performs the following tasks:
+ *	- Switches address spaces (if necessary)
+ *	- Updates the \p ESP0 field in the TSS
+ *	- Updates the \p kernel_esp field in the thread's context structure
+ *	- Switches the \p FS base address to the new thread's information structure
+ *	- Runs any APCs queued on the new thread
+ *
+ *	If any APCs were run then the thread is paused and a reschedule will need 
+ *	to take place (in which case \p ArchAttachToThread will return \p false ).
+ *
+ *	\param	thr	New thread to switch to
+ *	\param	isNewAddressSpace	If \p true , then \p ArchAttachToThread will
+ *		switch address spaces as well (thereby invoking a TLB flush)
+ *	\return	\p true if the switch went ahead correctly, or \p false if 
+ *		reschedule should occur.
+ */
+bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
 {
-	thread_t *old;
 	context_t *new;
 	thread_apc_t *a, *next;
 	
-	old = current;
 	current = thr;
-	if (old->process != thr->process)
+	if (isNewAddressSpace)
 		__asm__("mov %0, %%cr3"
 			:
 			: "r" (thr->process->page_dir_phys));
@@ -363,8 +383,8 @@ thread_t *ArchAttachToThread(thread_t *thr)
 			ThrPause(current);
 		}
 
-		return NULL;
+		return false;
 	}
 
-	return old;
+	return true;
 }

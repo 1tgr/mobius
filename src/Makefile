@@ -1,9 +1,11 @@
-DIRS=	librtl libsys libc kernel/i386 kernel drivers test shell boot ../bin
+DIRS=	librtl libsys libc kernel/i386 kernel drivers test shell hello ../bin
 
 all:
+	make -C boot --win32
 	for dir in $(DIRS); do make -C $$dir; done
 
 clean:
+	make -C boot --win32 clean
 	for dir in $(DIRS); do make -C $$dir clean; done
 
 floppy:	all

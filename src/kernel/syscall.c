@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.4 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.5 2002/02/22 15:31:27 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -39,12 +39,6 @@ void ThrExitThread(int code)
 unsigned SysUpTime(void)
 {
 	return sc_uptime;
-}
-
-void ProcExitProcess(int code)
-{
-	wprintf(L"Process %u exited with code %d\n", current->process->id, code);
-	ProcDeleteProcess(current->process);
 }
 
 handle_t ProcSpawnProcess(const wchar_t *exe)
@@ -94,15 +88,15 @@ handle_t SysEvtAlloc(void)
 
 void SysEvtSignal(handle_t evt)
 {
-	HndSignal(NULL, evt, 'evnt', true);
-}
-
-bool SysEvtFree(handle_t evt)
-{
-	return HndFree(NULL, evt, 'evnt');
+	HndSignal(NULL, evt, 0, true);
 }
 
 bool SysEvtIsSignalled(handle_t evt)
 {
-	return HndIsSignalled(NULL, evt, 'evnt');
+	return HndIsSignalled(NULL, evt, 0);
+}
+
+bool SysHndClose(handle_t hnd)
+{
+	return HndClose(NULL, hnd, 0);
 }

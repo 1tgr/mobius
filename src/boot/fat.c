@@ -1,3 +1,5 @@
+/* $Id: fat.c,v 1.5 2002/02/22 15:31:19 pavlovskii Exp $ */
+
 #include <bios.h>
 #include <ctype.h>
 #include <string.h>

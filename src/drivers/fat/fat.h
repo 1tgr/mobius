@@ -1,4 +1,4 @@
-/* $Id: fat.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fat.h,v 1.3 2002/02/22 15:31:19 pavlovskii Exp $ */
 
 #ifndef __FAT_H
 #define __FAT_H
@@ -67,7 +67,7 @@ struct fat_lfnslot_t
 #pragma pack(pop)
 
 #define ATTR_LONG_NAME     \
-	(ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
+	(FILE_ATTR_READ_ONLY | FILE_ATTR_HIDDEN | FILE_ATTR_SYSTEM | FILE_ATTR_VOLUME_ID)
 
 /*@}*/
 

@@ -1,10 +1,11 @@
 TARGET=	$(BIN)/kernel.exe
 ARCH=	i386/libi386.lib
-OBJS=	start.o main.o rtlsup.o thread.o \
-	proc.o handle.o fs.o device.o \
-	io.o ramdisk.o mod_pe.o vmm.o \
-	syscall.o port.o debug.o cache.o \
-	cppsup.o
+OBJS=	start.o main.o thread.o \
+	proc.o handle.o fs.o \
+	device.o io.o vmm.o \
+	mod_pe.o syscall.o port.o \
+	ramdisk.o cache.o cppsup.o \
+	rtlsup.o debug.o 
 LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 DEFINES=-Di386 -DKERNEL
 DEF=	kernel.def

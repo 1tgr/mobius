@@ -119,6 +119,10 @@ SOURCE=.\i386\memory.c
 
 SOURCE=.\i386\scdsptch.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\start.asm
+# End Source File
 # End Group
 # Begin Source File
 
@@ -269,10 +273,6 @@ SOURCE=.\i386\wrappers.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
-# Begin Source File
-
-SOURCE=C:\BOCHS\bochs.out
-# End Source File
 # Begin Source File
 
 SOURCE=.\kernel.ld

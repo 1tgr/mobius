@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.2 2002/02/20 01:38:24 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.3 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +11,124 @@
 int _cputws(const wchar_t *str, size_t count);
 
 bool sh_exit;
+wchar_t sh_path[MAX_PATH];
+
+void ShCmdExit(const wchar_t *command, const wchar_t *params)
+{
+	sh_exit = true;
+}
+
+void ShCmdCd(const wchar_t *command, const wchar_t *params)
+{
+	if (FsFullPath(params, sh_path))
+		wcscpy(ProcGetProcessInfo()->cwd, sh_path);
+	else
+		wprintf(L"%s: invalid path\n", params);
+}
+
+void ShCmdDir(const wchar_t *command, const wchar_t *params)
+{
+	handle_t search;
+	dirent_t dir;
+	fileop_t op;
+	
+	if (*params == '\0')
+		params = L"*";
+
+	if (!FsFullPath(params, sh_path))
+	{
+		wprintf(L"%s: invalid path\n", params);
+		return;
+	}
+
+	search = FsOpenSearch(params);
+	wprintf(L"%s: search = %d\n", command, search);
+
+	if (search != NULL)
+	{
+		op.event = NULL;
+		while (FsRead(search, &dir, sizeof(dir), &op))
+		{
+			if (op.result == SIOPENDING)
+				ThrWaitHandle(op.event);
+
+			wprintf(L"%s\t%lu\t%x08%x\n", 
+				dir.name, 
+				(uint32_t) dir.length, 
+				(uint32_t) dir.standard_attributes,
+				(uint32_t) (dir.standard_attributes >> 32));
+		}
+
+		FsClose(search);
+	}
+}
+
+void ShCmdType(const wchar_t *command, const wchar_t *params)
+{
+	static char buf[2048];
+	static wchar_t str[_countof(buf)];
+
+	handle_t file;
+	size_t len;
+	fileop_t op;
+	unsigned i;
+	
+	file = FsOpen(params, FILE_READ);
+	if (file == NULL)
+	{
+		wprintf(L"Failed to open %s\n", params);
+		return;
+	}
+
+	op.event = file;
+	while (true)
+	{
+		if (!FsRead(file, buf, sizeof(buf), &op))
+		{
+			wprintf(L"%s: read failed (%d)\n", params, op.result);
+			break;
+		}
+
+		if (op.result == SIOPENDING)
+			ThrWaitHandle(op.event);
+
+		len = op.bytes;
+		if (len == 0)
+			break;
+		
+		if (len < _countof(buf))
+			buf[len] = '\0';
+		/*len = mbstowcs(str, buf, _countof(buf) - 1);
+		if (len == -1)
+			wprintf(L"invalid multibyte sequence\n");
+		else
+			_cputws(str, len);*/
+		for (i = 0; i < len; i++)
+			str[i] = (wchar_t) (unsigned char) buf[i];
+		_cputws(str, len);
+	}
+	
+	FsClose(file);
+}
+
+void ShCmdCls(const wchar_t *command, const wchar_t *params)
+{
+	_cputws(L"\x1b[2J", 4);
+}
+
+struct
+{
+	const wchar_t *name;
+	void (*func)(const wchar_t*, const wchar_t*);
+} sh_commands[] =
+{
+	{ L"exit",	ShCmdExit },
+	{ L"cd",	ShCmdCd },
+	{ L"dir",	ShCmdDir },
+	{ L"type",	ShCmdType },
+	{ L"cls",	ShCmdCls },
+	{ NULL,		NULL },
+};
 
 wchar_t ShReadChar(void)
 {
@@ -89,21 +207,16 @@ size_t ShReadLine(wchar_t *buf, size_t max)
 
 bool ShInternalCommand(const wchar_t *command, const wchar_t *params)
 {
-	wchar_t temp[MAX_PATH];
+	unsigned i;
 
 	if (*command == '\0')
 		return true;
-	else if (_wcsicmp(command, L"exit") == 0)
-	{
-		sh_exit = true;
-		return true;
-	}
-	else if (_wcsicmp(command, L"cd") == 0)
-	{
-		FsFullPath(params, temp);
-		wcscpy(ProcGetProcessInfo()->cwd, temp);
-		return true;
-	}
+	else for (i = 0; sh_commands[i].name; i++)
+		if (_wcsicmp(command, sh_commands[i].name) == 0)
+		{
+			sh_commands[i].func(command, params);
+			return true;
+		}
 
 	return false;
 }
@@ -133,9 +246,12 @@ int main(void)
 
 		if (!ShInternalCommand(buf, space))
 		{
+			wcscat(buf, L".exe");
 			wprintf(L"Starting %s...\n", buf);
 			spawned = ProcSpawnProcess(buf);
 			wprintf(L"Handle is %d\n", spawned);
+			ThrSleep(2000);
+			HndClose(spawned);
 		}
 	}
 

@@ -1,8 +1,9 @@
-/* $Id: fs.c,v 1.12 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.13 2002/02/22 15:31:20 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
 #include <kernel/init.h>
+#include <kernel/thread.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -33,6 +34,8 @@ struct vfs_dir_t
 	vfs_mount_t *vfs_mount_first, *vfs_mount_last;
 };
 
+typedef struct file_t vfs_search_t;
+
 static bool VfsRequest(device_t *dev, request_t *req)
 {
 	vfs_dir_t *dir = (vfs_dir_t*) dev;
@@ -40,6 +43,8 @@ static bool VfsRequest(device_t *dev, request_t *req)
 	const wchar_t *ch;
 	size_t len;
 	vfs_mount_t *mount;
+	vfs_search_t *search;
+	dirent_t *buf;
 
 	switch (req->code)
 	{
@@ -117,6 +122,90 @@ static bool VfsRequest(device_t *dev, request_t *req)
 			req->result = ENOTFOUND;
 			return false;
 		}
+
+	case FS_OPENSEARCH:
+		if (req_fs->params.fs_opensearch.name[0] == '/')
+			req_fs->params.fs_opensearch.name++;
+
+		ch = wcschr(req_fs->params.fs_opensearch.name, '/');
+		if (ch == NULL)
+			len = wcslen(req_fs->params.fs_opensearch.name);
+		else
+			len = ch - req_fs->params.fs_opensearch.name;
+
+		TRACE3("Search: Path: %s Name: %s Len: %d\n", 
+			req_fs->params.fs_open.name, ch, len);
+
+		FOREACH (mount, dir->vfs_mount)
+			if (_wcsnicmp(mount->name, req_fs->params.fs_opensearch.name, len) == 0)
+			{
+				/*TRACE1("=> %p\n", mount->fsd);*/
+				req_fs->params.fs_opensearch.name += len;
+				return mount->fsd->vtbl->request(mount->fsd, req);
+			}
+		
+		/* It's a search in our directory */
+		req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(vfs_search_t), 'file');
+		search = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		if (search == NULL)
+		{
+			req->result = errno;
+			return false;
+		}
+
+		search->fsd = dev;
+		search->pos = (uint64_t) (addr_t) dir->vfs_mount_first;
+		search->flags = FILE_READ;
+		return true;
+
+	case FS_CLOSE:
+		if (HndClose(NULL, req_fs->params.fs_read.file, 'file'))
+			return true;
+		else
+		{
+			req->result = errno;
+			return false;
+		}
+
+	case FS_READ:
+		search = HndLock(NULL, req_fs->params.fs_read.file, 'file');
+		if (search == NULL)
+		{
+			req->result = errno;
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+			return false;
+		}
+
+		mount = (vfs_mount_t*) (addr_t) search->pos;
+		if (mount == NULL)
+		{
+			req->result = EEOF;
+			req_fs->params.fs_read.length = 0;
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+			return false;
+		}
+
+		buf = req_fs->params.fs_read.buffer;
+		len = req_fs->params.fs_read.length;
+		req_fs->params.fs_read.length = 0;
+		while (req_fs->params.fs_read.length < len)
+		{
+			wcscpy(buf->name, mount->name);
+			buf->length = 0;
+			buf->standard_attributes = FILE_ATTR_DIRECTORY;
+
+			buf++;
+			req_fs->params.fs_read.length += sizeof(dirent_t);
+
+			mount = mount->next;
+			search->pos = (uint64_t) (addr_t) mount;
+
+			if (mount == NULL)
+				break;
+		}
+
+		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+		return true;
 	}
 
 	req->result = ENOTIMPL;
@@ -205,6 +294,34 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
 	req.params.fs_open.flags = flags;
 	if (IoRequestSync(root, (request_t*) &req))
 		return req.params.fs_open.file;
+	else
+	{
+		errno = req.header.result;
+		return NULL;
+	}
+}
+
+/*!
+ *	\brief	Opens a directory search
+ *
+ *	\param	path	Full search specification
+ *	\return	Handle to the search
+ */
+handle_t FsOpenSearch(const wchar_t *path)
+{
+	request_fs_t req;
+	wchar_t fullname[256];
+
+	if (!FsFullPath(path, fullname))
+		return NULL;
+
+	req.header.code = FS_OPENSEARCH;
+	req.params.fs_opensearch.name = fullname;
+	req.params.fs_opensearch.name_size = (wcslen(fullname) * sizeof(wchar_t)) + 1;
+	req.params.fs_opensearch.file = NULL;
+	req.params.fs_opensearch.flags = 0;
+	if (IoRequestSync(root, (request_t*) &req))
+		return req.params.fs_opensearch.file;
 	else
 	{
 		errno = req.header.result;
@@ -340,6 +457,7 @@ static bool FsReadWrite(handle_t file, void *buf, size_t bytes, fileop_t *op,
 	request_fs_t *req;
 	file_t *fd;
 	device_t *fsd;
+	bool is_sync;
 
 	fd = HndLock(NULL, file, 'file');
 	if (fd == NULL)
@@ -358,6 +476,10 @@ static bool FsReadWrite(handle_t file, void *buf, size_t bytes, fileop_t *op,
 
 	fsd = fd->fsd;
 	HndUnlock(NULL, file, 'file');
+
+	is_sync = op->event == NULL;
+	if (is_sync)
+		op->event = file;
 
 	req = malloc(sizeof(request_fs_t));
 	if (req == NULL)
@@ -388,6 +510,12 @@ static bool FsReadWrite(handle_t file, void *buf, size_t bytes, fileop_t *op,
 	}
 	else
 	{
+		if (is_sync && req->header.result == SIOPENDING)
+		{
+			wprintf(L"FsReadWrite: doing sync\n");
+			ThrWaitHandle(current, op->event, 0);
+		}
+
 		if (isRead)
 			TRACE1("succeeded (%d)\n", req->header.result);
 		op->result = req->header.result;
@@ -595,7 +723,7 @@ bool FsInit(void)
 	bool b;
 
 	FsCreateVirtualDir(L"/");
-	FsCreateVirtualDir(L"/system");
+	FsCreateVirtualDir(L"/System");
 	b = FsMount(SYS_BOOT, L"ram", NULL);
 	assert(b || "Failed to mount ramdisk");
 	b = FsMount(SYS_PORTS, L"portfs", NULL);
@@ -605,9 +733,5 @@ bool FsInit(void)
 
 	DevInstallDevice(L"ata", NULL, NULL);
 	DevInstallDevice(L"fdc", L"fdc0", NULL);
-	
-	/*dev = DevOpen(L"ide0a");
-	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);*/
 	return true;
 }

@@ -11,13 +11,14 @@ EXPORTS
 	ProcGetProcessInfo
 	ProcSpawnProcess
 	EvtAlloc
-	EvtFree
 	EvtIsSignalled
 	EvtSignal
 	FsCreate
 	FsOpen
+	FsOpenSearch
 	FsClose
 	FsRead
 	FsWrite
 	FsSeek
+	HndClose
 	VmmAlloc

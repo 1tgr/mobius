@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.6 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: port.c,v 1.7 2002/02/22 15:31:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -299,7 +299,7 @@ bool PortFsRequest(device_t* dev, request_t* req)
 		}
 
 		HndRemovePtrEntries(NULL, &port->hdr);
-		HndFreePtr(&port->hdr);
+		/*HndFreePtr(&port->hdr);*/
 		PortDelete(port);
 		return true;
 

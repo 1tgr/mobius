@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.14 2002/01/15 00:12:58 pavlovskii Exp $ */
+/* $Id: device.c,v 1.15 2002/02/22 15:31:20 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -72,6 +72,8 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 	device_file_t *file;
 	device_info_t *info;
 	request_dev_t *req_dev;
+	size_t len;
+	dirent_t *buf;
 	
 	switch (req->code)
 	{
@@ -109,6 +111,25 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 		HndUnlock(NULL, req_fs->params.fs_open.file, 'file');
 		return true;
 
+	case FS_OPENSEARCH:
+		if (*req_fs->params.fs_opensearch.name == '/')
+			req_fs->params.fs_opensearch.name++;
+
+		req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(device_file_t), 'file');
+		file = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		if (file == NULL)
+		{
+			req->result = EHANDLE;
+			return false;
+		}
+
+		file->file.fsd = dev;
+		file->file.pos = (uint64_t) (addr_t) info_first;
+		file->file.flags = FILE_READ;
+		file->dev = NULL;
+		HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		return true;
+
 	case FS_READ:
 	case FS_WRITE:
 		file = HndLock(NULL, req_fs->params.fs_read.file, 'file');
@@ -131,34 +152,72 @@ static bool DevFsRequest(device_t *dev, request_t *req)
 				req_fs->params.fs_write.buffer,
 				req_fs->params.fs_write.length);*/
 
-		req_dev = malloc(sizeof(request_dev_t));
-		if (req_dev == NULL)
+		if (file->dev != NULL)
 		{
-			req->result = ENOMEM;
-			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-			return false;
-		}
+			/* Normal device file */
+			req_dev = malloc(sizeof(request_dev_t));
+			if (req_dev == NULL)
+			{
+				req->result = ENOMEM;
+				HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+				return false;
+			}
 
-		req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
-		req_dev->header.param = req;
-		req_dev->params.dev_read.buffer = req_fs->params.buffered.buffer;
-		req_dev->params.dev_read.length = req_fs->params.buffered.length;
-		req_dev->params.dev_read.offset = file->file.pos;
+			req_dev->header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
+			req_dev->header.param = req;
+			req_dev->params.dev_read.buffer = req_fs->params.buffered.buffer;
+			req_dev->params.dev_read.length = req_fs->params.buffered.length;
+			req_dev->params.dev_read.offset = file->file.pos;
 
-		/*wprintf(L"DevFsRequest: req_dev = %p req_fs = %p length = %u\n",
-			req_dev, req_fs, req_dev->params.buffered.length);*/
-		if (!IoRequest(dev, file->dev, &req_dev->header))
-		{
-			req_fs->params.buffered.length = req_dev->params.buffered.length;
-			req->result = req_dev->header.result;
-			file->file.pos += req_dev->params.buffered.length;
-			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-			free(req_dev);
-			return false;
+			/*wprintf(L"DevFsRequest: req_dev = %p req_fs = %p length = %u\n",
+				req_dev, req_fs, req_dev->params.buffered.length);*/
+			if (!IoRequest(dev, file->dev, &req_dev->header))
+			{
+				req_fs->params.buffered.length = req_dev->params.buffered.length;
+				req->result = req_dev->header.result;
+				file->file.pos += req_dev->params.buffered.length;
+				HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+				free(req_dev);
+				return false;
+			}
+			else
+			{
+				req->result = req_dev->header.result;
+				return true;
+			}
 		}
 		else
 		{
-			req->result = req_dev->header.result;
+			/* Search */
+			info = (device_info_t*) (addr_t) file->file.pos;
+
+			if (info == NULL)
+			{
+				req->result = EEOF;
+				HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+				return false;
+			}
+			
+			len = req_fs->params.fs_read.length;
+
+			req_fs->params.fs_read.length = 0;
+			buf = req_fs->params.fs_read.buffer;
+			while (req_fs->params.fs_read.length < len)
+			{
+				wcscpy(buf->name, info->name);
+				buf->length = 0;
+				buf->standard_attributes = FILE_ATTR_DEVICE;
+
+				buf++;
+				req_fs->params.fs_read.length += sizeof(dirent_t);
+
+				info = info->next;
+				file->file.pos = (uint64_t) (addr_t) info;
+				if (info == NULL)
+					break;
+			}
+
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 			return true;
 		}
 	}

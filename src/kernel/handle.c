@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.6 2002/02/22 15:31:20 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -19,11 +19,11 @@ handle_t _HndAlloc(struct process_t *proc, size_t size, uint32_t tag,
 	return HndDuplicate(proc, ptr);
 }
 
-bool HndFree(struct process_t *proc, handle_t hnd, uint32_t tag)
+bool HndClose(struct process_t *proc, handle_t hnd, uint32_t tag)
 {
 	handle_hdr_t *ptr;
 	
-	/*wprintf(L"HndFree: %lx(%.4S)\n", hnd, &tag);*/
+	/*wprintf(L"HndClose: %lx(%.4S)\n", hnd, &tag);*/
 	ptr = HndGetPtr(proc, hnd, tag);
 	if (ptr == NULL)
 		return false;
@@ -36,8 +36,11 @@ bool HndFree(struct process_t *proc, handle_t hnd, uint32_t tag)
 	ptr->copies--;
 	if (ptr->copies == 0)
 	{
-		HndFreePtr(ptr);
-		free(ptr);
+		HndSignalPtr(ptr, 0);
+		if (ptr->free_callback)
+			ptr->free_callback(ptr);
+		else
+			free(ptr);
 	}
 
 	return true;
@@ -52,14 +55,15 @@ handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag)
 
 	if (proc->handles == NULL)
 	{
-		wprintf(L"HndGetPtr(%ld): process handle table not created\n", hnd);
+		wprintf(L"HndGetPtr(%s, %ld): process handle table not created\n", 
+			proc->exe, hnd);
 		return NULL;
 	}
 
 	if (hnd >= proc->handle_count)
 	{
-		wprintf(L"HndGetPtr(%lx): invalid handle (> %lx)\n", 
-			hnd, proc->handle_count);
+		wprintf(L"HndGetPtr(%s, %lx): invalid handle (> %lx)\n", 
+			proc->exe, hnd, proc->handle_count);
 		return NULL;
 	}
 
@@ -67,15 +71,16 @@ handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag)
 
 	if (ptr == NULL)
 	{
-		wprintf(L"HndGetPtr(%ld): freed handle accessed\n", hnd);
+		/*wprintf(L"HndGetPtr(%s, %ld): freed handle accessed\n", 
+			proc->exe, hnd);*/
 		return NULL;
 	}
 
 	if (tag != 0 &&
 		ptr->tag != tag)
 	{
-		wprintf(L"HndGetPtr(%ld): tag mismatch (%.4S/%.4S)\n", 
-			hnd, &ptr->tag, &tag);
+		wprintf(L"HndGetPtr(%s, %ld): tag mismatch (%.4S/%.4S)\n", 
+			proc->exe, hnd, &ptr->tag, &tag);
 		return NULL;
 	}
 
@@ -142,11 +147,6 @@ void _HndInit(handle_hdr_t *ptr, uint32_t tag, const char *file, unsigned line)
 	ptr->line = line;
 }
 
-void HndFreePtr(handle_hdr_t *ptr)
-{
-	HndSignalPtr(ptr, 0);
-}
-
 void HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr)
 {
 	handle_t hnd;
@@ -173,6 +173,7 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 
 	proc->handle_count++;
 	proc->handles = realloc(proc->handles, proc->handle_count * sizeof(void*));
+	assert(proc->handles != NULL);
 	proc->handles[proc->handle_count - 1] = ptr;
 	ptr->copies++;
 
@@ -212,15 +213,10 @@ handle_t EvtAlloc(process_t *proc)
 
 void EvtSignal(process_t *proc, handle_t evt)
 {
-	HndSignal(proc, evt, 'evnt', true);
-}
-
-bool EvtFree(process_t *proc, handle_t evt)
-{
-	return HndFree(proc, evt, 'evnt');
+	HndSignal(proc, evt, 0, true);
 }
 
 bool EvtIsSignalled(process_t *proc, handle_t evt)
 {
-	return HndIsSignalled(proc, evt, 'evnt');
+	return HndIsSignalled(proc, evt, 0);
 }
