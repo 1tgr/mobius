@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.11 2002/04/20 12:47:27 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.12 2002/08/09 21:45:29 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -127,6 +127,8 @@ struct fdc_t
 	void *transfer_buffer;
 	addr_t transfer_phys;
 	unsigned fdc_track;
+
+        device_config_t cfg;
 };
 
 typedef struct fdc_ioextra_t fdc_ioextra_t;
@@ -480,6 +482,7 @@ bool FdcIsr(device_t *dev, uint8_t irq)
 		/* fall through */
 
 	case fdcReset:
+        //wprintf(L"fdc: IRQ during reset\n");
 		fdc->op = fdcIdle;
 		return true;
 
@@ -575,13 +578,13 @@ static const device_vtbl_t fdc_vtbl =
 	FdcIsr
 };
 
-device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
+void FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
 	fdc_t *fdc;
 
 	fdc = malloc(sizeof(*fdc));
 	if (fdc == NULL)
-		return NULL;
+		return;
 
 	memset(fdc, 0, sizeof(*fdc));
 	fdc->dev.vtbl = &fdc_vtbl;
@@ -653,12 +656,19 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	{
 		wprintf(L"fdc: recalibrate failed: sr0 = %x\n", fdc->sr0);
 		FdcRemove(fdc);
-		return NULL;
+		return;
 	}
 
 	fdc->fdc_track = 0;
 	FdcMotorOff(fdc);
-	return &fdc->dev;
+
+        if (cfg == NULL)
+        {
+            cfg = &fdc->cfg;
+            fdc->cfg.device_class = 0x0102;
+        }
+
+	DevAddDevice(&fdc->dev, name, cfg);
 }
 
 bool DrvInit(driver_t *drv)
