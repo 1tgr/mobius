@@ -1,4 +1,31 @@
-/* $Id: fat.cpp,v 1.17 2002/06/22 18:10:23 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.18 2002/08/17 17:45:38 pavlovskii Exp $ */
+
+/*
+ *  Source code the the Möbius FAT driver
+ *
+ *  Author: Tim Robinson
+ *
+ *  This driver is written in C++ partly because it seems easier to write 
+ *      FSDs in C++ (entries in the FSD vtbl map to C++ virtual functions),
+ *      and partly to prove and to ensure that the VFS (written in C) can
+ *      talk to C++.
+ *
+ *  This driver currently has support for FAT12 and FAT16 on any Möbius storage
+ *      device (it's been tested with the ATA and floppy disk drivers to far).
+ *      Currently long file names are not supported, although adding that would
+ *      be a matter of modifying the Fat::AssembleName function. FAT32 is also 
+ *      not supported (mainly because I don't have a FAT32 disk to test it on).
+ *      Adding FAT32 support would probably just be a matter of modifying 
+ *      Fat::GetNextCluster and the routines that access the starting cluster
+ *      in the fat_dirent_t structure, although for large hard disks it would
+ *      make sense to stop loading all the FAT into memory at mount time,
+ *      and start cacheing it, possibly with a kernel file cache object.
+ *
+ *  One big thing that this driver is missing is write support. It is currently
+ *      possible to write to FAT files as long as the file is not grown (which
+ *      would require writing to the FAT). It is not possible to create files
+ *      or directories.
+ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -7,6 +34,7 @@
 #include <kernel/cache.h>
 #include <kernel/io.h>
 #include <os/defs.h>
+#include <os/hash.h>
 
 #include <kernel/device>
 
@@ -24,40 +52,65 @@ extern "C" void *__morecore(size_t nbytes);
 
 using namespace kernel;
 
-struct FatDirectory
+/*
+ * Structure representing a FAT directory entry
+ * These are cached by the FSD and hashed by their vnode ID. Vnode IDs
+ *  are generated sequentially and not re-used until the 32-bit vnode
+ *  counter wraps around.
+ * xxx -- should probably start re-using vnode IDs - opening 2^32 files
+ *  or directories without remounting the FS would break it.
+ */
+struct FatVnode
 {
-    fat_dirent_t di;
-    bool is_dir;
-    unsigned num_entries;
-    fat_dirent_t *entries;
-    FatDirectory **subdirs;
+    FatVnode *next;             // pointer to the next hashed entry
+    unsigned locks;             // reference count
+    vnode_id_t id;              // vnode ID
+    vnode_id_t parent;          // ID of this vnode's parent
+    wchar_t *name;              // full nul-terminated name of the vnode
+    fat_dirent_t di;            // directory entry of the vnode
+    unsigned num_dir_entries;   // directory: number of entries
+    fat_dirent_t *dir_entries;  // directory: entries, or NULL if file
 };
 
+/*
+ * FAT file structure; this is the FSD's file cookie.
+ * Nothing more than a pointer to the file's vnode and a flat list
+ *  of clusters (for easy random access).
+ */
 struct FatFile
 {
-    fat_dirent_t di;
-    bool is_dir;
+    FatVnode *vnode;
     unsigned num_clusters;
-    wchar_t *name;
     uint32_t *clusters;
 };
 
+/*
+ * FAT directory structure; this is the FSD's directory cookie.
+ * Nothing more than a pointer to the directory's vnode and the index
+ *  of the next directory entry to be retrieved by readdir.
+ */
 struct FatSearch
 {
-    FatDirectory *dir;
+    FatVnode *vnode;
     unsigned index;
 };
 
+/*
+ * Structure created to contain information on an asynchronous read or write
+ *  request. This is allocated in ReadWriteFile and updated and freed by 
+ *  StartIo. No record of fat_ioextra_t structures is maintained by the FSD;
+ *  instead, they are attached to the param field of request structures issued
+ *  to the storage device.
+ */
 typedef struct fat_ioextra_t fat_ioextra_t;
 struct fat_ioextra_t
 {
-    enum { started, reading, finished } state;
-    uint32_t bytes_read;
-    unsigned cluster_index;
-    size_t mod;
-    uint32_t *clusters;
-    request_dev_t dev_request;
+    uint32_t bytes_read;            // number of bytes read or written
+    unsigned cluster_index;         // file cluster being read or written
+    size_t mod;                     // offset within the current cluster
+    request_dev_t dev_request;      // request issued to the volume
 
+    /* Parameters from read_file or write_file */
     file_t *file;
     page_array_t *pages;
     size_t length;
@@ -71,8 +124,9 @@ public:
     void dismount();
     void get_fs_info(fs_info_t *inf);
 
-    status_t create_file(const wchar_t *path, fsd_t **redirect, void **cookie);
-    status_t lookup_file(const wchar_t *path, fsd_t **redirect, void **cookie);
+    status_t parse_element(const wchar_t *name, wchar_t **new_path, vnode_t *node);
+    status_t create_file(vnode_id_t dir, const wchar_t *name, void **cookie);
+    status_t lookup_file(vnode_id_t file, void **cookie);
     status_t get_file_info(void *cookie, uint32_t type, void *buf);
     status_t set_file_info(void *cookie, uint32_t type, const void *buf);
     void free_cookie(void *cookie);
@@ -82,11 +136,10 @@ public:
     bool ioctl_file(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io);
     bool passthrough(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io);
 
-    status_t opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie);
+    status_t mkdir(vnode_id_t dir, const wchar_t *name, void **dir_cookie);
+    status_t opendir(vnode_id_t dir, void **dir_cookie);
     status_t readdir(void *dir_cookie, dirent_t *buf);
     void free_dir_cookie(void *dir_cookie);
-
-    status_t mount(const wchar_t *path, fsd_t *newfsd);
 
     void finishio(request_t *req);
     void flush_cache(file_t *fd);
@@ -94,42 +147,49 @@ public:
     fsd_t *Init(driver_t *drv, const wchar_t *dest);
 
 protected:
-    bool ConstructDir(FatDirectory *dir, const fat_dirent_t *di);
-    void DestructDir(FatDirectory *dir);
     uint32_t GetNextCluster(uint32_t cluster);
-    /*handle_t AllocFile(const fat_dirent_t *di, uint32_t flags);
-    bool FreeFile(handle_t fd);*/
-    bool LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di);
     uint32_t ClusterToOffset(uint32_t cluster);
     void StartIo(fat_ioextra_t *extra);
-    //bool FlushBlock(FatFile *file, uint64_t block);
-    /*bool ReadDir(FatDirectory *dir, request_fs_t *req_fs);*/
     bool ReadWriteFile(file_t *file, page_array_t *pages, size_t length, 
         fs_asyncio_t *io, bool is_reading);
+    FatVnode *GetVnode(vnode_id_t id);
+    void ReleaseVnode(FatVnode *vnode);
+    vnode_id_t AllocVnode(vnode_id_t parent, const fat_dirent_t *di, const wchar_t *name);
 
     static unsigned AssembleName(fat_dirent_t *entries, wchar_t *name);
     size_t SizeOfDir(const fat_dirent_t *di);
 
-    device_t *m_device;
-    fat_bootsector_t m_bpb;
-    FatDirectory *m_root;
-    unsigned m_fat_bits;
-    unsigned m_bytes_per_cluster;
-    unsigned m_root_start;
-    unsigned m_data_start;
-    unsigned m_cluster_shift;
-    unsigned m_sectors;
-    uint8_t *m_fat;
+    device_t *m_device;             // storage device
+    fat_bootsector_t m_bpb;         // boot sector
+    unsigned m_fat_bits;            // number of bits per FAT entry
+    unsigned m_bytes_per_cluster;   // number of bytes per cluster
+    unsigned m_root_start;          // sector offset of the root directory
+    unsigned m_data_start;          // sector offset of the data area
+    unsigned m_cluster_shift;       // shift value for clusters <=> bytes
+    unsigned m_sectors;             // total number of sectors
+    uint8_t *m_fat;                 // memory copy of FAT
+    vnode_id_t m_next_id;           // next vnode ID to be issued
+    FatVnode *m_vnodes[128];        // hash table of vnode structures
 };
 
+/*
+ * xxx -- some systems (e.g. PC98) can have funny sector sizes (e.g. 2048 
+ *  bytes). Hopefully the storage device driver on those systems will support
+ *  the same sector size, or at least emulate 512 bytes/sector.
+ */
 #define SECTOR_SIZE                 512
 
+/*
+ * Make some compile-time assertions on the sizes of some structures. 
+ *  Provides some confirmation that proper packing has taken effect.
+ */
 CASSERT(sizeof(fat_bootsector_t) == SECTOR_SIZE);
 CASSERT(sizeof(fat_dirent_t) == 32);
 CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 
 #define FAT_MAX_NAME                256
 
+/* Dummy cluster value for the root directory */
 #define FAT_CLUSTER_ROOT            0
 
 #define FAT_CLUSTER_AVAILABLE       0
@@ -165,100 +225,11 @@ const wchar_t msdostou[] = {
 0xFFFF
 };
 
-bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
-{
-    size_t bytes, size;
-    
-    size = SizeOfDir(di);
-    /*dir->fsd = this;
-    dir->pos = 0;
-    dir->flags = FILE_READ;
-    dir->cache = NULL;*/
-    dir->is_dir = true;
-    dir->di = *di;
-    dir->num_entries = size / sizeof(fat_dirent_t);
-    dir->entries = new fat_dirent_t[dir->num_entries];
-    dir->subdirs = new FatDirectory*[dir->num_entries];
-    memset(dir->subdirs, 0, sizeof(FatDirectory*) * dir->num_entries);
-
-    if (di->first_cluster == FAT_CLUSTER_ROOT)
-    {
-	TRACE2("\tReading root directory: %u bytes at sector %u\n",
-	    size,
-	    m_root_start);
-	bytes = IoReadSync(m_device, 
-	    m_root_start * SECTOR_SIZE, 
-	    dir->entries, 
-	    size);
-	if (bytes < size)
-	{
-	    wprintf(L"fat: failed to read root directory: read %u bytes\n", 
-		bytes);
-	    return false;
-	}
-    }
-    else
-    {
-	uint32_t cluster;
-	uint8_t *ptr;
-	size_t bytes_read;
-	unsigned i;
-
-	cluster = di->first_cluster;
-	ptr = (uint8_t*) dir->entries;
-	bytes_read = 0;
-	TRACE2("\tReading sub directory: %u bytes at cluster %u\n",
-	    size,
-	    cluster);
-	while (bytes_read < size &&
-	    !IS_EOC_CLUSTER(cluster))
-	{
-            TRACE1("\tCluster %u...\n", cluster);
-	    bytes = IoReadSync(m_device, 
-		ClusterToOffset(cluster), 
-		ptr, 
-		m_bytes_per_cluster);
-
-	    if (bytes < m_bytes_per_cluster)
-	    {
-		wprintf(L"fat: failed to read sub-directory: read %u bytes\n", 
-		    bytes);
-		return false;
-	    }
-
-	    ptr += bytes;
-	    bytes_read += bytes;
-	    cluster = GetNextCluster(cluster);
-	}
-
-	for (i = 0; i < dir->num_entries; i++)
-	    if ((dir->entries[i].name[0] == '.' && 
-		 dir->entries[i].name[1] == ' ') ||
-		(dir->entries[i].name[0] == '.' && 
-		 dir->entries[i].name[1] == '.' && 
-		 dir->entries[i].name[2] == ' '))
-	    dir->entries[i].name[0] = 0xe5;
-    }
-
-    return true;
-}
-
-void Fat::DestructDir(FatDirectory *dir)
-{
-    unsigned i;
-
-    for (i = 0; i < dir->num_entries; i++)
-        if (dir->subdirs[i] != NULL)
-        {
-            DestructDir(dir->subdirs[i]);
-            delete dir->subdirs[i];
-        }
-
-    delete[] dir->entries;
-    delete[] dir->subdirs;
-    delete dir;
-}
-
+/*
+ *  Look up the next cluster value from the FAT for a particular cluster.
+ *  Handles FAT12 and FAT16 transparently
+ *  xxx -- modify this for FAT32
+ */
 uint32_t Fat::GetNextCluster(uint32_t cluster)
 {
     uint32_t FATOffset;
@@ -266,46 +237,52 @@ uint32_t Fat::GetNextCluster(uint32_t cluster)
     uint8_t* b;
 
     if (cluster >=
-	(uint32_t) (m_sectors / m_bpb.sectors_per_cluster))
+        (uint32_t) (m_sectors / m_bpb.sectors_per_cluster))
     {
-	wprintf(L"Cluster 0x%x (%d) beyond total clusters 0x%x (%d)\n",
-	    cluster, cluster,
-	    m_sectors / m_bpb.sectors_per_cluster,
-	    m_sectors / m_bpb.sectors_per_cluster);
-	assert(false);
+        wprintf(L"Cluster 0x%x (%d) beyond total clusters 0x%x (%d)\n",
+            cluster, cluster,
+            m_sectors / m_bpb.sectors_per_cluster,
+            m_sectors / m_bpb.sectors_per_cluster);
+        assert(false);
     }
 
     switch (m_fat_bits)
     {
     case 12:
-	FATOffset = cluster + cluster / 2;
-	break;
+        FATOffset = cluster + cluster / 2;
+        break;
     case 16:
-	FATOffset = cluster * 2;
-	break;
+        FATOffset = cluster * 2;
+        break;
     default:
-	assert(m_fat_bits == 12 || m_fat_bits == 16);
-	return (uint32_t) -1;
+        assert(m_fat_bits == 12 || m_fat_bits == 16);
+        return (uint32_t) -1;
     }
 
     b = m_fat + FATOffset;
+    /* xxx -- won't work for FAT32 */
     w = *(uint16_t*) b;
-    /*dump(b - 2, 16); */
 
     if (m_fat_bits == 12)
     {
-	if (cluster & 1)    /* cluster is odd */
-	    w >>= 4;
-	else		    /* cluster is even */
-	    w &= 0xfff;
-	
-	if (w >= 0xff0)
-	    w |= 0xf000;
+        if (cluster & 1)    /* cluster is odd */
+            w >>= 4;
+        else                /* cluster is even */
+            w &= 0xfff;
+        
+        if (w >= 0xff0)
+            w |= 0xf000;
     }
     
     return w;
 }
 
+/*
+ *  Assembles a full nul-terminated name for a FAT directory entry. Returns
+ *      the number of directory entries consumed by the name (1 for short 
+ *      names, > 1 for long names).
+ *  xxx -- handle long file names
+ */
 unsigned Fat::AssembleName(fat_dirent_t *entries, wchar_t *name)
 {
     fat_lfnslot_t *lfn;
@@ -313,149 +290,98 @@ unsigned Fat::AssembleName(fat_dirent_t *entries, wchar_t *name)
 
     lfn = (fat_lfnslot_t*) entries;
     if ((entries[0].attribs & ATTR_LONG_NAME) == ATTR_LONG_NAME)
-    {
-	/*assert(false);*/
-	return 1;
-    }
+        return 1;
     else
     {
-	unsigned i;
-	wchar_t *ptr;
+        unsigned i;
+        wchar_t *ptr;
 
-	memset(name, 0, sizeof(*name) * FAT_MAX_NAME);
-	ptr = name;
-	for (i = 0; i < _countof(entries[0].name); i++)
-	{
-	    if (entries[0].name[i] == ' ')
-		break;
+        memset(name, 0, sizeof(*name) * FAT_MAX_NAME);
+        ptr = name;
+        for (i = 0; i < _countof(entries[0].name); i++)
+        {
+            if (entries[0].name[i] == ' ')
+                break;
 
             ch = msdostou[entries[0].name[i]];
-	    *ptr++ = towlower(ch);
-	}
+            *ptr++ = towlower(ch);
+        }
 
-	if (entries[0].extension[0] != ' ')
-	{
-	    *ptr++ = '.';
+        if (entries[0].extension[0] != ' ')
+        {
+            *ptr++ = '.';
 
-	    for (i = 0; i < _countof(entries[0].extension); i++)
-	    {
-		if (entries[0].extension[i] == ' ')
-		{
-		    *ptr = '\0';
-		    break;
-		}
+            for (i = 0; i < _countof(entries[0].extension); i++)
+            {
+                if (entries[0].extension[i] == ' ')
+                {
+                    *ptr = '\0';
+                    break;
+                }
 
                 ch = msdostou[entries[0].extension[i]];
-		*ptr++ = towlower(ch);
-	    }
-	}
+                *ptr++ = towlower(ch);
+            }
+        }
 
-	*ptr = '\0';
-	return 1;
+        *ptr = '\0';
+        return 1;
     }
 }
 
+/*
+ *  Returns the size of the directory entry records of a directory. Works for
+ *      the root directory as well as subdirectories.
+ */
 size_t Fat::SizeOfDir(const fat_dirent_t *di)
 {
     size_t size;
 
     if (di->first_cluster == FAT_CLUSTER_ROOT)
     {
-	size = m_bpb.num_root_entries * sizeof(fat_dirent_t);
-	size = (size + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
-	TRACE3("fat: SizeOfDir(root): %u entries, %u bpc => %u\n", 
+        size = m_bpb.num_root_entries * sizeof(fat_dirent_t);
+        size = (size + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
+        TRACE3("fat: SizeOfDir(root): %u entries, %u bpc => %u\n", 
             m_bpb.num_root_entries, m_bytes_per_cluster, size);
     }
     else
     {
-	uint32_t cluster;
-	
-	cluster = di->first_cluster;
-	size = 0;
-	while (!IS_EOC_CLUSTER(cluster))
-	{
-	    TRACE1("[%x]", cluster);
-	    size += m_bytes_per_cluster;
-	    cluster = GetNextCluster(cluster);
-	}
+        uint32_t cluster;
+        
+        cluster = di->first_cluster;
+        size = 0;
+        while (!IS_EOC_CLUSTER(cluster))
+        {
+            TRACE1("[%x]", cluster);
+            size += m_bytes_per_cluster;
+            cluster = GetNextCluster(cluster);
+        }
 
-	TRACE1("fat: SizeOfDir: %u\n", size);
+        TRACE1("fat: SizeOfDir: %u\n", size);
     }
 
     return size;
 }
 
-bool Fat::LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di)
-{
-    wchar_t *slash, name[FAT_MAX_NAME];
-    unsigned i, count;
-    fat_dirent_t *entries;
-    bool find_dir;
-    FatDirectory *sub;
-
-    slash = wcschr(path, '/');
-    if (slash)
-    {
-	*slash = '\0';
-	find_dir = true;
-    }
-    else
-	find_dir = false;
-
-    i = 0;
-    entries = dir->entries;
-    while (i < dir->num_entries && entries[i].name[0] != '\0')
-    {
-        if (entries[i].name[0] == 0xe5 ||
-	    entries[i].attribs & ATTR_LONG_NAME)
-	{
-	    i++;
-	    continue;
-	}
-
-        count = AssembleName(entries + i, name);
-	//TRACE2("%s %s\n", path, name);
-	if (_wcsicmp(name, path) == 0)
-	{
-	    TRACE2("%s found at %u\n", name, entries[i].first_cluster);
-
-	    if (find_dir)
-	    {
-                sub = dir->subdirs[i];
-                if (sub == NULL)
-                {
-		    dir->subdirs[i] = sub = new FatDirectory;
-                    if (!ConstructDir(sub, entries + i))
-                    {
-                        dir->subdirs[i] = NULL;
-                        DestructDir(sub);
-                        return false;
-                    }
-                }
-
-		return LookupFile(sub, slash + 1, di);
-	    }
-	    else
-	    {
-		TRACE0(" finished\n");
-		*di = entries[i];
-		return true;
-	    }
-	}
-
-	i += count;
-    }
-
-    TRACE1("fat: nothing found for %s\n", path);
-    return false;
-}
-
+/*
+ *  Returns the volume-relative offset for a particular cluster.
+ *  xxx -- needs to return uint64_t, to handle drives bigger than 4GB
+ */
 uint32_t Fat::ClusterToOffset(uint32_t cluster)
 {
     return m_data_start * m_bpb.bytes_per_sector 
-	+ (cluster - 2) * m_bytes_per_cluster;
+        + (cluster - 2) * m_bytes_per_cluster;
 }
 
+/*
+ *  Attempts to carry out a packet of I/O for a queued request. When writing, 
+ *      writes data to the file's cache and returns. When reading, attempts to
+ *      read from the cache; on a cache miss, issues an I/O request to the
+ *      storage device and returns (StartIo will be called when the request
+ *      completes).
+ *
+ *  Warning: this function uses goto several times. Not for the faint-hearted.
+ */
 void Fat::StartIo(fat_ioextra_t *extra)
 {
     unsigned bytes;
@@ -467,237 +393,152 @@ void Fat::StartIo(fat_ioextra_t *extra)
     fatfile = (FatFile*) extra->file->fsd_cookie;
 
 start:
-    //wprintf(L"[%u]", extra->state);
-    switch (extra->state)
+    if (extra->dev_request.header.code)
     {
-    case fat_ioextra_t::started:
-	assert(extra->state != fat_ioextra_t::started);
-	return;
-
-    case fat_ioextra_t::reading:
-	if (extra->dev_request.header.code)
-	{
-	    /*
-	     * We've just finished transferring data from the device
-	     * into the cache.
-	     */
-	    extra->dev_request.header.code = 0;
-	    bytes = extra->dev_request.params.buffered.length;
-	    if (bytes == 0)
-	    {
-		/* device failure */
-		wprintf(L"fat: device failure\n");
-		extra->io->op.result = extra->dev_request.header.code;
-                extra->state = fat_ioextra_t::finished;
-		goto start;
-	    }
-
-	    TRACE0("Fat::StartIo: io finished\n");
-	    /* The block is now valid */
-	    CcReleaseBlock(extra->file->cache, 
-                extra->file->pos + extra->bytes_read, 
-                true, 
-                false);
-	}
-
-	bytes = extra->length - extra->bytes_read;
-	/*if (bytes > m_bytes_per_cluster)
-	    bytes = m_bytes_per_cluster;*/
-        if (extra->mod + bytes > m_bytes_per_cluster)
-            bytes = m_bytes_per_cluster - extra->mod;
-
-        /*if (!extra->is_reading)
+        /*
+         * We've just finished transferring data from the device
+         * into the cache.
+         */
+        extra->dev_request.header.code = 0;
+        bytes = extra->dev_request.params.buffered.length;
+        if (bytes == 0)
         {
-            wprintf(L"FatStartIo: pos = %u cluster = %u = %x bytes = %u: %s", 
-	        (uint32_t) (extra->file->pos + extra->bytes_read), 
-	        extra->cluster_index, 
-	        fatfile->clusters[extra->cluster_index], 
-	        bytes,
-                CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read) ? L"cached" : L"not cached");
-        }*/
+            /* device failure */
+            wprintf(L"fat: device failure\n");
+            extra->io->op.result = extra->dev_request.header.code;
+            goto finished;
+        }
 
-	if (CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read))
-	{
-            TRACE0("cached\n");
-	    /* The cluster is already in the file's cache, so just memcpy() it */
-
-            buf = (uint8_t*) MemMapPageArray(extra->pages, 
-                PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
-	    array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
-            page = (uint8_t*) MemMapPageArray(array, 
-                PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
-
-            if (extra->is_reading)
-                memcpy(buf + extra->bytes_read,
-		    page + extra->mod,
-		    bytes);
-            else
-                memcpy(page + extra->mod,
-                    buf + extra->bytes_read,
-		    bytes);
-
-	    MemUnmapTemp();
-	    CcReleaseBlock(extra->file->cache, extra->file->pos + extra->bytes_read, 
-                true, 
-                !extra->is_reading);
-            MemDeletePageArray(array);
-
-	    extra->mod += bytes;
-	    if (extra->mod >= m_bytes_per_cluster)
-	    {
-		extra->mod -= m_bytes_per_cluster;
-
-		extra->cluster_index++;
-		if (extra->cluster_index >= fatfile->num_clusters)
-		{
-		    /* last cluster reached: invalid chain? */
-		    TRACE0("fat: last cluster reached\n");
-		    extra->state = fat_ioextra_t::finished;
-                    extra->io->op.result = EEOF;
-		    goto start;
-		}
-	    }
-
-	    /*extra->file->pos += bytes;*/
-	    extra->bytes_read += bytes;
-
-	    if (extra->bytes_read >= extra->length)
-	    {
-		/*
-		 * We've finished, so we'll switch to the 'finished' state 
-		 *    for cleanup.
-		 */
-		extra->state = fat_ioextra_t::finished;
-                extra->io->op.result = 0;
-	    }
-	    else
-		/*
-		 * More data need to be read.
-		 * Clear 'code' so that the code above doesn't think we just
-		 *    finished reading from the device.
-		 */
-		extra->dev_request.header.code = 0;
-
-	    goto start;
-	}
-	else
-	{
-	    /*
-	     * The cluster is not cached, so we need to lock the relevant
-	     *	  cache block and read the entire cluster into there.
-	     * When the read has finished we'll try the cache again.
-	     */
-
-	    TRACE0("not cached\n");
-
-	    array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
-            extra->cluster_index = 
-                (extra->file->pos + extra->bytes_read) >> extra->file->cache->block_shift;
-
-	    extra->dev_request.header.code = DEV_READ;
-	    extra->dev_request.params.buffered.pages = array;
-	    extra->dev_request.params.buffered.length = m_bytes_per_cluster;
-	    extra->dev_request.params.buffered.offset = 
-		ClusterToOffset(fatfile->clusters[extra->cluster_index]);
-	    extra->dev_request.header.param = extra;
-
-            cb.type = IO_CALLBACK_FSD;
-            cb.u.fsd = this;
-	    if (!IoRequest(&cb, m_device, &extra->dev_request.header))
-	    {
-		wprintf(L"Fat::StartIo: request failed straight away\n");
-		DevUnmapBuffer();
-                MemDeletePageArray(array);
-		extra->state = fat_ioextra_t::finished;
-		extra->io->op.result = extra->dev_request.header.result;
-		goto start;
-	    }
-            else
-                MemDeletePageArray(array);
-	}
-	break;
-
-    case fat_ioextra_t::finished:
-        MemDeletePageArray(extra->pages);
-        FsNotifyCompletion(extra->io, extra->bytes_read, extra->io->op.result);
-	free(extra);
-	break;
+        TRACE0("Fat::StartIo: io finished\n");
+        /* The block is now valid */
+        CcReleaseBlock(extra->file->cache, 
+            extra->file->pos + extra->bytes_read, 
+            true, 
+            false);
     }
+
+    /* Try to read as many bytes as we can... */
+    bytes = extra->length - extra->bytes_read;
+    /* ...but don't cross a cluster boundary */
+    if (extra->mod + bytes > m_bytes_per_cluster)
+        bytes = m_bytes_per_cluster - extra->mod;
+
+    /*if (!extra->is_reading)
+    {
+        wprintf(L"FatStartIo: pos = %u cluster = %u = %x bytes = %u: %s", 
+            (uint32_t) (extra->file->pos + extra->bytes_read), 
+            extra->cluster_index, 
+            fatfile->clusters[extra->cluster_index], 
+            bytes,
+            CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read) ? L"cached" : L"not cached");
+    }*/
+
+    if (CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read))
+    {
+        TRACE0("cached\n");
+        /* The cluster is already in the file's cache, so just memcpy() it */
+
+        buf = (uint8_t*) MemMapPageArray(extra->pages, 
+            PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+        array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
+        page = (uint8_t*) MemMapPageArray(array, 
+            PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+
+        if (extra->is_reading)
+            memcpy(buf + extra->bytes_read,
+                page + extra->mod,
+                bytes);
+        else
+            memcpy(page + extra->mod,
+                buf + extra->bytes_read,
+                bytes);
+
+        MemUnmapTemp();
+        CcReleaseBlock(extra->file->cache, extra->file->pos + extra->bytes_read, 
+            true, 
+            !extra->is_reading);
+        MemDeletePageArray(array);
+
+        extra->mod += bytes;
+        if (extra->mod >= m_bytes_per_cluster)
+        {
+            extra->mod -= m_bytes_per_cluster;
+
+            extra->cluster_index++;
+            if (extra->cluster_index >= fatfile->num_clusters)
+            {
+                /* last cluster reached: invalid chain? */
+                TRACE0("fat: last cluster reached\n");
+                extra->io->op.result = EEOF;
+                goto finished;
+            }
+        }
+
+        extra->bytes_read += bytes;
+
+        if (extra->bytes_read >= extra->length)
+        {
+            /* We've finished, so we'll clean up. */
+            extra->io->op.result = 0;
+            goto finished;
+        }
+        else
+        {
+            /*
+             * More data need to be read.
+             * Clear 'code' so that the code above doesn't think we just
+             *    finished reading from the device.
+             */
+            extra->dev_request.header.code = 0;
+            goto start;
+        }
+    }
+    else
+    {
+        /*
+         * The cluster is not cached, so we need to lock the relevant
+         *    cache block and read the entire cluster into there.
+         * When the read has finished we'll try the cache again.
+         */
+
+        TRACE0("not cached\n");
+
+        array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
+        extra->cluster_index = 
+            (extra->file->pos + extra->bytes_read) >> extra->file->cache->block_shift;
+
+        extra->dev_request.header.code = DEV_READ;
+        extra->dev_request.params.buffered.pages = array;
+        extra->dev_request.params.buffered.length = m_bytes_per_cluster;
+        extra->dev_request.params.buffered.offset = 
+            ClusterToOffset(fatfile->clusters[extra->cluster_index]);
+        extra->dev_request.header.param = extra;
+
+        cb.type = IO_CALLBACK_FSD;
+        cb.u.fsd = this;
+        if (!IoRequest(&cb, m_device, &extra->dev_request.header))
+        {
+            wprintf(L"Fat::StartIo: request failed straight away\n");
+            DevUnmapBuffer();
+            MemDeletePageArray(array);
+            extra->io->op.result = extra->dev_request.header.result;
+            goto finished;
+        }
+        else
+            MemDeletePageArray(array);
+    }
+
+    return;
+
+finished:
+    MemDeletePageArray(extra->pages);
+    FsNotifyCompletion(extra->io, extra->bytes_read, extra->io->op.result);
+    free(extra);
 }
 
-/*bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
-{
-    fat_dirent_t *di;
-    size_t len;
-    dirent_t *buf;
-    unsigned count;
-
-    di = dir->entries + dir->pos;
-    while ((di->name[0] == 0xe5 ||
-        di->attribs & ATTR_LONG_NAME) &&
-        dir->pos < dir->num_entries)
-    {
-        dir->pos++;
-        di++;
-    }
-
-    if (dir->pos >= dir->num_entries ||
-        di->name[0] == '\0')
-    {
-        if (di->name[0] == '\0')
-            TRACE0("fat: directory is empty\n");
-        else
-            TRACE0("fat: end of file\n");
-
-        req_fs->header.result = EEOF;
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-        return false;
-    }
-    
-    len = req_fs->params.fs_read.length;
-
-    req_fs->params.fs_read.length = 0;
-    buf = (dirent_t*) MemMapPageArray(req_fs->params.fs_read.pages, 
-        PRIV_KERN | PRIV_PRES | PRIV_WR);
-    while (req_fs->params.fs_read.length < len)
-    {
-        if (di->name[0] == 0xe5 ||
-            di->attribs & ATTR_LONG_NAME)
-        {
-            TRACE1("%u: long file name or deleted\n", (unsigned) dir->pos);
-            di++;
-            dir->pos++;
-        }
-        else
-        {
-            count = AssembleName(di, buf->name);
-            buf->length = di->file_length;
-            buf->standard_attributes = di->attribs;
-            TRACE2("%u: \"%s\"\n", (unsigned) dir->pos, buf->name);
-
-            di += count;
-            buf++;
-            req_fs->params.fs_read.length += sizeof(dirent_t);
-            dir->pos += count;
-        }
-
-        if (dir->pos >= dir->num_entries || 
-            di->name[0] == '\0')
-        {
-            if (di->name[0] == '\0')
-                TRACE0("fat: finished because of directory\n");
-            else
-                TRACE0("fat: finished because of end of request\n");
-
-            break;
-        }
-    }
-
-    MemUnmapTemp();
-    HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-    return true;
-}*/
-
+/*
+ *  Common handler routine for read_file and write_file
+ */
 bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length, 
                         fs_asyncio_t *io, bool is_reading)
 {
@@ -716,31 +557,26 @@ bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length,
         return false;
     }
 
-    if (file->pos + length >= fatfile->di.file_length && is_reading)
-	length = fatfile->di.file_length - file->pos;
+    if (file->pos + length >= fatfile->vnode->di.file_length && is_reading)
+        length = fatfile->vnode->di.file_length - file->pos;
     if (length == 0)
     {
-	TRACE0("fat: null read\n");
+        TRACE0("fat: null read\n");
         io->op.bytes = 0;
         io->op.result = EEOF;
-	return false;
+        return false;
     }
 
     io->original->result = io->op.result = SIOPENDING;
 
     extra = new fat_ioextra_t;
-    extra->state = fat_ioextra_t::reading;
     extra->file = file;
     extra->cluster_index = file->pos >> m_cluster_shift;
     extra->bytes_read = 0;
     extra->dev_request.header.code = 0;
-
-    /* xxx - change this to 64-bit modulo */
-    /*extra->mod = (uint32_t) file->pos % m_bytes_per_cluster;*/
     extra->mod = file->pos & ((1 << m_cluster_shift) - 1);
 
-    extra->pages = MemCopyPageArray(pages->num_pages, pages->mod_first_page, 
-        pages->pages);
+    extra->pages = MemCopyPageArray(pages);
     extra->length = length;
     extra->io = io;
     extra->is_reading = is_reading;
@@ -752,10 +588,188 @@ bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length,
     return true;
 }
 
+/*
+ *  Looks up a FatVnode structure given its vnode ID. Increments the vnode's 
+ *      reference count and returns the vnode if found; otherwise, returns 
+ *      NULL. ReleaseVnode must be called for the vnode returned when you have
+ *      finished with it.
+ */
+FatVnode *Fat::GetVnode(vnode_id_t id)
+{
+    FatVnode *vnode;
+
+    for (vnode = m_vnodes[id % _countof(m_vnodes)]; vnode != NULL; vnode = vnode->next)
+    {
+        if (vnode->id == id)
+        {
+            KeAtomicInc(&vnode->locks);
+            return vnode;
+        }
+    }
+
+    return NULL;
+}
+
+/*
+ *  Decreases the reference count on a vnode obtained from GetVnode or 
+ *      AllocVnode. Deallocates the vnode if the reference count is zero.
+ */
+void Fat::ReleaseVnode(FatVnode *vnode)
+{
+    FatVnode *item, *prev;
+
+    if (vnode->locks == 0)
+    {
+        prev = NULL;
+        for (item = m_vnodes[vnode->id % _countof(m_vnodes)]; item != NULL; item = item->next)
+        {
+            if (item == vnode)
+                break;
+
+            prev = item;
+        }
+
+        assert(item != NULL);
+        if (prev == NULL)
+            m_vnodes[vnode->id % _countof(m_vnodes)] = vnode->next;
+        else
+            prev->next = vnode->next;
+
+        free(vnode->name);
+
+        if (vnode->dir_entries != NULL)
+            delete[] vnode->dir_entries;
+
+        delete vnode;
+    }
+    else
+        KeAtomicDec(&vnode->locks);
+}
+
+/*
+ *  Allocates a new vnode structure for a directory entry. If a vnode 
+ *      structure already exists for the entry, returns that instead. 
+ *      ReleaseVnode must be called for the vnode returned when you have 
+ *      finished with it.
+ */
+vnode_id_t Fat::AllocVnode(vnode_id_t parent, const fat_dirent_t *di, const wchar_t *name)
+{
+    unsigned i;
+    FatVnode *vnode, *pnode;
+    size_t size, bytes;
+
+    for (i = 0; i < _countof(m_vnodes); i++)
+    {
+        for (vnode = m_vnodes[i]; vnode != NULL; vnode = vnode->next)
+        {
+            if (vnode->parent == parent &&
+                _wcsicmp(vnode->name, name) == 0)
+            {
+                KeAtomicInc(&vnode->locks);
+                return vnode->id;
+            }
+        }
+    }
+
+    if (parent == VNODE_NONE)
+        pnode = NULL;
+    else
+        pnode = GetVnode(parent);
+
+    vnode = new FatVnode;
+    vnode->id = m_next_id++;
+    vnode->next = m_vnodes[vnode->id % _countof(m_vnodes)];
+    vnode->locks = 0;
+    vnode->parent = parent;
+    vnode->name = _wcsdup(name);
+    vnode->di = *di;
+
+    assert(vnode->name != NULL);
+    if (vnode->di.first_cluster == FAT_CLUSTER_ROOT)
+    {
+        TRACE2("\tReading root directory: %u bytes at sector %u\n",
+            size,
+            m_root_start);
+
+        size = SizeOfDir(&vnode->di);
+        vnode->num_dir_entries = size / sizeof(fat_dirent_t);
+        vnode->dir_entries = new fat_dirent_t[vnode->num_dir_entries];
+        bytes = IoReadSync(m_device, 
+            m_root_start * SECTOR_SIZE, 
+            vnode->dir_entries, 
+            size);
+        if (bytes < size)
+        {
+            wprintf(L"fat: failed to read root directory: read %u bytes\n", 
+                bytes);
+            return false;
+        }
+    }
+    else if (vnode->di.attribs & FILE_ATTR_DIRECTORY)
+    {
+        uint32_t cluster;
+        uint8_t *ptr;
+        size_t bytes_read;
+        unsigned i;
+
+        size = SizeOfDir(&vnode->di);
+        vnode->num_dir_entries = size / sizeof(fat_dirent_t);
+        vnode->dir_entries = new fat_dirent_t[vnode->num_dir_entries];
+        cluster = vnode->di.first_cluster;
+        ptr = (uint8_t*) vnode->dir_entries;
+        bytes_read = 0;
+        TRACE2("\tReading sub directory: %u bytes at cluster %u\n",
+            size,
+            cluster);
+        while (bytes_read < size &&
+            !IS_EOC_CLUSTER(cluster))
+        {
+            TRACE1("\tCluster %u...\n", cluster);
+            bytes = IoReadSync(m_device, 
+                ClusterToOffset(cluster), 
+                ptr, 
+                m_bytes_per_cluster);
+
+            if (bytes < m_bytes_per_cluster)
+            {
+                wprintf(L"fat: failed to read sub-directory: read %u bytes\n", 
+                    bytes);
+                return false;
+            }
+
+            ptr += bytes;
+            bytes_read += bytes;
+            cluster = GetNextCluster(cluster);
+        }
+
+        for (i = 0; i < vnode->num_dir_entries; i++)
+            if ((vnode->dir_entries[i].name[0] == '.' && 
+                 vnode->dir_entries[i].name[1] == ' ') ||
+                (vnode->dir_entries[i].name[0] == '.' && 
+                 vnode->dir_entries[i].name[1] == '.' && 
+                 vnode->dir_entries[i].name[2] == ' '))
+            vnode->dir_entries[i].name[0] = 0xe5;
+    }
+    else
+    {
+        vnode->num_dir_entries = 0;
+        vnode->dir_entries = NULL;
+    }
+
+    m_vnodes[vnode->id % _countof(m_vnodes)] = vnode;
+    return vnode->id;
+}
+
+/*
+ *  Called by the VFS when a FAT file system is dismounted
+ */
 void Fat::dismount()
 {
 }
 
+/*
+ *  Called by the VFS to obtain file system information
+ */
 void Fat::get_fs_info(fs_info_t *inf)
 {
     if (inf->flags & FS_INFO_CACHE_BLOCK_SIZE)
@@ -766,65 +780,117 @@ void Fat::get_fs_info(fs_info_t *inf)
         inf->space_free = 0;
 }
 
-status_t Fat::create_file(const wchar_t *path, fsd_t **redirect, void **cookie)
+/*
+ *  Called by the VFS to obtain a vnode ID for an entry in a particular 
+ *      directory
+ */
+status_t Fat::parse_element(const wchar_t *name, wchar_t **new_path, vnode_t *node)
+{
+    wchar_t entry_name[FAT_MAX_NAME];
+    FatVnode *vnode;
+    unsigned i, count;
+
+    vnode = GetVnode(node->id);
+    if (vnode == NULL)
+    {
+        wprintf(L"Fat::parse_element: id %u not found\n", node->id);
+        return ENOTFOUND;
+    }
+
+    if (vnode->dir_entries == NULL)
+    {
+        wprintf(L"Fat::parse_element: id %u is not a directory\n", node->id);
+        return ENOTADIR;
+    }
+
+    /*
+     * Handle parent directories for the VFS. We remove the . and .. entries 
+     *  from the listings; it's easy to simulate them.
+     */
+    if (name[0] == '.' &&
+        name[1] == '.' &&
+        name[2] == '\0')
+    {
+        /*
+         * The parent of the root directory is the root directory. This should
+         *  only happen if a FAT file system is mounted at the root; 
+         *  otherwise, the VFS will handle .. for us (by going to the parent 
+         *  directory of the mount point).
+         */
+        if (node->id != VNODE_ROOT)
+            node->id = vnode->parent;
+
+        return 0;
+    }
+    else for (i = 0; i < vnode->num_dir_entries; i += count)
+    {
+        count = AssembleName(vnode->dir_entries + i, entry_name);
+        assert(count > 0);
+
+        if (_wcsicmp(entry_name, name) == 0)
+        {
+            node->id = AllocVnode(node->id, vnode->dir_entries + i, entry_name);
+            ReleaseVnode(vnode);
+            return 0;
+        }
+    }
+
+    return ENOTFOUND;
+}
+
+/*
+ *  Called by the VFS to create a new directory entry
+ */
+status_t Fat::create_file(vnode_id_t dir, const wchar_t *name, void **cookie)
 {
     return ENOTIMPL;
 }
 
-status_t Fat::lookup_file(const wchar_t *path, fsd_t **redirect, void **cookie)
+/*
+ *  Called by the VFS when a file vnode is opened
+ */
+status_t Fat::lookup_file(vnode_id_t file, void **cookie)
 {
-    fat_dirent_t di;
+    FatVnode *vnode;
     FatFile *fatfile;
     unsigned num_clusters, i;
     uint32_t *ptr, cluster;
-    wchar_t *copy;
-    const wchar_t *ch;
 
-    TRACE1("Fat::lookup_file(%s): ", path);
-    copy = _wcsdup(path);
-    if (!LookupFile(m_root, copy + 1, &di))
+    vnode = GetVnode(file);
+    if (vnode == NULL)
     {
-        free(copy);
+        wprintf(L"Fat::lookup_file: vnode %u not found\n", file);
         return ENOTFOUND;
     }
 
-    TRACE1("cluster = %lx\n", di.first_cluster);
-    free(copy);
+    TRACE1("cluster = %lx\n", vnode->di.first_cluster);
     num_clusters = 
-	(di.file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
+        (vnode->di.file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
     num_clusters /= m_bytes_per_cluster;
 
-    /*fatfile = (FatFile*) malloc(sizeof(FatFile) 
-        + num_clusters * sizeof(uint32_t));*/
     fatfile = new FatFile;
     if (fatfile == NULL)
         return errno;
 
-    ch = wcsrchr(path, '/');
-    if (ch == NULL)
-        ch = path;
-    else
-        ch++;
-
-    fatfile->di = di;
-    fatfile->is_dir = false;
+    fatfile->vnode = vnode;
     fatfile->num_clusters = num_clusters;
-    fatfile->name = _wcsdup(ch);
     ptr = fatfile->clusters = new uint32_t[num_clusters];
 
-    /*ptr = (uint32_t*) (fatfile + 1);*/
-    cluster = di.first_cluster;
+    cluster = vnode->di.first_cluster;
     for (i = 0; i < num_clusters; i++)
     {
-	*ptr++ = cluster;
-	if (!IS_EOC_CLUSTER(cluster))
-	    cluster = GetNextCluster(cluster);
+        *ptr++ = cluster;
+        if (!IS_EOC_CLUSTER(cluster))
+            cluster = GetNextCluster(cluster);
     }
 
     *cookie = fatfile;
     return 0;
 }
 
+/*
+ *  Called by the VFS to obtain information on a file or directory
+ */
 status_t Fat::get_file_info(void *cookie, uint32_t type, void *buf)
 {
     FatFile *fatfile;
@@ -838,14 +904,14 @@ status_t Fat::get_file_info(void *cookie, uint32_t type, void *buf)
         return 0;
 
     case FILE_QUERY_DIRENT:
-        wcsncpy(di->dirent.name, fatfile->name, _countof(di->dirent.name) - 1);
-        di->dirent.vnode = 0;
+        wcsncpy(di->dirent.name, fatfile->vnode->name, _countof(di->dirent.name) - 1);
+        di->dirent.vnode = fatfile->vnode->id;
         return 0;
 
     case FILE_QUERY_STANDARD:
-        di->standard.length = fatfile->di.file_length;
-        di->standard.attributes = fatfile->di.attribs;
-        FsGuessMimeType(wcsrchr(fatfile->name, '.'), 
+        di->standard.length = fatfile->vnode->di.file_length;
+        di->standard.attributes = fatfile->vnode->di.attribs;
+        FsGuessMimeType(wcsrchr(fatfile->vnode->name, '.'), 
             di->standard.mimetype, 
             _countof(di->standard.mimetype) - 1);
         return 0;
@@ -854,86 +920,107 @@ status_t Fat::get_file_info(void *cookie, uint32_t type, void *buf)
     return ENOTIMPL;
 }
 
+/*
+ *  Called by the VFS to update information on a file or directory
+ */
 status_t Fat::set_file_info(void *cookie, uint32_t type, const void *buf)
 {
     return EACCESS;
 }
 
+/*
+ *  Called by the VFS to free a file cookie obtained from lookup_file or
+ *      create_file.
+ */
 void Fat::free_cookie(void *cookie)
 {
     FatFile *fatfile;
     fatfile = (FatFile*) cookie;
     delete[] fatfile->clusters;
-    free(fatfile->name);
+    ReleaseVnode(fatfile->vnode);
     free(fatfile);
 }
 
+/*
+ *  Called by the VFS to read from a file
+ */
 bool Fat::read_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
 {
     return ReadWriteFile(file, pages, length, io, true);
 }
 
+/*
+ *  Called by the VFS to write to a file
+ */
 bool Fat::write_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
 {
     return ReadWriteFile(file, pages, length, io, false);
 }
 
+/*
+ *  Called by the VFS to issue an ioctl on a file mapped to a device
+ */
 bool Fat::ioctl_file(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io)
 {
     io->op.result = ENOTIMPL;
     return false;
 }
 
+/*
+ *  Called by the VFS to issue a request on a file mapped to a device
+ */
 bool Fat::passthrough(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io)
 {
     io->op.result = ENOTIMPL;
     return false;
 }
 
-status_t Fat::opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+/*
+ *  Called by the VFS to create a directory
+ */
+status_t Fat::mkdir(vnode_id_t dir, const wchar_t *name, void **dir_cookie)
 {
-    FatDirectory *dir;
+    return ENOTIMPL;
+}
+
+/*
+ *  Called by the VFS to open a directory for listing
+ */
+status_t Fat::opendir(vnode_id_t dir, void **dir_cookie)
+{
     FatSearch *search;
-    fat_dirent_t di;
-    wchar_t *temp;
+    FatVnode *vnode;
 
-    if (path[0] == '/')
-        path++;
-
-    if (path[0] == '\0')
-        di = m_root->di;
-    else
+    vnode = GetVnode(dir);
+    if (vnode == NULL)
     {
-        temp = _wcsdup(path);
-        if (!LookupFile(m_root, temp, &di))
-        {
-            free(temp);
-            return ENOTFOUND;
-        }
-
-        free(temp);
+        wprintf(L"Fat::opendir: vnode %u not found\n", dir);
+        return ENOTFOUND;
     }
 
-    dir = new FatDirectory;
-    if (!ConstructDir(dir, &di))
+    if (vnode->dir_entries == NULL)
     {
-        DestructDir(dir);
-        return EHARDWARE;
+        wprintf(L"Fat::opendir: vnode %u is not a directory\n", dir);
+        ReleaseVnode(vnode);
+        return ENOTADIR;
     }
 
     search = new FatSearch;
     if (search == NULL)
     {
-        DestructDir(dir);
+        ReleaseVnode(vnode);
         return errno;
     }
 
-    search->dir = dir;
+    search->vnode = vnode;
     search->index = 0;
     *dir_cookie = search;
     return 0;
 }
 
+/*
+ *  Called by the VFS to obtain the next file name from a directory listing
+ */
 status_t Fat::readdir(void *dir_cookie, dirent_t *buf)
 {
     FatSearch *search;
@@ -941,10 +1028,11 @@ status_t Fat::readdir(void *dir_cookie, dirent_t *buf)
     unsigned i;
 
     search = (FatSearch*) dir_cookie;
-    entry = search->dir->entries + search->index;
+    assert(search->vnode->dir_entries != NULL);
+    entry = search->vnode->dir_entries + search->index;
     while (true)
     {
-        if (search->index >= search->dir->num_entries ||
+        if (search->index >= search->vnode->num_dir_entries ||
             entry->name[0] == '\0')
             return EEOF;
 
@@ -964,19 +1052,21 @@ status_t Fat::readdir(void *dir_cookie, dirent_t *buf)
     return 0;
 }
 
+/*
+ *  Called by the VFS to free a directory cookie obtained from mkdir or opendir
+ */
 void Fat::free_dir_cookie(void *dir_cookie)
 {
     FatSearch *search;
     search = (FatSearch*) dir_cookie;
-    DestructDir(search->dir);
+    ReleaseVnode(search->vnode);
     delete search;
 }
 
-status_t Fat::mount(const wchar_t *path, fsd_t *newfsd)
-{
-    return ENOTIMPL;
-}
-
+/*
+ *  Called by the I/O manager when a request issued to the storage device by 
+ *      StartIo completes. Calls StartIo to resume I/O on the request.
+ */
 void Fat::finishio(request_t *req)
 {
     fat_ioextra_t *extra;
@@ -990,6 +1080,9 @@ void Fat::finishio(request_t *req)
     StartIo(extra);
 }
 
+/*
+ *  Called by the VFS to flush dirty blocks in a file's cache
+ */
 void Fat::flush_cache(file_t *fd)
 {
     uint64_t block;
@@ -1007,11 +1100,11 @@ void Fat::flush_cache(file_t *fd)
 
             clusters = ((FatFile*) fd->fsd_cookie)->clusters;
             cluster_index = block >> m_cluster_shift;
-	    dev_request.header.code = DEV_WRITE;
-	    dev_request.params.buffered.pages = array;
-	    dev_request.params.buffered.length = m_bytes_per_cluster;
-	    dev_request.params.buffered.offset = 
-		ClusterToOffset(clusters[cluster_index]);
+            dev_request.header.code = DEV_WRITE;
+            dev_request.params.buffered.pages = array;
+            dev_request.params.buffered.length = m_bytes_per_cluster;
+            dev_request.params.buffered.offset = 
+                ClusterToOffset(clusters[cluster_index]);
 
             wprintf(L"Fat::flush_cache: writing dirty block %lu = sector 0x%x\n", 
                 (uint32_t) block, (uint32_t) dev_request.params.buffered.offset / 512);
@@ -1026,126 +1119,80 @@ void Fat::flush_cache(file_t *fd)
     }
 }
 
-int next;
-
-int
-rand(void)
-{
-  /* This multiplier was obtained from Knuth, D.E., "The Art of
-     Computer Programming," Vol 2, Seminumerical Algorithms, Third
-     Edition, Addison-Wesley, 1998, p. 106 (line 26) & p. 108 */
-  next = next * 6364136223846793005LL + 1;
-  /* was: next = next * 0x5deece66dLL + 11; */
-  return (int)((next >> 21) & RAND_MAX);
-}
-
-void FatThread1(void)
-{
-    char var;
-    uint32_t start, end;
-    wprintf(L"FatThread1: starting\n");
-    var = (rand() % 26) + 'A';
-    while (true)
-    {
-        start = SysUpTime();
-        end = start + 1000;
-        while (SysUpTime() < end)
-            ;
-
-        end = SysUpTime();
-        wprintf(L"[%u]%c%u%%", 
-            ThrGetCurrent()->id, var, (ThrGetCurrent()->cputime * 100) / (end - start));
-        ThrGetCurrent()->cputime = 0;
-
-        var++;
-        if (var > 'Z')
-            var = 'A';
-        /*ThrSleep(ThrGetCurrent(), (var - 'A') * 100);
-        KeYield();*/
-    }
-}
-
-void FatThread2(void)
-{
-    char var;
-    uint32_t start, end;
-    wprintf(L"FatThread2: starting\n");
-    var = (rand() % 26) + 'a';
-    while (true)
-    {
-        start = SysUpTime();
-        end = start + 2000;
-        while (SysUpTime() < end)
-            ;
-
-        end = SysUpTime();
-        wprintf(L"[%u]%c%u%%", 
-            ThrGetCurrent()->id, var, (ThrGetCurrent()->cputime * 100) / (end - start));
-        ThrGetCurrent()->cputime = 0;
-
-        var--;
-        if (var < 'a')
-            var = 'z';
-        /*ThrSleep(ThrGetCurrent(), (var - 'a') * 100);
-        KeYield();*/
-    }
-}
-
+/*
+ *  Called by FatMountFs to mount a FAT volume
+ */
 fsd_t *Fat::Init(driver_t *drv, const wchar_t *path)
 {
     fat_dirent_t root_entry;
     unsigned length, temp;
     uint32_t RootDirSectors, FatSectors;
-    //wchar_t name[FAT_MAX_NAME];
-
-    /*driver = drv;*/
-
-    /*next = SysUpTime();
-    ThrCreateThread(NULL, true, FatThread1, false, NULL, 16);
-    ThrCreateThread(NULL, true, FatThread2, false, NULL, 16);*/
+    vnode_id_t vnode_root;
 
     m_device = IoOpenDevice(path);
     if (m_device == NULL)
         return false;
 
+    /* Read the boot sector */
     TRACE0("\tReading boot sector\n");
     length = IoReadSync(m_device, 0, &m_bpb, sizeof(m_bpb));
     if (length < sizeof(m_bpb))
     {
-	TRACE1("Read failed: length = %u\n", length);
-	delete this;
-	return NULL;
+        TRACE1("Read failed: length = %u\n", length);
+        delete this;
+        return NULL;
     }
 
+    /* xxx -- need to verify that this is a valid FAT volume */
+
+    /* Calculate the total number of sectors on the volume */
     TRACE1("\tDone: length = %u\n", length);
     m_sectors = m_bpb.sectors == 0 ? m_bpb.total_sectors : m_bpb.sectors;
     TRACE1("\tTotal of %u sectors\n", m_sectors);
 
+    /*
+     * Guess the FAT entry size based on the total number of clusters 
+     *  (ref: Microsoft FAT document)
+     */
     if (m_sectors > 20740)
-	m_fat_bits = 16;
+        m_fat_bits = 16;
     else
-	m_fat_bits = 12;
+        m_fat_bits = 12;
 
     m_bytes_per_cluster = 
-	m_bpb.bytes_per_sector * m_bpb.sectors_per_cluster;
+        m_bpb.bytes_per_sector * m_bpb.sectors_per_cluster;
     temp = m_bytes_per_cluster;
     TRACE3("\tbytes_per_cluster = %u * %u = %u\n", 
-	m_bpb.bytes_per_sector,
-	m_bpb.sectors_per_cluster, 
-	temp);
+        m_bpb.bytes_per_sector,
+        m_bpb.sectors_per_cluster, 
+        temp);
+
+    /*
+     * Store the shift value to translate between bytes and clusters, to avoid
+     *  doing multiplication and division (especially of 64-bit file offsets).
+     * Assumes that the cluster size is a power of 2.
+     */
     for (m_cluster_shift = 0; (temp & 1) == 0; m_cluster_shift++)
-	temp >>= 1;
-    
+        temp >>= 1;
+
+    /*
+     * Read all of the FAT into memory.
+     *
+     * This currently works for FAT12 and FAT16 volumes (maximum size of a 
+     *  16-bit FAT is 131072 bytes = 65536 * 2, by my reckoning). Could fail
+     *  for FAT32, though, where FATs can grow into the megabytes (and could
+     *  grow to silly sizes, for people using FAT32 on large disks).
+     */
     TRACE1("\tAllocating %u bytes for FAT\n", 
         m_bpb.sectors_per_fat * m_bpb.bytes_per_sector);
     m_fat = (uint8_t*) __morecore(m_bpb.sectors_per_fat * m_bpb.bytes_per_sector);
     assert(m_fat != (uint8_t*) -1);
 
     TRACE3("\tFAT starts at sector %d = 0x%x = %p\n",
-	m_bpb.reserved_sectors,
-	m_bpb.reserved_sectors * 
-	    m_bpb.bytes_per_sector,
-	m_fat);
+        m_bpb.reserved_sectors,
+        m_bpb.reserved_sectors * 
+            m_bpb.bytes_per_sector,
+        m_fat);
 
     length = m_bpb.sectors_per_fat * m_bpb.bytes_per_sector;
     TRACE4("bpc(before) = %u bps(before) = %u phys = %x phys(bpc) = %x\n", 
@@ -1154,43 +1201,48 @@ fsd_t *Fat::Init(driver_t *drv, const wchar_t *path)
         MemTranslate(&m_bytes_per_cluster));
     TRACE0("\tReading FAT\n");
     if (IoReadSync(m_device, 
-	m_bpb.reserved_sectors * m_bpb.bytes_per_sector,
-	m_fat,
-	length) != length)
+        m_bpb.reserved_sectors * m_bpb.bytes_per_sector,
+        m_fat,
+        length) != length)
     {
-	free(m_fat);
-	delete this;
-	return NULL;
+        free(m_fat);
+        delete this;
+        return NULL;
     }
 
     TRACE2("bpc(after) = %u bps(after) = %u\n", 
         m_bytes_per_cluster, m_bpb.bytes_per_sector);
 
     RootDirSectors = (m_bpb.num_root_entries * 32) /
-	m_bpb.bytes_per_sector;
+        m_bpb.bytes_per_sector;
+    
     FatSectors = m_bpb.num_fats * m_bpb.sectors_per_fat;
-    m_data_start = m_bpb.reserved_sectors + 
-	FatSectors + 
-	RootDirSectors;
 
-    m_root_start = m_bpb.reserved_sectors + 
-	/*m_bpb.hidden_sectors + */
-	m_bpb.sectors_per_fat * m_bpb.num_fats;
+    /* The root directory comes after the boot sector and the FAT(s) */
+    m_root_start = m_bpb.reserved_sectors + FatSectors;
 
+    /*
+     * Work out the start of the data area; this comes after the boot sector,
+     *  the FAT(s) and the root directory
+     */
+    m_data_start = m_root_start + RootDirSectors;
+
+    /*
+     * Create a dummy directory entry for the root directory, to create a 
+     *  vnode for it.
+     */
     memset(&root_entry, 0, sizeof(root_entry));
     root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);
-    /*root_entry.file_length = SECTOR_SIZE * 4;*/
     root_entry.first_cluster = FAT_CLUSTER_ROOT;
-    m_root = new FatDirectory;
-    if (m_root == NULL ||
-	!ConstructDir(m_root, &root_entry))
-    {
-	delete this;
-	return NULL;
-    }
-    
-    //AssembleName((fat_dirent_t*) (m_root + 1), name);
-    //wprintf(L"\tFirst file in root is called %s\n", name);
+
+    for (temp = 0; temp < _countof(m_vnodes); temp++)
+        m_vnodes[temp] = NULL;
+
+    /* Create a vnode for the root directory, with a hard-coded vnode ID */
+    m_next_id = VNODE_ROOT;
+    vnode_root = AllocVnode(VNODE_NONE, &root_entry, L"");
+    assert(vnode_root == VNODE_ROOT);
+
     return this;
 }
 
@@ -1198,9 +1250,14 @@ fsd_t *FatMountFs(driver_t *drv, const wchar_t *dest)
 {
     Fat *root;
     
+    /*
+     * We don't want to use C++ exceptions (the only reasonable way to signal 
+     *  an error from a constructor). Construct the Fat object in two stages.
+     */
+
     root = new Fat;
     if (root == NULL)
-	return NULL;
+        return NULL;
 
     return root->Init(drv, dest);
 }
@@ -1212,7 +1269,11 @@ extern "C" bool DrvInit(driver_t *drv)
 {
     void (**pfunc)() = __CTOR_LIST__;
 
-    /* Cygwin dcrt0.cc sources do this backwards */
+    /*
+     * Call any static/global constructors (not necessary for the FAT driver)
+     *
+     * Cygwin dcrt0.cc sources do this backwards, so we do too.
+     */
     while (*++pfunc)
         ;
     while (--pfunc > __CTOR_LIST__)

@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.2 2002/04/03 23:33:45 pavlovskii Exp $ */
+/* $Id: video.h,v 1.3 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -85,7 +85,7 @@ void *vgaSaveTextMemory(void);
 void vgaRestoreTextMemory(void *buf);
 size_t wcsto437(char *mbstr, const wchar_t *wcstr, size_t count);
 
-extern semaphore_t sem_vga;
+extern spinlock_t sem_vga;
 extern videomode_t video_mode;
 
 #ifdef __cplusplus

@@ -1,12 +1,13 @@
-/* $Id: vga4.c,v 1.11 2002/04/03 23:33:45 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.12 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 
 #include <wchar.h>
+#include <string.h>
 
-#include "video.h"
-#include "vgamodes.h"
+#include "include/video.h"
+#include "include/vgamodes.h"
 
 /*! Physical address of the VGA frame buffer */
 static uint8_t *video_base = PHYSICAL(0xa0000);
@@ -46,7 +47,6 @@ int vga4EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
     if (index < _countof(vga4_modes))
     {
-        vga4_modes[index].mode.bytesPerLine = vga4_modes[index].mode.width / 8;
         *mode = vga4_modes[index].mode;
         return index == _countof(vga4_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
     }
@@ -75,7 +75,7 @@ void vga4PreCalc(void)
     endmasks[5] = 248;
     endmasks[6] = 252;
     endmasks[7] = 254;
-    
+
     for (j = 0; j < 80; j++)
     {
         maskbit[j * 8] = 128;
@@ -87,7 +87,7 @@ void vga4PreCalc(void)
         maskbit[j * 8 + 6] = 2;
         maskbit[j * 8 + 7] = 1;
     }
-    
+
     for (j = 0; j < 480; j++)
         y80[j] = j * video_mode.bytesPerLine;
     for (j = 0; j < 640; j++)
@@ -98,8 +98,8 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
 {
     const uint8_t *regs;
     unsigned i;
-    clip_t clip;
-    
+    //clip_t clip;
+
     regs = NULL;
     for (i = 0; i < _countof(vga4_modes); i++)
         if (vga4_modes[i].mode.cookie == mode->cookie)
@@ -107,15 +107,16 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
             regs = vga4_modes[i].regs;
             break;
         }
-    
+
     if (regs == NULL)
         return false;
 
     //if (video_mode.flags & VIDEO_MODE_TEXT)
         //vid->text_memory = vgaSaveTextMemory();
-        
+
     vgaWriteRegs(regs);
     video_mode = vga4_modes[i].mode;
+    video_mode.bytesPerLine = video_mode.width / 8;
     vga4PreCalc();
 
     //if (video_mode.flags & VIDEO_MODE_TEXT)
@@ -124,10 +125,11 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
         //vid->text_memory = NULL;
     //}
     //else
-    clip.num_rects = 0;
-    clip.rects = NULL;
-    vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
-        
+
+    //clip.num_rects = 0;
+    //clip.rects = NULL;
+    //vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
+
     return true;
 }
 
@@ -140,7 +142,7 @@ void vga4PutPixel(video_t *vid, const clip_t *clip, int x, int y, colour_t clr)
     pix = vga4Dither(x, y, clr);
     offset = video_base + xconv[x] + y80[y];
 
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     out16(VGA_GC_INDEX, 0x08 | (maskbit[x] << 8));
     if (pix)
     {
@@ -156,14 +158,14 @@ void vga4PutPixel(video_t *vid, const clip_t *clip, int x, int y, colour_t clr)
         *offset = 0;
     }
 
-    SemRelease(&sem_vga);
+    SpinRelease(&sem_vga);
 }
 
 void vga4GetByte(addr_t offset,
                  uint8_t *b, uint8_t *g,
                  uint8_t *r, uint8_t *i)
 {
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     out16(VGA_GC_INDEX, 0x0304);
     *i = video_base[offset];
     out16(VGA_GC_INDEX, 0x0204);
@@ -172,7 +174,7 @@ void vga4GetByte(addr_t offset,
     *g = video_base[offset];
     out16(VGA_GC_INDEX, 0x0004);
     *b = video_base[offset];
-    SemRelease(&sem_vga);
+    SpinRelease(&sem_vga);
 }
 
 colour_t vga4GetPixel(video_t *vid, int x, int y)
@@ -204,17 +206,22 @@ void vga4HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
     volatile uint8_t a;
 
     if (x2 < x1)
-        swap_int(&x1, &x2);
+    {
+        int temp;
+        temp = x2;
+        x2 = x1;
+        x1 = temp;
+    }
 
     pix = vga4Dither(x1, y, clr);
     offset = video_base + xconv[x1] + y80[y];
-    
+
     /* midx = start of middle region */
     midx = (x1 + 7) & -8;
     /* leftpix = number of pixels to left of middle */
     leftpix = midx - x1;
 
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     if (leftpix > 0)
     {
         /* leftmask = pixels set to left of middle */
@@ -253,7 +260,7 @@ void vga4HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
 
         offset += midpix / 8;
     }
-    
+
     /* rightpix = number of pixels to right of middle */
     rightpix = x2 - rightx;
     if (rightpix > 0)
@@ -271,16 +278,16 @@ void vga4HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
         *offset = 0;
     }
 
-    SemRelease(&sem_vga);
+    SpinRelease(&sem_vga);
 }
 
-#if 0
-void vga4TextOut(video_t *vid, 
-                 int *x, int *y, vga_font_t *font, const wchar_t *str, 
-                 size_t len, colour_t afg, colour_t abg)
+void vga4TextOut(int *x, int *y, wchar_t max_char, uint8_t *font_bitmaps, 
+                 uint8_t font_height, const wchar_t *str, size_t len, 
+                 colour_t afg, colour_t abg)
 {
     int ay;
-    uint8_t *data, fg, bg, *offset;
+    const uint8_t *data;
+    uint8_t *offset, fg, bg;
     volatile int a;
     unsigned char ch[2];
 
@@ -290,18 +297,20 @@ void vga4TextOut(video_t *vid,
     if (len == -1)
         len = wcslen(str);
 
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     for (; len > 0; str++, len--)
     {
         ch[0] = 0;
-        wcsto437(ch, str, 1);
-        if (ch[0] < font->First || ch[0] > font->Last)
+        //wcsto437(ch, str, 1);
+        ch[0] = (uint8_t) *str;
+        ch[1] = '\0';
+        if (ch[0] > max_char)
             ch[0] = '?';
 
-        data = font->Bitmaps + font->Height * (ch[0] - font->First);
+        data = font_bitmaps + font_height * ch[0];
         offset = video_base + xconv[*x] + y80[*y];
-        
-        for (ay = 0; ay < font->Height; ay++)
+
+        for (ay = 0; ay < font_height; ay++)
         {
             if (afg != (colour_t) -1)
             {
@@ -347,10 +356,126 @@ void vga4TextOut(video_t *vid,
         *x += 8;
     }
 
-    *y += font->Height;
-    SemRelease(&sem_vga);
+    *y += font_height;
+    SpinRelease(&sem_vga);
 }
-#endif
+
+void vga4ScrollUp(int pixels, unsigned y, unsigned height)
+{
+    uint32_t plane, mask;
+    uint8_t *src, *dest;
+    unsigned line;
+
+    if (pixels > 0)
+    {
+        dest = video_base + y * video_mode.bytesPerLine;
+        src = dest + pixels * video_mode.bytesPerLine;
+    }
+    else
+    {
+        src = video_base + y * video_mode.bytesPerLine;
+        dest = src + pixels * video_mode.bytesPerLine;
+        pixels = -pixels;
+    }
+
+    SpinAcquire(&sem_vga);
+
+    out16(VGA_GC_INDEX, 0xff08);
+    height = video_mode.bytesPerLine * (height - pixels);
+
+    for (line = 0; line < height; line += 8 * video_mode.bytesPerLine)
+        for (mask = 0x0100, plane = 0; mask < 0x1000; mask <<= 1, plane++)
+        {
+            out16(VGA_SEQ_INDEX, mask | 0x0002);
+            out16(VGA_GC_INDEX, (plane << 8) | 0x0004);
+            memmove(dest + line, src + line, video_mode.bytesPerLine * 8);
+        }
+
+    SpinRelease(&sem_vga);
+}
+
+/*
+ *  xxx -- RLE DIB is a really stupid format
+ */
+void vga4DisplayBitmap(unsigned x, unsigned y, unsigned width, 
+                       unsigned height, void *data)
+{
+    uint8_t *bits, count, pix[2];
+    int ax, ay, i;
+    unsigned off;
+
+    bits = data;
+    off = 0;
+    ax = 0;
+    ay = height - 1;
+
+    while (ay >= 0)
+    {
+        if (off & 1)                /* start on a word boundary */
+            off++;
+
+        if (bits[off] != 0)
+        {
+            count = bits[off];
+            pix[0] = (bits[off + 1] >> 4) & 0x0f;
+            pix[1] = (bits[off + 1] >> 0) & 0x0f;
+            for (i = 0; i < count; i++)
+            {
+                vga4PutPixel(NULL, NULL, ax + x, ay + y, pix[i & 1]);
+                ax++;
+                /*if (ax >= width)
+                {
+                    ax -= width;
+                    ay--;
+                }*/
+            }
+
+            off += 2;
+        }
+        else
+        {
+            count = bits[off + 1];
+            if (count == 0)
+            {
+                ax = 0;
+                ay--;
+                off += 2;
+            }
+            else if (count == 1)
+            {
+                off += 2;
+                break;
+            }
+            else if (count == 2)
+            {
+                ax += bits[off + 2];
+                ay -= bits[off + 3];
+                off += 4;
+            }
+            else
+            {
+                for (i = 0; i < count; i++)
+                {
+                    if (i & 1)
+                        vga4PutPixel(NULL, NULL, ax + x, ay + y, 
+                            (bits[off + i / 2 + 2] >> 0) & 0x0f);
+                    else
+                        vga4PutPixel(NULL, NULL, ax + x, ay + y, 
+                            (bits[off + i / 2 + 2] >> 4) & 0x0f);
+
+                    ax++;
+                    /*if (ax >= width)
+                    {
+                        ax -= width;
+                        ay--;
+                    }*/
+                }
+
+                off += (count + 1) / 2 + 2;
+            }
+        }
+    }
+}
 
 video_t vga4 =
 {
@@ -365,7 +490,7 @@ video_t vga4 =
     NULL,          /* vline */
     NULL,          /* line */
     NULL,          /* fillrect */
-    NULL, //vga4TextOut,
+    NULL,          /* vga4TextOut */
     NULL,          /* fillpolygon */
 };
 

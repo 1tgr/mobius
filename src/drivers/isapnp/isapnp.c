@@ -1,4 +1,4 @@
-/* $Id: isapnp.c,v 1.1 2002/05/19 12:22:45 pavlovskii Exp $ */
+/* $Id: isapnp.c,v 1.2 2002/08/17 17:45:38 pavlovskii Exp $ */
 
 /*
  * Mobius ISAPnP driver
@@ -520,7 +520,7 @@ void PnpAddCard(isapnp_t *pnp, isacard_t *card)
     DevInstallDevice(driver, device, &card->cfg);
 }
 
-device_t* PnpAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
+void PnpAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
     isapnp_t *pnp;
     isacard_t *card;
@@ -530,6 +530,7 @@ device_t* PnpAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
     pnp->dev.driver = drv;
     pnp->dev.vtbl = &pnp_vtbl;
     pnp->boards_found = 0;
+    DevAddDevice(&pnp->dev, name, cfg);
 
     TRACE0("Detecting ISAPnP devices\n");
     pnp->read_port = MIN_READ_ADDR;
@@ -583,7 +584,6 @@ device_t* PnpAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 
     /* The last pnp_isolate failed, so this card is not needed */
     free(card);
-    return &pnp->dev;
 }
 
 bool DrvInit(driver_t *drv)

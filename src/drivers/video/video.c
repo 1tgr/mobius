@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.15 2002/05/05 13:29:45 pavlovskii Exp $ */
+/* $Id: video.c,v 1.16 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -130,6 +130,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     assert(vid->vidSetMode != NULL);
     assert(vid->vidPutPixel != NULL);
 
+#if 0
     if (vid->vidHLine == NULL)
         vid->vidHLine = vidHLine;
     if (vid->vidVLine == NULL)
@@ -142,6 +143,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
         vid->vidFillPolygon = vidFillPolygon;
     if (vid->vidTextOut == NULL)
         vid->vidTextOut = vidTextOut;
+#endif
     if (vid->vidMoveCursor == NULL)
         vid->vidMoveCursor = vidMoveCursor;
     
@@ -170,7 +172,7 @@ bool vidRequest(device_t* dev, request_t* req)
 {
     video_drv_t *video = (video_drv_t*) dev;
     params_vid_t *params = &((request_vid_t*) req)->params;
-    size_t user_length;
+    //size_t user_length;
     
     switch (req->code)
     {
@@ -191,6 +193,7 @@ bool vidRequest(device_t* dev, request_t* req)
         params->vid_getmode = video_mode;
         return true;
 
+#if 0
     case VID_DRAW:
         {
             vid_shape_t *buf;
@@ -290,6 +293,7 @@ bool vidRequest(device_t* dev, request_t* req)
             params->vid_fillpolygon.colour);
         return true;
     }
+#endif
 
     case VID_STOREPALETTE:
     {
@@ -387,7 +391,7 @@ size_t fread(void *buffer, size_t size, size_t count, FILE *stream)
         return 0;
 }
 
-device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
+void vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
     video_drv_t* dev;
     int i, j, code;
@@ -420,12 +424,12 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     dev->dev.driver = drv;
     dev->vid = NULL;
 
-    return &dev->dev;
+    DevAddDevice(&dev->dev, name, cfg);
 }
 
 bool DrvInit(driver_t* drv)
 {
     drv->add_device = vidAddDevice;
-    vidInitText();
+    /*vidInitText();*/
     return true;
 }

@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.5 2002/05/05 13:29:45 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.6 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -17,7 +17,6 @@
 #include "s3.h"
 #include "bpp8.h"
 
-void *sbrk_virtual(size_t diff);
 void swap_int(int *a, int *b);
 
 extern video_t s3_8, s3_16;
@@ -105,19 +104,21 @@ typedef struct
     uint32_t vsync_len;         /* length of vertical sync      */
 } s3mode_t;
 
+#define S3_FB_NAME L"fb_s3"
+
 static s3mode_t s3_modes[] =
 {
     /* 640x480x8 works fine */
-    { { 0,  640, 480, 8, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
+    { { 0,  640, 480, 8, 0, VIDEO_MODE_GRAPHICS, S3_FB_NAME, }, 39722,  40, 24, 32, 11,  96, 2 },
 
     /* xxx - 800x600 gives a black screen */
-    /*{ { 1,  800, 600, 8, 0, VIDEO_MODE_GRAPHICS, }, 27778,  64, 24, 22,  1,  72, 2 },*/
+    /*{ { 1,  800, 600, 8, 0, VIDEO_MODE_GRAPHICS, S3_FB_NAME, }, 27778,  64, 24, 22,  1,  72, 2 },*/
 
     /* xxx - 1024x768 has a migraine-inducingly slow refresh rate */
-    /*{ { 2, 1024, 768, 8, 0, VIDEO_MODE_GRAPHICS, }, 16667, 224, 72, 60, 12, 168, 4 },*/
+    /*{ { 2, 1024, 768, 8, 0, VIDEO_MODE_GRAPHICS, S3_FB_NAME, }, 16667, 224, 72, 60, 12, 168, 4 },*/
 
     /* xxx -- 640x480x16 flickers when video RAM is written to */
-    { { 3,  640, 480, 16, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
+    { { 3,  640, 480, 16, 0, VIDEO_MODE_GRAPHICS, S3_FB_NAME, }, 39722,  40, 24, 32, 11,  96, 2 },
 };
 
 static int s3EnumModes(video_t *vid, unsigned index, videomode_t *mode)
@@ -575,6 +576,218 @@ static void trio_load_video_mode (s3mode_t *mode)
 #endif /* TRIO_ACCEL */
 }
 
+void _swab(char *src, char *dest, int nbytes)
+{
+    char b1, b2;
+
+    while (nbytes > 1)
+    {
+        b1 = *src++;
+        b2 = *src++;
+        *dest++ = b2;
+        *dest++ = b1;
+        nbytes -= 2;
+    }
+}
+
+void s3InitHardware(void)
+{
+    int i, j;
+    unsigned char test;
+    unsigned int clockpar;
+    volatile uint16_t *CursorBase;
+    unsigned cursor_off;
+    uint32_t a, b;
+
+    /* make sure 0x46e8 accesses are responded to */
+    crt_outb(CRT_ID_EXT_MISC_CNTL, crt_inb(CRT_ID_EXT_MISC_CNTL) & 0xfb);
+
+    vga_outb(S3_VIDEO_SUBS_ENABLE, 0x10);
+    vga_outb(S3_OPTION_SELECT,         0x01);
+    vga_outb(S3_VIDEO_SUBS_ENABLE, 0x08);
+
+    out16(S3_SUBSYS_CNTL, 0x8000); in(S3_SUBSYS_CNTL);/* reset accelerator */
+    out16(S3_SUBSYS_CNTL, 0x4000); in(S3_SUBSYS_CNTL);/* enable accelerator */
+
+#ifdef TRIO_MMIO
+    out16(S3_ADVFUNC_CNTL, 0x0031);
+    crt_outb(CRT_ID_EXT_MEM_CNTL_1, 0x18);
+#else /* TRIO_MMIO */
+    out16(S3_ADVFUNC_CNTL, 0x0011);
+    crt_outb(CRT_ID_EXT_MEM_CNTL_1, 0x00);
+#endif /* TRIO_MMIO */
+
+    Trio_WaitIdle();
+    out16(S3_MULT_MISC, 0xe000);
+    out16(S3_MULT_MISC_2, 0xd000);
+
+    if(TrioSize == 4096*1024) {
+        crt_outb(CRT_ID_LAW_CNTL, 0x13);
+    } else {
+        crt_outb(CRT_ID_LAW_CNTL, 0x12);
+    }
+
+    seq_outb(SEQ_ID_CLOCKING_MODE,     0x01);
+    seq_outb(SEQ_ID_MAP_MASK,                0x0f);
+    seq_outb(SEQ_ID_CHAR_MAP_SELECT, 0x00);
+    seq_outb(SEQ_ID_MEMORY_MODE,         0x0e);
+
+    seq_outb(SEQ_ID_EXT_SEQ_REG9,        0x00);
+    if((crt_inb(0x36) & 0x0c) == 0x0c && /* fast page mode */
+         (crt_inb(0x36) & 0xe0) == 0x00) { /* 4Mb buffer */
+        seq_outb(SEQ_ID_BUS_REQ_CNTL, seq_inb(SEQ_ID_BUS_REQ_CNTL) | 0x40);
+    }
+
+    /* Clear immediate clock load bit */
+    test = seq_inb(SEQ_ID_CLKSYN_CNTL_2);
+    test = test & 0xDF;
+    /* If > 55MHz, enable 2 cycle memory write */
+    if (trio_memclk >= 55000000) {
+        test |= 0x80;
+    }
+    seq_outb(SEQ_ID_CLKSYN_CNTL_2, test);
+
+    /* Set MCLK value */
+    clockpar = trio_compute_clock(trio_memclk);
+    test = (clockpar & 0xFF00) >> 8;
+    seq_outb(SEQ_ID_MCLK_HI, test);
+    test = clockpar & 0xFF;
+    seq_outb(SEQ_ID_MCLK_LO, test);
+
+    /* Chip rev specific: Not in my Trio manual!!! */
+    if(crt_inb(CRT_ID_REVISION) == 0x10)
+        seq_outb(SEQ_ID_MORE_MAGIC, test);
+
+    /* Set DCLK value */
+    seq_outb(SEQ_ID_DCLK_HI, 0x13);
+    seq_outb(SEQ_ID_DCLK_LO, 0x41);
+
+    /* Load DCLK (and MCLK?) immediately */
+    test = seq_inb(SEQ_ID_CLKSYN_CNTL_2);
+    test = test | 0x22;
+    seq_outb(SEQ_ID_CLKSYN_CNTL_2, test);
+
+    /* Enable loading of DCLK */
+    test = vga_inb(GREG_MISC_OUTPUT_R);
+    test = test | 0x0C;
+    vga_outb(GREG_MISC_OUTPUT_W, test);
+
+    /* Turn off immediate xCLK load */
+    seq_outb(SEQ_ID_CLKSYN_CNTL_2, 0x2);
+
+    gra_outb(GCT_ID_SET_RESET, 0x0);
+    gra_outb(GCT_ID_ENABLE_SET_RESET, 0x0);
+    gra_outb(GCT_ID_COLOR_COMPARE, 0x0);
+    gra_outb(GCT_ID_DATA_ROTATE, 0x0);
+    gra_outb(GCT_ID_READ_MAP_SELECT, 0x0);
+    gra_outb(GCT_ID_GRAPHICS_MODE, 0x40);
+    gra_outb(GCT_ID_MISC, 0x01);
+    gra_outb(GCT_ID_COLOR_XCARE, 0x0F);
+    gra_outb(GCT_ID_BITMASK, 0xFF);
+
+    /* Colors for text mode */
+    for (i = 0; i < 0xf; i++)
+        att_outb(i, i);
+
+    att_outb(ACT_ID_ATTR_MODE_CNTL, 0x41);
+    att_outb(ACT_ID_OVERSCAN_COLOR, 0x01);
+    att_outb(ACT_ID_COLOR_PLANE_ENA, 0x0F);
+    att_outb(ACT_ID_HOR_PEL_PANNING, 0x0);
+    att_outb(ACT_ID_COLOR_SELECT, 0x0);
+    vga_outb(VDAC_MASK, 0xFF);
+
+    crt_outb(CRT_ID_BACKWAD_COMP_3, 0x10);/* FIFO enabled */
+    crt_outb(CRT_ID_HWGC_MODE, 0x00);     /* GFx hardware cursor off */
+    
+    cursor_off = TrioSize - 0x400;
+    CursorBase = (uint16_t *)((char *)(TrioMem) + cursor_off);
+    crt_outb(CRT_ID_HWGC_START_AD_HI, ((cursor_off / 1024) & 0xf00) >> 8);
+    crt_outb(CRT_ID_HWGC_START_AD_LO,  (cursor_off / 1024) & 0x0ff);
+    wprintf(L"s3: TrioMem = %p, TrioSize = %x, CursorBase = %p\n",
+        TrioMem, TrioSize, CursorBase);
+
+    att_outb(0x33, 0);
+    trio_video_disable(0);    
+
+    /* Initialize hardware cursor */
+    /*for (i = 0; i < 8; i++)
+    {
+        *(CursorBase  +(i*4)) = 0xffffff00;
+        *(CursorBase+1+(i*4)) = 0xffff0000;
+        *(CursorBase+2+(i*4)) = 0xffff0000;
+        *(CursorBase+3+(i*4)) = 0xffff0000;
+    }
+
+    for (i = 8; i < 64; i++)
+    {
+        *(CursorBase  +(i*4)) = 0xffff0000;
+        *(CursorBase+1+(i*4)) = 0xffff0000;
+        *(CursorBase+2+(i*4)) = 0xffff0000;
+        *(CursorBase+3+(i*4)) = 0xffff0000;
+    }*/
+
+    for (i = 0; i < 256; i++)
+    {
+        CursorBase[i * 2 + 0] = 0xffff;
+        CursorBase[i * 2 + 1] = 0x0000;
+    }
+
+    for (i = 0; i < _countof(cur_hand); i += j)
+    {
+        a = b = 0;
+        for (j = 0; j < 32; j++)
+        {
+            a <<= 1;
+            b <<= 1;
+
+            /*
+             *  The bits are interpreted as:
+             *  A    B    MS-Windows:         X-11:
+             *  0    0    Background          Screen data
+             *  0    1    Foreground          Screen data
+             *  1    0    Screen data         Background
+             *  1    1    Inverted screen     Foreground
+             */
+            switch (cur_hand[i + j])
+            {
+            case B:
+                a |= 0;
+                b |= 0;
+                break;
+
+            case F:
+                a |= 0;
+                b |= 1;
+                break;
+
+            case _:
+                a |= 1;
+                b |= 0;
+                break;
+
+            case I:
+                a |= 1;
+                b |= 1;
+                break;
+            }
+        }
+
+        /* xxx - Why are these bytes swapped? Some S3 weirdness... */
+        _swab((char*) &a, (char*) &a, sizeof(a));
+        _swab((char*) &b, (char*) &b, sizeof(b));
+
+        CursorBase[i / 4 + 0] = a >> 16;
+        CursorBase[i / 4 + 1] = b >> 16;
+        CursorBase[i / 4 + 2] = a;
+        CursorBase[i / 4 + 3] = b;
+    }
+}
+
+#undef F
+#undef B
+#undef I
+#undef _
+
 static bool s3SetMode(video_t *vid, videomode_t *mode)
 {
     bool found;
@@ -593,6 +806,7 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
         return false;
 
     video_mode = s3_modes[i].mode;
+    s3InitHardware();
     trio_load_video_mode(s3_modes + i);
 
     if (mode->bitsPerPixel == 8)
@@ -782,216 +996,6 @@ static void s3FillRect16(video_t *vid, const clip_t *clips, int x1, int y1, int 
 }
 #endif
 
-void _swab(char *src, char *dest, int nbytes)
-{
-    char b1, b2;
-
-    while (nbytes > 1)
-    {
-        b1 = *src++;
-        b2 = *src++;
-        *dest++ = b2;
-        *dest++ = b1;
-        nbytes -= 2;
-    }
-}
-
-void s3InitHardware(void)
-{
-    int i, j;
-    unsigned char test;
-    unsigned int clockpar;
-    volatile uint16_t *CursorBase;
-    unsigned cursor_off;
-    uint32_t a, b;
-
-    /* make sure 0x46e8 accesses are responded to */
-    crt_outb(CRT_ID_EXT_MISC_CNTL, crt_inb(CRT_ID_EXT_MISC_CNTL) & 0xfb);
-
-    vga_outb(S3_VIDEO_SUBS_ENABLE, 0x10);
-    vga_outb(S3_OPTION_SELECT,         0x01);
-    vga_outb(S3_VIDEO_SUBS_ENABLE, 0x08);
-
-    out16(S3_SUBSYS_CNTL, 0x8000); in(S3_SUBSYS_CNTL);/* reset accelerator */
-    out16(S3_SUBSYS_CNTL, 0x4000); in(S3_SUBSYS_CNTL);/* enable accelerator */
-
-#ifdef TRIO_MMIO
-    out16(S3_ADVFUNC_CNTL, 0x0031);
-    crt_outb(CRT_ID_EXT_MEM_CNTL_1, 0x18);
-#else /* TRIO_MMIO */
-    out16(S3_ADVFUNC_CNTL, 0x0011);
-    crt_outb(CRT_ID_EXT_MEM_CNTL_1, 0x00);
-#endif /* TRIO_MMIO */
-
-    Trio_WaitIdle();
-    out16(S3_MULT_MISC, 0xe000);
-    out16(S3_MULT_MISC_2, 0xd000);
-
-    if(TrioSize == 4096*1024) {
-        crt_outb(CRT_ID_LAW_CNTL, 0x13);
-    } else {
-        crt_outb(CRT_ID_LAW_CNTL, 0x12);
-    }
-
-    seq_outb(SEQ_ID_CLOCKING_MODE,     0x01);
-    seq_outb(SEQ_ID_MAP_MASK,                0x0f);
-    seq_outb(SEQ_ID_CHAR_MAP_SELECT, 0x00);
-    seq_outb(SEQ_ID_MEMORY_MODE,         0x0e);
-
-    seq_outb(SEQ_ID_EXT_SEQ_REG9,        0x00);
-    if((crt_inb(0x36) & 0x0c) == 0x0c && /* fast page mode */
-         (crt_inb(0x36) & 0xe0) == 0x00) { /* 4Mb buffer */
-        seq_outb(SEQ_ID_BUS_REQ_CNTL, seq_inb(SEQ_ID_BUS_REQ_CNTL) | 0x40);
-    }
-
-    /* Clear immediate clock load bit */
-    test = seq_inb(SEQ_ID_CLKSYN_CNTL_2);
-    test = test & 0xDF;
-    /* If > 55MHz, enable 2 cycle memory write */
-    if (trio_memclk >= 55000000) {
-        test |= 0x80;
-    }
-    seq_outb(SEQ_ID_CLKSYN_CNTL_2, test);
-
-    /* Set MCLK value */
-    clockpar = trio_compute_clock(trio_memclk);
-    test = (clockpar & 0xFF00) >> 8;
-    seq_outb(SEQ_ID_MCLK_HI, test);
-    test = clockpar & 0xFF;
-    seq_outb(SEQ_ID_MCLK_LO, test);
-
-    /* Chip rev specific: Not in my Trio manual!!! */
-    if(crt_inb(CRT_ID_REVISION) == 0x10)
-        seq_outb(SEQ_ID_MORE_MAGIC, test);
-
-    /* Set DCLK value */
-    seq_outb(SEQ_ID_DCLK_HI, 0x13);
-    seq_outb(SEQ_ID_DCLK_LO, 0x41);
-
-    /* Load DCLK (and MCLK?) immediately */
-    test = seq_inb(SEQ_ID_CLKSYN_CNTL_2);
-    test = test | 0x22;
-    seq_outb(SEQ_ID_CLKSYN_CNTL_2, test);
-
-    /* Enable loading of DCLK */
-    test = vga_inb(GREG_MISC_OUTPUT_R);
-    test = test | 0x0C;
-    vga_outb(GREG_MISC_OUTPUT_W, test);
-
-    /* Turn off immediate xCLK load */
-    seq_outb(SEQ_ID_CLKSYN_CNTL_2, 0x2);
-
-    gra_outb(GCT_ID_SET_RESET, 0x0);
-    gra_outb(GCT_ID_ENABLE_SET_RESET, 0x0);
-    gra_outb(GCT_ID_COLOR_COMPARE, 0x0);
-    gra_outb(GCT_ID_DATA_ROTATE, 0x0);
-    gra_outb(GCT_ID_READ_MAP_SELECT, 0x0);
-    gra_outb(GCT_ID_GRAPHICS_MODE, 0x40);
-    gra_outb(GCT_ID_MISC, 0x01);
-    gra_outb(GCT_ID_COLOR_XCARE, 0x0F);
-    gra_outb(GCT_ID_BITMASK, 0xFF);
-
-    /* Colors for text mode */
-    for (i = 0; i < 0xf; i++)
-        att_outb(i, i);
-
-    att_outb(ACT_ID_ATTR_MODE_CNTL, 0x41);
-    att_outb(ACT_ID_OVERSCAN_COLOR, 0x01);
-    att_outb(ACT_ID_COLOR_PLANE_ENA, 0x0F);
-    att_outb(ACT_ID_HOR_PEL_PANNING, 0x0);
-    att_outb(ACT_ID_COLOR_SELECT, 0x0);
-    vga_outb(VDAC_MASK, 0xFF);
-
-    crt_outb(CRT_ID_BACKWAD_COMP_3, 0x10);/* FIFO enabled */
-    crt_outb(CRT_ID_HWGC_MODE, 0x00);     /* GFx hardware cursor off */
-    
-    cursor_off = TrioSize - 0x400;
-    CursorBase = (uint16_t *)((char *)(TrioMem) + cursor_off);
-    crt_outb(CRT_ID_HWGC_START_AD_HI, ((cursor_off / 1024) & 0xf00) >> 8);
-    crt_outb(CRT_ID_HWGC_START_AD_LO,  (cursor_off / 1024) & 0x0ff);
-
-    att_outb(0x33, 0);
-    trio_video_disable(0);    
-
-    /* Initialize hardware cursor */
-    /*for (i = 0; i < 8; i++)
-    {
-        *(CursorBase  +(i*4)) = 0xffffff00;
-        *(CursorBase+1+(i*4)) = 0xffff0000;
-        *(CursorBase+2+(i*4)) = 0xffff0000;
-        *(CursorBase+3+(i*4)) = 0xffff0000;
-    }
-
-    for (i = 8; i < 64; i++)
-    {
-        *(CursorBase  +(i*4)) = 0xffff0000;
-        *(CursorBase+1+(i*4)) = 0xffff0000;
-        *(CursorBase+2+(i*4)) = 0xffff0000;
-        *(CursorBase+3+(i*4)) = 0xffff0000;
-    }*/
-
-    for (i = 0; i < 256; i++)
-    {
-        CursorBase[i * 2 + 0] = 0xffff;
-        CursorBase[i * 2 + 1] = 0x0000;
-    }
-
-    for (i = 0; i < _countof(cur_hand); i += j)
-    {
-        a = b = 0;
-        for (j = 0; j < 32; j++)
-        {
-            a <<= 1;
-            b <<= 1;
-
-            /*
-             *  The bits are interpreted as:
-             *  A    B    MS-Windows:         X-11:
-             *  0    0    Background          Screen data
-             *  0    1    Foreground          Screen data
-             *  1    0    Screen data         Background
-             *  1    1    Inverted screen     Foreground
-             */
-            switch (cur_hand[i + j])
-            {
-            case B:
-                a |= 0;
-                b |= 0;
-                break;
-
-            case F:
-                a |= 0;
-                b |= 1;
-                break;
-
-            case _:
-                a |= 1;
-                b |= 0;
-                break;
-
-            case I:
-                a |= 1;
-                b |= 1;
-                break;
-            }
-        }
-
-        /* xxx - Why are these bytes swapped? Some S3 weirdness... */
-        _swab((char*) &a, (char*) &a, sizeof(a));
-        _swab((char*) &b, (char*) &b, sizeof(b));
-
-        CursorBase[i / 4 + 0] = a >> 16;
-        CursorBase[i / 4 + 1] = b >> 16;
-        CursorBase[i / 4 + 2] = a;
-        CursorBase[i / 4 + 3] = b;
-    }
-}
-
-#undef F
-#undef B
-#undef I
-#undef _
-
 bool s3Init(device_config_t *cfg)
 {
     device_resource_t *res;
@@ -1063,12 +1067,10 @@ bool s3Init(device_config_t *cfg)
     TrioMem_phys = board_addr;
     TrioSize     = board_size;
 
-    s3InitHardware();
-
     wprintf(L"s3: using %ldK of video memory at %x (= %p)\n", 
         TrioSize>>10, TrioMem_phys, TrioMem);
 
-    VmmShare(TrioMem, L"fb_s3");
+    VmmShare(TrioMem, S3_FB_NAME);
     s3_doneinit = true;
     return true;
 }

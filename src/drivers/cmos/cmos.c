@@ -1,4 +1,4 @@
-/* $Id: cmos.c,v 1.4 2002/04/20 12:47:27 pavlovskii Exp $ */
+/* $Id: cmos.c,v 1.5 2002/08/17 17:45:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -232,7 +232,7 @@ static const device_vtbl_t cmos_vtbl =
 	NULL,
 };
 
-device_t* cmosAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
+void cmosAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
 	device_t* dev;
 
@@ -248,7 +248,7 @@ device_t* cmosAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg
 		dev->vtbl = &cmos_vtbl;
 
 		TRACE2("CMOS %s installed; time = %u\n", name, sys_time());
-		return dev;
+		DevAddDevice(dev, name, cfg);
 	/*}
 
 	return NULL;*/

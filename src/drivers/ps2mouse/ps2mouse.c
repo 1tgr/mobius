@@ -246,7 +246,7 @@ void msleep(unsigned ms)
         ;
 }
 
-device_t* ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
+void ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
     /* These strings nicked from gpm (I_imps2): I don't know how they work... */
     static uint8_t s1[] = { 0xF3, 0xC8, 0xF3, 0x64, 0xF3, 0x50, 0 };
@@ -313,7 +313,7 @@ device_t* ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     DevRegisterIrq(12, &ctx->dev);
     
     wprintf(L"PS/2 mouse driver installed\n");
-    return &ctx->dev;
+    DevAddDevice(&ctx->dev, name, cfg);
 }
 
 bool DrvInit(driver_t* drv)

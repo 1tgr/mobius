@@ -37,7 +37,7 @@ typedef struct DmaChannel {
    uint8_t page;     /* page register */
    uint8_t offset;   /* offset register */
    uint8_t length;   /* length register */
-   semaphore_t sem;
+   spinlock_t sem;
 } DmaChannel;
 
 /* definition of DMA channels */
@@ -74,7 +74,7 @@ void dma_xfer(unsigned channel, addr_t physaddr, int length, bool read)
    
    assert(channel < 4);
    
-   SemAcquire(&dmainfo[channel].sem);
+   SpinAcquire(&dmainfo[channel].sem);
    /* calculate dma page and offset */
    page = physaddr >> 16;
    offset = physaddr & 0xffff;
@@ -106,5 +106,5 @@ void dma_xfer(unsigned channel, addr_t physaddr, int length, bool read)
    out(0x0a,channel);
    
    /*enable();*/  /* enable irq's */
-   SemRelease(&dmainfo[channel].sem);
+   SpinRelease(&dmainfo[channel].sem);
 }

@@ -1,16 +1,16 @@
-/* $Id: vga.c,v 1.2 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: vga.c,v 1.3 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
-#include "video.h"
+#include "include/video.h"
 
-semaphore_t sem_vga;
+spinlock_t sem_vga;
 
 void vgaWriteRegs(const uint8_t *regs)
 {
     unsigned i;
     volatile uint8_t a;
 
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     
     /* Send MISC regs */
     out(VGA_MISC_WRITE, *regs++);
@@ -51,7 +51,7 @@ void vgaWriteRegs(const uint8_t *regs)
     }
     
     out(VGA_AC_WRITE, 0x20);
-    SemRelease(&sem_vga);
+    SpinRelease(&sem_vga);
 }
 
 void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first, unsigned count)
@@ -59,7 +59,7 @@ void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first, unsigne
     unsigned Index;
 
     /* start with palette entry 0 */
-    SemAcquire(&sem_vga);
+    SpinAcquire(&sem_vga);
     out(VGA_PALETTE_MASK, 0xff);
     out(VGA_DAC_WRITE_INDEX, first);
     for (Index = 0; Index < count; Index++)
@@ -69,7 +69,7 @@ void vgaStorePalette(video_t *vid, const rgb_t *entries, unsigned first, unsigne
         out(VGA_DAC_DATA, entries[Index].blue >> 2); /* blue */
     }
 
-    SemRelease(&sem_vga);
+    SpinRelease(&sem_vga);
 }
 
 void *vgaSaveTextMemory(void)

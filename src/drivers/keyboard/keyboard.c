@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.15 2002/05/05 13:36:01 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.16 2002/08/17 17:45:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -419,7 +419,7 @@ static const device_vtbl_t keyboard_vtbl =
     KbdIsr
 };
 
-device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
+void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
     keyboard_t* keyb;
     /*uint32_t i;*/
@@ -552,7 +552,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 #endif
 
     DevRegisterIrq(1, &keyb->dev);
-    return &keyb->dev;
+    DevAddDevice(&keyb->dev, name, cfg);
 }
 
 bool DrvInit(driver_t* drv)

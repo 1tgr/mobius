@@ -8,7 +8,18 @@ NASM=		nasm
 LDFLAGS+=	-g --subsystem native --entry _DrvInit \
 	--image-base `cat .base`
 LIBS:=		$(LIBS) $(LIB)/kernel.lib
+
 DEF=		$(EXP:.exp=.def)
+
+ifeq ($(EXP),)
+# need a .EXP file even if the driver doesn't export anything
+EXP_TEMP=	$(BASE).exp
+else
+# drivers that have EXP set in their makefile are assumed to provide their own .DEF
+#   file, possibly with exports
+DTFLAGS=	--def $(DEF)
+EXP_TEMP=	$(EXP)
+endif
 
 %.d:	%.c
 	$(CC) $(CFLAGS) -M -c $< -o $@
@@ -28,13 +39,18 @@ DEF=		$(EXP:.exp=.def)
 
 all:	$(TARGET) $(IMP)
 
-$(TARGET):	$(OBJS) $(EXP) $(LIBS) .base
-	ld -o $(TARGET) $(LDFLAGS) \
-			$(OBJS) \
-			$(EXP) \
-			$(LIBS)
-	objdump -ld $(TARGET) > listing.txt
-	strip $(TARGET)
+$(TARGET):	$(OBJS) $(LIBS) .base $(EXP)
+#	ld -o $(TARGET) $(LDFLAGS) \
+#			$(OBJS) \
+#			$(EXP) \
+#			$(LIBS)
+#	objdump -lCd $(TARGET) > listing.txt
+#	strip $(TARGET)
+	ld -s --base-file $(BASE).base --dll -o $(TARGET) $(OBJS) $(LIBS) $(LDFLAGS)
+	dlltool --as=as --dllname $(TARGET) $(DTFLAGS) --base-file $(BASE).base --output-exp $(EXP_TEMP)
+	ld -s --base-file $(BASE).base --dll -o $(TARGET) $(OBJS) $(LIBS) $(LDFLAGS)
+	dlltool --as=as --dllname $(TARGET) $(DTFLAGS) --base-file $(BASE).base --output-exp $(EXP_TEMP)
+	ld --dll -o $(TARGET) $(EXP) $(OBJS) $(LIBS) $(LDFLAGS)
 
 %.exp: %.def
 	dlltool -e $@ -m i386 --input-def $< -D $(@:.exp=.drv)

@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.9 2002/05/05 13:29:45 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.10 2002/08/17 17:45:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -48,7 +48,7 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
     unsigned i;
     clip_t clip;
     rect_t rect;
-    
+
     regs = NULL;
     for (i = 0; i < _countof(vga8_modes); i++)
         if (vga8_modes[i].mode.cookie == mode->cookie)
@@ -56,36 +56,36 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
             regs = vga8_modes[i].regs;
             break;
         }
-    
-    if (regs == NULL)
-        return false;
 
-    //if (video_mode.flags & VIDEO_MODE_TEXT)
+        if (regs == NULL)
+            return false;
+
+        //if (video_mode.flags & VIDEO_MODE_TEXT)
         //vid->text_memory = vgaSaveTextMemory();
 
-    video_mode = vga8_modes[i].mode;
-    vgaWriteRegs(regs);
+        video_mode = vga8_modes[i].mode;
+        vgaWriteRegs(regs);
 
-    //if (video_mode.flags & VIDEO_MODE_TEXT)
-    //{
+        //if (video_mode.flags & VIDEO_MODE_TEXT)
+        //{
         //vgaRestoreTextMemory(vid->text_memory);
         //vid->text_memory = NULL;
-    //}
-    //else
-    rect.left = rect.top = 0;
-    rect.right = video_mode.width;
-    rect.bottom = video_mode.height;
-    clip.num_rects = 1;
-    clip.rects = &rect;
-    vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
+        //}
+        //else
+        rect.left = rect.top = 0;
+        rect.right = video_mode.width;
+        rect.bottom = video_mode.height;
+        clip.num_rects = 1;
+        clip.rects = &rect;
+        vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
 
-    bpp8GeneratePalette(bpp8_palette);
-    vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
-    return true;
+        bpp8GeneratePalette(bpp8_palette);
+        vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
+        return true;
 }
 
 static void vga8PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
-                       colour_t clr)
+                         colour_t clr)
 {
     unsigned i;
 
@@ -111,14 +111,14 @@ static colour_t vga8GetPixel(video_t *vid, int x, int y)
 }
 
 static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                    colour_t clr)
+                      colour_t clr)
 {
     uint8_t *ptr;
     unsigned i;
     int ax1, ax2;
 
     if (x2 < x1)
-	swap_int(&x1, &x2);
+        swap_int(&x1, &x2);
 
     for (i = 0; i < clip->num_rects; i++)
     {
@@ -127,8 +127,8 @@ static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
             ax1 = max(clip->rects[i].left, x1);
             ax2 = min(clip->rects[i].right, x2);
             for (ptr = video_base + ax1 + y * video_mode.bytesPerLine;
-                ax1 < ax2;
-                ax1++, ptr++)
+            ax1 < ax2;
+            ax1++, ptr++)
                 *ptr = bpp8Dither(ax1, y, clr);
         }
     }
@@ -136,8 +136,8 @@ static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y,
 
 #if 0
 static void vga8TextOut(video_t *vid, 
-		 int *x, int *y, vga_font_t *font, const wchar_t *str, 
-		 size_t len, colour_t afg, colour_t abg)
+                        int *x, int *y, vga_font_t *font, const wchar_t *str, 
+                        size_t len, colour_t afg, colour_t abg)
 {
     int ay, i;
     uint8_t *data, fg, bg, *offset;
@@ -147,35 +147,35 @@ static void vga8TextOut(video_t *vid,
     bg = bpp8Dither(*x, *y, abg);
 
     if (len == -1)
-	len = wcslen(str);
+        len = wcslen(str);
 
     SemAcquire(&sem_vga);
     for (; len > 0; str++, len--)
     {
-	ch[0] = 0;
-	wcsto437(ch, str, 1);
-	if (ch[0] < font->First || ch[0] > font->Last)
-	    ch[0] = '?';
+        ch[0] = 0;
+        wcsto437(ch, str, 1);
+        if (ch[0] < font->First || ch[0] > font->Last)
+            ch[0] = '?';
 
-	data = font->Bitmaps + font->Height * (ch[0] - font->First);
-	offset = video_base + *x + *y * video_mode.bytesPerLine;
-	
-	for (ay = 0; ay < font->Height; ay++)
-	{
-	    if (afg != (colour_t) -1)
-	    	for (i = 0; i < 8; i++)
-		    if (data[ay] & (1 << i))
-			offset[8 - i] = fg;
-	    
-	    if (abg != (colour_t) -1)
-		for (i = 0; i < 8; i++)
-		    if ((data[ay] & (1 << i)) == 0)
-			offset[8 - i] = bg;
+        data = font->Bitmaps + font->Height * (ch[0] - font->First);
+        offset = video_base + *x + *y * video_mode.bytesPerLine;
 
-	    offset += video_mode.bytesPerLine;
-	}
+        for (ay = 0; ay < font->Height; ay++)
+        {
+            if (afg != (colour_t) -1)
+                for (i = 0; i < 8; i++)
+                    if (data[ay] & (1 << i))
+                        offset[8 - i] = fg;
 
-	*x += 8;
+                    if (abg != (colour_t) -1)
+                        for (i = 0; i < 8; i++)
+                            if ((data[ay] & (1 << i)) == 0)
+                                offset[8 - i] = bg;
+
+                            offset += video_mode.bytesPerLine;
+        }
+
+        *x += 8;
     }
 
     *y += font->Height;
@@ -186,18 +186,18 @@ static void vga8TextOut(video_t *vid,
 static video_t vga8 =
 {
     vga8Close,
-    vga8EnumModes,
-    vga8SetMode,
-    vgaStorePalette,
-    NULL,           /* movecursor */
-    vga8PutPixel,
-    vga8GetPixel,
-    vga8HLine,
-    NULL,	   /* vline */
-    NULL,	   /* line */
-    NULL,	   /* fillrect */
-    NULL, //vga8TextOut,
-    NULL,	   /* fillpolygon */
+        vga8EnumModes,
+        vga8SetMode,
+        vgaStorePalette,
+        NULL,           /* movecursor */
+        vga8PutPixel,
+        vga8GetPixel,
+        vga8HLine,
+        NULL,	   /* vline */
+        NULL,	   /* line */
+        NULL,	   /* fillrect */
+        NULL, //vga8TextOut,
+        NULL,	   /* fillpolygon */
 };
 
 video_t *vga8Init(device_config_t *cfg)

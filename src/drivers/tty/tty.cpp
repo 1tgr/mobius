@@ -1,3 +1,4 @@
+/* $Id: tty.cpp,v 1.14 2002/08/17 17:45:39 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 
@@ -52,7 +53,7 @@ protected:
 };
 
 unsigned num_consoles = 1;
-semaphore_t sem_consoles;
+spinlock_t sem_consoles;
 tty consoles[12];
 unsigned cur_console;
 
@@ -74,17 +75,16 @@ void memset16(uint16_t *ptr, uint16_t c, size_t count)
 tty::tty()
 {
     unsigned id = this - consoles;
-    buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 25 * id;
+    buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 50 * id;
     swprintf(m_info.description, L"Text console at %p", 
-	(uint8_t*) 0xb8000 + 80 * 25 * id);
+        (uint8_t*) 0xb8000 + 80 * 50 * id);
     m_info.device_class = 0;
-    info = &m_info;
     flags = DEVICE_IO_DIRECT;
     default_attribs = attribs = 0x0700 | id << 12;
     x = 0;
     y = 0;
     width = 80;
-    height = 25;
+    height = 50;
     escape = 0;
     writeptr = 0;
     writebuf = NULL;
@@ -438,7 +438,7 @@ bool tty::onWriteDirect(request_dev_t *req)
     return true;
 }
 
-device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
+void TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
     tty *tty;
     wchar_t ch;
@@ -456,11 +456,11 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
     /*if (tty == consoles + 1)
         tty->switchTo();*/
 
-    SemAcquire(&sem_consoles);
+    SpinAcquire(&sem_consoles);
     num_consoles++;
-    SemRelease(&sem_consoles);
+    SpinRelease(&sem_consoles);
 
-    return tty;
+    DevAddDevice(tty, name, cfg);
 }
 
 extern "C" void (*__CTOR_LIST__[])();
