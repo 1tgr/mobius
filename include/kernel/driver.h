@@ -93,6 +93,8 @@ struct request_t
 			void* buffer;		// in/out
 			//! Specifies the size of the buffer
 			size_t length;		// in/out
+			//! Specifies the IOCTL function to perform
+			dword code;		// in
 		} ioctl;
 
 		//! Parameters for a DEV_ISR request
