@@ -23,8 +23,8 @@ CFG=libsys - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "libsys"
+# PROP Scc_LocalPath "..\..\.."
 
 !IF  "$(CFG)" == "libsys - Win32 Release"
 
@@ -90,15 +90,15 @@ SOURCE=.\console.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\debug.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\dllmain.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\fs.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\libsys.def
 # End Source File
 # Begin Source File
 
@@ -209,6 +209,10 @@ SOURCE=..\..\include\os\video.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Source File
+
+SOURCE=.\libsys.def
+# End Source File
 # Begin Source File
 
 SOURCE=.\Makefile

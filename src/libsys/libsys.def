@@ -1,9 +1,13 @@
 EXPORTS
     ConReadKey
     DbgWrite
-    EvtAlloc
+    DbgFindModule
+    DbgFindSectionByName
+    DbgGetPeHeaders
+    DbgLookupLineNumber
     EvtIsSignalled
     EvtSignal
+    EvtCreate
     FsChangeDir
     FsCreate
     FsCreateDir
@@ -30,6 +34,9 @@ EXPORTS
     KeLeakBegin
     KeLeakEnd
     KeSetSingleStep
+    MuxAcquire
+    MuxCreate
+    MuxRelease
     ProcExitProcess
     ProcGetCwd
     ProcGetExeBase
@@ -39,6 +46,11 @@ EXPORTS
     PortAccept
     PortConnect
     PortListen
+    QueueAppend
+    QueueClear
+    QueueInit
+    QueuePopFirst
+    QueuePopLast
     ResFindResource
     ResGetStringLength
     ResLoadString
@@ -61,3 +73,4 @@ EXPORTS
     VmmMapFile
     VmmMapSharedArea
     VmmOpenSharedArea
+    VmmReserveArea
