@@ -1,0 +1,9 @@
+$Id: todo.txt,v 1.1 2002/04/13 00:53:30 pavlovskii Exp $
+
+Todo list for The Möbius Operating System
+=========================================
+
+Web site
+--------
+* Own name and email address
+* Point out that users need to download "mn" and not "mobius"
