@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.8 2002/02/25 18:41:58 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.9 2002/02/26 15:46:21 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -737,7 +737,8 @@ bool Fat::QueryFile(request_fs_t *req_fs)
 		return true;
 	}
 	
-	return true;
+	req_fs->header.code = ENOTIMPL;
+	return false;
 }
 
 bool Fat::request(request_t *req)

@@ -106,6 +106,7 @@ EXPORTS
 	SysUpTime
 	ThrAllocateThreadInfo
 	ThrCreateThread
+	ThrCreateV86Thread
 	ThrDeleteThread
 	ThrExitThread
 	ThrGetContext
@@ -152,6 +153,7 @@ EXPORTS
 	edata
 	end
 	exit
+	i386CreateV86Thread
 	i386DispatchSysCall
 	i386DoCall
 	i386IdentifyCpu

@@ -4,9 +4,12 @@ LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc.lib $(LIB)/libsys.lib $(LIB)/libiconv.lib
 
 include ../make.actions
 
-all: $(TARGET)
+all: $(BIN)/v86.com $(TARGET)
 
 $(TARGET): $(OBJS) $(LIBS)
 	ld -o $(TARGET) $(OBJS) $(LIBS)
 
 include $(OBJS:.o=.d)
+
+$(BIN)/v86.com: v86.asm
+	nasm -f bin $< -o `cygpath -w $@`

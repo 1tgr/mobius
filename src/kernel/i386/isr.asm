@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.3 2002/01/12 02:16:08 pavlovskii Exp $
+; $Id: isr.asm,v 1.4 2002/02/26 15:46:33 pavlovskii Exp $
 
 [bits		32]
 
@@ -150,6 +150,8 @@ _isr_and_switch:
 	push	ebx 					; pass esp of the current thread
 
 	call	_i386Isr				; call scheduler
+[global _isr_switch_ret]
+_isr_switch_ret:
 	lea 	esp, [eax+4]			; get esp of a new thread
 									; and skip over ctx_prev pointer
 

@@ -4,10 +4,14 @@ EXPORTS
 	SysGetInfo
 	SysGetTimes
 	SysUpTime
+	ThrContinueV86
+	ThrCreateV86Thread
 	ThrExitThread
 	ThrGetThreadInfo
-	ThrWaitHandle
+	ThrGetV86Context
+	ThrSetV86Context
 	ThrSleep
+	ThrWaitHandle
 	ProcExitProcess
 	ProcGetCwd
 	ProcGetExeBase

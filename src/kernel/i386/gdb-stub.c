@@ -173,6 +173,7 @@ asm("				movl _i386_registers, %eax");
 /* use iret to restore pc and flags together so
 	 that trace flag works right.	*/
 asm("				iret");
+asm(".data");
 
 #define BREAKPOINT() asm("	 int $3");
 

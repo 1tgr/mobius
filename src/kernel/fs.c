@@ -1,9 +1,10 @@
-/* $Id: fs.c,v 1.14 2002/02/25 18:41:59 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.15 2002/02/26 15:46:22 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
 #include <kernel/init.h>
 #include <kernel/thread.h>
+#include <kernel/memory.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -507,6 +508,12 @@ static bool FsReadWrite(handle_t file, void *buf, size_t bytes, fileop_t *op,
 	device_t *fsd;
 	bool is_sync;
 
+	if (!MemVerifyBuffer(buf, bytes))
+	{
+		errno = EBUFFER;
+		return false;
+	}
+
 	fd = HndLock(NULL, file, 'file');
 	if (fd == NULL)
 	{
@@ -650,8 +657,14 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
 	request_fs_t req;
 	wchar_t fullname[256];
 
+	if (!MemVerifyBuffer(buffer, buffer_size))
+	{
+		errno = EBUFFER;
+		return false;
+	}
+
 	if (!FsFullPath(name, fullname))
-		return NULL;
+		return false;
 
 	req.header.code = FS_QUERYFILE;
 	req.params.fs_queryfile.name = fullname;

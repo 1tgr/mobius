@@ -1,4 +1,4 @@
-/* $Id: cputs.c,v 1.3 2002/01/10 20:50:17 pavlovskii Exp $ */
+/* $Id: cputs.c,v 1.4 2002/02/26 15:46:34 pavlovskii Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -15,13 +15,11 @@ int _cputws(const wchar_t *str, size_t count);
 	return ret;
 }*/
 
-int _cputs(const char *str)
+int _cputs(const char *str, size_t len)
 {
 	wchar_t *wc;
-	size_t len;
 	int ret;
 
-	len = strlen(str);
 	/*wc = _alloca(sizeof(wchar_t) * len);*/
 	wc = malloc(sizeof(wchar_t) * len);
 	len = mbstowcs(wc, str, len);

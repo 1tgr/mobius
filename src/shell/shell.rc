@@ -1,4 +1,4 @@
-/* $Id: shell.rc,v 1.4 2002/02/25 18:42:09 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.5 2002/02/26 15:46:34 pavlovskii Exp $ */
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -14,6 +14,7 @@ BEGIN
     10                      "Executes a program on a different console\nOptions: \\in=file      Use file for standard input\n         \\out=file     Use file for standard output\n         \\wait         Wait for the program to finish before continuing"
     11                      "Demonstrates the shell's parser"
     12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
+    13                      "Loads and runs a .COM file under the DOS emulator"
 
     1024                    "No error"
     1025                    "Domain error"

@@ -1,15 +1,9 @@
-/* $Id: sbrk.c,v 1.3 2002/02/25 01:28:14 pavlovskii Exp $ */
+/* $Id: sbrk.c,v 1.4 2002/02/26 15:46:34 pavlovskii Exp $ */
 
 #include <sys/types.h>
 #include <stddef.h>
 #include <os/syscall.h>
 #include <os/defs.h>
-
-#define MEM_READ		1
-#define MEM_WRITE		2
-#define MEM_ZERO		4
-#define MEM_COMMIT		8
-#define MEM_LITERAL		16
 
 size_t getpagesize(void)
 {

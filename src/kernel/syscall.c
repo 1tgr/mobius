@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.7 2002/02/25 18:42:09 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.8 2002/02/26 15:46:33 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -74,6 +74,75 @@ bool SysGetTimes(systimes_t *times)
 	times->current_cputime = current->cputime;
 	return true;
 }
+
+#ifdef i386
+handle_t ThrCreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority, void (*handler)(void))
+{
+	thread_t *thr;
+	thr = i386CreateV86Thread(entry, stack_top, priority, handler);
+	if (thr != NULL)
+		return HndDuplicate(current->process, &thr->hdr);
+	else
+		return NULL;
+}
+
+bool ThrGetV86Context(context_v86_t* ctx)
+{
+	if (current->v86_in_handler)
+	{
+		*ctx = current->v86_context;
+		return true;
+	}
+	else
+		return false;
+}
+
+bool ThrSetV86Context(const context_v86_t* ctx)
+{
+	if (current->v86_in_handler)
+	{
+		current->v86_context = *ctx;
+		return true;
+	}
+	else
+		return false;
+}
+
+bool ThrContinueV86(void)
+{
+	context_t *ctx;
+	context_v86_t *v86;
+	uint32_t kernel_esp;
+
+	if (current->v86_in_handler)
+	{
+		ctx = ThrGetContext(current);
+		kernel_esp = ctx->kernel_esp;
+		kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
+		current->kernel_esp = ctx->kernel_esp = kernel_esp;
+
+		v86 = (context_v86_t*) ThrGetContext(current);
+		*v86 = current->v86_context;
+		wprintf(L"ThrContinueV86: continuing...\n");
+		v86->eflags |= EFLAG_IF | EFLAG_VM;
+		/*v86->kernel_esp = kernel_esp;*/
+		ArchDbgDumpContext((context_t*) v86);
+		current->v86_in_handler = false;
+		__asm__("mov %0,%%eax\n"
+			"jmp _isr_switch_ret" : : "g" (v86->kernel_esp));
+		return true;
+	}
+	else
+		return false;
+}
+
+#else
+handle_t ThrCreateV86Thread(uint32_t entry, uint32_t stack_top, unsigned priority, void (*handler)(void))
+{
+	errno = ENOTIMPL;
+	return NULL;
+}
+#endif
 
 /*
  * These are the user-mode equivalents of the handle.c event functions.

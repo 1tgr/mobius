@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.11 2002/02/24 19:13:29 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.12 2002/02/26 15:46:33 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -281,7 +281,7 @@ bool ArchInit(void)
 		/*break;
 	}*/
 
-	i386InitSerialDebug();
+	/*i386InitSerialDebug();*/
 	return true;
 }
 
@@ -292,6 +292,7 @@ void ArchSetupContext(thread_t *thr, addr_t entry, bool isKernel,
 	
 	thr->kernel_esp = 
 		(addr_t) thr->kernel_stack + PAGE_SIZE * 2 - sizeof(context_t);
+	thr->user_stack_top = stack - 4;
 
 	ctx = ThrGetContext(thr);
 	ctx->kernel_esp = thr->kernel_esp;
@@ -314,7 +315,7 @@ void ArchSetupContext(thread_t *thr, addr_t entry, bool isKernel,
 		ctx->cs = USER_FLAT_CODE | 3;
 		ctx->ds = ctx->es = ctx->gs = ctx->ss = USER_FLAT_DATA | 3;
 		ctx->fs = USER_THREAD_INFO | 3;
-		ctx->esp = stack - 4;
+		ctx->esp = thr->user_stack_top;
 	}
 
 	if (useParam)
@@ -371,19 +372,25 @@ void ArchDbgBreak(void)
 
 void ArchDbgDumpContext(const context_t* ctx)
 {
+	context_v86_t *v86;
+	v86 = (context_v86_t*) ctx;
 	if (ctx != NULL)
 	{
 		wprintf(L"---- Context at %p: ----\n", ctx);
-		wprintf(L" EAX %08x\t EBX %08x\t ECX %08x\t EDX %08x\n",
+		wprintf(L"  EAX %08x\t  EBX %08x\t  ECX %08x\t  EDX %08x\n",
 			ctx->regs.eax, ctx->regs.ebx, ctx->regs.ecx, ctx->regs.edx);
-		wprintf(L" ESI %08x\t EDI %08x\t EBP %08x\n",
+		wprintf(L"  ESI %08x\t  EDI %08x\t  EBP %08x\n",
 			ctx->regs.esi, ctx->regs.edi, ctx->regs.ebp);
-		wprintf(L"  CS %08x\t  DS %08x\t  ES %08x\t  FS %08x\n",
+		wprintf(L"   CS %08x\t   DS %08x\t   ES %08x\t   FS %08x\n",
 			ctx->cs, ctx->ds, ctx->es, ctx->fs);
-		wprintf(L"  GS %08x\t  SS %08x\n",
+		wprintf(L"   GS %08x\t   SS %08x\n",
 			ctx->gs, ctx->ss);
-		wprintf(L" EIP %08x\teflg %08x\tESP0 %08x\tESP3 %08x\n", 
+		wprintf(L"  EIP %08x\t eflg %08x\t ESP0 %08x\t ESP3 %08x\n", 
 			ctx->eip, ctx->eflags, ctx->kernel_esp, ctx->esp);
+
+		if (ctx->eflags & EFLAG_VM)
+			wprintf(L"V86DS %08x\tV86ES %08x\tV86FS %08x\tV86GS %08x\n",
+				v86->v86_ds, v86->v86_es, v86->v86_fs, v86->v86_gs);
 		/*wprintf(L"Previous context: %p\n", ctx->ctx_prev);*/
 
 		/*ArchProcessorIdle();*/
@@ -425,7 +432,12 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
 			: "r" (thr->process->page_dir_phys));
 	
 	new = ThrGetContext(thr);
-	arch_tss.esp0 = (uint32_t) (new + 1);
+	
+	if (new->eflags & EFLAG_VM)
+		arch_tss.esp0 = (uint32_t) ((context_v86_t*) new + 1);
+	else
+		arch_tss.esp0 = (uint32_t) (new + 1);
+	
 	new->kernel_esp = thr->kernel_esp;
 	/*wprintf(L"(%u) %02lx:%08lx %08lx\r", 
 		current->id, new->cs, new->eip, current->kernel_esp);*/

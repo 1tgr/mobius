@@ -6,5 +6,5 @@ i386.o: i386.c /mn/include/kernel/kernel.h /mn/include/stddef.h \
  /mn/include/kernel/proc.h /mn/include/kernel/memory.h \
  /mn/include/kernel/driver.h /mn/include/os/device.h \
  /mn/include/kernel/debug.h /mn/include/os/coff.h /mn/include/stdio.h \
- /mn/include/sys/version.h /mn/include/os/syscall.h \
- /mn/include/os/sysdef.h
+ /mn/include/sys/version.h /mn/include/string.h \
+ /mn/include/os/syscall.h /mn/include/os/sysdef.h

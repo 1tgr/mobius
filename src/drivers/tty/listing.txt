@@ -103,28 +103,28 @@ updateCursor__3tty():
 800f10c6:	d1 f8                	sar    %eax
 800f10c8:	8d 1c 02             	lea    (%edx,%eax,1),%ebx
 800f10cb:	66 03 59 1c          	add    0x1c(%ecx),%bx
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f10cf:	b0 0e                	mov    $0xe,%al
 800f10d1:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f10d6:	89 ca                	mov    %ecx,%edx
 800f10d8:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f10d9:	41                   	inc    %ecx
 800f10da:	89 d8                	mov    %ebx,%eax
 800f10dc:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f10e0:	89 ca                	mov    %ecx,%edx
 800f10e2:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f10e3:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
 800f10e8:	b0 0f                	mov    $0xf,%al
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f10ea:	89 ca                	mov    %ecx,%edx
 800f10ec:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f10ed:	41                   	inc    %ecx
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f10ee:	88 d8                	mov    %bl,%al
 800f10f0:	89 ca                	mov    %ecx,%edx
 800f10f2:	ee                   	out    %al,(%dx)
@@ -137,7 +137,7 @@ updateCursor__3tty():
 800f10f8 <_switchTo__3tty>:
 switchTo__3tty():
 800f10f8:	55                   	push   %ebp
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f10f9:	ba d4 03 00 00       	mov    $0x3d4,%edx
 800f10fe:	89 e5                	mov    %esp,%ebp
 800f1100:	83 ec 10             	sub    $0x10,%esp
@@ -150,26 +150,26 @@ switchTo__3tty():
 800f110b:	05 00 80 f4 0f       	add    $0xff48000,%eax
 800f1110:	89 c3                	mov    %eax,%ebx
 800f1112:	d1 eb                	shr    %ebx
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f1114:	b0 0c                	mov    $0xc,%al
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f1116:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f1117:	b9 d5 03 00 00       	mov    $0x3d5,%ecx
 800f111c:	89 d8                	mov    %ebx,%eax
 800f111e:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f1122:	89 ca                	mov    %ecx,%edx
 800f1124:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f1125:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
 800f112a:	b0 0d                	mov    $0xd,%al
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f112c:	89 ca                	mov    %ecx,%edx
 800f112e:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:321
+/mn/include/kernel/i386.h:344
 800f112f:	41                   	inc    %ecx
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:345
 800f1130:	88 d8                	mov    %bl,%al
 800f1132:	89 ca                	mov    %ecx,%edx
 800f1134:	ee                   	out    %al,(%dx)
@@ -969,11 +969,11 @@ writeString__3ttyPCUwUi():
 800f183c <_isr__3ttyUc>:
 isr__3ttyUc():
 800f183c:	55                   	push   %ebp
-/mn/include/kernel/i386.h:336
+/mn/include/kernel/i386.h:359
 800f183d:	ba 60 00 00 00       	mov    $0x60,%edx
 800f1842:	89 e5                	mov    %esp,%ebp
 800f1844:	83 ec 08             	sub    $0x8,%esp
-/mn/include/kernel/i386.h:339
+/mn/include/kernel/i386.h:362
 800f1847:	ec                   	in     (%dx),%al
 800f1848:	88 c2                	mov    %al,%dl
 /mn/src/drivers/tty/tty.cpp:403

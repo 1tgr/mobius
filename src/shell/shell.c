@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.7 2002/02/25 18:42:09 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.8 2002/02/26 15:46:34 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -718,6 +718,195 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
 	free(values);
 }
 
+FARPTR i386LinearToFp(void *ptr)
+{
+	unsigned seg, off;
+	off = (addr_t) ptr & 0xf;
+	seg = ((addr_t) ptr - ((addr_t) ptr & 0xf)) / 16;
+	return MK_FP(seg, off);
+}
+
+char *sbrk(size_t diff);
+
+void ShInt21(context_v86_t *ctx)
+{
+	void *ptr;
+	char *ch;
+	uint8_t b;
+	
+	switch ((uint16_t) ctx->regs.eax >> 8)
+	{
+	case 0:
+		ThrExitThread(0);
+		break;
+
+	case 1:
+		do
+		{
+			b = (uint8_t) ShReadChar();
+		} while (b == 0);
+
+		wprintf(L"%c", b);
+		ctx->regs.eax = (ctx->regs.eax & 0xffffff00) | b;
+		break;
+
+	case 2:
+		wprintf(L"%c", ctx->regs.edx & 0xff);
+		break;
+
+	case 9:
+		ptr = FP_TO_LINEAR(ctx->v86_ds, ctx->regs.edx);
+		ch = strchr(ptr, '$');
+		_cputs(ptr, ch - (char*) ptr);
+		break;
+
+	case 0x4c:
+		ThrExitThread(ctx->regs.eax & 0xff);
+		break;
+	}
+}
+
+void ShV86Handler(void)
+{
+	context_v86_t ctx;
+	uint8_t *ip;
+
+	ThrGetV86Context(&ctx);
+	
+	ip = FP_TO_LINEAR(ctx.cs, ctx.eip);
+	switch (ip[0])
+	{
+	case 0xcd:
+		switch (ip[1])
+		{
+		case 0x20:
+			ThrExitThread(0);
+			break;
+
+		case 0x21:
+			ShInt21(&ctx);
+			break;
+		}
+
+		ctx.eip += 2;
+		break;
+
+	default:
+		wprintf(L"v86: illegal instruction %x\n", ip[0]);
+		ThrExitThread(0);
+		break;
+	}
+
+	ThrSetV86Context(&ctx);
+	ThrContinueV86();
+}
+
+#if 0
+		0x31, 0xc0,		/* xor ax, ax */
+		0x8e, 0xd8,		/* mov ds, ax */
+		0x83, 0xc0,		/* mov es, ax */
+		0x40,			/* inc ax */
+		0xeb, 0xfd,		/* jmp 0 */
+#elif 0
+		0x83, 0xE9, 0x01,
+		0xE2, 0xFB,
+		0xC3,
+#elif 0
+		0xB8, 0x00, 0xA0,						/* mov ax, 0xb800 */
+		0x8E, 0xC0,								/* mov es, ax*/
+		0x26,									/* es: */
+		0xC7, 0x06, 0x00, 0x00, 0x34, 0x12,		/* mov [0], word 0x1234 */
+		0xC7, 0x06, 0x02, 0x00, 0x34, 0x12,		/* mov [2], word 0x1234 */
+		0xC7, 0x06, 0x04, 0x00, 0x34, 0x12,		/* mov [2], word 0x1234 */
+		0x66, 0xB8, 0x00, 0x02, 0x00, 0x00,		/* mov eax,0x200 */
+		0xCD, 0x30,								/* int 0x30 */
+#elif 0
+		0x8C, 0xC8,			/* mov ax, cs */
+		0x8E, 0xD8,			/* mov ds, ax */
+		0xB4, 0x09,			/* mov ah, 9 */
+		0xBA, 0x0C, 0x01,	/* mov dx, 0x10c */
+		0xCD, 0x21,			/* int 0x21 */
+		0xC3,				/* ret */
+		'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\n', '$'
+#endif
+
+void ShCmdV86(const wchar_t *cmd, wchar_t *params)
+{
+	static const uint8_t code_exit[] =
+	{
+#if 0
+		0x66, 0xB8, 0x00, 0x02, 0x00, 0x00,		/* mov eax,0x200 */
+		0xCD, 0x30,								/* int 0x30 */
+#else
+		0xCD, 0x20,
+#endif
+	};
+
+	static uint8_t *stack;
+	uint8_t *code;
+	FARPTR fp_code, fp_stackend;
+	handle_t thr, file;
+	dirent_t di;
+	fileop_t op;
+
+	params = ShPrompt(L" .COM file? ", params);
+	if (*params == NULL)
+		return;
+
+	/*if (!FsQueryFile(params, FILE_QUERY_STANDARD, &di, sizeof(di)))
+	{
+		_pwerror(params);
+		return;
+	}*/
+	di.length = 0x10000;
+
+	file = FsOpen(params, FILE_READ);
+	if (file == NULL)
+	{
+		wprintf(L"FsOpen: ");
+		_pwerror(params);
+		return;
+	}
+
+	code = sbrk(di.length + 0x100);
+	memcpy(code, code_exit, sizeof(code_exit));
+
+	op.event = file;
+	if (!FsRead(file, code + 0x100, di.length, &op))
+	{
+		wprintf(L"FsRead: ");
+		errno = op.result;
+		_pwerror(params);
+		FsClose(file);
+		return;
+	}
+
+	if (op.result == SIOPENDING)
+		ThrWaitHandle(op.event);
+
+	FsClose(file);
+	if (op.result > 0)
+	{
+		wprintf(L"FsRead(finished): ");
+		errno = op.result;
+		_pwerror(params);
+		return;
+	}
+
+	fp_code = i386LinearToFp(code);
+	fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
+		
+	if (stack == NULL)
+		stack = sbrk(65536);
+
+	fp_stackend = i386LinearToFp(stack);
+	memset(stack, 0, 65536);
+	
+	thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
+	ThrWaitHandle(thr);
+	/*HndClose(thr);*/
+}
+
 shell_command_t sh_commands[] =
 {
 	{ L"cd",		ShCmdCd,		3 },
@@ -733,6 +922,7 @@ shell_command_t sh_commands[] =
 	{ L"r",			ShCmdRun,		9 },
 	{ L"run",		ShCmdRun,		9 },
 	{ L"type",		ShCmdType,		5 },
+	{ L"v86",		ShCmdV86,		13 },
 	{ NULL,			NULL,			0 },
 };
 

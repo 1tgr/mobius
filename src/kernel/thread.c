@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.7 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.8 2002/02/26 15:46:33 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -458,8 +458,17 @@ void ThrDeleteThread(thread_t *thr)
 		(addr_t) thr->kernel_stack,
 		0);
 
-	HndRemovePtrEntries(thr->process, &thr->hdr);
-	free(thr);
+	HndSignalPtr(&thr->hdr, true);
+	thr->hdr.copies--;
+	if (thr->hdr.copies == 0)
+	{
+		wprintf(L"ThrDeleteThread: freeing thread %u\n", thr->id);
+		HndRemovePtrEntries(thr->process, &thr->hdr);
+		free(thr);
+	}
+	else
+		wprintf(L"ThrDeleteThread: thread %u still has %u refs\n",
+			thr->id, thr->hdr.copies);
 
 	if (thr == current)
 		ScNeedSchedule(true);
