@@ -23,8 +23,8 @@ CFG=librtl - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "librtl"
+# PROP Scc_LocalPath "..\.."
 
 !IF  "$(CFG)" == "librtl - Win32 Release"
 
