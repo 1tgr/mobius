@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.5 2002/01/10 20:50:14 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.6 2002/01/12 02:16:06 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -87,6 +87,7 @@
 #define USER_FLAT_DATA		0x30
 #define KERNEL_TSS			0x38
 #define USER_THREAD_INFO	0x40
+#define KERNEL_DF_TSS		0x48
 
 /* Page fault error code flags */
 #define PF_PROTECTED		1	/* protection violation... */

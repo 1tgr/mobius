@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.10 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.11 2002/01/12 02:16:07 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -718,7 +718,7 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 
 		if (IoRequest(NULL, &drive->ctrl->dev, &ctrl_req.header))
 		{
-			req->event = ctrl_req.header.event;
+			/*req->event = ctrl_req.header.event;*/
 			return true;
 		}
 		else

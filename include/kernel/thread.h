@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.4 2002/01/08 01:20:30 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.5 2002/01/12 02:16:07 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -25,6 +25,7 @@ struct thread_t
 
 	thread_t *all_prev, *all_next;
 	void *kernel_stack;
+	addr_t kernel_stack_phys;
 	struct thread_info_t *info;
 	addr_t kernel_esp;
 	struct process_t *process;

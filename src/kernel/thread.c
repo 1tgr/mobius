@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.3 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.4 2002/01/12 02:16:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -7,6 +7,7 @@
 #include <kernel/sched.h>
 #include <kernel/handle.h>
 #include <kernel/vmm.h>
+#include <kernel/memory.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,6 +48,7 @@ thread_t thr_idle =
 	NULL,						/* prev */
 	NULL,						/* next */
 	NULL,						/* kernel_stack */
+	0,							/* kernel_stack_phys */
 	&idle_thread_info,			/* info */
 	0xdeadbeef,					/* kernel_esp */
 	&proc_idle
@@ -56,6 +58,8 @@ thread_t *current = &thr_idle,
 	*thr_first = &thr_idle, 
 	*thr_last = &thr_idle;
 unsigned thr_last_id;
+uint8_t *thr_kernel_stack_end = (void*) 0xE0000000;
+semaphore_t thr_kernel_stack_sem;
 
 int sc_switch_enabled;
 unsigned sc_uptime, sc_need_schedule;
@@ -93,6 +97,7 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
 
 void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 {
+	SemAcquire(&queue->sem);
 	if (thr->queue_prev)
 		thr->queue_prev->queue_next = thr->queue_next;
 	if (thr->queue_next)
@@ -104,6 +109,7 @@ void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 
 	thr->queue_next = thr->queue_prev = NULL;
 	thr->queue = NULL;
+	SemRelease(&queue->sem);
 }
 
 void ScSchedule(void)
@@ -231,12 +237,41 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 	memset(thr, 0, sizeof(*thr));
 	HndInit(&thr->hdr, 'thrd');
 
-	thr->kernel_stack = sbrk(PAGE_SIZE);
+	/*thr->kernel_stack = sbrk(PAGE_SIZE);
 	if (thr->kernel_stack == NULL)
 	{
 		ThrDeleteThread(thr);
 		return NULL;
-	}
+	}*/
+
+	SemAcquire(&thr_kernel_stack_sem);
+	/* thr->kernel_stack points to the lower end of the stack */
+	thr->kernel_stack = thr_kernel_stack_end - PAGE_SIZE * 2;
+	thr_kernel_stack_end -= PAGE_SIZE * 3;
+
+	/*
+	 * This works as long as:
+	 *	-- all thread stacks sit in the same 4MB page table
+	 *	-- the first thread is created by the idle process
+	 */
+
+	/* Unmap the thread's kernel stack upper guard page */
+	MemMap((addr_t) thr->kernel_stack + PAGE_SIZE,
+		NULL,
+		(addr_t) thr->kernel_stack + PAGE_SIZE * 2,
+		0);
+	/* Map the thread's kernel stack */
+	thr->kernel_stack_phys = MemAlloc();
+	MemMap((addr_t) thr->kernel_stack, 
+		thr->kernel_stack_phys, 
+		(addr_t) thr->kernel_stack + PAGE_SIZE,
+		PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+	/* Unmap the thread's kernel stack lower guard page */
+	MemMap((addr_t) thr->kernel_stack - PAGE_SIZE,
+		NULL,
+		(addr_t) thr->kernel_stack,
+		0);
+	SemRelease(&thr_kernel_stack_sem);
 
 	if (isKernel)
 		stack = (addr_t) thr->kernel_stack;
@@ -252,6 +287,9 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 	thr->process = proc;
 	thr->priority = priority;
 	thr->id = ++thr_last_id;
+
+	wprintf(L"thread %u: kernel stack at %p = %x\n",
+		thr->id, thr->kernel_stack, thr->kernel_stack_phys);
 
 	if (proc != current->process)
 		thr->info = NULL;
@@ -293,7 +331,13 @@ void ThrDeleteThread(thread_t *thr)
 	if (thr == thr_first)
 		thr_first = thr->all_next;
 
-	free(thr->kernel_stack);
+	/*free(thr->kernel_stack);*/
+	MemFree(thr->kernel_stack_phys);
+	MemMap((addr_t) thr->kernel_stack - PAGE_SIZE, 
+		0, 
+		(addr_t) thr->kernel_stack,
+		0);
+
 	HndRemovePtrEntries(thr->process, &thr->hdr);
 	free(thr);
 

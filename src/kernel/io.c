@@ -1,10 +1,12 @@
-/* $Id: io.c,v 1.2 2002/01/10 20:50:15 pavlovskii Exp $ */
+/* $Id: io.c,v 1.3 2002/01/12 02:16:07 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
+#include <errno.h>
 
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <stdio.h>
@@ -37,7 +39,7 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 	bool ret;
 
 	TRACE1("\t\tIoRequest: dev = %p\n", dev);
-	req->event = NULL;
+	/*req->event = NULL;*/
 	req->result = 0;
 	req->from = from;
 
@@ -60,7 +62,7 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 	}
 
 	ret = dev->vtbl->request(dev, req);
-	if (ret && req->event == NULL)
+	if (ret && /*req->event == NULL*/req->result != SIOPENDING)
 	{
 		/*
 		 * Operation completed synchronously. 
@@ -74,28 +76,61 @@ bool IoRequest(device_t *from, device_t *dev, request_t *req)
 
 int mal_verify(int fullcheck);
 
+typedef struct syncrequest_t syncrequest_t;
+struct syncrequest_t
+{
+	device_t dev;
+	semaphore_t lock;
+	bool is_completed;
+};
+
+void IoSyncRequestFinishIo(device_t *dev, request_t *req)
+{
+	syncrequest_t *sync;
+	sync = (syncrequest_t*) dev;
+	wprintf(L"IoSyncRequestFinish: sync = %p\n", sync);
+	SemAcquire(&sync->lock);
+	sync->is_completed = true;
+	SemRelease(&sync->lock);
+}
+
+static const IDeviceVtbl syncrequest_vtbl =
+{
+	NULL,
+	NULL,
+	IoSyncRequestFinishIo
+};
+
 bool IoRequestSync(device_t *dev, request_t *req)
 {
-	TRACE1("\tIoRequestSync: dev = %p\n", dev);
-	if (IoRequest(NULL, dev, req))
+	syncrequest_t sync;
+	volatile uint8_t a_big_buffer[1024];
+
+	memset(&sync, 0, sizeof(sync));
+	sync.dev.vtbl = &syncrequest_vtbl;
+	SemInit(&sync.lock);
+	TRACE2("\tIoRequestSync: dev = %p, sync = %p\n", dev, &sync);
+	if (IoRequest(&sync.dev, dev, req))
 	{
 		/*assert(req->event == NULL);*/
-		if (req->event)
+		if (/*req->event*/req->result == SIOPENDING)
 		{
 			mal_verify(1);
-			if (!EvtIsSignalled(NULL, req->event))
+			if (!sync.is_completed /*!EvtIsSignalled(NULL, req->event)*/)
 			{
 				semaphore_t temp;
 				SemInit(&temp);
 				SemAcquire(&temp);
+				ScEnableSwitch(false);
 				enable();
 
-				if (/*true || */current == &thr_idle)
+				if (true || current == &thr_idle)
 				{
 					TRACE0("IoRequestSync: busy-waiting\n");
-					while (!EvtIsSignalled(NULL, req->event))
+					while (!sync.is_completed/*!EvtIsSignalled(NULL, req->event)*/)
 						ArchProcessorIdle();
 				}
+#if 0
 				else
 				{
 					wprintf(L"IoRequestSync: doing proper wait\n");
@@ -109,11 +144,13 @@ bool IoRequestSync(device_t *dev, request_t *req)
 
 					/*assert(false && "Reached this bit");*/
 				}
+#endif
 
+				ScEnableSwitch(true);
 				SemRelease(&temp);
 			}
 
-			EvtFree(NULL, req->event);
+			/*EvtFree(NULL, req->event);*/
 			mal_verify(1);
 		}
 

@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.7 2002/01/10 20:50:14 pavlovskii Exp $ */
+/* $Id: device.h,v 1.8 2002/01/12 02:16:07 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -11,7 +11,7 @@ struct request_t
 {
 	uint32_t code;
 	status_t result;
-	handle_t event;
+	/*handle_t event;*/
 #ifdef KERNEL
 	request_t *original;
 	struct device_t *from;

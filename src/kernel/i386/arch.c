@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.6 2002/01/08 01:20:32 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.7 2002/01/12 02:16:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -14,12 +14,14 @@ extern char scode[];
 extern thread_info_t idle_thread_info;
 extern uint16_t con_attribs;
 extern thread_t thr_idle;
+extern uint8_t arch_df_stack[];
 
-descriptor_t arch_gdt[9];
+descriptor_t arch_gdt[11];
 gdtr_t arch_gdtr;
 descriptor_int_t arch_idt[_countof(_wrappers)];
 idtr_t arch_idtr;
 tss_t arch_tss;
+struct tss0_t arch_df_tss;
 
 /*!	\brief Adjusts the value of a pointer so that it can be used before the 
  *	initial kernel GDT is set up.
@@ -59,7 +61,13 @@ void ArchStartup(kernel_startup_t* s)
 	/* Thread info struct = 0x40 */
 	i386SetDescriptor(gdt + 8, (addr_t) &idle_thread_info, 
 		sizeof(idle_thread_info) - 1, ACS_DATA | ACS_DPL_3, ATTR_BIG);
-
+	/* Double fault TSS = 0x48 */
+	i386SetDescriptor(gdt + 9, 
+		(addr_t) &arch_df_tss, 
+		sizeof(arch_df_tss) - 1, 
+		ACS_TSS, 
+		ATTR_BIG);
+	
 	gdtr->base = (addr_t) gdt + startup->kernel_phys;
 	gdtr->limit = sizeof(arch_gdt) - 1;
 	__asm__("lgdt (%0)" : : "r" (gdtr));
@@ -103,14 +111,18 @@ bool ArchInit(void)
 	__asm__("lgdt %0" : : "m" (arch_gdtr));
 
 	for (i = 0; i < _countof(_wrappers); i++)
-		i386SetDescriptorInt(arch_idt + i, KERNEL_FLAT_CODE, 
-			(uint32_t) _wrappers[i], ACS_INT | ACS_DPL_3, 
+		i386SetDescriptorInt(arch_idt + i, 
+			KERNEL_FLAT_CODE, 
+			(uint32_t) _wrappers[i], 
+			ACS_INT | ACS_DPL_3, 
 			ATTR_GRANULARITY | ATTR_BIG);
 	
-	i386SetDescriptor(arch_gdt + 7, (addr_t) &arch_tss, sizeof(arch_tss), 
-		ACS_TSS, ATTR_BIG);
-	arch_tss.io_map_addr = offsetof(tss_t, io_map);
-	arch_tss.ss0 = 0x20;
+	/* Double fault task gate */
+	i386SetDescriptorInt(arch_idt + 8, 
+		KERNEL_DF_TSS,
+		0,
+		ACS_TASK | ACS_DPL_0, 
+		0);
 
 	/*
 	 * The value of tss.esp makes no difference until the first task switch is made:
@@ -120,7 +132,24 @@ bool ArchInit(void)
 	 * - current thread's esp is ignored
 	 * - when a task switch ocurs, tss.esp0 is updated
 	 */
+	i386SetDescriptor(arch_gdt + 7, (addr_t) &arch_tss, sizeof(arch_tss), 
+		ACS_TSS, ATTR_BIG);
+	arch_tss.io_map_addr = offsetof(tss_t, io_map);
+	arch_tss.ss0 = KERNEL_FLAT_DATA;
 	arch_tss.esp0 = thr_idle.kernel_esp;
+
+	arch_df_tss.io_map_addr = sizeof(arch_df_tss);
+	arch_df_tss.ss = KERNEL_FLAT_DATA;
+	arch_df_tss.esp = (uint32_t) arch_df_stack + PAGE_SIZE;
+	arch_df_tss.cs = KERNEL_FLAT_CODE;
+	arch_df_tss.eip = (uint32_t) exception_8;
+	arch_df_tss.ds = 
+		arch_df_tss.es =
+		arch_df_tss.fs = 
+		arch_df_tss.gs = KERNEL_FLAT_DATA;
+	
+	__asm__("mov %%cr3, %0"
+		: "=r" (arch_df_tss.cr3));
 
 	__asm__("ltr %0"
 		:

@@ -124,6 +124,9 @@ SECTIONS
 	_stack_end = .;
 	_kernel_stack_end = .;
 
+	_arch_df_stack = .;
+	. += 4096;
+	
 	. = ALIGN(4096);
 	_kernel_pagedir = .;
 	. += 4096;

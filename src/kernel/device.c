@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.12 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: device.c,v 1.13 2002/01/12 02:16:07 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -198,6 +198,8 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	unsigned pages;
 	addr_t *ptr, user_addr, phys;
 	
+	req->result = SIOPENDING;
+
 	pages = PAGE_ALIGN_UP(user_buffer_length) / PAGE_SIZE;
 	io = malloc(sizeof(asyncio_t) + sizeof(addr_t) * pages);
 	if (io == NULL)
@@ -237,7 +239,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 		*ptr++ = phys;
 	}
 
-	req->event = io->req->event = EvtAlloc(NULL);
+	/*req->event = io->req->event = EvtAlloc(NULL);*/
 	LIST_ADD(dev->io, io);
 	return io;
 }
@@ -257,7 +259,7 @@ void DevFinishIoApc(void *ptr)
 	}
 
 	IoNotifyCompletion(io->dev, io->req);
-	EvtSignal(io->owner->process, io->req->event);
+	/*EvtSignal(io->owner->process, io->req->event);*/
 
 	if (io->req->original != NULL)
 	{

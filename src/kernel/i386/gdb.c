@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.1 2002/01/06 22:46:09 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.2 2002/01/12 02:16:08 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 
@@ -66,7 +66,8 @@ void exceptionHandler(int exc, void *addr)
 	 * Bochs seems to issue INT1 on every HLT as well.
 	 */
 	if (exc != 14 &&
-		exc != 1)
+		exc != 1 &&
+		exc != 8)
 		i386SetDescriptorInt(arch_idt + exc, 
 			KERNEL_FLAT_CODE, 
 			(uint32_t) addr, 

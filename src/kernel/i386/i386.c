@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.9 2002/01/10 20:50:16 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.10 2002/01/12 02:16:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -175,12 +175,14 @@ uint32_t i386Isr(context_t ctx)
 		{
 			handled = ProcPageFault(current->process, cr2);
 			if (!handled &&
-				cr2 > 0x80000000 &&
+				cr2 >= 0x80000000 &&
 				kernel_pagedir[PAGE_DIRENT(cr2)])
 			{
 				cr2 = PAGE_ALIGN(cr2);
-				wprintf(L"Mapping kernel page at %x\n", cr2);
+				wprintf(L"Mapping kernel page at %x...", cr2);
 				*ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
+				invalidate_page((void*) cr2);
+				wprintf(L"done\n");
 				handled = true;
 			}
 		}
@@ -240,4 +242,18 @@ uint32_t i386Isr(context_t ctx)
 	}
 	else
 		return ctx.kernel_esp;
+}
+
+void i386DoubleFault(uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags)
+{
+	/*
+	 * A double fault has occurred so we're running under the double fault TSS.
+	 * The context of the faulting thread is saved in the general-purpose TSS.
+	 * (Double faults usually mean we've messed up one of the kernel stacks.)
+	 */
+	wprintf(L"Double fault ");
+	wprintf(L"at %x: ", arch_tss.eip);
+	wprintf(L"esp0 = %x\n", arch_tss.esp0);
+	wprintf(L"System halted\n");
+	__asm__("hlt");
 }

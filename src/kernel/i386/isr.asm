@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $
+; $Id: isr.asm,v 1.3 2002/01/12 02:16:08 pavlovskii Exp $
 
 [bits		32]
 
@@ -10,6 +10,7 @@
 [global		_i386IdentifyCpu]
 
 [extern		_i386Isr]
+[extern		_i386DoubleFault]
 [extern		_tss]
 [extern		_current]
 
@@ -201,7 +202,15 @@ _interrupt_%1:
 	interrupt		5
 	interrupt		6
 	interrupt		7
-	exception		8
+	; exception		8
+
+[global _exception_8]
+_exception_8:	; double fault
+	call	_i386DoubleFault
+	add		esp, 8
+	iret
+	align	8
+
 	interrupt		9
 	exception		a
 	exception		b

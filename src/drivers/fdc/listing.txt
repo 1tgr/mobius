@@ -23,7 +23,7 @@ FdcSendByte():
 8006101d:	8d 48 04             	lea    0x4(%eax),%ecx
 80061020:	8d 58 05             	lea    0x5(%eax),%ebx
 80061023:	90                   	nop    
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 80061024:	89 ca                	mov    %ecx,%edx
 80061026:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:135
@@ -34,13 +34,13 @@ FdcSendByte():
 80061030:	25 c0 00 00 00       	and    $0xc0,%eax
 80061035:	3d 80 00 00 00       	cmp    $0x80,%eax
 8006103a:	75 08                	jne    80061044 <_FdcSendByte+0x44>
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8006103c:	89 da                	mov    %ebx,%edx
 8006103e:	8a 45 fb             	mov    0xfffffffb(%ebp),%al
 80061041:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:138
 80061042:	eb 09                	jmp    8006104d <_FdcSendByte+0x4d>
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:323
 80061044:	89 f2                	mov    %esi,%edx
 80061046:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:134
@@ -73,7 +73,7 @@ FdcGetByte():
 8006106b:	8d 48 04             	lea    0x4(%eax),%ecx
 8006106e:	8d 58 05             	lea    0x5(%eax),%ebx
 80061071:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 80061074:	89 ca                	mov    %ecx,%edx
 80061076:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:151
@@ -84,13 +84,13 @@ FdcGetByte():
 80061080:	25 d0 00 00 00       	and    $0xd0,%eax
 80061085:	3d d0 00 00 00       	cmp    $0xd0,%eax
 8006108a:	75 08                	jne    80061094 <_FdcGetByte+0x40>
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 8006108c:	89 da                	mov    %ebx,%edx
 8006108e:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:153
 8006108f:	0f b6 c0             	movzbl %al,%eax
 80061092:	eb 0e                	jmp    800610a2 <_FdcGetByte+0x4e>
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:323
 80061094:	89 f2                	mov    %esi,%edx
 80061096:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:150
@@ -173,11 +173,11 @@ FdcMotorOn():
 8006111e:	e8 c9 10 00 00       	call   800621ec <_SysUpTime>
 80061123:	05 f4 01 00 00       	add    $0x1f4,%eax
 80061128:	89 43 20             	mov    %eax,0x20(%ebx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 8006112b:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 8006112f:	83 c2 02             	add    $0x2,%edx
 80061132:	b0 1c                	mov    $0x1c,%al
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80061134:	ee                   	out    %al,(%dx)
 80061135:	5b                   	pop    %ebx
 80061136:	89 ec                	mov    %ebp,%esp
@@ -725,11 +725,11 @@ FdcStartIo():
 80061643:	c7 40 14 04 00 00 00 	movl   $0x4,0x14(%eax)
 /mn/src/drivers/fdc/fdc.c:272
 8006164a:	c6 40 34 00          	movb   $0x0,0x34(%eax)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 8006164e:	0f b7 50 18          	movzwl 0x18(%eax),%edx
 80061652:	83 c2 07             	add    $0x7,%edx
 80061655:	b0 00                	mov    $0x0,%al
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80061657:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:278
 80061658:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
@@ -1169,16 +1169,16 @@ FdcIsr():
 80061a59:	74 51                	je     80061aac <_FdcIsr+0xb0>
 80061a5b:	eb 77                	jmp    80061ad4 <_FdcIsr+0xd8>
 80061a5d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80061a60:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 /mn/src/drivers/fdc/fdc.c:401
 80061a64:	c7 43 20 ff ff ff ff 	movl   $0xffffffff,0x20(%ebx)
 /mn/src/drivers/fdc/fdc.c:402
 80061a6b:	c6 43 24 00          	movb   $0x0,0x24(%ebx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80061a6f:	83 c2 02             	add    $0x2,%edx
 80061a72:	b0 0c                	mov    $0xc,%al
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80061a74:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:404
 80061a75:	83 c4 f4             	add    $0xfffffff4,%esp
@@ -1246,7 +1246,7 @@ FdcIsr():
 80061b23:	77 0c                	ja     80061b31 <_FdcIsr+0x135>
 80061b25:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 80061b29:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 80061b2c:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:434
 80061b2d:	a8 10                	test   $0x10,%al
@@ -1650,23 +1650,23 @@ FdcAddDevice():
 80061eca:	0f b6 43 1a          	movzbl 0x1a(%ebx),%eax
 80061ece:	50                   	push   %eax
 80061ecf:	e8 b8 02 00 00       	call   8006218c <_DevRegisterIrq>
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80061ed4:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 /mn/src/drivers/fdc/fdc.c:566
 80061ed8:	c7 43 14 01 00 00 00 	movl   $0x1,0x14(%ebx)
 /mn/src/drivers/fdc/fdc.c:567
 80061edf:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80061ee3:	83 c2 02             	add    $0x2,%edx
 80061ee6:	b0 00                	mov    $0x0,%al
 80061ee8:	83 c4 10             	add    $0x10,%esp
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80061eeb:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80061eec:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 80061ef0:	b0 0c                	mov    $0xc,%al
 80061ef2:	83 c2 02             	add    $0x2,%edx
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80061ef5:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:571
 80061ef6:	89 f6                	mov    %esi,%esi
@@ -1912,22 +1912,22 @@ dma_xfer():
 800620cb:	e8 2c 01 00 00       	call   800621fc <_SemAcquire>
 /mn/src/drivers/fdc/util.c:79
 800620d0:	89 f1                	mov    %esi,%ecx
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 800620d2:	88 d8                	mov    %bl,%al
 /mn/src/drivers/fdc/util.c:79
 800620d4:	c1 e9 10             	shr    $0x10,%ecx
 /mn/src/drivers/fdc/util.c:81
 800620d7:	ff 4d 10             	decl   0x10(%ebp)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 800620da:	ba 0a 00 00 00       	mov    $0xa,%edx
 800620df:	0c 04                	or     $0x4,%al
 800620e1:	83 c4 10             	add    $0x10,%esp
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 800620e4:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 800620e5:	ba 0c 00 00 00       	mov    $0xc,%edx
 800620ea:	b0 00                	mov    $0x0,%al
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 800620ec:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:92
 800620ed:	8d 53 44             	lea    0x44(%ebx),%edx
@@ -1938,62 +1938,62 @@ dma_xfer():
 800620fe:	74 06                	je     80062106 <_dma_xfer+0x7e>
 80062100:	8d 43 48             	lea    0x48(%ebx),%eax
 80062103:	88 45 ef             	mov    %al,0xffffffef(%ebp)
-/mn/include/kernel/i386.h:305
-80062106:	be 0b 00 00 00       	mov    $0xb,%esi
 /mn/include/kernel/i386.h:306
+80062106:	be 0b 00 00 00       	mov    $0xb,%esi
+/mn/include/kernel/i386.h:307
 8006210b:	8a 45 ef             	mov    0xffffffef(%ebp),%al
 8006210e:	89 f2                	mov    %esi,%edx
 80062110:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062111:	8b 45 e8             	mov    0xffffffe8(%ebp),%eax
 80062114:	66 0f b6 90 00 30 06 	movzbw 0x80063000(%eax),%dx
 8006211b:	80 
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8006211c:	88 c8                	mov    %cl,%al
 8006211e:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:98
 8006211f:	89 d8                	mov    %ebx,%eax
 80062121:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062124:	66 0f b6 90 01 30 06 	movzbw 0x80063001(%eax),%dx
 8006212b:	80 
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8006212c:	89 f8                	mov    %edi,%eax
 8006212e:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:99
 8006212f:	89 d8                	mov    %ebx,%eax
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062131:	c1 ef 08             	shr    $0x8,%edi
 /mn/src/drivers/fdc/util.c:99
 80062134:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062137:	66 0f b6 90 01 30 06 	movzbw 0x80063001(%eax),%dx
 8006213e:	80 
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8006213f:	89 f8                	mov    %edi,%eax
 80062141:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:102
 80062142:	89 d8                	mov    %ebx,%eax
 80062144:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062147:	66 0f b6 90 02 30 06 	movzbw 0x80063002(%eax),%dx
 8006214e:	80 
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8006214f:	8a 45 10             	mov    0x10(%ebp),%al
 80062152:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:103
 80062153:	89 d8                	mov    %ebx,%eax
 80062155:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80062158:	66 0f b6 90 02 30 06 	movzbw 0x80063002(%eax),%dx
 8006215f:	80 
 80062160:	c1 6d 10 08          	shrl   $0x8,0x10(%ebp)
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80062164:	8a 45 10             	mov    0x10(%ebp),%al
 80062167:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:305
-80062168:	ba 0a 00 00 00       	mov    $0xa,%edx
 /mn/include/kernel/i386.h:306
+80062168:	ba 0a 00 00 00       	mov    $0xa,%edx
+/mn/include/kernel/i386.h:307
 8006216d:	88 d8                	mov    %bl,%al
 8006216f:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:109

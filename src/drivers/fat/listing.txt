@@ -1691,7 +1691,7 @@ StartIo__3FatP9asyncio_t():
 80051e90:	50                   	push   %eax
 80051e91:	8b 4d 0c             	mov    0xc(%ebp),%ecx
 80051e94:	8b 41 08             	mov    0x8(%ecx),%eax
-80051e97:	8b 40 4c             	mov    0x4c(%eax),%eax
+80051e97:	8b 40 50             	mov    0x50(%eax),%eax
 80051e9a:	50                   	push   %eax
 80051e9b:	e8 00 09 00 00       	call   800527a0 <_HndUnlock>
 /mn/src/drivers/fat/fat.cpp:506
@@ -2111,12 +2111,12 @@ finishio__3FatP9request_t():
 /mn/src/drivers/fat/fat.cpp:604
 8005225e:	8b 45 0c             	mov    0xc(%ebp),%eax
 /mn/src/drivers/fat/fat.cpp:611
-80052261:	8b 50 0c             	mov    0xc(%eax),%edx
-80052264:	8b 4a 14             	mov    0x14(%edx),%ecx
+80052261:	8b 50 08             	mov    0x8(%eax),%edx
+80052264:	8b 4a 10             	mov    0x10(%edx),%ecx
 /mn/src/drivers/fat/fat.cpp:613
 80052267:	8b 41 18             	mov    0x18(%ecx),%eax
 8005226a:	83 c0 20             	add    $0x20,%eax
-8005226d:	39 42 0c             	cmp    %eax,0xc(%edx)
+8005226d:	39 42 08             	cmp    %eax,0x8(%edx)
 80052270:	74 1a                	je     8005228c <_finishio__3FatP9request_t+0x34>
 80052272:	83 c4 fc             	add    $0xfffffffc,%esp
 80052275:	68 65 02 00 00       	push   $0x265

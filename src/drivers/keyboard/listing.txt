@@ -353,7 +353,7 @@ kbdHwWrite():
 8008130a:	89 f6                	mov    %esi,%esi
 8008130c:	4f                   	dec    %edi
 8008130d:	74 10                	je     8008131f <_kbdHwWrite+0x2f>
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 8008130f:	89 ca                	mov    %ecx,%edx
 80081311:	ec                   	in     (%dx),%al
 /mn/src/drivers/keyboard/keyboard.c:60
@@ -362,7 +362,7 @@ kbdHwWrite():
 /mn/src/drivers/keyboard/keyboard.c:64
 80081316:	85 ff                	test   %edi,%edi
 80081318:	74 05                	je     8008131f <_kbdHwWrite+0x2f>
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 8008131a:	89 f2                	mov    %esi,%edx
 8008131c:	88 d8                	mov    %bl,%al
 8008131e:	ee                   	out    %al,(%dx)
@@ -389,16 +389,16 @@ kbdHwRead():
 80081331:	bb 50 c3 00 00       	mov    $0xc350,%ebx
 80081336:	0f b7 7e 68          	movzwl 0x68(%esi),%edi
 8008133a:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 8008133c:	89 fa                	mov    %edi,%edx
 8008133e:	ec                   	in     (%dx),%al
 8008133f:	88 c1                	mov    %al,%cl
 /mn/src/drivers/keyboard/keyboard.c:78
 80081341:	f6 c1 01             	test   $0x1,%cl
 80081344:	74 12                	je     80081358 <_kbdHwRead+0x30>
-/mn/include/kernel/i386.h:320
+/mn/include/kernel/i386.h:321
 80081346:	0f b7 56 66          	movzwl 0x66(%esi),%edx
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 8008134a:	ec                   	in     (%dx),%al
 /mn/src/drivers/keyboard/keyboard.c:83
 8008134b:	f6 c1 c0             	test   $0xc0,%cl
@@ -953,28 +953,28 @@ KbdReboot():
 800817ea:	57                   	push   %edi
 800817eb:	56                   	push   %esi
 800817ec:	53                   	push   %ebx
-/mn/include/kernel/i386.h:298
+/mn/include/kernel/i386.h:299
 800817ed:	fa                   	cli    
 /mn/src/drivers/keyboard/keyboard.c:278
 800817ee:	bb 64 00 00 00       	mov    $0x64,%ebx
 800817f3:	b9 60 00 00 00       	mov    $0x60,%ecx
-/mn/include/kernel/i386.h:323
+/mn/include/kernel/i386.h:324
 800817f8:	89 da                	mov    %ebx,%edx
 800817fa:	ec                   	in     (%dx),%al
 800817fb:	89 c6                	mov    %eax,%esi
 /mn/src/drivers/keyboard/keyboard.c:281
 800817fd:	f7 c6 01 00 00 00    	test   $0x1,%esi
 80081803:	74 03                	je     80081808 <_KbdReboot+0x24>
-/mn/include/kernel/i386.h:322
+/mn/include/kernel/i386.h:323
 80081805:	89 ca                	mov    %ecx,%edx
 80081807:	ec                   	in     (%dx),%al
 /mn/src/drivers/keyboard/keyboard.c:286
 80081808:	f7 c6 02 00 00 00    	test   $0x2,%esi
 8008180e:	75 e8                	jne    800817f8 <_KbdReboot+0x14>
-/mn/include/kernel/i386.h:305
+/mn/include/kernel/i386.h:306
 80081810:	ba 64 00 00 00       	mov    $0x64,%edx
 80081815:	b0 fe                	mov    $0xfe,%al
-/mn/include/kernel/i386.h:306
+/mn/include/kernel/i386.h:307
 80081817:	ee                   	out    %al,(%dx)
 /mn/src/drivers/keyboard/keyboard.c:292
 80081818:	e8 2b 03 00 00       	call   80081b48 <_ArchProcessorIdle>
