@@ -1,0 +1,290 @@
+Release Notes for The Möbius Release 7 (20020225)
+==================================================
+
+Normally I'd give a list of changes from the previous release, in this
+file. However, The Möbius has gone through so many changes -- things
+have been added and taken away -- since the last release that it seems
+simpler to list *everything*.
+
+
+Quick Start
+------------
+You should have downloaded a disk image (.img) with this file. If not, 
+go to http://sourceforge.net/projects/mobius/ and download one.
+
+If you are using Bochs: (http://bochs.sourceforge.net/)
+* Modify your bochsrc so that drive A points to the disk image you 
+    just downloaded.
+* Run Bochs, making sure that it boots from drive A.
+    bochs boot:a
+
+If you are using a test PC:
+* Write the disk image onto a floppy disk, either using the bundled 
+    RAW32 program, or another (such as dd, rawrite or partcopy).
+* Verify that the image has been written successfully by trying to
+    access the disk. It should contain a valid FAT file system.
+* Insert the disk into your test PC's floppy drive and reboot.
+
+All being well, the GRUB loader should appear, giving you the option
+of booting The Möbius (the two installation options are mainly for 
+development use, and require GRUB's loader files to be present on your
+hard disk). Choose the Möbius option, press Enter, wait for it to load
+all the files, and with a bit of luck you should be able to try 
+The Möbius...
+
+
+Overview
+---------
+The Möbius is an open-source operating system for the IA-32 platform
+(Intel i386 and compatibles). 
+There are a lot of other operating systems for the i386:
+
+* Windows NT and its successors are closed-source. Their development is
+dictated solely by Microsoft and their interests. 
+* Windows 95 and its successors are hacks to Windows 3.x and MS-DOS. 
+* Linux has been going a long time, and has traditionally been a Unix
+clone. As such it is a bit of a hack and is struggling to keep up with
+modern OS concepts. 
+* Most of the other amateur OS projects consist of a boot sector and a
+'kernel' which prints "Hello, world!". 
+* Of the others, most have followed the same path as Linux, without any
+regard to design or future compatibility. 
+* The small remainder are promising, well-designed operating systems. 
+
+The Möbius has been designed as a good modern OS. Its main goals are:
+
+* To be extensible enough so that it is easy to modify it for new 
+devices and technologies
+* To keep the kernel as small and modular as possible
+* To support existing applications where possible
+* To remain easy enough to use that users can install and configure a
+Möbius system without having to learn it
+
+You can try the OS by downloading a floppy disk image, writing it to a
+disk and booting from it. Alternatively, you can use the disk image in
+an emulator such as Bochs. Full source code is available through CVS.
+
+
+Boot Process
+-------------
+The Möbius uses GNU GRUB as its boot loader, which is capable of booting
+from a floppy disk or a hard drive. The disk image is set up to boot 
+from a floppy, although it should be trivial for someone with the GRUB
+documentation to get it to boot from a hard drive.
+
+GRUB performs two main tasks: loading the kernel and any drivers that 
+are needed to boot the system, and putting the processor into protected
+mode and handing the computer over to the kernel. The kernel receives
+the system in a known state, and its first job is to set up the various
+parts of the OS that are needed before any drivers can be loaded (things
+like the memory manager, the x86-specific hardware and the file system).
+There are a few drivers built into the kernel: one is the ramdisk, which
+makes the list of modules that GRUB loaded appear as a directory of 
+files to the OS. The kernel can load drivers from the ramdisk into 
+kernel space and get them to set themselves up.
+
+The drivers loaded in this release are:
+
+	tty.drv - console
+	keyboard.drv - keyboard
+	fat.drv - FAT12/FAT16 filing system
+	fdc.drv - floppy drive
+	ata.drv - IDE hard drive
+	cmos.drv - CMOS and real-time clock
+
+Although the list of drivers that are loaded is currently defined in 
+the kernel source code (and therefore can only be modified if the source
+is rebuilt), it is possible to disable drivers by removing them from 
+menu.lst. However, note that for changes in menu.lst to take effect, you
+must reinstall GRUB onto the disk, which requires the GRUB binaries 
+(available for download from http://www.gnu.org/software/grub/).
+
+Each driver will load and attempt to recognise its hardware. Any 
+devices that were found will be listed as files in the 
+/System/Devices directory.
+
+
+Drivers
+--------
+tty: Installs devices (tty0..tty6) and controls eight virtual consoles.
+With co-operation from the keyboard driver, tty can switch between them
+with the F1-F8 keys. tty supports the ANSI standard escape codes: see
+the MS-DOS ANSI.SYS documentation or 
+http://enterprise.aacc.cc.md.us/~rhs/ansi.html for a list.
+
+keyboard: Drives the computer's AT or PS/2 keyboard; assumes a British
+keyboard layout. Keys can be read from the /System/Devices/keyboard
+device. Each key read from the keyboard device is treated as a 32-bit 
+word: the two high bytes specify the mask of modifier keys held down
+when the key was pressed, and the low two bytes are the character
+corresponding to the key, in UCS-2LE format.
+The following keys are treated specially by the keyboard driver:
+CTRL+ALT+DEL: reboots (using the keyboard controller and #RESET line)
+F1-F8: switches virtual consoles
+CAPS LOCK, NUM LOCK, SCROLL LOCK: toggle the relevant LEDs and generally
+behave as you'd expect.
+ALT+num pad: allows you to enter raw Unicode characters. Hold down ALT, 
+enter the character's decimal code point number on the keypad, and 
+release ALT. Of course, most characters will show up as ? on the console
+since The Möbius currently runs in text mode with the CP437 (United 
+States) code page.
+
+fat: Partially supports FAT12 and FAT16 disks, in conjunction with the 
+relevant disk driver. Directory listings work [almost] as they should,
+and it is possible to read text files from the floppy disk with the
+shell's TYPE command. However, reading files from the hard disk doesn't
+work, and neither does running programs from any disk.
+
+fdc: Drives the first floppy drive in the computer, drive A (listed as
+/System/Devices/fdc0). This works fairly well at the moment, although
+disk change notifications aren't propagated to the relevant file
+system drivers, so changing disks in mid-flow will probably confuse fat.
+
+ata: Drives the hard drives/CD-ROM drives on the primary IDE controller
+(although it would be trivial to get it to recognise any other IDE 
+controller, especially given a proper pci driver). This driver is 
+distinctly buggy. It is only guaranteed to recognise drives under Bochs,
+although it works to the extent of having fat list directories under
+various partitions, and it is possible to use the shell's DUMP command 
+to dump its contents. Drives and paritions are added in the Linux way,
+under /System/Devices/ide0, ide0a, ide0b, ide1, ide1a, etc.. Note that
+CD-ROM drives don't get their own parition letters, and that there are
+no CDFS or ISO-9660 file system drivers yet.
+
+cmos: A small real-time clock driver. This driver will install a device
+(/System/Devices/cmos) which will output the current date and time as
+a 64-bit number of seconds since midnight 01/01/1970. It is possible to
+observe this with the shell's DUMP command, although there is no way to
+stop it, since cmos keeps outputting time data (until, presumably, the
+end of time, or until you reboot, whichever is sooner).
+
+
+Shell
+------
+There is a text-mode command-line shell provided with The Möbius which 
+is loaded once the boot process has finished. By default it starts on 
+the second console, so you need to press F2 to switch screens (at first
+you will see the first, black, screen, which lists messages issued by 
+the kernel during boot).
+
+The shell starts in /System/Boot, which contains the files loaded as 
+modules by GRUB.
+
+
+Shell Commands
+---------------
+Commands, as with everything else in The Möbius, are case-insensitive.
+Thus, DIR and dir (and DiR) are treated the same way. Some commands
+accept extra options, as well as a generic un-named parameter. The
+general form of commands is:
+
+	DETACH \WAIT \OUT=../Devices/tty1 test
+
+Here, DETACH is the command name; \WAIT, \OUT and test are parameters. 
+\OUT has the value "../Devices/tty1" associated with it.
+
+cd [dir]: Changes the current working directory to dir.
+
+cls: Clears the screen.
+
+detach [command]: Executes the program command.exe.
+Options: \in=file      Use file for standard input
+         \out=file     Use file for standard output
+         \wait         Wait for the program to finish before continuing
+
+dir: Lists files in the current directory.
+
+dump [file]: Dumps the contents of the file file on the console in hex
+format. Useful for dumping the output of devices.
+
+exit: Exits the shell.
+
+help [command]: Displays help on the various shell commands. If no 
+command is given, help will display a list of valid commands.
+
+info: Displays various information
+Options: \system     Displays information from the SysGetInfo call
+         \times      Displays timing information from the SysGetTimes call
+
+parse [option1] [option2] [...]: Tests the shell's parser. Given a list
+of parameters in the standard form (param, /flag or /name=value), it
+will display a list of name/value pairs.
+
+poke [file]: Writes the string "Hello, World!\n" to a file or device.
+
+r [command], run [command]: Executes the program command.exe on the
+same console and waits for it to exit. 
+
+type [file]: Lists the contents for the file file on the console. type
+assumes that the file is in either UTF-8 or ASCII format.
+
+
+Other Programs
+---------------
+test: Tests various Möbius features. This is now largely redundant since
+the shell is capable of doing most of the same things, although it does
+demonstrate the ANSI escape sequence capabilities of the tty driver.
+
+---- Sample output ----
+[/System/Boot] r test
+Hello from tty0!
+Here's an escape sequence: This should be red!
+And this is bright green and flashing!
+This is the first of two lines of teset.
+
+  And this is the second...
+Now the third...
+...and fourth lines
+Here's a tab, just for a laugh...	Ha ha!
+OS Test Menu
+------------
+1)  Test file I/O (/hd/test.txt)
+2)  Test block device (/System/Devices/fdc0)
+3)  Test character I/O (/System/Devices/keyboard)
+Esc Quit
+Choice: _
+---- End of sample output ----
+
+hello: The standard hello world program. This one is not too stupid
+because it loads the hello world string from a string resource embedded
+in the EXE; maybe one day someone will need to support hello world in
+multiple languages.
+
+---- Sample output ----
+[/System/Boot] r hello
+Hello, world!
+[/System/Boot]
+---- End sample output ----
+
+
+Contact
+--------
+All of this was written by Tim Robinson <timothy.robinson@ic.ac.uk>, 
+with a lot of help from various sources, the main one being the
+alt.os.development newsgroup. The project's web site is at:
+	http://www.themoebius.org.uk/
+	
+There is a SourceForge mirror at:
+	http://mobius.sourceforge.net/
+	
+You almost certainly got this file from one of those places.
+
+If you have any feedback, bug reports :|, opinions or offers of help 
+(please!) then feel free to email me at the address above. If you want 
+to start writing your own OS then the best place to start is the
+alt.os.development newsgroup, as well as with the OS Journal (a project
+of a.o.d), which can be found at:
+	http://www.osjournal.n3.net/
+
+Good luck, and happy hacking!
+
+Acknowledgements
+-----------------
+Notable mentions go to:
+* Chris Giese, whose Cosmos kernel (http://www.execpc.com/~geezer/os/)
+got me started in all this,
+* Debs, whose floppy drive page is the main source for my floppy driver,
+* Mike Rieker, who got me to look at VMS operating system (the inspiration
+for the shell),
+* Jens Olsson, for hosting the OS Journal
+* Whoever invented Unicode
