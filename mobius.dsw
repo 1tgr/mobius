@@ -69,24 +69,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "guiapp"=.\src\guiapp\guiapp.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name libc
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name kernelu
-    End Project Dependency
-}}}
-
-###############################################################################
-
 Project: "hello"=.\src\hello\hello.dsp - Package Owner=<4>
 
 Package=<5>
@@ -228,18 +210,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "tali"=.\src\tali\tali.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "tetris"=.\src\tetris\tetris.dsp - Package Owner=<4>
 
 Package=<5>
@@ -254,18 +224,6 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name kernelu
     End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "timfs"=.\src\timfs\timfs.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
 }}}
 
 ###############################################################################

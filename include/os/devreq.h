@@ -37,4 +37,6 @@
 //! Retrieves size statistics for a block device
 #define BLK_GETSIZE	REQUEST_CODE(1, 0, 'b', 's')
 
+#define CHR_GETSIZE	REQUEST_CODE(1, 0, 'c', 's')
+
 #endif

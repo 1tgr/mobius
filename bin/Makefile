@@ -7,7 +7,7 @@ SYS=	isa.cfg drivers.cfg pci.drv isa.drv \
 	ps2mouse.drv sermouse.drv keyboard.drv ata.drv \
 	fdc.drv fat.drv vgatext.drv \
 	kdebug.dll devtest.exe kernelu.dll libc.dll \
-	tetris.exe short.exe console.exe
+	tetris.exe short.exe console.exe hello.exe
 APPS=	ls.exe mount.exe
 DEMOS=	tetris.exe hello.exe guiapp.exe sertest.exe
 MISC=	hello.txt

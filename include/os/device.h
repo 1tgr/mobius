@@ -133,8 +133,11 @@ struct request_t
 
 addr_t devOpen(const wchar_t* name, const wchar_t* params);
 bool devClose(addr_t dev);
-bool devUserRequest(addr_t dev, request_t* req, size_t size);
-void devUserFinishRequest(request_t* req, bool delete_event);
+status_t devUserRequest(addr_t dev, request_t* req, size_t size);
+status_t devUserFinishRequest(request_t* req, bool delete_event);
+size_t devReadSync(addr_t dev, qword pos, void* buffer, size_t length);
+size_t devWriteSync(addr_t dev, qword pos, void* buffer, size_t length);
+status_t devUserRequestSync(addr_t dev, request_t* req, size_t size);
 
 //@}
 
