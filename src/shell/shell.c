@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.18 2002/03/27 22:13:01 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.19 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,14 +69,14 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
     if (*params == '\0')
     {
         onlyOnce = false;
-        wprintf(L"Valid commands are:\n");
+        printf("Valid commands are:\n");
         for (i = 0; sh_commands[i].name != NULL; i++)
         {
             for (j = wcslen(sh_commands[i].name); j < 8; j++)
-                wprintf(L" ", 1);
-            wprintf(L"%s", sh_commands[i].name);
+                printf(" ");
+            _cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
             if (i > 0 && i % 8 == 0)
-                wprintf(L"\n");
+                printf("\n");
         }
     }
     else
@@ -103,11 +103,11 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
         }
 
         if (sh_commands[i].name == NULL)
-            wprintf(L"%s: unrecognized command\n", params);
+            printf("%S: unrecognized command\n", params);
         
         if (onlyOnce)
         {
-            wprintf(L"\n");
+            printf("\n");
             break;
         }
 
@@ -214,13 +214,13 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
                 ThrWaitHandle(op.event);
 
             if (dir.standard_attributes & FILE_ATTR_DIRECTORY)
-                wprintf(L"[Directory]\t");
+                printf("[Directory]\t");
             else if (dir.standard_attributes & FILE_ATTR_DEVICE)
-                wprintf(L"   [Device]\t");
+                printf("   [Device]\t");
             else
-                wprintf(L"%10lu\t", (uint32_t) dir.length);
+                printf("%10lu\t", (uint32_t) dir.length);
 
-            wprintf(L"\t%s", dir.name);
+            printf("\t%S", dir.name);
             /*if (dir.standard_attributes & FILE_ATTR_DEVICE)
             {
                 wcscpy(star, dir.name);
@@ -240,13 +240,30 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 
 static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
 {
-    static char buf[512];
+    static char buf[8192 + 1];
 
     handle_t file;
     size_t len;
     fileop_t op;
     addr_t origin;
-    
+    dirent_t di;
+    char *ptr, *dyn;
+
+    di.length = 0;
+    if (!FsQueryFile(name, FILE_QUERY_STANDARD, &di, sizeof(di)) ||
+        di.length == 0)
+    {
+        di.length = sizeof(buf) - 1;
+        ptr = buf;
+        dyn = NULL;
+    }
+    else
+    {
+        dyn = malloc(di.length);
+        ptr = dyn;
+    }
+
+    printf("ShDumpFile(%S): reading in chunks of %lu\n", name, (uint32_t) di.length);
     file = FsOpen(name, FILE_READ);
     if (file == NULL)
     {
@@ -258,7 +275,10 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
     origin = 0;
     do
     {
-        if (!FsRead(file, buf, sizeof(buf), &op))
+        //KeLeakBegin();
+
+        printf("[b]");
+        if (!FsRead(file, ptr, di.length, &op))
         {
             /* Some catastrophic error */
             errno = op.result;
@@ -269,6 +289,8 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
         if (op.result == SIOPENDING)
             ThrWaitHandle(op.event);
 
+        //KeLeakEnd();
+
         len = op.bytes;
         if (len == 0)
         {
@@ -276,25 +298,31 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
             break;
         }
         
-        if (len < _countof(buf))
-            buf[len] = '\0';
-        fn(buf, origin, len);
+        if (len < di.length)
+            ptr[len] = '\0';
+        printf("%u", len);
+        /*fn(ptr, origin, len);*/
 
         origin += len;
-        if (len < sizeof(buf))
+        if (len < di.length)
         {
             printf("FSD hit the end of the file: successful but only %u bytes read\n", len);
             break;
         }
+
+        printf("[e]");
+        fflush(stdout);
     } while (true);
-    
+
+    free(dyn);
     HndClose(op.event);
     FsClose(file);
 }
 
 static void ShTypeOutput(const void *buf, addr_t origin, size_t len)
 {
-    _cputs(buf, len);
+    fwrite(buf, len, 1, stdout);
+    fflush(stdout);
 }
 
 void ShCmdType(const wchar_t *command, wchar_t *params)
@@ -504,21 +532,21 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
         {
             size_t reserved_pages;
             reserved_pages = info.pages_physical - info.pages_total;
-            wprintf(L"         System page size: %uKB\n", 
+            printf("         System page size: %uKB\n", 
                 info.page_size / 1024);
-            wprintf(L"    Total physical memory: %uMB\n", 
+            printf("    Total physical memory: %uMB\n", 
                 (info.pages_physical * info.page_size) / 0x100000);
-            wprintf(L"Available physical memory: %uMB (%u%%)\n", 
+            printf("Available physical memory: %uMB (%u%%)\n", 
                 (info.pages_total * info.page_size) / 0x100000,
                 (info.pages_total * 100) / info.pages_physical);
-            wprintf(L" Reserved physical memory: %uMB (%u%%)\n", 
+            printf(" Reserved physical memory: %uMB (%u%%)\n", 
                 (reserved_pages * info.page_size) / 0x100000,
                 100 - (info.pages_total * 100) / info.pages_physical);
-            wprintf(L"     Free physical memory: %uMB (%u%% of total, %u%% of available)\n", 
+            printf("     Free physical memory: %uMB (%u%% of total, %u%% of available)\n", 
                 (info.pages_free * info.page_size) / 0x100000,
                 (info.pages_free * 100) / info.pages_physical,
                 (info.pages_free * 100) / info.pages_total);
-            wprintf(L"   Kernel reserved memory: %uKB (%u%% of total, %u%% of reserved)\n",
+            printf("   Kernel reserved memory: %uKB (%u%% of total, %u%% of reserved)\n",
                 (info.pages_kernel * info.page_size) / 1024,
                 (info.pages_kernel * 100) / info.pages_physical,
                 (info.pages_kernel * 100) / reserved_pages);
@@ -532,13 +560,13 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
         if (SysGetTimes(&times))
         {
             unsigned ms, s, m, h;
-            wprintf(L"   System quantum: %u ms\n",
+            printf("   System quantum: %u ms\n",
                 times.quantum);
             ShSplitTime(times.uptime, &h, &m, &s, &ms);
-            wprintf(L"    System uptime: %02u:%02u:%02u.%03u\n",
+            printf("    System uptime: %02u:%02u:%02u.%03u\n",
                 h, m, s, ms);
             ShSplitTime(times.current_cputime, &h, &m, &s, &ms);
-            wprintf(L"CPU time (thread): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
+            printf("CPU time (thread): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
                 h, m, s, ms, (times.current_cputime * 100) / times.uptime);
         }
         else

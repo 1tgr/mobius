@@ -71,6 +71,9 @@ void vidTextOut(video_t *vid, const clip_t *clip, rect_t *rect,
 {
     int error, x, y, maxx, maxy, gap, hgt;
 
+    if (ft_face == NULL)
+        return;
+
     hgt = ft_face->size->metrics.height >> 6;
     maxx = x = rect->left;
     maxy = y = rect->top + hgt;
@@ -136,7 +139,7 @@ bool vidInitText(void)
 
     FT_Init_FreeType(&ft_library);
 
-    font = L"/System/Boot/fradm.ttf";
+    font = L"/System/Boot/lucsdm.ttf";
 
     if (FsQueryFile(font, FILE_QUERY_STANDARD, &di, sizeof(di)))
     {

@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.3 2002/04/10 12:21:35 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -106,9 +106,16 @@ typedef struct
 
 static s3mode_t s3_modes[] =
 {
+    /* 640x480x8 works fine */
     { { 0,  640, 480, 8, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
+
+    /* xxx - 800x600 gives a black screen */
     /*{ { 1,  800, 600, 8, 0, VIDEO_MODE_GRAPHICS, }, 27778,  64, 24, 22,  1,  72, 2 },*/
+
+    /* xxx - 1024x768 has a migraine-inducingly slow refresh rate */
     /*{ { 2, 1024, 768, 8, 0, VIDEO_MODE_GRAPHICS, }, 16667, 224, 72, 60, 12, 168, 4 },*/
+
+    /* xxx -- 640x480x16 flickers when video RAM is written to */
     { { 3,  640, 480, 16, 0, VIDEO_MODE_GRAPHICS, }, 39722,  40, 24, 32, 11,  96, 2 },
 };
 
@@ -994,6 +1001,12 @@ bool s3Init(device_config_t *cfg)
     if (cfg == NULL)
     {
         wprintf(L"s3: no PCI configuration present\n");
+        return false;
+    }
+
+    if (cfg->bus_type != DEV_BUS_PCI)
+    {
+        wprintf(L"s3: not a PCI card\n");
         return false;
     }
 

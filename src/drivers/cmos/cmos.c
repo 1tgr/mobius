@@ -1,4 +1,4 @@
-/* $Id: cmos.c,v 1.3 2002/02/24 19:13:12 pavlovskii Exp $ */
+/* $Id: cmos.c,v 1.4 2002/04/20 12:47:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -214,8 +214,10 @@ bool rtcRequest(device_t* dev, request_t* req)
 			return false;
 		}
 
-		qw = (uint64_t*) req_dev->params.dev_read.buffer;
+		qw = MemMapPageArray(req_dev->params.dev_read.pages, 
+			PRIV_WR | PRIV_PRES | PRIV_KERN);
 		*qw = sys_time();
+		MemUnmapTemp();
 		return true;
 	}
 

@@ -1,4 +1,4 @@
-/* $Id: container.cpp,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
+/* $Id: container.cpp,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -6,12 +6,13 @@
 
 using namespace os;
 
-Container::Container()
+Container::Container() : m_margins(0, 0, 0, 0)
 {
 }
 
 Container::Container(Window *parent, const wchar_t *text, const MGLrect &pos) : 
-    Window(parent, text, pos)
+    Window(parent, text, pos),
+    m_margins(0, 0, 0, 0)
 {
 }
 
@@ -38,6 +39,11 @@ void Container::RecalcLayout()
     MGLrect pos, child;
 
     GetPosition(&pos);
+    pos.left += m_margins.left;
+    pos.top += m_margins.top;
+    pos.right -= m_margins.right;
+    pos.bottom -= m_margins.bottom;
+
     for (it = m_views.begin(); it != m_views.end(); ++it)
     {
         switch (it->align)

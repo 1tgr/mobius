@@ -1,16 +1,20 @@
-/* $Id: syscall.S,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: syscall.S,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
 
-	.file "syscall.S"
-	.text
-	
+    .file "syscall.S"
+    .text
+    
 #define SYSCALL(rtn, name, argbytes, args...) \
-	.globl _##name ;\
+    .globl _##name ;\
 _##name: \
-	mov $SYS_##name, %eax ;\
-	mov $argbytes, %ecx; \
-	lea 4(%esp), %edx; \
-	int $0x30 ;\
-	ret ; \
-	.align 8 ;
+    push %ebp ;\
+    mov %esp, %ebp ;\
+    mov $SYS_##name, %eax ;\
+    mov $argbytes, %ecx; \
+    lea 8(%esp), %edx; \
+    int $0x30 ;\
+    mov %ebp, %esp ;\
+    pop %ebp ;\
+    ret ; \
+    .align 8 ;
 
 #include <os/sysdef.h>

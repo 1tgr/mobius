@@ -18,6 +18,8 @@ EXPORTS
     FsWrite
     Hello
     HndClose
+    KeLeakBegin
+    KeLeakEnd
     ProcExitProcess
     ProcGetCwd
     ProcGetExeBase

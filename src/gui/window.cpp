@@ -1,4 +1,4 @@
-/* $Id: window.cpp,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
+/* $Id: window.cpp,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -90,6 +90,7 @@ bool Window::GetPosition(MGLrect *rect) const
 void Window::SetPosition(const MGLrect &rect)
 {
     WndSetAttribute(m_handle, WND_ATTR_POSITION, WND_TYPE_RECT, &rect, sizeof(rect));
+    OnSize(rect);
 }
 
 bool Window::GetTitle(wchar_t *title, size_t max) const
@@ -222,6 +223,10 @@ void Window::HandleMessage(const msg_t *msg)
     case MSG_MOUSEMOVE:
         OnMouseMove(msg->p.mouse.buttons, msg->p.mouse.x, msg->p.mouse.y);
         break;
+
+    case MSG_CLOSE:
+        OnClose();
+        break;
     }
 }
 
@@ -271,4 +276,13 @@ void Window::OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y)
 
 void Window::OnMouseWheel(int delta, MGLreal x, MGLreal y)
 {
+}
+
+void Window::OnSize(const MGLrect &rect)
+{
+}
+
+void Window::OnClose()
+{
+    delete this;
 }

@@ -1,4 +1,4 @@
-/* $Id: hash.c,v 1.1 2002/03/13 14:38:30 pavlovskii Exp $
+/* $Id: hash.c,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $
    +++Date last modified: 05-Jul-1997  
    Modified: $LOG$
    By: $Author: pavlovskii $
@@ -45,7 +45,7 @@ hash_table *new_hash_table(size_t size)
       bucket **temp;
       hash_table *result;
       hash_table_iterator *t_it;
-      off=TRUE; found=FALSE;
+      /*off=TRUE; found=FALSE;*/
       
       
       /* default initialization, I think I've to do that by hand in C*/ 
@@ -83,6 +83,8 @@ hash_table *new_hash_table(size_t size)
           temp[i] = NULL;
       
       result->table = temp;
+      result->off = TRUE;
+      result->found = FALSE;
       return result;
 }
 
@@ -131,14 +133,14 @@ void insert(hash_table *table, void *item, const wchar_t *key)
     {
         (table->table)[val] = (bucket *)malloc(sizeof(bucket));
         if (NULL==(table->table)[val]){
-            insertation_failed =  TRUE;
+            table->insertation_failed =  TRUE;
             return;
         }
         
         (table->table)[val] -> key = _wcsdup(key);
         (table->table)[val] -> next = NULL;
         (table->table)[val] -> item = item;
-        insertation_failed = FALSE;
+        table->insertation_failed = FALSE;
         return;
         /* return (table->table)[val] -> item; */
     }
@@ -146,7 +148,7 @@ void insert(hash_table *table, void *item, const wchar_t *key)
     for (ptr = (table->table)[val];NULL != ptr; ptr = ptr -> next){
         if (0 == _wcsicmp(key, ptr->key)){
             ptr -> item = item;
-            insertation_failed = FALSE;
+            table->insertation_failed = FALSE;
             return;
         }
     }
@@ -161,7 +163,7 @@ void insert(hash_table *table, void *item, const wchar_t *key)
     
     ptr = (bucket *)malloc(sizeof(bucket));
     if (NULL==ptr){
-        insertation_failed = TRUE;
+        table->insertation_failed = TRUE;
         return;
     }
     ptr -> key = _wcsdup(key);
@@ -181,8 +183,8 @@ void search(hash_table *table, const wchar_t *key) {
     unsigned val = hash(key) % table->size;
     bucket *ptr;
     /* standard not found */
-    found = FALSE;
-    off = TRUE;
+    table->found = FALSE;
+    table->off = TRUE;
     set_iterator_position(table,(size_t)val);
     
     if (NULL == (table->table)[val]){
@@ -192,8 +194,8 @@ void search(hash_table *table, const wchar_t *key) {
     for ( ptr = (table->table)[val];NULL != ptr; ptr = ptr->next ){
         if (0 == _wcsicmp(key, ptr -> key ) ){
             /* how lucky we're, found ;-) */
-            found = TRUE;
-            off = FALSE;
+            table->found = TRUE;
+            table->off = FALSE;
             set_iterator_bucket(table,ptr);
             return;
         }
@@ -238,7 +240,7 @@ inline void start(hash_table *table){
 }
 
 inline void forth(hash_table *table){
-    assert(!off); /* don't have to be if the table is empty */
+    assert(!table->off); /* don't have to be if the table is empty */
     assert(table->iterator->it_bucket);
     next_bucket(table);
 }
@@ -268,7 +270,7 @@ inline static void next_bucket (hash_table* table){
     if (tb->next != NULL){
         tb = tb-> next;
         assert(tb);
-        off = FALSE;
+        table->off = FALSE;
         set_iterator_bucket(table,tb);
     }else{ /* must be at the end of the linked list of buckets */
         set_iterator_position(table, position(table) + 1);
@@ -287,14 +289,14 @@ inline static void skip_empty_slots(hash_table  *table){
     while(tp < table->size){
         tbucket = (table->table)[tp];
         if (tbucket){
-            off = FALSE;
+            table->off = FALSE;
             break;
         }
         tp++;
     }
     set_iterator(table,tbucket, tp);
     if (tp >= table->size)
-        off = TRUE;
+        table->off = TRUE;
 }
 
 
@@ -332,8 +334,8 @@ static void free_bucket_entries(hash_table *table){
 void free_table(hash_table *table){
     
         
-    off = TRUE;
-    found = FALSE;
+    table->off = TRUE;
+    table->found = FALSE;
     
     free_bucket_entries(table);        
     free(table->iterator);

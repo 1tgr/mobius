@@ -1,4 +1,4 @@
-/* $Id: messagebox.cpp,v 1.1 2002/04/03 23:28:05 pavlovskii Exp $ */
+/* $Id: messagebox.cpp,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <gui/messagebox.h>
 #include <gui/button.h>
@@ -84,4 +84,10 @@ void MessageBox::OnKeyDown(uint32_t key)
     }
     else
         Dialog::OnKeyDown(key);
+}
+
+void MessageBox::OnClose()
+{
+    /* Don't call Window::OnClose because that will delete this */
+    OnCommand(btnCancel);
 }

@@ -1,4 +1,4 @@
-/* $Id: desktop.cpp,v 1.3 2002/04/11 00:31:01 pavlovskii Exp $ */
+/* $Id: desktop.cpp,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include "desktop.h"
 #include "alttabwindow.h"
@@ -21,7 +21,7 @@ Desktop::Desktop() : m_altTabWindow(NULL)
     WndInvalidate(m_handle, NULL);
 
     m_taskbar = new Taskbar(this);
-    m_icons = new IconView(this);
+    m_icons = new IconView(this, L"/");
 
     /*
      * xxx - I shouldn't need to do this...

@@ -1,4 +1,4 @@
-/* $Id: render.c,v 1.6 2002/04/10 12:33:03 pavlovskii Exp $ */
+/* $Id: render.c,v 1.7 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
+#include <stddef.h>
 
 #include <os/syscall.h>
 

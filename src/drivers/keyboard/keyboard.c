@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.13 2002/04/10 12:24:11 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.14 2002/04/20 12:47:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+
+#include <os/ioctl.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -298,11 +300,10 @@ void KbdStartIo(keyboard_t* keyb)
 	    req = (request_dev_t*) io->req;
 	    buf = DevMapBuffer(io);
 	    
-	    TRACE3("req = %p buffer = %p + %x: ", 
-		req, buf, io->mod_buffer_start);
+	    TRACE2("req = %p buffer = %p + %x: ", req, buf);
 
-	    *(uint32_t*) (buf + io->mod_buffer_start + io->length) = key;
-	    MemUnmapTemp();
+	    *(uint32_t*) (buf + io->length) = key;
+	    DevUnmapBuffer();
 
 	    io->length += sizeof(uint32_t);
 
@@ -371,16 +372,36 @@ bool kbdRequest(device_t* dev, request_t* req)
 	io = DevQueueRequest(dev, 
 	    req, 
 	    sizeof(request_dev_t),
-	    req_dev->params.dev_read.buffer,
+	    req_dev->params.dev_read.pages,
 	    req_dev->params.dev_read.length);
 	assert(io != NULL);
 	io->length = 0;
 	KbdStartIo(keyb);
 	return true;
 
-    case CHR_GETSIZE:
-	req_dev->params.buffered.length = keyb->write - keyb->read;
-	return true;
+    case DEV_IOCTL:
+        if (!MemVerifyBuffer(req_dev->params.dev_ioctl.params, 
+            req_dev->params.dev_ioctl.size))
+        {
+            req_dev->header.result = EBUFFER;
+            return false;
+        }
+
+        switch (req_dev->params.dev_ioctl.code)
+        {
+        case IOCTL_BYTES_AVAILABLE:
+            if (req_dev->params.dev_ioctl.size < sizeof(size_t))
+            {
+                req_dev->header.result = EBUFFER;
+                return false;
+            }
+
+            *(size_t*) req_dev->params.dev_ioctl.params = keyb->write - keyb->read;
+            return true;
+        }
+
+        req->result = ENOTIMPL;
+	return false;
     }
 
     req->result = ENOTIMPL;

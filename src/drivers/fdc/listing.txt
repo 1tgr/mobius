@@ -19,11 +19,11 @@ FdcSendByte():
 80071013:	8a 55 0c             	mov    0xc(%ebp),%dl
 80071016:	88 55 fb             	mov    %dl,0xfffffffb(%ebp)
 /mn/src/drivers/fdc/fdc.c:145
-80071019:	0f b7 40 1c          	movzwl 0x1c(%eax),%eax
+80071019:	0f b7 40 20          	movzwl 0x20(%eax),%eax
 8007101d:	8d 48 04             	lea    0x4(%eax),%ecx
 80071020:	8d 58 05             	lea    0x5(%eax),%ebx
 80071023:	90                   	nop    
-/mn/include/kernel/i386.h:362
+/mn/include/kernel/i386.h:370
 80071024:	89 ca                	mov    %ecx,%edx
 80071026:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:146
@@ -34,13 +34,13 @@ FdcSendByte():
 80071030:	25 c0 00 00 00       	and    $0xc0,%eax
 80071035:	3d 80 00 00 00       	cmp    $0x80,%eax
 8007103a:	75 08                	jne    80071044 <_FdcSendByte+0x44>
-/mn/include/kernel/i386.h:345
+/mn/include/kernel/i386.h:353
 8007103c:	89 da                	mov    %ebx,%edx
 8007103e:	8a 45 fb             	mov    0xfffffffb(%ebp),%al
 80071041:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:149
 80071042:	eb 09                	jmp    8007104d <_FdcSendByte+0x4d>
-/mn/include/kernel/i386.h:361
+/mn/include/kernel/i386.h:369
 80071044:	89 f2                	mov    %esi,%edx
 80071046:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:145
@@ -69,11 +69,11 @@ FdcGetByte():
 /mn/src/drivers/fdc/fdc.c:157
 80071064:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/src/drivers/fdc/fdc.c:161
-80071067:	0f b7 40 1c          	movzwl 0x1c(%eax),%eax
+80071067:	0f b7 40 20          	movzwl 0x20(%eax),%eax
 8007106b:	8d 48 04             	lea    0x4(%eax),%ecx
 8007106e:	8d 58 05             	lea    0x5(%eax),%ebx
 80071071:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:362
+/mn/include/kernel/i386.h:370
 80071074:	89 ca                	mov    %ecx,%edx
 80071076:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:162
@@ -84,13 +84,13 @@ FdcGetByte():
 80071080:	25 d0 00 00 00       	and    $0xd0,%eax
 80071085:	3d d0 00 00 00       	cmp    $0xd0,%eax
 8007108a:	75 08                	jne    80071094 <_FdcGetByte+0x40>
-/mn/include/kernel/i386.h:362
+/mn/include/kernel/i386.h:370
 8007108c:	89 da                	mov    %ebx,%edx
 8007108e:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:164
 8007108f:	0f b6 c0             	movzbl %al,%eax
 80071092:	eb 0e                	jmp    800710a2 <_FdcGetByte+0x4e>
-/mn/include/kernel/i386.h:361
+/mn/include/kernel/i386.h:369
 80071094:	89 f2                	mov    %esi,%edx
 80071096:	ec                   	in     (%dx),%al
 /mn/src/drivers/fdc/fdc.c:161
@@ -121,9 +121,9 @@ FdcBlockToHts():
 800710b8:	8b 7d 0c             	mov    0xc(%ebp),%edi
 800710bb:	8b 5d 10             	mov    0x10(%ebp),%ebx
 /mn/src/drivers/fdc/fdc.c:175
-800710be:	0f b6 41 21          	movzbl 0x21(%ecx),%eax
+800710be:	0f b6 41 25          	movzbl 0x25(%ecx),%eax
 800710c2:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-800710c5:	0f b6 51 1f          	movzbl 0x1f(%ecx),%edx
+800710c5:	0f b6 51 23          	movzbl 0x23(%ecx),%edx
 800710c9:	0f af d0             	imul   %eax,%edx
 800710cc:	89 55 f8             	mov    %edx,0xfffffff8(%ebp)
 800710cf:	89 f8                	mov    %edi,%eax
@@ -135,9 +135,9 @@ FdcBlockToHts():
 800710dd:	f7 75 fc             	divl   0xfffffffc(%ebp)
 800710e0:	89 03                	mov    %eax,(%ebx)
 /mn/src/drivers/fdc/fdc.c:176
-800710e2:	0f b6 51 1f          	movzbl 0x1f(%ecx),%edx
+800710e2:	0f b6 51 23          	movzbl 0x23(%ecx),%edx
 800710e6:	89 f8                	mov    %edi,%eax
-800710e8:	0f b6 59 21          	movzbl 0x21(%ecx),%ebx
+800710e8:	0f b6 59 25          	movzbl 0x25(%ecx),%ebx
 800710ec:	0f af da             	imul   %edx,%ebx
 800710ef:	31 d2                	xor    %edx,%edx
 800710f1:	f7 f3                	div    %ebx
@@ -146,7 +146,7 @@ FdcBlockToHts():
 800710f8:	89 1a                	mov    %ebx,(%edx)
 /mn/src/drivers/fdc/fdc.c:177
 800710fa:	89 f8                	mov    %edi,%eax
-800710fc:	0f b6 51 21          	movzbl 0x21(%ecx),%edx
+800710fc:	0f b6 51 25          	movzbl 0x25(%ecx),%edx
 80071100:	89 d3                	mov    %edx,%ebx
 80071102:	31 d2                	xor    %edx,%edx
 80071104:	f7 f3                	div    %ebx
@@ -170,14 +170,14 @@ FdcMotorOn():
 /mn/src/drivers/fdc/fdc.c:181
 8007111b:	8b 5d 08             	mov    0x8(%ebp),%ebx
 /mn/src/drivers/fdc/fdc.c:182
-8007111e:	e8 31 0e 00 00       	call   80071f54 <_SysUpTime>
+8007111e:	e8 79 0e 00 00       	call   80071f9c <_SysUpTime>
 80071123:	05 f4 01 00 00       	add    $0x1f4,%eax
 80071128:	89 43 30             	mov    %eax,0x30(%ebx)
-/mn/include/kernel/i386.h:344
-8007112b:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
+/mn/include/kernel/i386.h:352
+8007112b:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
 8007112f:	83 c2 02             	add    $0x2,%edx
 80071132:	b0 1c                	mov    $0x1c,%al
-/mn/include/kernel/i386.h:345
+/mn/include/kernel/i386.h:353
 80071134:	ee                   	out    %al,(%dx)
 80071135:	5b                   	pop    %ebx
 80071136:	89 ec                	mov    %ebp,%esp
@@ -195,9 +195,9 @@ FdcMotorOff():
 /mn/src/drivers/fdc/fdc.c:187
 80071143:	8b 5d 08             	mov    0x8(%ebp),%ebx
 /mn/src/drivers/fdc/fdc.c:188
-80071146:	c7 43 18 00 00 00 00 	movl   $0x0,0x18(%ebx)
+80071146:	c7 43 1c 00 00 00 00 	movl   $0x0,0x1c(%ebx)
 /mn/src/drivers/fdc/fdc.c:189
-8007114d:	e8 02 0e 00 00       	call   80071f54 <_SysUpTime>
+8007114d:	e8 4a 0e 00 00       	call   80071f9c <_SysUpTime>
 80071152:	05 88 13 00 00       	add    $0x1388,%eax
 80071157:	89 43 30             	mov    %eax,0x30(%ebx)
 8007115a:	5b                   	pop    %ebx
@@ -215,11 +215,11 @@ msleep():
 /mn/src/drivers/fdc/fdc.c:193
 80071167:	8b 5d 08             	mov    0x8(%ebp),%ebx
 /mn/src/drivers/fdc/fdc.c:195
-8007116a:	e8 e5 0d 00 00       	call   80071f54 <_SysUpTime>
+8007116a:	e8 2d 0e 00 00       	call   80071f9c <_SysUpTime>
 8007116f:	01 c3                	add    %eax,%ebx
 /mn/src/drivers/fdc/fdc.c:196
 80071171:	8d 76 00             	lea    0x0(%esi),%esi
-80071174:	e8 db 0d 00 00       	call   80071f54 <_SysUpTime>
+80071174:	e8 23 0e 00 00       	call   80071f9c <_SysUpTime>
 80071179:	39 d8                	cmp    %ebx,%eax
 8007117b:	76 f7                	jbe    80071174 <_msleep+0x14>
 8007117d:	5b                   	pop    %ebx
@@ -240,7 +240,7 @@ DbgGetPhysicalAddress():
 /mn/src/drivers/fdc/fdc.c:202
 8007118e:	83 c4 f4             	add    $0xfffffff4,%esp
 80071191:	53                   	push   %ebx
-80071192:	e8 b5 0d 00 00       	call   80071f4c <_MemTranslate>
+80071192:	e8 fd 0d 00 00       	call   80071f94 <_MemTranslate>
 80071197:	81 e3 ff 0f 00 00    	and    $0xfff,%ebx
 8007119d:	25 00 f0 ff ff       	and    $0xfffff000,%eax
 800711a2:	01 d8                	add    %ebx,%eax
@@ -409,7 +409,7 @@ FdcStartIo():
 80071335:	68 d7 00 00 00       	push   $0xd7
 8007133a:	68 ab 11 07 80       	push   $0x800711ab
 8007133f:	68 b1 11 07 80       	push   $0x800711b1
-80071344:	e8 fb 0b 00 00       	call   80071f44 <___dj_assert>
+80071344:	e8 43 0c 00 00       	call   80071f8c <___dj_assert>
 80071349:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/fdc/fdc.c:217
 8007134c:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
@@ -442,56 +442,47 @@ FdcStartIo():
 80071386:	e8 21 fd ff ff       	call   800710ac <_FdcBlockToHts>
 /mn/src/drivers/fdc/fdc.c:233
 8007138b:	83 c4 20             	add    $0x20,%esp
-8007138e:	8b 43 18             	mov    0x18(%ebx),%eax
+8007138e:	8b 43 1c             	mov    0x1c(%ebx),%eax
 80071391:	83 f8 05             	cmp    $0x5,%eax
-80071394:	0f 87 2a 03 00 00    	ja     800716c4 <_FdcStartIo+0x3a8>
-8007139a:	8b 43 18             	mov    0x18(%ebx),%eax
+80071394:	0f 87 2c 03 00 00    	ja     800716c6 <_FdcStartIo+0x3aa>
+8007139a:	8b 43 1c             	mov    0x1c(%ebx),%eax
 8007139d:	ff 24 85 a4 13 07 80 	jmp    *0x800713a4(,%eax,4)
 800713a4:	e0 13                	loopne 800713b9 <_FdcStartIo+0x9d>
 800713a6:	07                   	pop    %es
 800713a7:	80 bc 13 07 80 fc 13 	cmpb   $0x7,0x13fc8007(%ebx,%edx,1)
 800713ae:	07 
 800713af:	80 4c 14 07 80       	orb    $0x80,0x7(%esp,%edx,1)
-800713b4:	b0 15                	mov    $0x15,%al
-800713b6:	07                   	pop    %es
-800713b7:	80 82 16 07 80 8b 43 	addb   $0x43,0x8b800716(%edx)
+800713b4:	ac                   	lods   %ds:(%esi),%al
+800713b5:	15 07 80 7b 16       	adc    $0x167b8007,%eax
+800713ba:	07                   	pop    %es
+800713bb:	80 8b 43 1c 83 f8 01 	orb    $0x1,0xf8831c43(%ebx)
 /mn/src/drivers/fdc/fdc.c:236
-800713be:	18 83 f8 01 0f 85    	sbb    %al,0x850f01f8(%ebx)
-800713c4:	fc                   	cld    
-800713c5:	02 00                	add    (%eax),%al
-800713c7:	00 83 c4 fc 68 ec    	add    %al,0xec68fcc4(%ebx)
-800713cd:	00 00                	add    %al,(%eax)
-800713cf:	00 68 ab             	add    %ch,0xffffffab(%eax)
-800713d2:	11 07                	adc    %eax,(%edi)
-800713d4:	80 68 bc 11          	subb   $0x11,0xffffffbc(%eax)
-800713d8:	07                   	pop    %es
-800713d9:	80 e8 65             	sub    $0x65,%al
-800713dc:	0b 00                	or     (%eax),%eax
-800713de:	00 90 c7 43 18 02    	add    %dl,0x21843c7(%eax)
+800713c2:	0f 85 fe 02 00 00    	jne    800716c6 <_FdcStartIo+0x3aa>
+800713c8:	83 c4 fc             	add    $0xfffffffc,%esp
+800713cb:	68 ec 00 00 00       	push   $0xec
+800713d0:	68 ab 11 07 80       	push   $0x800711ab
+800713d5:	68 bc 11 07 80       	push   $0x800711bc
+800713da:	e8 ad 0b 00 00       	call   80071f8c <___dj_assert>
+800713df:	90                   	nop    
 /mn/src/drivers/fdc/fdc.c:241
-800713e4:	00 00                	add    %al,(%eax)
-800713e6:	00 80 7b 34 00 75    	add    %al,0x7500347b(%eax)
+800713e0:	c7 43 1c 02 00 00 00 	movl   $0x2,0x1c(%ebx)
 /mn/src/drivers/fdc/fdc.c:242
-800713ec:	83 83 c4 f4 53 e8 1e 	addl   $0x1e,0xe853f4c4(%ebx)
+800713e7:	80 7b 34 00          	cmpb   $0x0,0x34(%ebx)
+800713eb:	75 83                	jne    80071370 <_FdcStartIo+0x54>
 /mn/src/drivers/fdc/fdc.c:247
-800713f3:	fd                   	std    
-800713f4:	ff                   	(bad)  
-800713f5:	ff e9                	ljmp   *%ecx
+800713ed:	83 c4 f4             	add    $0xfffffff4,%esp
+800713f0:	53                   	push   %ebx
+800713f1:	e8 1e fd ff ff       	call   80071114 <_FdcMotorOn>
 /mn/src/drivers/fdc/fdc.c:249
-800713f7:	c9                   	leave  
-800713f8:	02 00                	add    (%eax),%al
-800713fa:	00 90 c7 43 30 ff    	add    %dl,0xff3043c7(%eax)
+800713f6:	e9 cb 02 00 00       	jmp    800716c6 <_FdcStartIo+0x3aa>
+800713fb:	90                   	nop    
 /mn/src/drivers/fdc/fdc.c:255
-80071400:	ff                   	(bad)  
-80071401:	ff                   	(bad)  
-80071402:	ff c7                	inc    %edi
+800713fc:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
 /mn/src/drivers/fdc/fdc.c:257
-80071404:	43                   	inc    %ebx
-80071405:	18 03                	sbb    %al,(%ebx)
-80071407:	00 00                	add    %al,(%eax)
-80071409:	00 8b 45 f8 39 43    	add    %cl,0x4339f845(%ebx)
+80071403:	c7 43 1c 03 00 00 00 	movl   $0x3,0x1c(%ebx)
 /mn/src/drivers/fdc/fdc.c:258
-8007140f:	50                   	push   %eax
+8007140a:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
+8007140d:	39 43 50             	cmp    %eax,0x50(%ebx)
 80071410:	75 0e                	jne    80071420 <_FdcStartIo+0x104>
 /mn/src/drivers/fdc/fdc.c:263
 80071412:	c6 43 43 20          	movb   $0x20,0x43(%ebx)
@@ -520,14 +511,14 @@ FdcStartIo():
 80071441:	83 c4 f8             	add    $0xfffffff8,%esp
 80071444:	50                   	push   %eax
 /mn/src/drivers/fdc/fdc.c:276
-80071445:	e9 d2 01 00 00       	jmp    8007161c <_FdcStartIo+0x300>
+80071445:	e9 ce 01 00 00       	jmp    80071618 <_FdcStartIo+0x2fc>
 8007144a:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/fdc.c:285
-8007144c:	8b 53 50             	mov    0x50(%ebx),%edx
-8007144f:	8b 4d f8             	mov    0xfffffff8(%ebp),%ecx
+8007144c:	8b 4b 50             	mov    0x50(%ebx),%ecx
+8007144f:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 80071452:	80 7b 43 20          	cmpb   $0x20,0x43(%ebx)
 80071456:	75 04                	jne    8007145c <_FdcStartIo+0x140>
-80071458:	39 ca                	cmp    %ecx,%edx
+80071458:	39 d1                	cmp    %edx,%ecx
 8007145a:	74 20                	je     8007147c <_FdcStartIo+0x160>
 /mn/src/drivers/fdc/fdc.c:287
 8007145c:	0f b6 43 43          	movzbl 0x43(%ebx),%eax
@@ -535,24 +526,24 @@ FdcStartIo():
 80071460:	be ff ff ff ff       	mov    $0xffffffff,%esi
 /mn/src/drivers/fdc/fdc.c:287
 80071465:	50                   	push   %eax
-80071466:	52                   	push   %edx
-80071467:	51                   	push   %ecx
+80071466:	51                   	push   %ecx
+80071467:	52                   	push   %edx
 80071468:	68 e0 11 07 80       	push   $0x800711e0
-8007146d:	e8 ca 0a 00 00       	call   80071f3c <_wprintf>
+8007146d:	e8 12 0b 00 00       	call   80071f84 <_wprintf>
 /mn/src/drivers/fdc/fdc.c:290
 80071472:	83 c4 10             	add    $0x10,%esp
-80071475:	e9 18 02 00 00       	jmp    80071692 <_FdcStartIo+0x376>
+80071475:	e9 10 02 00 00       	jmp    8007168a <_FdcStartIo+0x36e>
 8007147a:	89 f6                	mov    %esi,%esi
-/mn/include/kernel/i386.h:344
-8007147c:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
+/mn/include/kernel/i386.h:352
+8007147c:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
 /mn/src/drivers/fdc/fdc.c:293
-80071480:	c7 43 18 04 00 00 00 	movl   $0x4,0x18(%ebx)
+80071480:	c7 43 1c 04 00 00 00 	movl   $0x4,0x1c(%ebx)
 /mn/src/drivers/fdc/fdc.c:294
 80071487:	c6 43 44 00          	movb   $0x0,0x44(%ebx)
-/mn/include/kernel/i386.h:344
+/mn/include/kernel/i386.h:352
 8007148b:	83 c2 07             	add    $0x7,%edx
 8007148e:	b0 00                	mov    $0x0,%al
-/mn/include/kernel/i386.h:345
+/mn/include/kernel/i386.h:353
 80071490:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:300
 80071491:	8b 4d e8             	mov    0xffffffe8(%ebp),%ecx
@@ -565,7 +556,7 @@ FdcStartIo():
 800714a4:	8b 43 4c             	mov    0x4c(%ebx),%eax
 800714a7:	50                   	push   %eax
 800714a8:	6a 02                	push   $0x2
-800714aa:	e8 39 09 00 00       	call   80071de8 <_dma_xfer>
+800714aa:	e8 79 09 00 00       	call   80071e28 <_dma_xfer>
 /mn/src/drivers/fdc/fdc.c:303
 800714af:	83 c4 f8             	add    $0xfffffff8,%esp
 800714b2:	68 e6 00 00 00       	push   $0xe6
@@ -573,257 +564,253 @@ FdcStartIo():
 800714b8:	e8 43 fb ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:304
 800714bd:	83 c4 20             	add    $0x20,%esp
-800714c0:	eb 67                	jmp    80071529 <_FdcStartIo+0x20d>
+800714c0:	eb 63                	jmp    80071525 <_FdcStartIo+0x209>
 800714c2:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/fdc.c:305
 800714c4:	3d 77 64 00 80       	cmp    $0x80006477,%eax
-800714c9:	75 4d                	jne    80071518 <_FdcStartIo+0x1fc>
-/mn/src/drivers/fdc/fdc.c:307
+800714c9:	75 49                	jne    80071514 <_FdcStartIo+0x1f8>
+/mn/src/drivers/fdc/fdc.c:308
 800714cb:	83 c4 f4             	add    $0xfffffff4,%esp
 800714ce:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
 800714d1:	50                   	push   %eax
-800714d2:	e8 5d 0a 00 00       	call   80071f34 <_DevMapBuffer>
-800714d7:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
-800714da:	89 c6                	mov    %eax,%esi
-/mn/src/drivers/fdc/fdc.c:310
-800714dc:	8b 7b 48             	mov    0x48(%ebx),%edi
-/mn/src/drivers/fdc/fdc.c:307
-800714df:	03 72 24             	add    0x24(%edx),%esi
-/mn/src/drivers/fdc/fdc.c:310
-800714e2:	03 72 1c             	add    0x1c(%edx),%esi
-800714e5:	fc                   	cld    
-800714e6:	b9 80 00 00 00       	mov    $0x80,%ecx
-800714eb:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
+800714d2:	e8 a5 0a 00 00       	call   80071f7c <_DevMapBuffer>
 /mn/src/drivers/fdc/fdc.c:311
-800714ed:	e8 3a 0a 00 00       	call   80071f2c <_MemUnmapTemp>
-/mn/src/drivers/fdc/fdc.c:313
-800714f2:	6a 01                	push   $0x1
-800714f4:	68 00 02 00 00       	push   $0x200
-800714f9:	8b 43 4c             	mov    0x4c(%ebx),%eax
-800714fc:	50                   	push   %eax
-800714fd:	6a 02                	push   $0x2
-800714ff:	e8 e4 08 00 00       	call   80071de8 <_dma_xfer>
+800714d7:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+/mn/src/drivers/fdc/fdc.c:308
+800714da:	89 c6                	mov    %eax,%esi
+/mn/src/drivers/fdc/fdc.c:311
+800714dc:	8b 7b 48             	mov    0x48(%ebx),%edi
+800714df:	03 72 1c             	add    0x1c(%edx),%esi
+800714e2:	fc                   	cld    
+800714e3:	b9 80 00 00 00       	mov    $0x80,%ecx
+800714e8:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
+/mn/src/drivers/fdc/fdc.c:312
+800714ea:	e8 85 0a 00 00       	call   80071f74 <_MemUnmapTemp>
 /mn/src/drivers/fdc/fdc.c:314
-80071504:	83 c4 20             	add    $0x20,%esp
-80071507:	83 c4 f8             	add    $0xfffffff8,%esp
-8007150a:	68 c5 00 00 00       	push   $0xc5
-8007150f:	53                   	push   %ebx
-80071510:	e8 eb fa ff ff       	call   80071000 <_FdcSendByte>
+800714ef:	6a 01                	push   $0x1
+800714f1:	68 00 02 00 00       	push   $0x200
+800714f6:	8b 43 4c             	mov    0x4c(%ebx),%eax
+800714f9:	50                   	push   %eax
+800714fa:	6a 02                	push   $0x2
+800714fc:	e8 27 09 00 00       	call   80071e28 <_dma_xfer>
 /mn/src/drivers/fdc/fdc.c:315
-80071515:	eb 0f                	jmp    80071526 <_FdcStartIo+0x20a>
-80071517:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:318
-80071518:	83 c4 f8             	add    $0xfffffff8,%esp
-8007151b:	50                   	push   %eax
-8007151c:	68 60 12 07 80       	push   $0x80071260
-80071521:	e8 16 0a 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:321
-80071526:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/fdc/fdc.c:323
-80071529:	8a 45 f4             	mov    0xfffffff4(%ebp),%al
-8007152c:	83 c4 f8             	add    $0xfffffff8,%esp
-8007152f:	c0 e0 02             	shl    $0x2,%al
-80071532:	0f b6 c0             	movzbl %al,%eax
-80071535:	50                   	push   %eax
-80071536:	53                   	push   %ebx
-80071537:	e8 c4 fa ff ff       	call   80071000 <_FdcSendByte>
+80071501:	83 c4 20             	add    $0x20,%esp
+80071504:	83 c4 f8             	add    $0xfffffff8,%esp
+80071507:	68 c5 00 00 00       	push   $0xc5
+8007150c:	53                   	push   %ebx
+8007150d:	e8 ee fa ff ff       	call   80071000 <_FdcSendByte>
+/mn/src/drivers/fdc/fdc.c:316
+80071512:	eb 0e                	jmp    80071522 <_FdcStartIo+0x206>
+/mn/src/drivers/fdc/fdc.c:319
+80071514:	83 c4 f8             	add    $0xfffffff8,%esp
+80071517:	50                   	push   %eax
+80071518:	68 60 12 07 80       	push   $0x80071260
+8007151d:	e8 62 0a 00 00       	call   80071f84 <_wprintf>
+/mn/src/drivers/fdc/fdc.c:322
+80071522:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fdc/fdc.c:324
-8007153c:	83 c4 f8             	add    $0xfffffff8,%esp
-8007153f:	0f b6 45 f8          	movzbl 0xfffffff8(%ebp),%eax
-80071543:	50                   	push   %eax
-80071544:	53                   	push   %ebx
-80071545:	e8 b6 fa ff ff       	call   80071000 <_FdcSendByte>
+80071525:	8a 45 f4             	mov    0xfffffff4(%ebp),%al
+80071528:	83 c4 f8             	add    $0xfffffff8,%esp
+8007152b:	c0 e0 02             	shl    $0x2,%al
+8007152e:	0f b6 c0             	movzbl %al,%eax
+80071531:	50                   	push   %eax
+80071532:	53                   	push   %ebx
+80071533:	e8 c8 fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:325
-8007154a:	83 c4 20             	add    $0x20,%esp
-8007154d:	0f b6 45 f4          	movzbl 0xfffffff4(%ebp),%eax
-80071551:	83 c4 f8             	add    $0xfffffff8,%esp
-80071554:	50                   	push   %eax
-80071555:	53                   	push   %ebx
-80071556:	e8 a5 fa ff ff       	call   80071000 <_FdcSendByte>
+80071538:	83 c4 f8             	add    $0xfffffff8,%esp
+8007153b:	0f b6 45 f8          	movzbl 0xfffffff8(%ebp),%eax
+8007153f:	50                   	push   %eax
+80071540:	53                   	push   %ebx
+80071541:	e8 ba fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:326
-8007155b:	0f b6 45 fc          	movzbl 0xfffffffc(%ebp),%eax
-8007155f:	83 c4 f8             	add    $0xfffffff8,%esp
-80071562:	50                   	push   %eax
-80071563:	53                   	push   %ebx
-80071564:	e8 97 fa ff ff       	call   80071000 <_FdcSendByte>
+80071546:	83 c4 20             	add    $0x20,%esp
+80071549:	0f b6 45 f4          	movzbl 0xfffffff4(%ebp),%eax
+8007154d:	83 c4 f8             	add    $0xfffffff8,%esp
+80071550:	50                   	push   %eax
+80071551:	53                   	push   %ebx
+80071552:	e8 a9 fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:327
-80071569:	83 c4 20             	add    $0x20,%esp
-8007156c:	83 c4 f8             	add    $0xfffffff8,%esp
-8007156f:	6a 02                	push   $0x2
-80071571:	53                   	push   %ebx
-80071572:	e8 89 fa ff ff       	call   80071000 <_FdcSendByte>
+80071557:	0f b6 45 fc          	movzbl 0xfffffffc(%ebp),%eax
+8007155b:	83 c4 f8             	add    $0xfffffff8,%esp
+8007155e:	50                   	push   %eax
+8007155f:	53                   	push   %ebx
+80071560:	e8 9b fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:328
-80071577:	83 c4 f8             	add    $0xfffffff8,%esp
-8007157a:	0f b6 43 21          	movzbl 0x21(%ebx),%eax
-8007157e:	50                   	push   %eax
-8007157f:	53                   	push   %ebx
-80071580:	e8 7b fa ff ff       	call   80071000 <_FdcSendByte>
+80071565:	83 c4 20             	add    $0x20,%esp
+80071568:	83 c4 f8             	add    $0xfffffff8,%esp
+8007156b:	6a 02                	push   $0x2
+8007156d:	53                   	push   %ebx
+8007156e:	e8 8d fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:329
-80071585:	83 c4 20             	add    $0x20,%esp
-80071588:	80 7b 21 12          	cmpb   $0x12,0x21(%ebx)
-8007158c:	75 0a                	jne    80071598 <_FdcStartIo+0x27c>
+80071573:	83 c4 f8             	add    $0xfffffff8,%esp
+80071576:	0f b6 43 25          	movzbl 0x25(%ebx),%eax
+8007157a:	50                   	push   %eax
+8007157b:	53                   	push   %ebx
+8007157c:	e8 7f fa ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:330
-8007158e:	83 c4 f8             	add    $0xfffffff8,%esp
-80071591:	6a 1b                	push   $0x1b
-80071593:	eb 08                	jmp    8007159d <_FdcStartIo+0x281>
-80071595:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fdc/fdc.c:332
-80071598:	83 c4 f8             	add    $0xfffffff8,%esp
-8007159b:	6a 1c                	push   $0x1c
-8007159d:	53                   	push   %ebx
-8007159e:	e8 5d fa ff ff       	call   80071000 <_FdcSendByte>
-800715a3:	83 c4 10             	add    $0x10,%esp
+80071581:	83 c4 20             	add    $0x20,%esp
+80071584:	80 7b 25 12          	cmpb   $0x12,0x25(%ebx)
+80071588:	75 0a                	jne    80071594 <_FdcStartIo+0x278>
+/mn/src/drivers/fdc/fdc.c:331
+8007158a:	83 c4 f8             	add    $0xfffffff8,%esp
+8007158d:	6a 1b                	push   $0x1b
+8007158f:	eb 08                	jmp    80071599 <_FdcStartIo+0x27d>
+80071591:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/fdc/fdc.c:333
-800715a6:	83 c4 f8             	add    $0xfffffff8,%esp
-800715a9:	68 ff 00 00 00       	push   $0xff
+80071594:	83 c4 f8             	add    $0xfffffff8,%esp
+80071597:	6a 1c                	push   $0x1c
+80071599:	53                   	push   %ebx
+8007159a:	e8 61 fa ff ff       	call   80071000 <_FdcSendByte>
+8007159f:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fdc/fdc.c:334
-800715ae:	eb 6c                	jmp    8007161c <_FdcStartIo+0x300>
-/mn/src/drivers/fdc/fdc.c:337
-800715b0:	f6 43 3c c0          	testb  $0xc0,0x3c(%ebx)
-800715b4:	74 72                	je     80071628 <_FdcStartIo+0x30c>
-/mn/src/drivers/fdc/fdc.c:340
-800715b6:	8b 55 ec             	mov    0xffffffec(%ebp),%edx
-800715b9:	8b 42 04             	mov    0x4(%edx),%eax
-800715bc:	8d 48 01             	lea    0x1(%eax),%ecx
-800715bf:	89 4a 04             	mov    %ecx,0x4(%edx)
+800715a2:	83 c4 f8             	add    $0xfffffff8,%esp
+800715a5:	68 ff 00 00 00       	push   $0xff
+/mn/src/drivers/fdc/fdc.c:335
+800715aa:	eb 6c                	jmp    80071618 <_FdcStartIo+0x2fc>
+/mn/src/drivers/fdc/fdc.c:338
+800715ac:	f6 43 3c c0          	testb  $0xc0,0x3c(%ebx)
+800715b0:	74 72                	je     80071624 <_FdcStartIo+0x308>
 /mn/src/drivers/fdc/fdc.c:341
-800715c2:	89 c8                	mov    %ecx,%eax
-800715c4:	83 f8 02             	cmp    $0x2,%eax
-800715c7:	76 27                	jbe    800715f0 <_FdcStartIo+0x2d4>
-/mn/src/drivers/fdc/fdc.c:343
-800715c9:	83 c4 f8             	add    $0xfffffff8,%esp
-800715cc:	50                   	push   %eax
-800715cd:	68 a0 12 07 80       	push   $0x800712a0
-800715d2:	e8 65 09 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:345
-800715d7:	83 c4 fc             	add    $0xfffffffc,%esp
-800715da:	68 59 01 00 00       	push   $0x159
-800715df:	68 ab 11 07 80       	push   $0x800711ab
-800715e4:	68 d8 12 07 80       	push   $0x800712d8
-800715e9:	e8 56 09 00 00       	call   80071f44 <___dj_assert>
-800715ee:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fdc/fdc.c:350
-800715f0:	83 c4 f8             	add    $0xfffffff8,%esp
-800715f3:	50                   	push   %eax
-800715f4:	68 e0 12 07 80       	push   $0x800712e0
-800715f9:	e8 3e 09 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:353
-800715fe:	83 c4 f8             	add    $0xfffffff8,%esp
+800715b2:	8b 55 ec             	mov    0xffffffec(%ebp),%edx
+800715b5:	8b 42 04             	mov    0x4(%edx),%eax
+800715b8:	8d 48 01             	lea    0x1(%eax),%ecx
+800715bb:	89 4a 04             	mov    %ecx,0x4(%edx)
+/mn/src/drivers/fdc/fdc.c:342
+800715be:	89 c8                	mov    %ecx,%eax
+800715c0:	83 f8 02             	cmp    $0x2,%eax
+800715c3:	76 27                	jbe    800715ec <_FdcStartIo+0x2d0>
+/mn/src/drivers/fdc/fdc.c:344
+800715c5:	83 c4 f8             	add    $0xfffffff8,%esp
+800715c8:	50                   	push   %eax
+800715c9:	68 a0 12 07 80       	push   $0x800712a0
+800715ce:	e8 b1 09 00 00       	call   80071f84 <_wprintf>
+/mn/src/drivers/fdc/fdc.c:346
+800715d3:	83 c4 fc             	add    $0xfffffffc,%esp
+800715d6:	68 5a 01 00 00       	push   $0x15a
+800715db:	68 ab 11 07 80       	push   $0x800711ab
+800715e0:	68 d8 12 07 80       	push   $0x800712d8
+800715e5:	e8 a2 09 00 00       	call   80071f8c <___dj_assert>
+800715ea:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/fdc.c:351
-80071601:	c7 43 18 05 00 00 00 	movl   $0x5,0x18(%ebx)
-/mn/src/drivers/fdc/fdc.c:352
-80071608:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
-/mn/src/drivers/fdc/fdc.c:353
-8007160c:	6a 07                	push   $0x7
-8007160e:	53                   	push   %ebx
-8007160f:	e8 ec f9 ff ff       	call   80071000 <_FdcSendByte>
+800715ec:	83 c4 f8             	add    $0xfffffff8,%esp
+800715ef:	50                   	push   %eax
+800715f0:	68 e0 12 07 80       	push   $0x800712e0
+800715f5:	e8 8a 09 00 00       	call   80071f84 <_wprintf>
 /mn/src/drivers/fdc/fdc.c:354
-80071614:	83 c4 20             	add    $0x20,%esp
-80071617:	83 c4 f8             	add    $0xfffffff8,%esp
-8007161a:	6a 00                	push   $0x0
-8007161c:	53                   	push   %ebx
-8007161d:	e8 de f9 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:358
-80071622:	e9 9d 00 00 00       	jmp    800716c4 <_FdcStartIo+0x3a8>
-80071627:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:363
-80071628:	8b 45 ec             	mov    0xffffffec(%ebp),%eax
-8007162b:	c7 40 04 00 00 00 00 	movl   $0x0,0x4(%eax)
+800715fa:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/fdc/fdc.c:352
+800715fd:	c7 43 1c 05 00 00 00 	movl   $0x5,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:353
+80071604:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+/mn/src/drivers/fdc/fdc.c:354
+80071608:	6a 07                	push   $0x7
+8007160a:	53                   	push   %ebx
+8007160b:	e8 f0 f9 ff ff       	call   80071000 <_FdcSendByte>
+/mn/src/drivers/fdc/fdc.c:355
+80071610:	83 c4 20             	add    $0x20,%esp
+80071613:	83 c4 f8             	add    $0xfffffff8,%esp
+80071616:	6a 00                	push   $0x0
+80071618:	53                   	push   %ebx
+80071619:	e8 e2 f9 ff ff       	call   80071000 <_FdcSendByte>
+/mn/src/drivers/fdc/fdc.c:359
+8007161e:	e9 a3 00 00 00       	jmp    800716c6 <_FdcStartIo+0x3aa>
+80071623:	90                   	nop    
 /mn/src/drivers/fdc/fdc.c:364
-80071632:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
-80071635:	81 3a 72 64 00 80    	cmpl   $0x80006472,(%edx)
-8007163b:	75 2a                	jne    80071667 <_FdcStartIo+0x34b>
-/mn/src/drivers/fdc/fdc.c:366
-8007163d:	83 c4 f4             	add    $0xfffffff4,%esp
-80071640:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
-80071643:	51                   	push   %ecx
-80071644:	e8 eb 08 00 00       	call   80071f34 <_DevMapBuffer>
-80071649:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/fdc/fdc.c:370
-8007164b:	8b 73 48             	mov    0x48(%ebx),%esi
-/mn/src/drivers/fdc/fdc.c:366
-8007164e:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
-80071651:	03 78 24             	add    0x24(%eax),%edi
-/mn/src/drivers/fdc/fdc.c:370
-80071654:	03 78 1c             	add    0x1c(%eax),%edi
-80071657:	fc                   	cld    
-80071658:	b9 80 00 00 00       	mov    $0x80,%ecx
-8007165d:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
-/mn/src/drivers/fdc/fdc.c:371
-8007165f:	e8 c8 08 00 00       	call   80071f2c <_MemUnmapTemp>
+80071624:	8b 45 ec             	mov    0xffffffec(%ebp),%eax
+80071627:	c7 40 04 00 00 00 00 	movl   $0x0,0x4(%eax)
+/mn/src/drivers/fdc/fdc.c:365
+8007162e:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
+80071631:	81 3a 72 64 00 80    	cmpl   $0x80006472,(%edx)
+80071637:	75 27                	jne    80071660 <_FdcStartIo+0x344>
+/mn/src/drivers/fdc/fdc.c:368
+80071639:	83 c4 f4             	add    $0xfffffff4,%esp
+8007163c:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
+8007163f:	51                   	push   %ecx
+80071640:	e8 37 09 00 00       	call   80071f7c <_DevMapBuffer>
+80071645:	89 c7                	mov    %eax,%edi
 /mn/src/drivers/fdc/fdc.c:372
-80071664:	83 c4 10             	add    $0x10,%esp
+80071647:	8b 73 48             	mov    0x48(%ebx),%esi
+8007164a:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+8007164d:	03 78 1c             	add    0x1c(%eax),%edi
+80071650:	fc                   	cld    
+80071651:	b9 80 00 00 00       	mov    $0x80,%ecx
+80071656:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
+/mn/src/drivers/fdc/fdc.c:373
+80071658:	e8 17 09 00 00       	call   80071f74 <_MemUnmapTemp>
 /mn/src/drivers/fdc/fdc.c:374
-80071667:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
-8007166a:	8b 42 1c             	mov    0x1c(%edx),%eax
-8007166d:	05 00 02 00 00       	add    $0x200,%eax
-80071672:	89 42 1c             	mov    %eax,0x1c(%edx)
+8007165d:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fdc/fdc.c:376
-80071675:	8b 4d e8             	mov    0xffffffe8(%ebp),%ecx
-80071678:	3b 41 18             	cmp    0x18(%ecx),%eax
-8007167b:	73 13                	jae    80071690 <_FdcStartIo+0x374>
-/mn/src/drivers/fdc/fdc.c:379
-8007167d:	8b 45 ec             	mov    0xffffffec(%ebp),%eax
-80071680:	ff 00                	incl   (%eax)
-/mn/src/drivers/fdc/fdc.c:380
-80071682:	c7 43 18 02 00 00 00 	movl   $0x2,0x18(%ebx)
+80071660:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+80071663:	8b 42 1c             	mov    0x1c(%edx),%eax
+80071666:	05 00 02 00 00       	add    $0x200,%eax
+8007166b:	89 42 1c             	mov    %eax,0x1c(%edx)
+/mn/src/drivers/fdc/fdc.c:378
+8007166e:	8b 4d e8             	mov    0xffffffe8(%ebp),%ecx
+80071671:	3b 41 18             	cmp    0x18(%ecx),%eax
+80071674:	73 12                	jae    80071688 <_FdcStartIo+0x36c>
 /mn/src/drivers/fdc/fdc.c:381
-80071689:	e9 e2 fc ff ff       	jmp    80071370 <_FdcStartIo+0x54>
-8007168e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fdc/fdc.c:386
-80071690:	31 f6                	xor    %esi,%esi
-/mn/src/drivers/fdc/fdc.c:410
-80071692:	83 c4 f4             	add    $0xfffffff4,%esp
-80071695:	53                   	push   %ebx
-80071696:	e8 a1 fa ff ff       	call   8007113c <_FdcMotorOff>
-/mn/src/drivers/fdc/fdc.c:411
-8007169b:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
-8007169e:	83 c4 f4             	add    $0xfffffff4,%esp
-800716a1:	8b 42 18             	mov    0x18(%edx),%eax
-800716a4:	50                   	push   %eax
-800716a5:	e8 7a 08 00 00       	call   80071f24 <_free>
+80071676:	8b 45 ec             	mov    0xffffffec(%ebp),%eax
+80071679:	ff 00                	incl   (%eax)
+/mn/src/drivers/fdc/fdc.c:382
+8007167b:	c7 43 1c 02 00 00 00 	movl   $0x2,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:383
+80071682:	e9 e9 fc ff ff       	jmp    80071370 <_FdcStartIo+0x54>
+80071687:	90                   	nop    
+/mn/src/drivers/fdc/fdc.c:388
+80071688:	31 f6                	xor    %esi,%esi
 /mn/src/drivers/fdc/fdc.c:412
-800716aa:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
+8007168a:	83 c4 f4             	add    $0xfffffff4,%esp
+8007168d:	53                   	push   %ebx
+8007168e:	e8 a9 fa ff ff       	call   8007113c <_FdcMotorOff>
 /mn/src/drivers/fdc/fdc.c:413
-800716ad:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/fdc/fdc.c:412
-800716b0:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
-/mn/src/drivers/fdc/fdc.c:413
-800716b3:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/fdc/fdc.c:412
-800716b6:	8b 41 1c             	mov    0x1c(%ecx),%eax
-800716b9:	89 42 18             	mov    %eax,0x18(%edx)
-/mn/src/drivers/fdc/fdc.c:413
-800716bc:	56                   	push   %esi
-800716bd:	51                   	push   %ecx
-800716be:	53                   	push   %ebx
-800716bf:	e8 58 08 00 00       	call   80071f1c <_DevFinishIo>
+80071693:	83 c4 fc             	add    $0xfffffffc,%esp
+80071696:	68 9d 01 00 00       	push   $0x19d
+8007169b:	68 ab 11 07 80       	push   $0x800711ab
+800716a0:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+800716a3:	8b 42 18             	mov    0x18(%edx),%eax
+800716a6:	50                   	push   %eax
+800716a7:	e8 c0 08 00 00       	call   80071f6c <___free>
 /mn/src/drivers/fdc/fdc.c:414
-800716c4:	8d 65 b8             	lea    0xffffffb8(%ebp),%esp
-800716c7:	5b                   	pop    %ebx
-800716c8:	5e                   	pop    %esi
-800716c9:	5f                   	pop    %edi
-800716ca:	89 ec                	mov    %ebp,%esp
-800716cc:	5d                   	pop    %ebp
-800716cd:	c3                   	ret    
-800716ce:	69 72 71 20 3d 3d 20 	imul   $0x203d3d20,0x71(%edx),%esi
-800716d5:	30 20                	xor    %ah,(%eax)
-800716d7:	7c 7c                	jl     80071755 <_FdcStartIo+0x439>
-800716d9:	20 69 72             	and    %ch,0x72(%ecx)
-800716dc:	71 20                	jno    800716fe <_FdcStartIo+0x3e2>
-800716de:	3d 3d 20 66 64       	cmp    $0x6466203d,%eax
-800716e3:	63 2d 3e 69 72 71    	arpl   %bp,0x7172693e
-800716e9:	00 6d 00             	add    %ch,0x0(%ebp)
-800716ec:	00 00                	add    %al,(%eax)
-800716ee:	4d                   	dec    %ebp
-800716ef:	00 00                	add    %al,(%eax)
-800716f1:	00 8d b4 26 00 00    	add    %cl,0x26b4(%ebp)
-800716f7:	00 00                	add    %al,(%eax)
-800716f9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
-80071700:	66                   	data16
-80071701:	00 64 00 63          	add    %ah,0x63(%eax,%eax,1)
-80071705:	00 49 00             	add    %cl,0x0(%ecx)
-80071708:	73 00                	jae    8007170a <_FdcStartIo+0x3ee>
+800716ac:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
+/mn/src/drivers/fdc/fdc.c:415
+800716af:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/fdc/fdc.c:414
+800716b2:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
+/mn/src/drivers/fdc/fdc.c:415
+800716b5:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/fdc/fdc.c:414
+800716b8:	8b 41 1c             	mov    0x1c(%ecx),%eax
+800716bb:	89 42 18             	mov    %eax,0x18(%edx)
+/mn/src/drivers/fdc/fdc.c:415
+800716be:	56                   	push   %esi
+800716bf:	51                   	push   %ecx
+800716c0:	53                   	push   %ebx
+800716c1:	e8 9e 08 00 00       	call   80071f64 <_DevFinishIo>
+/mn/src/drivers/fdc/fdc.c:416
+800716c6:	8d 65 b8             	lea    0xffffffb8(%ebp),%esp
+800716c9:	5b                   	pop    %ebx
+800716ca:	5e                   	pop    %esi
+800716cb:	5f                   	pop    %edi
+800716cc:	89 ec                	mov    %ebp,%esp
+800716ce:	5d                   	pop    %ebp
+800716cf:	c3                   	ret    
+800716d0:	69 72 71 20 3d 3d 20 	imul   $0x203d3d20,0x71(%edx),%esi
+800716d7:	30 20                	xor    %ah,(%eax)
+800716d9:	7c 7c                	jl     80071757 <_FdcStartIo+0x43b>
+800716db:	20 69 72             	and    %ch,0x72(%ecx)
+800716de:	71 20                	jno    80071700 <_FdcStartIo+0x3e4>
+800716e0:	3d 3d 20 66 64       	cmp    $0x6466203d,%eax
+800716e5:	63 2d 3e 69 72 71    	arpl   %bp,0x7172693e
+800716eb:	00 6d 00             	add    %ch,0x0(%ebp)
+800716ee:	00 00                	add    %al,(%eax)
+800716f0:	4d                   	dec    %ebp
+800716f1:	00 00                	add    %al,(%eax)
+800716f3:	00 8d b6 00 00 00    	add    %cl,0xb6(%ebp)
+800716f9:	00 8d bf 00 00 00    	add    %cl,0xbf(%ebp)
+800716ff:	00 66 00             	add    %ah,0x0(%esi)
+80071702:	64 00 63 00          	add    %ah,%fs:0x0(%ebx)
+80071706:	49                   	dec    %ecx
+80071707:	00 73 00             	add    %dh,0x0(%ebx)
 8007170a:	72 00                	jb     8007170c <_FdcStartIo+0x3f0>
 8007170c:	3a 00                	cmp    (%eax),%al
 8007170e:	20 00                	and    %al,(%eax)
@@ -886,31 +873,31 @@ FdcIsr():
 8007179f:	83 ec 10             	sub    $0x10,%esp
 800717a2:	56                   	push   %esi
 800717a3:	53                   	push   %ebx
-/mn/src/drivers/fdc/fdc.c:417
+/mn/src/drivers/fdc/fdc.c:419
 800717a4:	8b 45 0c             	mov    0xc(%ebp),%eax
 800717a7:	8b 5d 08             	mov    0x8(%ebp),%ebx
 800717aa:	88 c2                	mov    %al,%dl
-/mn/src/drivers/fdc/fdc.c:421
+/mn/src/drivers/fdc/fdc.c:423
 800717ac:	84 c0                	test   %al,%al
 800717ae:	74 24                	je     800717d4 <_FdcIsr+0x38>
-800717b0:	3a 53 1e             	cmp    0x1e(%ebx),%dl
+800717b0:	3a 53 22             	cmp    0x22(%ebx),%dl
 800717b3:	74 17                	je     800717cc <_FdcIsr+0x30>
 800717b5:	83 c4 fc             	add    $0xfffffffc,%esp
-800717b8:	68 a5 01 00 00       	push   $0x1a5
+800717b8:	68 a7 01 00 00       	push   $0x1a7
 800717bd:	68 ab 11 07 80       	push   $0x800711ab
-800717c2:	68 ce 16 07 80       	push   $0x800716ce
-800717c7:	e8 78 07 00 00       	call   80071f44 <___dj_assert>
-/mn/src/drivers/fdc/fdc.c:422
+800717c2:	68 d0 16 07 80       	push   $0x800716d0
+800717c7:	e8 c0 07 00 00       	call   80071f8c <___dj_assert>
+/mn/src/drivers/fdc/fdc.c:424
 800717cc:	84 c0                	test   %al,%al
 800717ce:	0f 85 c8 00 00 00    	jne    8007189c <_FdcIsr+0x100>
-/mn/src/drivers/fdc/fdc.c:424
+/mn/src/drivers/fdc/fdc.c:426
 800717d4:	83 7b 30 ff          	cmpl   $0xffffffff,0x30(%ebx)
 800717d8:	0f 84 9a 01 00 00    	je     80071978 <_FdcIsr+0x1dc>
-800717de:	e8 71 07 00 00       	call   80071f54 <_SysUpTime>
+800717de:	e8 b9 07 00 00       	call   80071f9c <_SysUpTime>
 800717e3:	3b 43 30             	cmp    0x30(%ebx),%eax
 800717e6:	0f 82 8c 01 00 00    	jb     80071978 <_FdcIsr+0x1dc>
-/mn/src/drivers/fdc/fdc.c:427
-800717ec:	8b 43 18             	mov    0x18(%ebx),%eax
+/mn/src/drivers/fdc/fdc.c:429
+800717ec:	8b 43 1c             	mov    0x1c(%ebx),%eax
 800717ef:	83 f8 01             	cmp    $0x1,%eax
 800717f2:	74 34                	je     80071828 <_FdcIsr+0x8c>
 800717f4:	72 0a                	jb     80071800 <_FdcIsr+0x64>
@@ -918,70 +905,70 @@ FdcIsr():
 800717f9:	74 51                	je     8007184c <_FdcIsr+0xb0>
 800717fb:	eb 77                	jmp    80071874 <_FdcIsr+0xd8>
 800717fd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:344
-80071800:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
-/mn/src/drivers/fdc/fdc.c:431
+/mn/include/kernel/i386.h:352
+80071800:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
+/mn/src/drivers/fdc/fdc.c:433
 80071804:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
-/mn/src/drivers/fdc/fdc.c:432
+/mn/src/drivers/fdc/fdc.c:434
 8007180b:	c6 43 34 00          	movb   $0x0,0x34(%ebx)
-/mn/include/kernel/i386.h:344
+/mn/include/kernel/i386.h:352
 8007180f:	83 c2 02             	add    $0x2,%edx
 80071812:	b0 0c                	mov    $0xc,%al
-/mn/include/kernel/i386.h:345
+/mn/include/kernel/i386.h:353
 80071814:	ee                   	out    %al,(%dx)
-/mn/src/drivers/fdc/fdc.c:434
+/mn/src/drivers/fdc/fdc.c:436
 80071815:	83 c4 f4             	add    $0xfffffff4,%esp
-80071818:	68 ea 16 07 80       	push   $0x800716ea
-8007181d:	e8 1a 07 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:435
+80071818:	68 ec 16 07 80       	push   $0x800716ec
+8007181d:	e8 62 07 00 00       	call   80071f84 <_wprintf>
+/mn/src/drivers/fdc/fdc.c:437
 80071822:	e9 51 01 00 00       	jmp    80071978 <_FdcIsr+0x1dc>
 80071827:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:438
-80071828:	83 c4 f4             	add    $0xfffffff4,%esp
-8007182b:	68 ee 16 07 80       	push   $0x800716ee
-80071830:	e8 07 07 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:439
-80071835:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
 /mn/src/drivers/fdc/fdc.c:440
-8007183c:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
+80071828:	83 c4 f4             	add    $0xfffffff4,%esp
+8007182b:	68 f0 16 07 80       	push   $0x800716f0
+80071830:	e8 4f 07 00 00       	call   80071f84 <_wprintf>
 /mn/src/drivers/fdc/fdc.c:441
-80071840:	c7 43 18 00 00 00 00 	movl   $0x0,0x18(%ebx)
+80071835:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
 /mn/src/drivers/fdc/fdc.c:442
+8007183c:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
+/mn/src/drivers/fdc/fdc.c:443
+80071840:	c7 43 1c 00 00 00 00 	movl   $0x0,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:444
 80071847:	e9 2c 01 00 00       	jmp    80071978 <_FdcIsr+0x1dc>
-/mn/src/drivers/fdc/fdc.c:445
-8007184c:	83 c4 f4             	add    $0xfffffff4,%esp
-8007184f:	68 ee 16 07 80       	push   $0x800716ee
-80071854:	e8 e3 06 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:446
-80071859:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
-/mn/src/drivers/fdc/fdc.c:448
-80071860:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/fdc/fdc.c:447
-80071863:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
+8007184c:	83 c4 f4             	add    $0xfffffff4,%esp
+8007184f:	68 f0 16 07 80       	push   $0x800716f0
+80071854:	e8 2b 07 00 00       	call   80071f84 <_wprintf>
 /mn/src/drivers/fdc/fdc.c:448
+80071859:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
+/mn/src/drivers/fdc/fdc.c:450
+80071860:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/fdc/fdc.c:449
+80071863:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
+/mn/src/drivers/fdc/fdc.c:450
 80071867:	53                   	push   %ebx
 80071868:	e8 af fa ff ff       	call   8007131c <_FdcStartIo>
-/mn/src/drivers/fdc/fdc.c:449
+/mn/src/drivers/fdc/fdc.c:451
 8007186d:	e9 06 01 00 00       	jmp    80071978 <_FdcIsr+0x1dc>
 80071872:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fdc/fdc.c:451
+/mn/src/drivers/fdc/fdc.c:453
 80071874:	83 c4 f8             	add    $0xfffffff8,%esp
-80071877:	8b 43 18             	mov    0x18(%ebx),%eax
+80071877:	8b 43 1c             	mov    0x1c(%ebx),%eax
 8007187a:	50                   	push   %eax
 8007187b:	68 00 17 07 80       	push   $0x80071700
-80071880:	e8 b7 06 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:453
+80071880:	e8 ff 06 00 00       	call   80071f84 <_wprintf>
+/mn/src/drivers/fdc/fdc.c:455
 80071885:	83 c4 fc             	add    $0xfffffffc,%esp
-80071888:	68 c5 01 00 00       	push   $0x1c5
+80071888:	68 c7 01 00 00       	push   $0x1c7
 8007188d:	68 ab 11 07 80       	push   $0x800711ab
 80071892:	68 d8 12 07 80       	push   $0x800712d8
-80071897:	e8 a8 06 00 00       	call   80071f44 <___dj_assert>
-/mn/src/drivers/fdc/fdc.c:462
+80071897:	e8 f0 06 00 00       	call   80071f8c <___dj_assert>
+/mn/src/drivers/fdc/fdc.c:464
 8007189c:	c7 43 38 00 00 00 00 	movl   $0x0,0x38(%ebx)
-/mn/src/drivers/fdc/fdc.c:463
+/mn/src/drivers/fdc/fdc.c:465
 800718a3:	8d 73 3c             	lea    0x3c(%ebx),%esi
 800718a6:	eb 17                	jmp    800718bf <_FdcIsr+0x123>
-/mn/src/drivers/fdc/fdc.c:465
+/mn/src/drivers/fdc/fdc.c:467
 800718a8:	83 c4 f4             	add    $0xfffffff4,%esp
 800718ab:	53                   	push   %ebx
 800718ac:	e8 a3 f7 ff ff       	call   80071054 <_FdcGetByte>
@@ -990,44 +977,44 @@ FdcIsr():
 800718b6:	8b 43 38             	mov    0x38(%ebx),%eax
 800718b9:	88 14 30             	mov    %dl,(%eax,%esi,1)
 800718bc:	ff 43 38             	incl   0x38(%ebx)
-/mn/src/drivers/fdc/fdc.c:464
+/mn/src/drivers/fdc/fdc.c:466
 800718bf:	83 7b 38 06          	cmpl   $0x6,0x38(%ebx)
 800718c3:	77 0c                	ja     800718d1 <_FdcIsr+0x135>
-800718c5:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
+800718c5:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
 800718c9:	83 c2 04             	add    $0x4,%edx
-/mn/include/kernel/i386.h:362
+/mn/include/kernel/i386.h:370
 800718cc:	ec                   	in     (%dx),%al
-/mn/src/drivers/fdc/fdc.c:464
+/mn/src/drivers/fdc/fdc.c:466
 800718cd:	a8 10                	test   $0x10,%al
 800718cf:	75 d7                	jne    800718a8 <_FdcIsr+0x10c>
-/mn/src/drivers/fdc/fdc.c:467
+/mn/src/drivers/fdc/fdc.c:469
 800718d1:	80 7b 44 00          	cmpb   $0x0,0x44(%ebx)
 800718d5:	74 29                	je     80071900 <_FdcIsr+0x164>
-/mn/src/drivers/fdc/fdc.c:469
+/mn/src/drivers/fdc/fdc.c:471
 800718d7:	83 c4 f8             	add    $0xfffffff8,%esp
 800718da:	6a 08                	push   $0x8
 800718dc:	53                   	push   %ebx
 800718dd:	e8 1e f7 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:470
+/mn/src/drivers/fdc/fdc.c:472
 800718e2:	83 c4 f4             	add    $0xfffffff4,%esp
 800718e5:	53                   	push   %ebx
 800718e6:	e8 69 f7 ff ff       	call   80071054 <_FdcGetByte>
-/mn/src/drivers/fdc/fdc.c:471
+/mn/src/drivers/fdc/fdc.c:473
 800718eb:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/fdc/fdc.c:470
+/mn/src/drivers/fdc/fdc.c:472
 800718ee:	88 43 43             	mov    %al,0x43(%ebx)
-/mn/src/drivers/fdc/fdc.c:471
+/mn/src/drivers/fdc/fdc.c:473
 800718f1:	83 c4 f4             	add    $0xfffffff4,%esp
 800718f4:	53                   	push   %ebx
 800718f5:	e8 5a f7 ff ff       	call   80071054 <_FdcGetByte>
 800718fa:	89 43 50             	mov    %eax,0x50(%ebx)
-/mn/src/drivers/fdc/fdc.c:472
-800718fd:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fdc/fdc.c:474
-80071900:	8b 43 18             	mov    0x18(%ebx),%eax
+800718fd:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/fdc/fdc.c:476
+80071900:	8b 43 1c             	mov    0x1c(%ebx),%eax
 80071903:	83 f8 05             	cmp    $0x5,%eax
 80071906:	77 70                	ja     80071978 <_FdcIsr+0x1dc>
-80071908:	8b 43 18             	mov    0x18(%ebx),%eax
+80071908:	8b 43 1c             	mov    0x1c(%ebx),%eax
 8007190b:	ff 24 85 14 19 07 80 	jmp    *0x80071914(,%eax,4)
 80071912:	89 f6                	mov    %esi,%esi
 80071914:	2c 19                	sub    $0x19,%al
@@ -1039,35 +1026,35 @@ FdcIsr():
 80071923:	80 68 19 07          	subb   $0x7,0x19(%eax)
 80071927:	80 68 19 07          	subb   $0x7,0x19(%eax)
 8007192b:	80 83 c4 f4 68 60 17 	addb   $0x17,0x6068f4c4(%ebx)
-/mn/src/drivers/fdc/fdc.c:477
+/mn/src/drivers/fdc/fdc.c:479
 80071932:	07                   	pop    %es
-80071933:	80 e8 03             	sub    $0x3,%al
+80071933:	80 e8 4b             	sub    $0x4b,%al
 80071936:	06                   	push   %es
 80071937:	00 00                	add    %al,(%eax)
-/mn/src/drivers/fdc/fdc.c:481
-80071939:	c7 43 18 00 00 00 00 	movl   $0x0,0x18(%ebx)
-/mn/src/drivers/fdc/fdc.c:482
+/mn/src/drivers/fdc/fdc.c:483
+80071939:	c7 43 1c 00 00 00 00 	movl   $0x0,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:484
 80071940:	b8 01 00 00 00       	mov    $0x1,%eax
 80071945:	eb 33                	jmp    8007197a <_FdcIsr+0x1de>
 80071947:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:486
-80071948:	8b 43 18             	mov    0x18(%ebx),%eax
+/mn/src/drivers/fdc/fdc.c:488
+80071948:	8b 43 1c             	mov    0x1c(%ebx),%eax
 8007194b:	83 f8 02             	cmp    $0x2,%eax
 8007194e:	75 18                	jne    80071968 <_FdcIsr+0x1cc>
 80071950:	83 c4 fc             	add    $0xfffffffc,%esp
-80071953:	68 e6 01 00 00       	push   $0x1e6
+80071953:	68 e8 01 00 00       	push   $0x1e8
 80071958:	68 ab 11 07 80       	push   $0x800711ab
 8007195d:	68 86 17 07 80       	push   $0x80071786
-80071962:	e8 dd 05 00 00       	call   80071f44 <___dj_assert>
+80071962:	e8 25 06 00 00       	call   80071f8c <___dj_assert>
 80071967:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:491
+/mn/src/drivers/fdc/fdc.c:493
 80071968:	83 c4 f4             	add    $0xfffffff4,%esp
 8007196b:	53                   	push   %ebx
 8007196c:	e8 ab f9 ff ff       	call   8007131c <_FdcStartIo>
-/mn/src/drivers/fdc/fdc.c:492
+/mn/src/drivers/fdc/fdc.c:494
 80071971:	b8 01 00 00 00       	mov    $0x1,%eax
 80071976:	eb 02                	jmp    8007197a <_FdcIsr+0x1de>
-/mn/src/drivers/fdc/fdc.c:495
+/mn/src/drivers/fdc/fdc.c:497
 80071978:	31 c0                	xor    %eax,%eax
 8007197a:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 8007197d:	5b                   	pop    %ebx
@@ -1075,7 +1062,7 @@ FdcIsr():
 8007197f:	89 ec                	mov    %ebp,%esp
 80071981:	5d                   	pop    %ebp
 80071982:	c3                   	ret    
-/mn/src/drivers/fdc/fdc.c:496
+/mn/src/drivers/fdc/fdc.c:498
 80071983:	69 6f 2d 3e 65 78 74 	imul   $0x7478653e,0x2d(%edi),%ebp
 8007198a:	72 61                	jb     800719ed <_FdcRequest+0x55>
 8007198c:	20 21                	and    %ah,(%ecx)
@@ -1091,20 +1078,20 @@ FdcRequest():
 8007199e:	57                   	push   %edi
 8007199f:	56                   	push   %esi
 800719a0:	53                   	push   %ebx
-/mn/src/drivers/fdc/fdc.c:499
+/mn/src/drivers/fdc/fdc.c:501
 800719a1:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/fdc/fdc.c:508
+/mn/src/drivers/fdc/fdc.c:510
 800719a4:	8b 07                	mov    (%edi),%eax
 800719a6:	3d 72 64 00 80       	cmp    $0x80006472,%eax
 800719ab:	74 1e                	je     800719cb <_FdcRequest+0x33>
 800719ad:	77 11                	ja     800719c0 <_FdcRequest+0x28>
 800719af:	3d 73 62 00 80       	cmp    $0x80006273,%eax
-800719b4:	0f 84 06 01 00 00    	je     80071ac0 <_FdcRequest+0x128>
-800719ba:	e9 29 01 00 00       	jmp    80071ae8 <_FdcRequest+0x150>
+800719b4:	0f 84 12 01 00 00    	je     80071acc <_FdcRequest+0x134>
+800719ba:	e9 49 01 00 00       	jmp    80071b08 <_FdcRequest+0x170>
 800719bf:	90                   	nop    
 800719c0:	3d 77 64 00 80       	cmp    $0x80006477,%eax
-800719c5:	0f 85 1d 01 00 00    	jne    80071ae8 <_FdcRequest+0x150>
-/mn/src/drivers/fdc/fdc.c:512
+800719c5:	0f 85 3d 01 00 00    	jne    80071b08 <_FdcRequest+0x170>
+/mn/src/drivers/fdc/fdc.c:514
 800719cb:	f7 47 18 ff 01 00 00 	testl  $0x1ff,0x18(%edi)
 800719d2:	75 19                	jne    800719ed <_FdcRequest+0x55>
 800719d4:	8b 47 20             	mov    0x20(%edi),%eax
@@ -1116,12 +1103,12 @@ FdcRequest():
 800719e7:	89 ce                	mov    %ecx,%esi
 800719e9:	09 de                	or     %ebx,%esi
 800719eb:	74 0f                	je     800719fc <_FdcRequest+0x64>
-/mn/src/drivers/fdc/fdc.c:515
+/mn/src/drivers/fdc/fdc.c:517
 800719ed:	c7 47 04 07 00 00 00 	movl   $0x7,0x4(%edi)
-/mn/src/drivers/fdc/fdc.c:516
-800719f4:	e9 f6 00 00 00       	jmp    80071aef <_FdcRequest+0x157>
+/mn/src/drivers/fdc/fdc.c:518
+800719f4:	e9 16 01 00 00       	jmp    80071b0f <_FdcRequest+0x177>
 800719f9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fdc/fdc.c:519
+/mn/src/drivers/fdc/fdc.c:521
 800719fc:	8b 5d 08             	mov    0x8(%ebp),%ebx
 800719ff:	8b 4f 24             	mov    0x24(%edi),%ecx
 80071a02:	8b 73 2c             	mov    0x2c(%ebx),%esi
@@ -1131,12 +1118,12 @@ FdcRequest():
 80071a0b:	8b 4b 28             	mov    0x28(%ebx),%ecx
 80071a0e:	3b 4f 20             	cmp    0x20(%edi),%ecx
 80071a11:	77 0d                	ja     80071a20 <_FdcRequest+0x88>
-/mn/src/drivers/fdc/fdc.c:521
+/mn/src/drivers/fdc/fdc.c:523
 80071a13:	c7 47 04 0d 00 00 00 	movl   $0xd,0x4(%edi)
-/mn/src/drivers/fdc/fdc.c:522
-80071a1a:	e9 d0 00 00 00       	jmp    80071aef <_FdcRequest+0x157>
+/mn/src/drivers/fdc/fdc.c:524
+80071a1a:	e9 f0 00 00 00       	jmp    80071b0f <_FdcRequest+0x177>
 80071a1f:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:525
+/mn/src/drivers/fdc/fdc.c:527
 80071a20:	03 47 18             	add    0x18(%edi),%eax
 80071a23:	83 d2 00             	adc    $0x0,%edx
 80071a26:	39 d6                	cmp    %edx,%esi
@@ -1146,10 +1133,10 @@ FdcRequest():
 80071a30:	75 04                	jne    80071a36 <_FdcRequest+0x9e>
 80071a32:	39 c1                	cmp    %eax,%ecx
 80071a34:	77 06                	ja     80071a3c <_FdcRequest+0xa4>
-/mn/src/drivers/fdc/fdc.c:527
+/mn/src/drivers/fdc/fdc.c:529
 80071a36:	2b 4f 20             	sub    0x20(%edi),%ecx
 80071a39:	89 4f 18             	mov    %ecx,0x18(%edi)
-/mn/src/drivers/fdc/fdc.c:530
+/mn/src/drivers/fdc/fdc.c:532
 80071a3c:	83 c4 f4             	add    $0xfffffff4,%esp
 80071a3f:	8b 47 18             	mov    0x18(%edi),%eax
 80071a42:	50                   	push   %eax
@@ -1159,680 +1146,716 @@ FdcRequest():
 80071a49:	57                   	push   %edi
 80071a4a:	8b 45 08             	mov    0x8(%ebp),%eax
 80071a4d:	50                   	push   %eax
-80071a4e:	e8 c1 04 00 00       	call   80071f14 <_DevQueueRequest>
+80071a4e:	e8 09 05 00 00       	call   80071f5c <_DevQueueRequest>
 80071a53:	89 c6                	mov    %eax,%esi
-/mn/src/drivers/fdc/fdc.c:533
+/mn/src/drivers/fdc/fdc.c:535
 80071a55:	83 c4 20             	add    $0x20,%esp
 80071a58:	85 f6                	test   %esi,%esi
-80071a5a:	0f 84 8f 00 00 00    	je     80071aef <_FdcRequest+0x157>
-/mn/src/drivers/fdc/fdc.c:537
-80071a60:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/fdc/fdc.c:536
+80071a5a:	0f 84 af 00 00 00    	je     80071b0f <_FdcRequest+0x177>
+/mn/src/drivers/fdc/fdc.c:539
+80071a60:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/fdc/fdc.c:538
 80071a63:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
-/mn/src/drivers/fdc/fdc.c:537
-80071a6a:	6a 08                	push   $0x8
-80071a6c:	e8 9b 04 00 00       	call   80071f0c <_malloc>
-80071a71:	89 c1                	mov    %eax,%ecx
-/mn/src/drivers/fdc/fdc.c:538
-80071a73:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/fdc/fdc.c:537
-80071a76:	89 4e 18             	mov    %ecx,0x18(%esi)
-/mn/src/drivers/fdc/fdc.c:538
-80071a79:	85 c9                	test   %ecx,%ecx
-80071a7b:	75 17                	jne    80071a94 <_FdcRequest+0xfc>
-80071a7d:	83 c4 fc             	add    $0xfffffffc,%esp
-80071a80:	68 1a 02 00 00       	push   $0x21a
-80071a85:	68 ab 11 07 80       	push   $0x800711ab
-80071a8a:	68 83 19 07 80       	push   $0x80071983
-80071a8f:	e8 b0 04 00 00       	call   80071f44 <___dj_assert>
 /mn/src/drivers/fdc/fdc.c:539
-80071a94:	8b 47 20             	mov    0x20(%edi),%eax
-80071a97:	8b 57 24             	mov    0x24(%edi),%edx
-80071a9a:	0f ac d0 09          	shrd   $0x9,%edx,%eax
-80071a9e:	c1 ea 09             	shr    $0x9,%edx
+80071a6a:	68 1b 02 00 00       	push   $0x21b
+80071a6f:	68 ab 11 07 80       	push   $0x800711ab
+80071a74:	6a 08                	push   $0x8
+80071a76:	e8 d9 04 00 00       	call   80071f54 <___malloc>
+80071a7b:	89 c1                	mov    %eax,%ecx
 /mn/src/drivers/fdc/fdc.c:540
-80071aa1:	c7 41 04 00 00 00 00 	movl   $0x0,0x4(%ecx)
-/mn/src/drivers/fdc/fdc.c:542
-80071aa8:	8b 55 08             	mov    0x8(%ebp),%edx
+80071a7d:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fdc/fdc.c:539
-80071aab:	89 01                	mov    %eax,(%ecx)
+80071a80:	89 4e 18             	mov    %ecx,0x18(%esi)
+/mn/src/drivers/fdc/fdc.c:540
+80071a83:	85 c9                	test   %ecx,%ecx
+80071a85:	75 19                	jne    80071aa0 <_FdcRequest+0x108>
+80071a87:	83 c4 fc             	add    $0xfffffffc,%esp
+80071a8a:	68 1c 02 00 00       	push   $0x21c
+80071a8f:	68 ab 11 07 80       	push   $0x800711ab
+80071a94:	68 83 19 07 80       	push   $0x80071983
+80071a99:	e8 ee 04 00 00       	call   80071f8c <___dj_assert>
+80071a9e:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/fdc/fdc.c:541
+80071aa0:	8b 47 20             	mov    0x20(%edi),%eax
+80071aa3:	8b 57 24             	mov    0x24(%edi),%edx
+80071aa6:	0f ac d0 09          	shrd   $0x9,%edx,%eax
+80071aaa:	c1 ea 09             	shr    $0x9,%edx
 /mn/src/drivers/fdc/fdc.c:542
-80071aad:	8b 42 18             	mov    0x18(%edx),%eax
-80071ab0:	85 c0                	test   %eax,%eax
-80071ab2:	75 2d                	jne    80071ae1 <_FdcRequest+0x149>
-/mn/src/drivers/fdc/fdc.c:543
-80071ab4:	83 c4 f4             	add    $0xfffffff4,%esp
-80071ab7:	52                   	push   %edx
-80071ab8:	e8 5f f8 ff ff       	call   8007131c <_FdcStartIo>
+80071aad:	c7 41 04 00 00 00 00 	movl   $0x0,0x4(%ecx)
 /mn/src/drivers/fdc/fdc.c:544
-80071abd:	eb 22                	jmp    80071ae1 <_FdcRequest+0x149>
-80071abf:	90                   	nop    
-/mn/src/drivers/fdc/fdc.c:549
-80071ac0:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/fdc/fdc.c:547
-80071ac3:	8b 4f 1c             	mov    0x1c(%edi),%ecx
-/mn/src/drivers/fdc/fdc.c:548
-80071ac6:	c7 01 00 02 00 00    	movl   $0x200,(%ecx)
-/mn/src/drivers/fdc/fdc.c:549
-80071acc:	0f b6 53 20          	movzbl 0x20(%ebx),%edx
-80071ad0:	0f b6 43 1f          	movzbl 0x1f(%ebx),%eax
-80071ad4:	0f af c2             	imul   %edx,%eax
-80071ad7:	0f b6 53 21          	movzbl 0x21(%ebx),%edx
-80071adb:	0f af c2             	imul   %edx,%eax
-80071ade:	89 41 04             	mov    %eax,0x4(%ecx)
-/mn/src/drivers/fdc/fdc.c:551
-80071ae1:	b8 01 00 00 00       	mov    $0x1,%eax
-80071ae6:	eb 09                	jmp    80071af1 <_FdcRequest+0x159>
-/mn/src/drivers/fdc/fdc.c:554
-80071ae8:	c7 47 04 04 00 00 00 	movl   $0x4,0x4(%edi)
+80071ab4:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/fdc/fdc.c:541
+80071ab7:	89 01                	mov    %eax,(%ecx)
+/mn/src/drivers/fdc/fdc.c:544
+80071ab9:	8b 42 1c             	mov    0x1c(%edx),%eax
+80071abc:	85 c0                	test   %eax,%eax
+80071abe:	75 3f                	jne    80071aff <_FdcRequest+0x167>
+/mn/src/drivers/fdc/fdc.c:545
+80071ac0:	83 c4 f4             	add    $0xfffffff4,%esp
+80071ac3:	52                   	push   %edx
+80071ac4:	e8 53 f8 ff ff       	call   8007131c <_FdcStartIo>
+/mn/src/drivers/fdc/fdc.c:546
+80071ac9:	eb 34                	jmp    80071aff <_FdcRequest+0x167>
+80071acb:	90                   	nop    
+/mn/src/drivers/fdc/fdc.c:550
+80071acc:	83 c4 f8             	add    $0xfffffff8,%esp
+80071acf:	6a 03                	push   $0x3
+80071ad1:	8b 47 1c             	mov    0x1c(%edi),%eax
+80071ad4:	50                   	push   %eax
+80071ad5:	e8 72 04 00 00       	call   80071f4c <_MemMapPageArray>
+/mn/src/drivers/fdc/fdc.c:553
+80071ada:	8b 5d 08             	mov    0x8(%ebp),%ebx
+/mn/src/drivers/fdc/fdc.c:550
+80071add:	89 c1                	mov    %eax,%ecx
+/mn/src/drivers/fdc/fdc.c:552
+80071adf:	c7 01 00 02 00 00    	movl   $0x200,(%ecx)
+/mn/src/drivers/fdc/fdc.c:553
+80071ae5:	0f b6 53 24          	movzbl 0x24(%ebx),%edx
+80071ae9:	0f b6 43 23          	movzbl 0x23(%ebx),%eax
+80071aed:	0f af c2             	imul   %edx,%eax
+80071af0:	0f b6 53 25          	movzbl 0x25(%ebx),%edx
+80071af4:	0f af c2             	imul   %edx,%eax
+80071af7:	89 41 04             	mov    %eax,0x4(%ecx)
 /mn/src/drivers/fdc/fdc.c:555
-80071aef:	31 c0                	xor    %eax,%eax
-80071af1:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-80071af4:	5b                   	pop    %ebx
-80071af5:	5e                   	pop    %esi
-80071af6:	5f                   	pop    %edi
-80071af7:	89 ec                	mov    %ebp,%esp
-80071af9:	5d                   	pop    %ebp
-80071afa:	c3                   	ret    
+80071afa:	e8 75 04 00 00       	call   80071f74 <_MemUnmapTemp>
 /mn/src/drivers/fdc/fdc.c:556
-80071afb:	90                   	nop    
-
-80071afc <_FdcRemove>:
-FdcRemove():
-80071afc:	55                   	push   %ebp
-80071afd:	89 e5                	mov    %esp,%ebp
-80071aff:	83 ec 14             	sub    $0x14,%esp
-80071b02:	53                   	push   %ebx
+80071aff:	b8 01 00 00 00       	mov    $0x1,%eax
+80071b04:	eb 0b                	jmp    80071b11 <_FdcRequest+0x179>
+80071b06:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/fdc.c:559
-80071b03:	8b 5d 08             	mov    0x8(%ebp),%ebx
+80071b08:	c7 47 04 04 00 00 00 	movl   $0x4,0x4(%edi)
 /mn/src/drivers/fdc/fdc.c:560
-80071b06:	83 c4 f4             	add    $0xfffffff4,%esp
-80071b09:	8b 43 4c             	mov    0x4c(%ebx),%eax
-80071b0c:	50                   	push   %eax
-80071b0d:	e8 f2 03 00 00       	call   80071f04 <_MemFree>
-/mn/src/drivers/fdc/fdc.c:562
-80071b12:	83 c4 f4             	add    $0xfffffff4,%esp
-80071b15:	53                   	push   %ebx
-80071b16:	e8 09 04 00 00       	call   80071f24 <_free>
-80071b1b:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
-80071b1e:	89 ec                	mov    %ebp,%esp
-80071b20:	5d                   	pop    %ebp
-80071b21:	c3                   	ret    
-80071b22:	89 f6                	mov    %esi,%esi
+80071b0f:	31 c0                	xor    %eax,%eax
+80071b11:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80071b14:	5b                   	pop    %ebx
+80071b15:	5e                   	pop    %esi
+80071b16:	5f                   	pop    %edi
+80071b17:	89 ec                	mov    %ebp,%esp
+80071b19:	5d                   	pop    %ebp
+80071b1a:	c3                   	ret    
+/mn/src/drivers/fdc/fdc.c:561
+80071b1b:	90                   	nop    
 
-80071b24 <_fdc_vtbl>:
+80071b1c <_FdcRemove>:
+FdcRemove():
+80071b1c:	55                   	push   %ebp
+80071b1d:	89 e5                	mov    %esp,%ebp
+80071b1f:	83 ec 14             	sub    $0x14,%esp
+80071b22:	53                   	push   %ebx
+/mn/src/drivers/fdc/fdc.c:564
+80071b23:	8b 5d 08             	mov    0x8(%ebp),%ebx
+/mn/src/drivers/fdc/fdc.c:565
+80071b26:	83 c4 f4             	add    $0xfffffff4,%esp
+80071b29:	8b 43 4c             	mov    0x4c(%ebx),%eax
+80071b2c:	50                   	push   %eax
+80071b2d:	e8 12 04 00 00       	call   80071f44 <_MemFree>
+/mn/src/drivers/fdc/fdc.c:567
+80071b32:	83 c4 fc             	add    $0xfffffffc,%esp
+80071b35:	68 37 02 00 00       	push   $0x237
+80071b3a:	68 ab 11 07 80       	push   $0x800711ab
+80071b3f:	53                   	push   %ebx
+80071b40:	e8 27 04 00 00       	call   80071f6c <___free>
+80071b45:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
+80071b48:	89 ec                	mov    %ebp,%esp
+80071b4a:	5d                   	pop    %ebp
+80071b4b:	c3                   	ret    
+
+80071b4c <_fdc_vtbl>:
 fdc_vtbl():
-80071b24:	98                   	cwtl   
-80071b25:	19 07                	sbb    %eax,(%edi)
-80071b27:	80 9c 17 07 80 00 00 	sbbb   $0x0,0x8007(%edi,%edx,1)
-80071b2e:	00 
-80071b2f:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
-80071b35:	90                   	nop    
-80071b36:	90                   	nop    
-80071b37:	90                   	nop    
-80071b38:	90                   	nop    
-80071b39:	90                   	nop    
-80071b3a:	90                   	nop    
-80071b3b:	90                   	nop    
-80071b3c:	90                   	nop    
-80071b3d:	90                   	nop    
-80071b3e:	90                   	nop    
-80071b3f:	90                   	nop    
-80071b40:	66                   	data16
-80071b41:	00 64 00 63          	add    %ah,0x63(%eax,%eax,1)
-80071b45:	00 3a                	add    %bh,(%edx)
-80071b47:	00 20                	add    %ah,(%eax)
-80071b49:	00 72 00             	add    %dh,0x0(%edx)
-80071b4c:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
-80071b50:	61                   	popa   
-80071b51:	00 6c 00 69          	add    %ch,0x69(%eax,%eax,1)
-80071b55:	00 62 00             	add    %ah,0x0(%edx)
-80071b58:	72 00                	jb     80071b5a <_fdc_vtbl+0x36>
-80071b5a:	61                   	popa   
-80071b5b:	00 74 00 65          	add    %dh,0x65(%eax,%eax,1)
-80071b5f:	00 20                	add    %ah,(%eax)
-80071b61:	00 66 00             	add    %ah,0x0(%esi)
-80071b64:	61                   	popa   
-80071b65:	00 69 00             	add    %ch,0x0(%ecx)
-80071b68:	6c                   	insb   (%dx),%es:(%edi)
-80071b69:	00 65 00             	add    %ah,0x0(%ebp)
-80071b6c:	64 00 3a             	add    %bh,%fs:(%edx)
-80071b6f:	00 20                	add    %ah,(%eax)
-80071b71:	00 73 00             	add    %dh,0x0(%ebx)
-80071b74:	72 00                	jb     80071b76 <_fdc_vtbl+0x52>
-80071b76:	30 00                	xor    %al,(%eax)
-80071b78:	20 00                	and    %al,(%eax)
-80071b7a:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-80071b7f:	00 78 00             	add    %bh,0x0(%eax)
-80071b82:	0a 00                	or     (%eax),%al
-80071b84:	00 00                	add    %al,(%eax)
-80071b86:	89 f6                	mov    %esi,%esi
+80071b4c:	98                   	cwtl   
+80071b4d:	19 07                	sbb    %eax,(%edi)
+80071b4f:	80 9c 17 07 80 00 00 	sbbb   $0x0,0x8007(%edi,%edx,1)
+80071b56:	00 
+80071b57:	00 90 8d b4 26 00    	add    %dl,0x26b48d(%eax)
+80071b5d:	00 00                	add    %al,(%eax)
+80071b5f:	00 66 00             	add    %ah,0x0(%esi)
+80071b62:	64 00 63 00          	add    %ah,%fs:0x0(%ebx)
+80071b66:	3a 00                	cmp    (%eax),%al
+80071b68:	20 00                	and    %al,(%eax)
+80071b6a:	72 00                	jb     80071b6c <_fdc_vtbl+0x20>
+80071b6c:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
+80071b70:	61                   	popa   
+80071b71:	00 6c 00 69          	add    %ch,0x69(%eax,%eax,1)
+80071b75:	00 62 00             	add    %ah,0x0(%edx)
+80071b78:	72 00                	jb     80071b7a <_fdc_vtbl+0x2e>
+80071b7a:	61                   	popa   
+80071b7b:	00 74 00 65          	add    %dh,0x65(%eax,%eax,1)
+80071b7f:	00 20                	add    %ah,(%eax)
+80071b81:	00 66 00             	add    %ah,0x0(%esi)
+80071b84:	61                   	popa   
+80071b85:	00 69 00             	add    %ch,0x0(%ecx)
+80071b88:	6c                   	insb   (%dx),%es:(%edi)
+80071b89:	00 65 00             	add    %ah,0x0(%ebp)
+80071b8c:	64 00 3a             	add    %bh,%fs:(%edx)
+80071b8f:	00 20                	add    %ah,(%eax)
+80071b91:	00 73 00             	add    %dh,0x0(%ebx)
+80071b94:	72 00                	jb     80071b96 <_fdc_vtbl+0x4a>
+80071b96:	30 00                	xor    %al,(%eax)
+80071b98:	20 00                	and    %al,(%eax)
+80071b9a:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80071b9f:	00 78 00             	add    %bh,0x0(%eax)
+80071ba2:	0a 00                	or     (%eax),%al
+80071ba4:	00 00                	add    %al,(%eax)
+80071ba6:	89 f6                	mov    %esi,%esi
 
-80071b88 <_FdcAddDevice>:
+80071ba8 <_FdcAddDevice>:
 FdcAddDevice():
-80071b88:	55                   	push   %ebp
-80071b89:	89 e5                	mov    %esp,%ebp
-80071b8b:	83 ec 10             	sub    $0x10,%esp
-80071b8e:	57                   	push   %edi
-80071b8f:	53                   	push   %ebx
-/mn/src/drivers/fdc/fdc.c:577
-80071b90:	83 c4 f4             	add    $0xfffffff4,%esp
-80071b93:	6a 58                	push   $0x58
-80071b95:	e8 72 03 00 00       	call   80071f0c <_malloc>
-80071b9a:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fdc/fdc.c:578
-80071b9c:	83 c4 10             	add    $0x10,%esp
-80071b9f:	85 db                	test   %ebx,%ebx
-80071ba1:	0f 84 ac 01 00 00    	je     80071d53 <_FdcAddDevice+0x1cb>
-/mn/src/drivers/fdc/fdc.c:581
-80071ba7:	89 df                	mov    %ebx,%edi
-80071ba9:	31 c0                	xor    %eax,%eax
-80071bab:	fc                   	cld    
-80071bac:	b9 16 00 00 00       	mov    $0x16,%ecx
-80071bb1:	f3 ab                	repz stos %eax,%es:(%edi)
+80071ba8:	55                   	push   %ebp
+80071ba9:	89 e5                	mov    %esp,%ebp
+80071bab:	83 ec 10             	sub    $0x10,%esp
+80071bae:	57                   	push   %edi
+80071baf:	53                   	push   %ebx
 /mn/src/drivers/fdc/fdc.c:582
-80071bb3:	c7 43 14 24 1b 07 80 	movl   $0x80071b24,0x14(%ebx)
+80071bb0:	83 c4 fc             	add    $0xfffffffc,%esp
+80071bb3:	68 46 02 00 00       	push   $0x246
+80071bb8:	68 ab 11 07 80       	push   $0x800711ab
+80071bbd:	6a 58                	push   $0x58
+80071bbf:	e8 90 03 00 00       	call   80071f54 <___malloc>
+80071bc4:	89 c3                	mov    %eax,%ebx
 /mn/src/drivers/fdc/fdc.c:583
-80071bba:	66 c7 43 1c f0 03    	movw   $0x3f0,0x1c(%ebx)
-/mn/src/drivers/fdc/fdc.c:584
-80071bc0:	c6 43 1e 06          	movb   $0x6,0x1e(%ebx)
-/mn/src/drivers/fdc/fdc.c:585
-80071bc4:	c7 43 38 00 00 00 00 	movl   $0x0,0x38(%ebx)
+80071bc6:	83 c4 10             	add    $0x10,%esp
+80071bc9:	85 db                	test   %ebx,%ebx
+80071bcb:	0f 84 aa 01 00 00    	je     80071d7b <_FdcAddDevice+0x1d3>
 /mn/src/drivers/fdc/fdc.c:586
-80071bcb:	c7 43 50 ff ff ff ff 	movl   $0xffffffff,0x50(%ebx)
+80071bd1:	89 df                	mov    %ebx,%edi
+80071bd3:	31 c0                	xor    %eax,%eax
+80071bd5:	fc                   	cld    
+80071bd6:	b9 16 00 00 00       	mov    $0x16,%ecx
+80071bdb:	f3 ab                	repz stos %eax,%es:(%edi)
 /mn/src/drivers/fdc/fdc.c:587
-80071bd2:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
+80071bdd:	c7 43 18 4c 1b 07 80 	movl   $0x80071b4c,0x18(%ebx)
 /mn/src/drivers/fdc/fdc.c:588
-80071bd9:	c6 43 34 00          	movb   $0x0,0x34(%ebx)
+80071be4:	66 c7 43 20 f0 03    	movw   $0x3f0,0x20(%ebx)
+/mn/src/drivers/fdc/fdc.c:589
+80071bea:	c6 43 22 06          	movb   $0x6,0x22(%ebx)
 /mn/src/drivers/fdc/fdc.c:590
-80071bdd:	e8 c2 01 00 00       	call   80071da4 <_alloc_dma_buffer>
+80071bee:	c7 43 38 00 00 00 00 	movl   $0x0,0x38(%ebx)
 /mn/src/drivers/fdc/fdc.c:591
-80071be2:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/fdc/fdc.c:590
-80071be5:	89 43 4c             	mov    %eax,0x4c(%ebx)
-/mn/src/drivers/fdc/fdc.c:591
-80071be8:	68 00 10 00 00       	push   $0x1000
-80071bed:	e8 0a 03 00 00       	call   80071efc <_sbrk_virtual>
-80071bf2:	89 c2                	mov    %eax,%edx
-80071bf4:	89 53 48             	mov    %edx,0x48(%ebx)
+80071bf5:	c7 43 50 ff ff ff ff 	movl   $0xffffffff,0x50(%ebx)
 /mn/src/drivers/fdc/fdc.c:592
-80071bf7:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
-80071bfd:	6a 03                	push   $0x3
-80071bff:	50                   	push   %eax
-80071c00:	8b 43 4c             	mov    0x4c(%ebx),%eax
-80071c03:	50                   	push   %eax
-80071c04:	52                   	push   %edx
-80071c05:	e8 ea 02 00 00       	call   80071ef4 <_MemMap>
-/mn/src/drivers/fdc/fdc.c:607
-80071c0a:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/fdc/fdc.c:599
-80071c0d:	c6 43 1f 02          	movb   $0x2,0x1f(%ebx)
-/mn/src/drivers/fdc/fdc.c:600
-80071c11:	c6 43 20 50          	movb   $0x50,0x20(%ebx)
-/mn/src/drivers/fdc/fdc.c:607
-80071c15:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/fdc/fdc.c:601
-80071c18:	c6 43 21 12          	movb   $0x12,0x21(%ebx)
-/mn/src/drivers/fdc/fdc.c:602
-80071c1c:	c7 43 28 00 80 16 00 	movl   $0x168000,0x28(%ebx)
-80071c23:	c7 43 2c 00 00 00 00 	movl   $0x0,0x2c(%ebx)
-/mn/src/drivers/fdc/fdc.c:607
-80071c2a:	53                   	push   %ebx
-80071c2b:	6a 00                	push   $0x0
-80071c2d:	e8 ba 02 00 00       	call   80071eec <_DevRegisterIrq>
-/mn/src/drivers/fdc/fdc.c:608
-80071c32:	83 c4 f8             	add    $0xfffffff8,%esp
-80071c35:	53                   	push   %ebx
-80071c36:	0f b6 43 1e          	movzbl 0x1e(%ebx),%eax
-80071c3a:	50                   	push   %eax
-80071c3b:	e8 ac 02 00 00       	call   80071eec <_DevRegisterIrq>
-/mn/include/kernel/i386.h:344
-80071c40:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
-/mn/src/drivers/fdc/fdc.c:611
-80071c44:	c7 43 18 01 00 00 00 	movl   $0x1,0x18(%ebx)
+80071bfc:	c7 43 30 ff ff ff ff 	movl   $0xffffffff,0x30(%ebx)
+/mn/src/drivers/fdc/fdc.c:593
+80071c03:	c6 43 34 00          	movb   $0x0,0x34(%ebx)
+/mn/src/drivers/fdc/fdc.c:595
+80071c07:	e8 d8 01 00 00       	call   80071de4 <_alloc_dma_buffer>
+/mn/src/drivers/fdc/fdc.c:596
+80071c0c:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/fdc/fdc.c:595
+80071c0f:	89 43 4c             	mov    %eax,0x4c(%ebx)
+/mn/src/drivers/fdc/fdc.c:596
+80071c12:	68 00 10 00 00       	push   $0x1000
+80071c17:	e8 20 03 00 00       	call   80071f3c <_sbrk_virtual>
+80071c1c:	89 c2                	mov    %eax,%edx
+80071c1e:	89 53 48             	mov    %edx,0x48(%ebx)
+/mn/src/drivers/fdc/fdc.c:597
+80071c21:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
+80071c27:	6a 03                	push   $0x3
+80071c29:	50                   	push   %eax
+80071c2a:	8b 43 4c             	mov    0x4c(%ebx),%eax
+80071c2d:	50                   	push   %eax
+80071c2e:	52                   	push   %edx
+80071c2f:	e8 00 03 00 00       	call   80071f34 <_MemMap>
 /mn/src/drivers/fdc/fdc.c:612
-80071c4b:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
-/mn/include/kernel/i386.h:344
-80071c4f:	83 c2 02             	add    $0x2,%edx
-80071c52:	b0 00                	mov    $0x0,%al
-80071c54:	83 c4 20             	add    $0x20,%esp
-/mn/include/kernel/i386.h:345
-80071c57:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:344
-80071c58:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
-80071c5c:	b0 0c                	mov    $0xc,%al
-80071c5e:	83 c2 02             	add    $0x2,%edx
-/mn/include/kernel/i386.h:345
-80071c61:	ee                   	out    %al,(%dx)
-/mn/src/drivers/fdc/fdc.c:618
-80071c62:	0f b7 53 1c          	movzwl 0x1c(%ebx),%edx
-80071c66:	83 c2 04             	add    $0x4,%edx
-80071c69:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/include/kernel/i386.h:362
-80071c6c:	ec                   	in     (%dx),%al
-/mn/src/drivers/fdc/fdc.c:618
-80071c6d:	84 c0                	test   %al,%al
-80071c6f:	7d fb                	jge    80071c6c <_FdcAddDevice+0xe4>
-/mn/src/drivers/fdc/fdc.c:622
-80071c71:	83 c4 f8             	add    $0xfffffff8,%esp
-80071c74:	6a 03                	push   $0x3
-80071c76:	53                   	push   %ebx
-80071c77:	e8 84 f3 ff ff       	call   80071000 <_FdcSendByte>
+80071c34:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/fdc/fdc.c:604
+80071c37:	c6 43 23 02          	movb   $0x2,0x23(%ebx)
+/mn/src/drivers/fdc/fdc.c:605
+80071c3b:	c6 43 24 50          	movb   $0x50,0x24(%ebx)
+/mn/src/drivers/fdc/fdc.c:612
+80071c3f:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/fdc/fdc.c:606
+80071c42:	c6 43 25 12          	movb   $0x12,0x25(%ebx)
+/mn/src/drivers/fdc/fdc.c:607
+80071c46:	c7 43 28 00 80 16 00 	movl   $0x168000,0x28(%ebx)
+80071c4d:	c7 43 2c 00 00 00 00 	movl   $0x0,0x2c(%ebx)
+/mn/src/drivers/fdc/fdc.c:612
+80071c54:	53                   	push   %ebx
+80071c55:	6a 00                	push   $0x0
+80071c57:	e8 d0 02 00 00       	call   80071f2c <_DevRegisterIrq>
+/mn/src/drivers/fdc/fdc.c:613
+80071c5c:	83 c4 f8             	add    $0xfffffff8,%esp
+80071c5f:	53                   	push   %ebx
+80071c60:	0f b6 43 22          	movzbl 0x22(%ebx),%eax
+80071c64:	50                   	push   %eax
+80071c65:	e8 c2 02 00 00       	call   80071f2c <_DevRegisterIrq>
+/mn/include/kernel/i386.h:352
+80071c6a:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
+/mn/src/drivers/fdc/fdc.c:616
+80071c6e:	c7 43 1c 01 00 00 00 	movl   $0x1,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:617
+80071c75:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+/mn/include/kernel/i386.h:352
+80071c79:	83 c2 02             	add    $0x2,%edx
+80071c7c:	b0 00                	mov    $0x0,%al
+80071c7e:	83 c4 20             	add    $0x20,%esp
+/mn/include/kernel/i386.h:353
+80071c81:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:352
+80071c82:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
+80071c86:	b0 0c                	mov    $0xc,%al
+80071c88:	83 c2 02             	add    $0x2,%edx
+/mn/include/kernel/i386.h:353
+80071c8b:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:623
-80071c7c:	83 c4 f8             	add    $0xfffffff8,%esp
-80071c7f:	68 df 00 00 00       	push   $0xdf
-80071c84:	53                   	push   %ebx
-80071c85:	e8 76 f3 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:624
-80071c8a:	83 c4 20             	add    $0x20,%esp
-80071c8d:	83 c4 f8             	add    $0xfffffff8,%esp
-80071c90:	6a 02                	push   $0x2
-80071c92:	53                   	push   %ebx
-80071c93:	e8 68 f3 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:628
-80071c98:	83 c4 f4             	add    $0xfffffff4,%esp
+80071c8c:	0f b7 53 20          	movzwl 0x20(%ebx),%edx
+80071c90:	83 c2 04             	add    $0x4,%edx
+80071c93:	90                   	nop    
+/mn/include/kernel/i386.h:370
+80071c94:	ec                   	in     (%dx),%al
+/mn/src/drivers/fdc/fdc.c:623
+80071c95:	84 c0                	test   %al,%al
+80071c97:	7d fb                	jge    80071c94 <_FdcAddDevice+0xec>
 /mn/src/drivers/fdc/fdc.c:627
-80071c9b:	c7 43 18 01 00 00 00 	movl   $0x1,0x18(%ebx)
+80071c99:	83 c4 f8             	add    $0xfffffff8,%esp
+80071c9c:	6a 03                	push   $0x3
+80071c9e:	53                   	push   %ebx
+80071c9f:	e8 5c f3 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:628
-80071ca2:	53                   	push   %ebx
-80071ca3:	e8 6c f4 ff ff       	call   80071114 <_FdcMotorOn>
+80071ca4:	83 c4 f8             	add    $0xfffffff8,%esp
+80071ca7:	68 df 00 00 00       	push   $0xdf
+80071cac:	53                   	push   %ebx
+80071cad:	e8 4e f3 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:629
-80071ca8:	83 c4 20             	add    $0x20,%esp
-80071cab:	90                   	nop    
-80071cac:	8b 43 18             	mov    0x18(%ebx),%eax
-80071caf:	85 c0                	test   %eax,%eax
-80071cb1:	75 f9                	jne    80071cac <_FdcAddDevice+0x124>
-/mn/src/drivers/fdc/fdc.c:634
-80071cb3:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/fdc/fdc.c:632
-80071cb6:	c7 43 18 01 00 00 00 	movl   $0x1,0x18(%ebx)
+80071cb2:	83 c4 20             	add    $0x20,%esp
+80071cb5:	83 c4 f8             	add    $0xfffffff8,%esp
+80071cb8:	6a 02                	push   $0x2
+80071cba:	53                   	push   %ebx
+80071cbb:	e8 40 f3 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:633
-80071cbd:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+80071cc0:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/fdc/fdc.c:632
+80071cc3:	c7 43 1c 01 00 00 00 	movl   $0x1,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:633
+80071cca:	53                   	push   %ebx
+80071ccb:	e8 44 f4 ff ff       	call   80071114 <_FdcMotorOn>
 /mn/src/drivers/fdc/fdc.c:634
-80071cc1:	6a 0f                	push   $0xf
-80071cc3:	53                   	push   %ebx
-80071cc4:	e8 37 f3 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:635
-80071cc9:	83 c4 f8             	add    $0xfffffff8,%esp
-80071ccc:	6a 00                	push   $0x0
-80071cce:	53                   	push   %ebx
-80071ccf:	e8 2c f3 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:636
-80071cd4:	83 c4 20             	add    $0x20,%esp
-80071cd7:	83 c4 f8             	add    $0xfffffff8,%esp
-80071cda:	6a 01                	push   $0x1
-80071cdc:	53                   	push   %ebx
-80071cdd:	e8 1e f3 ff ff       	call   80071000 <_FdcSendByte>
+80071cd0:	83 c4 20             	add    $0x20,%esp
+80071cd3:	90                   	nop    
+80071cd4:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071cd7:	85 c0                	test   %eax,%eax
+80071cd9:	75 f9                	jne    80071cd4 <_FdcAddDevice+0x12c>
+/mn/src/drivers/fdc/fdc.c:639
+80071cdb:	83 c4 f8             	add    $0xfffffff8,%esp
 /mn/src/drivers/fdc/fdc.c:637
-80071ce2:	83 c4 10             	add    $0x10,%esp
-80071ce5:	8d 76 00             	lea    0x0(%esi),%esi
-80071ce8:	8b 43 18             	mov    0x18(%ebx),%eax
-80071ceb:	85 c0                	test   %eax,%eax
-80071ced:	75 f9                	jne    80071ce8 <_FdcAddDevice+0x160>
-/mn/src/drivers/fdc/fdc.c:642
-80071cef:	83 c4 f8             	add    $0xfffffff8,%esp
+80071cde:	c7 43 1c 01 00 00 00 	movl   $0x1,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:638
+80071ce5:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+/mn/src/drivers/fdc/fdc.c:639
+80071ce9:	6a 0f                	push   $0xf
+80071ceb:	53                   	push   %ebx
+80071cec:	e8 0f f3 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:640
-80071cf2:	c7 43 18 01 00 00 00 	movl   $0x1,0x18(%ebx)
+80071cf1:	83 c4 f8             	add    $0xfffffff8,%esp
+80071cf4:	6a 00                	push   $0x0
+80071cf6:	53                   	push   %ebx
+80071cf7:	e8 04 f3 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:641
-80071cf9:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+80071cfc:	83 c4 20             	add    $0x20,%esp
+80071cff:	83 c4 f8             	add    $0xfffffff8,%esp
+80071d02:	6a 01                	push   $0x1
+80071d04:	53                   	push   %ebx
+80071d05:	e8 f6 f2 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:642
-80071cfd:	6a 07                	push   $0x7
-80071cff:	53                   	push   %ebx
-80071d00:	e8 fb f2 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:643
-80071d05:	83 c4 f8             	add    $0xfffffff8,%esp
-80071d08:	6a 00                	push   $0x0
-80071d0a:	53                   	push   %ebx
-80071d0b:	e8 f0 f2 ff ff       	call   80071000 <_FdcSendByte>
-/mn/src/drivers/fdc/fdc.c:644
-80071d10:	83 c4 20             	add    $0x20,%esp
-80071d13:	90                   	nop    
-80071d14:	8b 43 18             	mov    0x18(%ebx),%eax
-80071d17:	85 c0                	test   %eax,%eax
-80071d19:	75 f9                	jne    80071d14 <_FdcAddDevice+0x18c>
+80071d0a:	83 c4 10             	add    $0x10,%esp
+80071d0d:	8d 76 00             	lea    0x0(%esi),%esi
+80071d10:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071d13:	85 c0                	test   %eax,%eax
+80071d15:	75 f9                	jne    80071d10 <_FdcAddDevice+0x168>
 /mn/src/drivers/fdc/fdc.c:647
-80071d1b:	f6 43 43 c0          	testb  $0xc0,0x43(%ebx)
-80071d1f:	75 17                	jne    80071d38 <_FdcAddDevice+0x1b0>
-/mn/src/drivers/fdc/fdc.c:654
-80071d21:	c7 43 50 00 00 00 00 	movl   $0x0,0x50(%ebx)
-/mn/src/drivers/fdc/fdc.c:655
-80071d28:	83 c4 f4             	add    $0xfffffff4,%esp
-80071d2b:	53                   	push   %ebx
-80071d2c:	e8 0b f4 ff ff       	call   8007113c <_FdcMotorOff>
-/mn/src/drivers/fdc/fdc.c:656
-80071d31:	89 d8                	mov    %ebx,%eax
-80071d33:	eb 20                	jmp    80071d55 <_FdcAddDevice+0x1cd>
-80071d35:	8d 76 00             	lea    0x0(%esi),%esi
+80071d17:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/fdc/fdc.c:645
+80071d1a:	c7 43 1c 01 00 00 00 	movl   $0x1,0x1c(%ebx)
+/mn/src/drivers/fdc/fdc.c:646
+80071d21:	c6 43 44 01          	movb   $0x1,0x44(%ebx)
+/mn/src/drivers/fdc/fdc.c:647
+80071d25:	6a 07                	push   $0x7
+80071d27:	53                   	push   %ebx
+80071d28:	e8 d3 f2 ff ff       	call   80071000 <_FdcSendByte>
+/mn/src/drivers/fdc/fdc.c:648
+80071d2d:	83 c4 f8             	add    $0xfffffff8,%esp
+80071d30:	6a 00                	push   $0x0
+80071d32:	53                   	push   %ebx
+80071d33:	e8 c8 f2 ff ff       	call   80071000 <_FdcSendByte>
 /mn/src/drivers/fdc/fdc.c:649
-80071d38:	83 c4 f8             	add    $0xfffffff8,%esp
-80071d3b:	0f b6 43 43          	movzbl 0x43(%ebx),%eax
-80071d3f:	50                   	push   %eax
-80071d40:	68 40 1b 07 80       	push   $0x80071b40
-80071d45:	e8 f2 01 00 00       	call   80071f3c <_wprintf>
-/mn/src/drivers/fdc/fdc.c:650
-80071d4a:	83 c4 f4             	add    $0xfffffff4,%esp
-80071d4d:	53                   	push   %ebx
-80071d4e:	e8 a9 fd ff ff       	call   80071afc <_FdcRemove>
-/mn/src/drivers/fdc/fdc.c:651
-80071d53:	31 c0                	xor    %eax,%eax
-80071d55:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-80071d58:	5b                   	pop    %ebx
-80071d59:	5f                   	pop    %edi
-80071d5a:	89 ec                	mov    %ebp,%esp
-80071d5c:	5d                   	pop    %ebp
-80071d5d:	c3                   	ret    
-/mn/src/drivers/fdc/fdc.c:657
-80071d5e:	89 f6                	mov    %esi,%esi
-
-80071d60 <_DrvInit>:
-DrvInit():
-80071d60:	55                   	push   %ebp
-80071d61:	89 e5                	mov    %esp,%ebp
+80071d38:	83 c4 20             	add    $0x20,%esp
+80071d3b:	90                   	nop    
+80071d3c:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071d3f:	85 c0                	test   %eax,%eax
+80071d41:	75 f9                	jne    80071d3c <_FdcAddDevice+0x194>
+/mn/src/drivers/fdc/fdc.c:652
+80071d43:	f6 43 43 c0          	testb  $0xc0,0x43(%ebx)
+80071d47:	75 17                	jne    80071d60 <_FdcAddDevice+0x1b8>
+/mn/src/drivers/fdc/fdc.c:659
+80071d49:	c7 43 50 00 00 00 00 	movl   $0x0,0x50(%ebx)
 /mn/src/drivers/fdc/fdc.c:660
-80071d63:	8b 45 08             	mov    0x8(%ebp),%eax
+80071d50:	83 c4 f4             	add    $0xfffffff4,%esp
+80071d53:	53                   	push   %ebx
+80071d54:	e8 e3 f3 ff ff       	call   8007113c <_FdcMotorOff>
 /mn/src/drivers/fdc/fdc.c:661
-80071d66:	c7 40 0c 88 1b 07 80 	movl   $0x80071b88,0xc(%eax)
-/mn/src/drivers/fdc/fdc.c:663
-80071d6d:	89 ec                	mov    %ebp,%esp
+80071d59:	89 d8                	mov    %ebx,%eax
+80071d5b:	eb 20                	jmp    80071d7d <_FdcAddDevice+0x1d5>
+80071d5d:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/fdc/fdc.c:654
+80071d60:	83 c4 f8             	add    $0xfffffff8,%esp
+80071d63:	0f b6 43 43          	movzbl 0x43(%ebx),%eax
+80071d67:	50                   	push   %eax
+80071d68:	68 60 1b 07 80       	push   $0x80071b60
+80071d6d:	e8 12 02 00 00       	call   80071f84 <_wprintf>
+/mn/src/drivers/fdc/fdc.c:655
+80071d72:	83 c4 f4             	add    $0xfffffff4,%esp
+80071d75:	53                   	push   %ebx
+80071d76:	e8 a1 fd ff ff       	call   80071b1c <_FdcRemove>
+/mn/src/drivers/fdc/fdc.c:656
+80071d7b:	31 c0                	xor    %eax,%eax
+80071d7d:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80071d80:	5b                   	pop    %ebx
+80071d81:	5f                   	pop    %edi
+80071d82:	89 ec                	mov    %ebp,%esp
+80071d84:	5d                   	pop    %ebp
+80071d85:	c3                   	ret    
 /mn/src/drivers/fdc/fdc.c:662
-80071d6f:	c7 40 10 00 00 00 00 	movl   $0x0,0x10(%eax)
-/mn/src/drivers/fdc/fdc.c:663
-80071d76:	b8 01 00 00 00       	mov    $0x1,%eax
-80071d7b:	5d                   	pop    %ebp
-80071d7c:	c3                   	ret    
-80071d7d:	8d 76 00             	lea    0x0(%esi),%esi
+80071d86:	89 f6                	mov    %esi,%esi
 
-80071d80 <.text>:
-80071d80:	75 74                	jne    80071df6 <_dma_xfer+0xe>
-80071d82:	69 6c 2e 63 00 70 68 	imul   $0x79687000,0x63(%esi,%ebp,1),%ebp
-80071d89:	79 
-80071d8a:	73 20                	jae    80071dac <_alloc_dma_buffer+0x8>
-80071d8c:	2b 20                	sub    (%eax),%esp
-80071d8e:	50                   	push   %eax
-80071d8f:	41                   	inc    %ecx
-80071d90:	47                   	inc    %edi
-80071d91:	45                   	inc    %ebp
-80071d92:	5f                   	pop    %edi
-80071d93:	53                   	push   %ebx
-80071d94:	49                   	dec    %ecx
-80071d95:	5a                   	pop    %edx
-80071d96:	45                   	inc    %ebp
-80071d97:	20 3c 20             	and    %bh,(%eax,1)
-80071d9a:	30 78 31             	xor    %bh,0x31(%eax)
-80071d9d:	30 30                	xor    %dh,(%eax)
-80071d9f:	30 30                	xor    %dh,(%eax)
-80071da1:	30 00                	xor    %al,(%eax)
-80071da3:	90                   	nop    
+80071d88 <_DrvInit>:
+DrvInit():
+80071d88:	55                   	push   %ebp
+80071d89:	89 e5                	mov    %esp,%ebp
+/mn/src/drivers/fdc/fdc.c:665
+80071d8b:	8b 45 08             	mov    0x8(%ebp),%eax
+/mn/src/drivers/fdc/fdc.c:666
+80071d8e:	c7 40 0c a8 1b 07 80 	movl   $0x80071ba8,0xc(%eax)
+/mn/src/drivers/fdc/fdc.c:668
+80071d95:	89 ec                	mov    %ebp,%esp
+/mn/src/drivers/fdc/fdc.c:667
+80071d97:	c7 40 10 00 00 00 00 	movl   $0x0,0x10(%eax)
+/mn/src/drivers/fdc/fdc.c:668
+80071d9e:	b8 01 00 00 00       	mov    $0x1,%eax
+80071da3:	5d                   	pop    %ebp
+80071da4:	c3                   	ret    
+80071da5:	90                   	nop    
+80071da6:	90                   	nop    
+80071da7:	90                   	nop    
+80071da8:	90                   	nop    
+80071da9:	90                   	nop    
+80071daa:	90                   	nop    
+80071dab:	90                   	nop    
+80071dac:	90                   	nop    
+80071dad:	90                   	nop    
+80071dae:	90                   	nop    
+80071daf:	90                   	nop    
+80071db0:	90                   	nop    
+80071db1:	90                   	nop    
+80071db2:	90                   	nop    
+80071db3:	90                   	nop    
+80071db4:	90                   	nop    
+80071db5:	90                   	nop    
+80071db6:	90                   	nop    
+80071db7:	90                   	nop    
+80071db8:	90                   	nop    
+80071db9:	90                   	nop    
+80071dba:	90                   	nop    
+80071dbb:	90                   	nop    
+80071dbc:	90                   	nop    
+80071dbd:	90                   	nop    
+80071dbe:	90                   	nop    
+80071dbf:	90                   	nop    
 
-80071da4 <_alloc_dma_buffer>:
+80071dc0 <.text>:
+80071dc0:	75 74                	jne    80071e36 <_dma_xfer+0xe>
+80071dc2:	69 6c 2e 63 00 70 68 	imul   $0x79687000,0x63(%esi,%ebp,1),%ebp
+80071dc9:	79 
+80071dca:	73 20                	jae    80071dec <_alloc_dma_buffer+0x8>
+80071dcc:	2b 20                	sub    (%eax),%esp
+80071dce:	50                   	push   %eax
+80071dcf:	41                   	inc    %ecx
+80071dd0:	47                   	inc    %edi
+80071dd1:	45                   	inc    %ebp
+80071dd2:	5f                   	pop    %edi
+80071dd3:	53                   	push   %ebx
+80071dd4:	49                   	dec    %ecx
+80071dd5:	5a                   	pop    %edx
+80071dd6:	45                   	inc    %ebp
+80071dd7:	20 3c 20             	and    %bh,(%eax,1)
+80071dda:	30 78 31             	xor    %bh,0x31(%eax)
+80071ddd:	30 30                	xor    %dh,(%eax)
+80071ddf:	30 30                	xor    %dh,(%eax)
+80071de1:	30 00                	xor    %al,(%eax)
+80071de3:	90                   	nop    
+
+80071de4 <_alloc_dma_buffer>:
 alloc_dma_buffer():
-80071da4:	55                   	push   %ebp
-80071da5:	89 e5                	mov    %esp,%ebp
-80071da7:	83 ec 08             	sub    $0x8,%esp
+80071de4:	55                   	push   %ebp
+80071de5:	89 e5                	mov    %esp,%ebp
+80071de7:	83 ec 08             	sub    $0x8,%esp
 /mn/src/drivers/fdc/util.c:59
-80071daa:	e8 bd 01 00 00       	call   80071f6c <_MemAllocLow>
-80071daf:	89 c2                	mov    %eax,%edx
+80071dea:	e8 c5 01 00 00       	call   80071fb4 <_MemAllocLow>
+80071def:	89 c2                	mov    %eax,%edx
 /mn/src/drivers/fdc/util.c:60
-80071db1:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
-80071db7:	3d ff ff 0f 00       	cmp    $0xfffff,%eax
-80071dbc:	76 16                	jbe    80071dd4 <_alloc_dma_buffer+0x30>
-80071dbe:	83 c4 fc             	add    $0xfffffffc,%esp
-80071dc1:	6a 3c                	push   $0x3c
-80071dc3:	68 80 1d 07 80       	push   $0x80071d80
-80071dc8:	68 87 1d 07 80       	push   $0x80071d87
-80071dcd:	e8 72 01 00 00       	call   80071f44 <___dj_assert>
-80071dd2:	89 f6                	mov    %esi,%esi
+80071df1:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
+80071df7:	3d ff ff 0f 00       	cmp    $0xfffff,%eax
+80071dfc:	76 16                	jbe    80071e14 <_alloc_dma_buffer+0x30>
+80071dfe:	83 c4 fc             	add    $0xfffffffc,%esp
+80071e01:	6a 3c                	push   $0x3c
+80071e03:	68 c0 1d 07 80       	push   $0x80071dc0
+80071e08:	68 c7 1d 07 80       	push   $0x80071dc7
+80071e0d:	e8 7a 01 00 00       	call   80071f8c <___dj_assert>
+80071e12:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/util.c:62
-80071dd4:	89 ec                	mov    %ebp,%esp
-80071dd6:	89 d0                	mov    %edx,%eax
-80071dd8:	5d                   	pop    %ebp
-80071dd9:	c3                   	ret    
+80071e14:	89 ec                	mov    %ebp,%esp
+80071e16:	89 d0                	mov    %edx,%eax
+80071e18:	5d                   	pop    %ebp
+80071e19:	c3                   	ret    
 /mn/src/drivers/fdc/util.c:63
-80071dda:	63 68 61             	arpl   %bp,0x61(%eax)
-80071ddd:	6e                   	outsb  %ds:(%esi),(%dx)
-80071dde:	6e                   	outsb  %ds:(%esi),(%dx)
-80071ddf:	65                   	gs
-80071de0:	6c                   	insb   (%dx),%es:(%edi)
-80071de1:	20 3c 20             	and    %bh,(%eax,1)
-80071de4:	34 00                	xor    $0x0,%al
-80071de6:	89 f6                	mov    %esi,%esi
+80071e1a:	63 68 61             	arpl   %bp,0x61(%eax)
+80071e1d:	6e                   	outsb  %ds:(%esi),(%dx)
+80071e1e:	6e                   	outsb  %ds:(%esi),(%dx)
+80071e1f:	65                   	gs
+80071e20:	6c                   	insb   (%dx),%es:(%edi)
+80071e21:	20 3c 20             	and    %bh,(%eax,1)
+80071e24:	34 00                	xor    $0x0,%al
+80071e26:	89 f6                	mov    %esi,%esi
 
-80071de8 <_dma_xfer>:
+80071e28 <_dma_xfer>:
 dma_xfer():
-80071de8:	55                   	push   %ebp
-80071de9:	89 e5                	mov    %esp,%ebp
-80071deb:	83 ec 2c             	sub    $0x2c,%esp
-80071dee:	57                   	push   %edi
-80071def:	56                   	push   %esi
-80071df0:	53                   	push   %ebx
+80071e28:	55                   	push   %ebp
+80071e29:	89 e5                	mov    %esp,%ebp
+80071e2b:	83 ec 2c             	sub    $0x2c,%esp
+80071e2e:	57                   	push   %edi
+80071e2f:	56                   	push   %esi
+80071e30:	53                   	push   %ebx
 /mn/src/drivers/fdc/util.c:72
-80071df1:	8a 45 14             	mov    0x14(%ebp),%al
-80071df4:	8b 5d 08             	mov    0x8(%ebp),%ebx
-80071df7:	88 45 ff             	mov    %al,0xffffffff(%ebp)
-80071dfa:	8b 75 0c             	mov    0xc(%ebp),%esi
+80071e31:	8a 45 14             	mov    0x14(%ebp),%al
+80071e34:	8b 5d 08             	mov    0x8(%ebp),%ebx
+80071e37:	88 45 ff             	mov    %al,0xffffffff(%ebp)
+80071e3a:	8b 75 0c             	mov    0xc(%ebp),%esi
 /mn/src/drivers/fdc/util.c:75
-80071dfd:	83 fb 03             	cmp    $0x3,%ebx
-80071e00:	76 16                	jbe    80071e18 <_dma_xfer+0x30>
-80071e02:	83 c4 fc             	add    $0xfffffffc,%esp
-80071e05:	6a 4b                	push   $0x4b
-80071e07:	68 80 1d 07 80       	push   $0x80071d80
-80071e0c:	68 da 1d 07 80       	push   $0x80071dda
-80071e11:	e8 2e 01 00 00       	call   80071f44 <___dj_assert>
-80071e16:	89 f6                	mov    %esi,%esi
+80071e3d:	83 fb 03             	cmp    $0x3,%ebx
+80071e40:	76 16                	jbe    80071e58 <_dma_xfer+0x30>
+80071e42:	83 c4 fc             	add    $0xfffffffc,%esp
+80071e45:	6a 4b                	push   $0x4b
+80071e47:	68 c0 1d 07 80       	push   $0x80071dc0
+80071e4c:	68 1a 1e 07 80       	push   $0x80071e1a
+80071e51:	e8 36 01 00 00       	call   80071f8c <___dj_assert>
+80071e56:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fdc/util.c:77
-80071e18:	89 d8                	mov    %ebx,%eax
-80071e1a:	83 c4 f4             	add    $0xfffffff4,%esp
-80071e1d:	c1 e0 04             	shl    $0x4,%eax
+80071e58:	89 d8                	mov    %ebx,%eax
+80071e5a:	83 c4 f4             	add    $0xfffffff4,%esp
+80071e5d:	c1 e0 04             	shl    $0x4,%eax
 /mn/src/drivers/fdc/util.c:80
-80071e20:	89 f7                	mov    %esi,%edi
+80071e60:	89 f7                	mov    %esi,%edi
 /mn/src/drivers/fdc/util.c:77
-80071e22:	05 04 20 07 80       	add    $0x80072004,%eax
+80071e62:	05 04 20 07 80       	add    $0x80072004,%eax
 /mn/src/drivers/fdc/util.c:80
-80071e27:	0f b7 ff             	movzwl %di,%edi
+80071e67:	0f b7 ff             	movzwl %di,%edi
 /mn/src/drivers/fdc/util.c:77
-80071e2a:	50                   	push   %eax
-80071e2b:	e8 34 01 00 00       	call   80071f64 <_SemAcquire>
+80071e6a:	50                   	push   %eax
+80071e6b:	e8 3c 01 00 00       	call   80071fac <_SemAcquire>
 /mn/src/drivers/fdc/util.c:79
-80071e30:	89 f1                	mov    %esi,%ecx
-/mn/include/kernel/i386.h:344
-80071e32:	88 d8                	mov    %bl,%al
+80071e70:	89 f1                	mov    %esi,%ecx
+/mn/include/kernel/i386.h:352
+80071e72:	88 d8                	mov    %bl,%al
 /mn/src/drivers/fdc/util.c:79
-80071e34:	c1 e9 10             	shr    $0x10,%ecx
+80071e74:	c1 e9 10             	shr    $0x10,%ecx
 /mn/src/drivers/fdc/util.c:81
-80071e37:	ff 4d 10             	decl   0x10(%ebp)
-/mn/include/kernel/i386.h:344
-80071e3a:	ba 0a 00 00 00       	mov    $0xa,%edx
-80071e3f:	0c 04                	or     $0x4,%al
-80071e41:	83 c4 10             	add    $0x10,%esp
-/mn/include/kernel/i386.h:345
-80071e44:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:344
-80071e45:	ba 0c 00 00 00       	mov    $0xc,%edx
-80071e4a:	b0 00                	mov    $0x0,%al
-/mn/include/kernel/i386.h:345
-80071e4c:	ee                   	out    %al,(%dx)
+80071e77:	ff 4d 10             	decl   0x10(%ebp)
+/mn/include/kernel/i386.h:352
+80071e7a:	ba 0a 00 00 00       	mov    $0xa,%edx
+80071e7f:	0c 04                	or     $0x4,%al
+80071e81:	83 c4 10             	add    $0x10,%esp
+/mn/include/kernel/i386.h:353
+80071e84:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:352
+80071e85:	ba 0c 00 00 00       	mov    $0xc,%edx
+80071e8a:	b0 00                	mov    $0x0,%al
+/mn/include/kernel/i386.h:353
+80071e8c:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:92
-80071e4d:	8d 53 44             	lea    0x44(%ebx),%edx
-80071e50:	89 5d e8             	mov    %ebx,0xffffffe8(%ebp)
-80071e53:	88 55 ef             	mov    %dl,0xffffffef(%ebp)
-80071e56:	c1 65 e8 04          	shll   $0x4,0xffffffe8(%ebp)
-80071e5a:	80 7d ff 00          	cmpb   $0x0,0xffffffff(%ebp)
-80071e5e:	74 06                	je     80071e66 <_dma_xfer+0x7e>
-80071e60:	8d 43 48             	lea    0x48(%ebx),%eax
-80071e63:	88 45 ef             	mov    %al,0xffffffef(%ebp)
-/mn/include/kernel/i386.h:344
-80071e66:	be 0b 00 00 00       	mov    $0xb,%esi
-/mn/include/kernel/i386.h:345
-80071e6b:	8a 45 ef             	mov    0xffffffef(%ebp),%al
-80071e6e:	89 f2                	mov    %esi,%edx
-80071e70:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:344
-80071e71:	8b 45 e8             	mov    0xffffffe8(%ebp),%eax
-80071e74:	66 0f b6 90 00 20 07 	movzbw 0x80072000(%eax),%dx
-80071e7b:	80 
-/mn/include/kernel/i386.h:345
-80071e7c:	88 c8                	mov    %cl,%al
-80071e7e:	ee                   	out    %al,(%dx)
+80071e8d:	8d 53 44             	lea    0x44(%ebx),%edx
+80071e90:	89 5d e8             	mov    %ebx,0xffffffe8(%ebp)
+80071e93:	88 55 ef             	mov    %dl,0xffffffef(%ebp)
+80071e96:	c1 65 e8 04          	shll   $0x4,0xffffffe8(%ebp)
+80071e9a:	80 7d ff 00          	cmpb   $0x0,0xffffffff(%ebp)
+80071e9e:	74 06                	je     80071ea6 <_dma_xfer+0x7e>
+80071ea0:	8d 43 48             	lea    0x48(%ebx),%eax
+80071ea3:	88 45 ef             	mov    %al,0xffffffef(%ebp)
+/mn/include/kernel/i386.h:352
+80071ea6:	be 0b 00 00 00       	mov    $0xb,%esi
+/mn/include/kernel/i386.h:353
+80071eab:	8a 45 ef             	mov    0xffffffef(%ebp),%al
+80071eae:	89 f2                	mov    %esi,%edx
+80071eb0:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:352
+80071eb1:	8b 45 e8             	mov    0xffffffe8(%ebp),%eax
+80071eb4:	66 0f b6 90 00 20 07 	movzbw 0x80072000(%eax),%dx
+80071ebb:	80 
+/mn/include/kernel/i386.h:353
+80071ebc:	88 c8                	mov    %cl,%al
+80071ebe:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:98
-80071e7f:	89 d8                	mov    %ebx,%eax
-80071e81:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:344
-80071e84:	66 0f b6 90 01 20 07 	movzbw 0x80072001(%eax),%dx
-80071e8b:	80 
-/mn/include/kernel/i386.h:345
-80071e8c:	89 f8                	mov    %edi,%eax
-80071e8e:	ee                   	out    %al,(%dx)
+80071ebf:	89 d8                	mov    %ebx,%eax
+80071ec1:	c1 e0 04             	shl    $0x4,%eax
+/mn/include/kernel/i386.h:352
+80071ec4:	66 0f b6 90 01 20 07 	movzbw 0x80072001(%eax),%dx
+80071ecb:	80 
+/mn/include/kernel/i386.h:353
+80071ecc:	89 f8                	mov    %edi,%eax
+80071ece:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:99
-80071e8f:	89 d8                	mov    %ebx,%eax
-/mn/include/kernel/i386.h:344
-80071e91:	c1 ef 08             	shr    $0x8,%edi
+80071ecf:	89 d8                	mov    %ebx,%eax
+/mn/include/kernel/i386.h:352
+80071ed1:	c1 ef 08             	shr    $0x8,%edi
 /mn/src/drivers/fdc/util.c:99
-80071e94:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:344
-80071e97:	66 0f b6 90 01 20 07 	movzbw 0x80072001(%eax),%dx
-80071e9e:	80 
-/mn/include/kernel/i386.h:345
-80071e9f:	89 f8                	mov    %edi,%eax
-80071ea1:	ee                   	out    %al,(%dx)
+80071ed4:	c1 e0 04             	shl    $0x4,%eax
+/mn/include/kernel/i386.h:352
+80071ed7:	66 0f b6 90 01 20 07 	movzbw 0x80072001(%eax),%dx
+80071ede:	80 
+/mn/include/kernel/i386.h:353
+80071edf:	89 f8                	mov    %edi,%eax
+80071ee1:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:102
-80071ea2:	89 d8                	mov    %ebx,%eax
-80071ea4:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:344
-80071ea7:	66 0f b6 90 02 20 07 	movzbw 0x80072002(%eax),%dx
-80071eae:	80 
-/mn/include/kernel/i386.h:345
-80071eaf:	8a 45 10             	mov    0x10(%ebp),%al
-80071eb2:	ee                   	out    %al,(%dx)
+80071ee2:	89 d8                	mov    %ebx,%eax
+80071ee4:	c1 e0 04             	shl    $0x4,%eax
+/mn/include/kernel/i386.h:352
+80071ee7:	66 0f b6 90 02 20 07 	movzbw 0x80072002(%eax),%dx
+80071eee:	80 
+/mn/include/kernel/i386.h:353
+80071eef:	8a 45 10             	mov    0x10(%ebp),%al
+80071ef2:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:103
-80071eb3:	89 d8                	mov    %ebx,%eax
-80071eb5:	c1 e0 04             	shl    $0x4,%eax
-/mn/include/kernel/i386.h:344
-80071eb8:	66 0f b6 90 02 20 07 	movzbw 0x80072002(%eax),%dx
-80071ebf:	80 
-80071ec0:	c1 6d 10 08          	shrl   $0x8,0x10(%ebp)
-/mn/include/kernel/i386.h:345
-80071ec4:	8a 45 10             	mov    0x10(%ebp),%al
-80071ec7:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:344
-80071ec8:	ba 0a 00 00 00       	mov    $0xa,%edx
-/mn/include/kernel/i386.h:345
-80071ecd:	88 d8                	mov    %bl,%al
-80071ecf:	ee                   	out    %al,(%dx)
+80071ef3:	89 d8                	mov    %ebx,%eax
+80071ef5:	c1 e0 04             	shl    $0x4,%eax
+/mn/include/kernel/i386.h:352
+80071ef8:	66 0f b6 90 02 20 07 	movzbw 0x80072002(%eax),%dx
+80071eff:	80 
+80071f00:	c1 6d 10 08          	shrl   $0x8,0x10(%ebp)
+/mn/include/kernel/i386.h:353
+80071f04:	8a 45 10             	mov    0x10(%ebp),%al
+80071f07:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:352
+80071f08:	ba 0a 00 00 00       	mov    $0xa,%edx
+/mn/include/kernel/i386.h:353
+80071f0d:	88 d8                	mov    %bl,%al
+80071f0f:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/util.c:109
-80071ed0:	c1 e3 04             	shl    $0x4,%ebx
-80071ed3:	83 c4 f4             	add    $0xfffffff4,%esp
-80071ed6:	8d 83 04 20 07 80    	lea    0x80072004(%ebx),%eax
-80071edc:	50                   	push   %eax
-80071edd:	e8 7a 00 00 00       	call   80071f5c <_SemRelease>
-80071ee2:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
-80071ee5:	5b                   	pop    %ebx
-80071ee6:	5e                   	pop    %esi
-80071ee7:	5f                   	pop    %edi
-80071ee8:	89 ec                	mov    %ebp,%esp
-80071eea:	5d                   	pop    %ebp
-80071eeb:	c3                   	ret    
+80071f10:	c1 e3 04             	shl    $0x4,%ebx
+80071f13:	83 c4 f4             	add    $0xfffffff4,%esp
+80071f16:	8d 83 04 20 07 80    	lea    0x80072004(%ebx),%eax
+80071f1c:	50                   	push   %eax
+80071f1d:	e8 82 00 00 00       	call   80071fa4 <_SemRelease>
+80071f22:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
+80071f25:	5b                   	pop    %ebx
+80071f26:	5e                   	pop    %esi
+80071f27:	5f                   	pop    %edi
+80071f28:	89 ec                	mov    %ebp,%esp
+80071f2a:	5d                   	pop    %ebp
+80071f2b:	c3                   	ret    
 
-80071eec <_DevRegisterIrq>:
+80071f2c <_DevRegisterIrq>:
 /mn/src/drivers/fdc/util.c:110
-80071eec:	ff 25 84 30 07 80    	jmp    *0x80073084
-80071ef2:	90                   	nop    
-80071ef3:	90                   	nop    
-
-80071ef4 <_MemMap>:
-80071ef4:	ff 25 90 30 07 80    	jmp    *0x80073090
-80071efa:	90                   	nop    
-80071efb:	90                   	nop    
-
-80071efc <_sbrk_virtual>:
-80071efc:	ff 25 b4 30 07 80    	jmp    *0x800730b4
-80071f02:	90                   	nop    
-80071f03:	90                   	nop    
-
-80071f04 <_MemFree>:
-80071f04:	ff 25 8c 30 07 80    	jmp    *0x8007308c
-80071f0a:	90                   	nop    
-80071f0b:	90                   	nop    
-
-80071f0c <_malloc>:
-80071f0c:	ff 25 b0 30 07 80    	jmp    *0x800730b0
-80071f12:	90                   	nop    
-80071f13:	90                   	nop    
-
-80071f14 <_DevQueueRequest>:
-80071f14:	ff 25 80 30 07 80    	jmp    *0x80073080
-80071f1a:	90                   	nop    
-80071f1b:	90                   	nop    
-
-80071f1c <_DevFinishIo>:
-80071f1c:	ff 25 78 30 07 80    	jmp    *0x80073078
-80071f22:	90                   	nop    
-80071f23:	90                   	nop    
-
-80071f24 <_free>:
-80071f24:	ff 25 ac 30 07 80    	jmp    *0x800730ac
-80071f2a:	90                   	nop    
-80071f2b:	90                   	nop    
-
-80071f2c <_MemUnmapTemp>:
-80071f2c:	ff 25 98 30 07 80    	jmp    *0x80073098
+80071f2c:	ff 25 88 30 07 80    	jmp    *0x80073088
 80071f32:	90                   	nop    
 80071f33:	90                   	nop    
 
-80071f34 <_DevMapBuffer>:
-80071f34:	ff 25 7c 30 07 80    	jmp    *0x8007307c
+80071f34 <_MemMap>:
+80071f34:	ff 25 94 30 07 80    	jmp    *0x80073094
 80071f3a:	90                   	nop    
 80071f3b:	90                   	nop    
 
-80071f3c <_wprintf>:
-80071f3c:	ff 25 b8 30 07 80    	jmp    *0x800730b8
+80071f3c <_sbrk_virtual>:
+80071f3c:	ff 25 bc 30 07 80    	jmp    *0x800730bc
 80071f42:	90                   	nop    
 80071f43:	90                   	nop    
 
-80071f44 <___dj_assert>:
-80071f44:	ff 25 a8 30 07 80    	jmp    *0x800730a8
+80071f44 <_MemFree>:
+80071f44:	ff 25 90 30 07 80    	jmp    *0x80073090
 80071f4a:	90                   	nop    
 80071f4b:	90                   	nop    
 
-80071f4c <_MemTranslate>:
-80071f4c:	ff 25 94 30 07 80    	jmp    *0x80073094
+80071f4c <_MemMapPageArray>:
+80071f4c:	ff 25 98 30 07 80    	jmp    *0x80073098
 80071f52:	90                   	nop    
 80071f53:	90                   	nop    
 
-80071f54 <_SysUpTime>:
-80071f54:	ff 25 a4 30 07 80    	jmp    *0x800730a4
+80071f54 <___malloc>:
+80071f54:	ff 25 b8 30 07 80    	jmp    *0x800730b8
 80071f5a:	90                   	nop    
 80071f5b:	90                   	nop    
 
-80071f5c <_SemRelease>:
-80071f5c:	ff 25 a0 30 07 80    	jmp    *0x800730a0
+80071f5c <_DevQueueRequest>:
+80071f5c:	ff 25 84 30 07 80    	jmp    *0x80073084
 80071f62:	90                   	nop    
 80071f63:	90                   	nop    
 
-80071f64 <_SemAcquire>:
-80071f64:	ff 25 9c 30 07 80    	jmp    *0x8007309c
+80071f64 <_DevFinishIo>:
+80071f64:	ff 25 7c 30 07 80    	jmp    *0x8007307c
 80071f6a:	90                   	nop    
 80071f6b:	90                   	nop    
 
-80071f6c <_MemAllocLow>:
-80071f6c:	ff 25 88 30 07 80    	jmp    *0x80073088
+80071f6c <___free>:
+80071f6c:	ff 25 b4 30 07 80    	jmp    *0x800730b4
 80071f72:	90                   	nop    
 80071f73:	90                   	nop    
 
-80071f74 <__CTOR_LIST__>:
-80071f74:	ff                   	(bad)  
-80071f75:	ff                   	(bad)  
-80071f76:	ff                   	(bad)  
-80071f77:	ff 00                	incl   (%eax)
-80071f79:	00 00                	add    %al,(%eax)
+80071f74 <_MemUnmapTemp>:
+80071f74:	ff 25 a0 30 07 80    	jmp    *0x800730a0
+80071f7a:	90                   	nop    
+80071f7b:	90                   	nop    
+
+80071f7c <_DevMapBuffer>:
+80071f7c:	ff 25 80 30 07 80    	jmp    *0x80073080
+80071f82:	90                   	nop    
+80071f83:	90                   	nop    
+
+80071f84 <_wprintf>:
+80071f84:	ff 25 c0 30 07 80    	jmp    *0x800730c0
+80071f8a:	90                   	nop    
+80071f8b:	90                   	nop    
+
+80071f8c <___dj_assert>:
+80071f8c:	ff 25 b0 30 07 80    	jmp    *0x800730b0
+80071f92:	90                   	nop    
+80071f93:	90                   	nop    
+
+80071f94 <_MemTranslate>:
+80071f94:	ff 25 9c 30 07 80    	jmp    *0x8007309c
+80071f9a:	90                   	nop    
+80071f9b:	90                   	nop    
+
+80071f9c <_SysUpTime>:
+80071f9c:	ff 25 ac 30 07 80    	jmp    *0x800730ac
+80071fa2:	90                   	nop    
+80071fa3:	90                   	nop    
+
+80071fa4 <_SemRelease>:
+80071fa4:	ff 25 a8 30 07 80    	jmp    *0x800730a8
+80071faa:	90                   	nop    
+80071fab:	90                   	nop    
+
+80071fac <_SemAcquire>:
+80071fac:	ff 25 a4 30 07 80    	jmp    *0x800730a4
+80071fb2:	90                   	nop    
+80071fb3:	90                   	nop    
+
+80071fb4 <_MemAllocLow>:
+80071fb4:	ff 25 8c 30 07 80    	jmp    *0x8007308c
+80071fba:	90                   	nop    
+80071fbb:	90                   	nop    
+
+80071fbc <__CTOR_LIST__>:
+80071fbc:	ff                   	(bad)  
+80071fbd:	ff                   	(bad)  
+80071fbe:	ff                   	(bad)  
+80071fbf:	ff 00                	incl   (%eax)
+80071fc1:	00 00                	add    %al,(%eax)
 	...
 
-80071f7c <__DTOR_LIST__>:
-80071f7c:	ff                   	(bad)  
-80071f7d:	ff                   	(bad)  
-80071f7e:	ff                   	(bad)  
-80071f7f:	ff 00                	incl   (%eax)
-80071f81:	00 00                	add    %al,(%eax)
+80071fc4 <__DTOR_LIST__>:
+80071fc4:	ff                   	(bad)  
+80071fc5:	ff                   	(bad)  
+80071fc6:	ff                   	(bad)  
+80071fc7:	ff 00                	incl   (%eax)
+80071fc9:	00 00                	add    %al,(%eax)
 	...
 
-80071f84 <etext>:
+80071fcc <etext>:
 	...

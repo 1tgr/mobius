@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.4 2002/03/06 01:39:43 pavlovskii Exp $ */
+/* $Id: line.c,v 1.5 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -47,9 +47,13 @@ shell_line_t *ShReadLine(void)
     read = wcslen(line->text);
     allocd = (read + 15) & -16;
     fflush(stdout);
-    
-    while ((ch = ConReadKey()) != (uint32_t) -1)
+
+    while (true)
     {
+        ch = ConReadKey();
+        if ((ch == (uint32_t) -1) || (ch & KBD_BUCKY_RELEASE))
+            continue;
+
 	switch (ch)
 	{
 	case KEY_UP:
@@ -89,7 +93,7 @@ shell_line_t *ShReadLine(void)
 
 	    _cputs("\n", 1);
 	    fflush(stdout);
-	    return line;
+            return line;
 	    
 	case '\b':
 	    if (read > 0)

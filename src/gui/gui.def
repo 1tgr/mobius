@@ -108,10 +108,14 @@ EXPORTS
     HitTest__Q22os5Frameii
     OnBlur__Q22os5Frame
     OnFocus__Q22os5Frame
+    OnHitBegin__Q22os5FrameQ32os5Frame11FrameRegionii
+    OnHitEnd__Q22os5FrameQ32os5Frame11FrameRegionii
+    OnHitMiddle__Q22os5FrameQ32os5Frame11FrameRegionii
     OnMouseDown__Q22os5FrameUlii
     OnMouseMove__Q22os5FrameUlii
     OnMouseUp__Q22os5FrameUlii
     OnPaint__Q22os5Frame
+    OnSize__Q22os5FrameRC7MGLrect
     _$_Q22os5Frame
     _$_Q22os9Container
     _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
@@ -124,6 +128,7 @@ EXPORTS
     __8MGLpointii
     __Q22os5FramePCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
+    __ne__H1ZQ32os5Frame11FrameRegion_RCX01T0_b
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
     deallocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Pt10_List_node1ZQ32os9Container9ViewTupleUi
     deallocate__t23__malloc_alloc_template1i0PvUi
@@ -138,6 +143,7 @@ EXPORTS
     __Q22os5LabelPQ22os6WindowPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    OnClose__Q22os10MessageBox
     OnKeyDown__Q22os10MessageBoxUl
     _$_Q22os10MessageBox
     _$_Q22os5Frame
@@ -177,6 +183,7 @@ EXPORTS
     HasFocus__CQ22os6Window
     Invalidate__Q22os6WindowPC7MGLrect
     OnBlur__Q22os6Window
+    OnClose__Q22os6Window
     OnCommand__Q22os6WindowUi
     OnFocus__Q22os6Window
     OnKeyDown__Q22os6WindowUl
@@ -186,6 +193,7 @@ EXPORTS
     OnMouseUp__Q22os6WindowUlii
     OnMouseWheel__Q22os6Windowiii
     OnPaint__Q22os6Window
+    OnSize__Q22os6WindowRC7MGLrect
     PostMessage__Q22os6WindowUlUlUlUl
     ReleaseCapture__Q22os6Window
     RemoveChild__Q22os6WindowPQ22os6Window

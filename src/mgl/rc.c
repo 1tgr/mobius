@@ -1,8 +1,9 @@
-/* $Id: rc.c,v 1.7 2002/04/10 12:33:02 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.8 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
 #include <os/syscall.h>
+#include <stddef.h>
 #include <errno.h>
 #include <stdio.h>
 #include "mgl.h"
@@ -116,12 +117,14 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     rc->video = FsOpen(server, 0);
     if (rc->video == NULL)
     {
+        printf("mglCreateRc: FsOpen failed\n");
 	mglDeleteRc(rc);
 	return NULL;
     }
 
     if (!FsRequestSync(rc->video, VID_GETMODE, &params, sizeof(params), &op))
     {
+        printf("mglCreateRc: VID_GETMODE failes\n");
         errno = op.result;
         mglDeleteRc(rc);
         return NULL;
@@ -129,6 +132,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
 
     if (params.vid_getmode.flags & VIDEO_MODE_TEXT)
     {
+        printf("mglCreateRc: Current mode is text, switching to graphics mode\n");
         memset(&params, 0, sizeof(params));
         //params.vid_setmode.bitsPerPixel = 8;
         rc->did_set_mode = true;
@@ -141,6 +145,8 @@ mglrc_t *mglCreateRc(const wchar_t *server)
 	    return NULL;
         }
     }
+    else
+        printf("mglCreateRc: Already in graphics mode\n");
 
     QueueInit(&rc->render_queue);
     rc->surf_width = params.vid_setmode.width;

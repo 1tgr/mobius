@@ -1,4 +1,4 @@
-/* $Id: tetris.c,v 1.5 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: tetris.c,v 1.6 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
@@ -9,6 +9,7 @@
 #include <os/device.h>
 #include <os/defs.h>
 #include <os/rtl.h>
+#include <os/ioctl.h>
 #include <gl/mgl.h>
 
 /*!
@@ -262,12 +263,12 @@ void collapse(void)
 
 bool _kbhit(void)
 {
-    static params_dev_t params;
     fileop_t op;
-    params.buffered.length = 0;
-    if (FsRequestSync(ProcGetProcessInfo()->std_in, CHR_GETSIZE, &params, 
-        sizeof(params), &op))
-        return params.buffered.length > 0;
+    size_t bytes;
+    bytes = 0;
+    if (FsIoCtl(ProcGetProcessInfo()->std_in, IOCTL_BYTES_AVAILABLE, &bytes, 
+        sizeof(bytes), &op))
+        return bytes > 0;
     else
     {
         errno = op.result;

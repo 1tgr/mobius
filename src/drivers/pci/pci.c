@@ -296,11 +296,11 @@ bool pciProbe(int bus, int dev, int func, pci_cfg_t *cfg)
 		pciWrite(bus,dev,func,i*4 + 0x10, v, 4);
 		v2 = 1 + ~v2;
 		if(v & 1) {
-		    /*printf("  * Base Register %d IO: %x (%x)\n",i,v&0xfff0,v2&0xffff);*/
+		    /*wprintf(L"  * Base Register %d IO: %x (%x)\n",i,v&0xfff0,v2&0xffff);*/
 		    cfg->base[i] = v & 0xffff;
 		    cfg->size[i] = v2 & 0xffff;
 		} else {
-		    /*printf("  * Base Register %d MM: %x (%x)\n",i,v&0xfffffff0,v2);*/
+		    /*wprintf(L"  * Base Register %d MM: %x (%x)\n",i,v&0xfffffff0,v2);*/
 		    cfg->base[i] = v;
 		    cfg->size[i] = v2;
 		}
@@ -354,9 +354,10 @@ bool DrvInit(driver_t *drv)
 		    cfg->vendor_id = pcfg.vendor_id;
 		    cfg->device_id = pcfg.device_id;
 		    cfg->subsystem = pcfg.subsys_vendor << 16 | pcfg.subsys;
-		    cfg->pci_bus = bus;
-		    cfg->pci_dev = dev;
-		    cfg->pci_func = func;
+                    cfg->bus_type = DEV_BUS_PCI;
+		    cfg->location.pci.bus = bus;
+		    cfg->location.pci.dev = dev;
+		    cfg->location.pci.func = func;
 
 		    swprintf(name, L"pci:%d:%d:%d", bus, dev, func);
 		    swprintf(key, L"PCI/Vendor%04xDevice%04xSubsystem%08x", 
@@ -401,7 +402,7 @@ bool DrvInit(driver_t *drv)
 			cfg->resources[j].cls = resIrq;
 			cfg->resources[j].u.irq = pcfg.irq;
 		    }
-		    
+
 		    for (i = 0; i < _countof(classes); i++)
 			if (pcfg.base_class == classes[i].base_class &&
 			    pcfg.sub_class == classes[i].sub_class &&

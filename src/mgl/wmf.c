@@ -1,4 +1,4 @@
-/* $Id: wmf.c,v 1.4 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: wmf.c,v 1.5 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/defs.h>
@@ -129,13 +129,14 @@ void WmfClose(wmf_t *wmf)
     free(wmf);
 }
 
-void WmfDraw(wmf_t *wmf)
+void WmfDraw(wmf_t *wmf, const MGLrect *dest)
 {
     PLACEABLEMETAHEADER *pmh;
     WMFHEAD *wmfh;
     WMFRECORD *wmfr;
     unsigned i;
     
+    wmf->dest_rect = *dest;
     pmh = wmf->data;
     if (pmh->Key == WMF_PLACEABLE_MAGIC)
 	wmfh = (WMFHEAD*) (pmh + 1);
@@ -230,10 +231,12 @@ void WmfDeleteObject(wmf_t *wmf, unsigned num)
 
 void WmfMapPoint(wmf_t *wmf, int16_t x, int16_t y, MGLpoint *pt)
 {
-    MGLrect dims;
-    mglGetDimensions(NULL, &dims);
-    pt->x = (((MGLreal) x - wmf->window_org.x) * dims.right) / wmf->window_ext.x;
-    pt->y = (((MGLreal) y - wmf->window_org.y) * dims.bottom) / wmf->window_ext.y;
+    pt->x = wmf->dest_rect.left 
+        + (((MGLreal) x - wmf->window_org.x) * (wmf->dest_rect.right - wmf->dest_rect.left)) 
+        / wmf->window_ext.x;
+    pt->y = wmf->dest_rect.top 
+        + (((MGLreal) y - wmf->window_org.y) * (wmf->dest_rect.bottom - wmf->dest_rect.top)) 
+        / wmf->window_ext.y;
 }
 
 void WMF_SETBKCOLOR (wmf_t *wmf, const WMFRECORD *rec, uint16_t *params) { } 

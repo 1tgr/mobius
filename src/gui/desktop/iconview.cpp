@@ -1,4 +1,4 @@
-/* $Id: iconview.cpp,v 1.2 2002/04/11 00:31:01 pavlovskii Exp $ */
+/* $Id: iconview.cpp,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -13,12 +13,15 @@
 
 #define SIZE_ICON   100
 
-IconView::IconView(os::Container *parent) : os::View(parent, os::alClient, 0)
+IconView::IconView(os::Container *parent, const wchar_t *dir) : 
+    os::View(parent, os::alClient, 0)
 {
+    m_colour = 0x0040C0;
     m_mouseOver = NULL;
-    m_dir = _wcsdup(L"/*");
+    m_dir = _wcsdup(dir);
     m_icon = WmfOpen(L"banner.wmf");
     Refresh();
+    m_needErase = true;
 }
 
 IconView::~IconView()
@@ -33,9 +36,14 @@ void IconView::OnPaint()
     MGLpoint size;
     std::vector<Item>::iterator it;
 
-    GetPosition(&rect);
-    glSetColour(0x0040C0);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    if (m_needErase)
+    {
+        GetPosition(&rect);
+        glSetColour(m_colour);
+        glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    }
+    else
+        m_needErase = true;
 
     if (m_items.size() > 0)
     {
@@ -73,11 +81,15 @@ void IconView::Refresh()
 {
     dirent_t di;
     handle_t search;
+    wchar_t spec[256];
 
-    search = FsOpenSearch(m_dir);
+    wcscpy(spec, m_dir);
+    wcscat(spec, L"*");
+    search = FsOpenSearch(spec);
     if (search != NULL)
         while (FsReadSync(search, &di, sizeof(di), NULL))
             AddItem(di.name);
+
     FsClose(search);
 }
 
@@ -88,14 +100,16 @@ IconView::Item& IconView::AddItem(const wchar_t *text)
 
     GetPosition(&rect);
     if (m_items.empty())
-        origin = MGLpoint(rect.left, rect.top);
+        origin = MGLpoint(0, 0);
     else
     {
         Item &back = m_items.back();
         MGLrect backrect = GetItemRect(back);
         origin = MGLpoint(backrect.left, backrect.bottom + 8);
-        if (origin.y + backrect.Height() > rect.bottom)
+        if (origin.y + backrect.Height() > rect.Height())
             origin = MGLpoint(backrect.right + size.x, rect.top);
+        origin.x -= rect.left;
+        origin.y -= rect.top;
     }
 
     m_items.push_back(Item());
@@ -105,15 +119,18 @@ IconView::Item& IconView::AddItem(const wchar_t *text)
     ret.origin = origin;
 
     rect = GetItemRect(ret);
+    m_needErase = false;
     Invalidate(&rect);
     return ret;
 }
 
 MGLrect IconView::GetItemRect(const Item &item) const
 {
+    MGLrect pos;
     MGLpoint size = MGLpoint(160, 150);
-    return MGLrect(item.origin.x, item.origin.y,
-        item.origin.x + size.x, item.origin.y + size.y);
+    GetPosition(&pos);
+    return MGLrect(item.origin.x + pos.left, item.origin.y + pos.top,
+        item.origin.x + pos.left + size.x, item.origin.y + pos.top + size.y);
 }
 
 void IconView::OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y)
@@ -130,11 +147,16 @@ void IconView::OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y)
 
     if (it != m_items.end())
     {
-        wchar_t str[100];
-        swprintf(str, L"You clicked on: %s", it->text);
+        wchar_t newdir[256];
+        os::Frame *frame;
+        IconView *view;
 
-        os::MessageBox box(L"Desktop", str);
-        box.DoModal();
+        wcscpy(newdir, m_dir);
+        wcscat(newdir, it->text);
+        wcscat(newdir, L"/");
+        frame = new os::Frame(newdir, MGLrect(300, 300, 900, 900));
+        view = new IconView(frame, newdir);
+        view->m_colour = 0xffffff;
     }
 }
 
@@ -160,6 +182,7 @@ void IconView::OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y)
         if (m_mouseOver != NULL)
         {
             rect = GetItemRect(*m_mouseOver);
+            m_needErase = false;
             Invalidate(&rect);
         }
 
@@ -167,6 +190,7 @@ void IconView::OnMouseMove(uint32_t buttons, MGLreal x, MGLreal y)
         if (mouseOver != NULL)
         {
             rect = GetItemRect(*mouseOver);
+            m_needErase = false;
             Invalidate(&rect);
         }
     }

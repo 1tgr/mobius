@@ -21,7 +21,7 @@ class tty : public device
 {
 public:
     DEV_BEGIN_REQUEST()
-        DEV_HANDLE_REQUEST(DEV_WRITE, onWrite, request_dev_t)
+        DEV_HANDLE_REQUEST(DEV_WRITE_DIRECT, onWriteDirect, request_dev_t)
     DEV_END_REQUEST()
 
     bool isr(uint8_t irq);
@@ -40,7 +40,7 @@ protected:
     void doEscape(char code, unsigned num, const unsigned *esc);
     void writeString(const char *str, size_t count);
 
-    bool onWrite(request_dev_t *req);
+    bool onWriteDirect(request_dev_t *req);
 
     uint16_t *buf_top;
     uint16_t attribs;
@@ -78,6 +78,7 @@ tty::tty()
 	(uint8_t*) 0xb8000 + 80 * 25 * id);
     m_info.device_class = 0;
     info = &m_info;
+    flags = DEVICE_IO_DIRECT;
     attribs = 0x0700 | id << 12;
     x = 0;
     y = 0;
@@ -427,10 +428,10 @@ void tty::finishio(request_t *req)
 {
 }
 
-bool tty::onWrite(request_dev_t *req)
+bool tty::onWriteDirect(request_dev_t *req)
 {
-    writeString((const char*) req->params.dev_write.buffer, 
-        req->params.dev_write.length);
+    writeString((const char*) req->params.dev_write_direct.buffer,
+        req->params.dev_write_direct.length);
     return true;
 }
 

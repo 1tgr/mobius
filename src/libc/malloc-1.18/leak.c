@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "sptree.h"
 
-RCSID("$Id: leak.c,v 1.1 2001/11/05 18:31:43 pavlovskii Exp $")
+RCSID("$Id: leak.c,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $")
 
 /* 
  *  These routines provide an interface for tracing memory leaks. The
@@ -72,12 +72,15 @@ void
 __m_prnode(spblk)
 SPBLK *spblk;
 {
-	if ((unsigned long) spblk->datb < min_num)
+    	if ((unsigned long) spblk->datb < min_num)
 		return;
-	(void) sprintf(_malloc_statsbuf, "%s%8lu %8lu(0x%08lx)\n",
+	/*(void) sprintf(_malloc_statsbuf, "%s%8lu %8lu(0x%08lx)\n",
 		       (char *) spblk->data, (unsigned long) spblk->datb,
 		       (unsigned long) spblk->key, (unsigned long) spblk->key);
-	(void) fputs(_malloc_statsbuf, dumpfp);
+	(void) fputs(_malloc_statsbuf, dumpfp);*/
+        wprintf(L"%S%8lu %8lu(0x%08lx)\n", 
+            (char *) spblk->data, (unsigned long) spblk->datb,
+            (unsigned long) spblk->key, (unsigned long) spblk->key);
 }
 
 /*

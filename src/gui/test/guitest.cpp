@@ -1,4 +1,4 @@
-/* $Id: guitest.cpp,v 1.2 2002/04/04 00:08:43 pavlovskii Exp $ */
+/* $Id: guitest.cpp,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <gui/application.h>
 #include <gui/dialog.h>
@@ -18,6 +18,7 @@ public:
     os::Edit m_edit;
 
     TestDialog();
+    ~TestDialog();
     void OnCommand(unsigned id);
 };
 
@@ -28,21 +29,27 @@ TestDialog::TestDialog() :
 {
 }
 
-void TestDialog::OnCommand(unsigned id)
+TestDialog::~TestDialog()
 {
     PostMessage(MSG_QUIT);
+}
+
+void TestDialog::OnCommand(unsigned id)
+{
+    PostMessage(MSG_CLOSE);
 }
 
 class TestApplication : public os::Application
 {
 public:
-    TestDialog m_dialog;
+    TestDialog *m_dialog;
     
     TestApplication(const wchar_t *name);
 };
 
 TestApplication::TestApplication(const wchar_t *name) : Application(name)
 {
+    m_dialog = new TestDialog;
 }
 
 int main()

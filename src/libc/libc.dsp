@@ -485,6 +485,10 @@ SOURCE=.\stdlib\bsearch.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdlib\cppsup.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdlib\div.c
 # End Source File
 # Begin Source File

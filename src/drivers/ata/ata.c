@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.16 2002/04/12 01:23:47 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.17 2002/04/20 12:47:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -9,7 +9,7 @@
 #include <kernel/cache.h>
 #include <kernel/io.h>
 
-/*#define DEBUG*/
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <os/syscall.h>
@@ -21,80 +21,97 @@
 /* I/O Ports used by winchester disk controllers. */
 
 /* Read and write registers */
-#define REG_BASE0	 0x1F0	  /* base register of controller 0 */
-#define REG_BASE1	 0x170	  /* base register of controller 1 */
-#define REG_DATA	    0	 /* data register (offset from the base reg.) */
-#define REG_PRECOMP	    1	 /* start of write precompensation */
-#define REG_COUNT	     2	  /* sectors to transfer */
-#define REG_REASON	      2
-#define REG_SECTOR	      3    /* sector number */
-#define REG_CYL_LO	      4    /* low byte of cylinder number */
-#define REG_CYL_HI	      5    /* high byte of cylinder number */
-#define REG_COUNT_LO	    REG_CYL_LO
-#define REG_COUNT_HI	    REG_CYL_HI
-#define REG_LDH 	    6	 /* lba, drive and head */
-#define   LDH_DEFAULT		 0xA0	 /* ECC enable, 512 bytes per sector */
-#define   LDH_LBA		 0x40	 /* Use LBA addressing */
-#define   ldh_init(drive)	 (LDH_DEFAULT | ((drive) << 4))
+#define REG_BASE0               0x1F0   /* base register of controller 0 */
+#define REG_BASE1               0x170   /* base register of controller 1 */
+#define REG_DATA                0       /* data register (offset from the base reg.) */
+#define REG_PRECOMP             1       /* start of write precompensation */
+#define REG_COUNT               2       /* sectors to transfer */
+#define REG_REASON              2
+#define REG_SECTOR              3       /* sector number */
+#define REG_CYL_LO              4       /* low byte of cylinder number */
+#define REG_CYL_HI              5       /* high byte of cylinder number */
+#define REG_COUNT_LO            REG_CYL_LO
+#define REG_COUNT_HI            REG_CYL_HI
+#define REG_LDH                 6       /* lba, drive and head */
+#define   LDH_DEFAULT           0xA0    /* ECC enable, 512 bytes per sector */
+#define   LDH_LBA               0x40    /* Use LBA addressing */
+#define   ldh_init(drive)      (LDH_DEFAULT | ((drive) << 4))
 
 /* Read only registers */
-#define REG_STATUS	      7    /* status */
-#define   STATUS_BSY		0x80	/* controller busy */
-#define   STATUS_RDY		0x40	/* drive ready */
-#define   STATUS_WF		0x20	/* write fault */
-#define   STATUS_SC		0x10	/* seek complete (obsolete) */
-#define   STATUS_DRQ		0x08	/* data transfer request */
-#define   STATUS_CRD		0x04	/* corrected data */
-#define   STATUS_IDX		0x02	/* index pulse */
-#define   STATUS_ERR		0x01	/* error */
-#define REG_ERROR	     1	  /* error code */
-#define   ERROR_BB		  0x80	  /* bad block */
-#define   ERROR_ECC		0x40	/* bad ecc bytes */
-#define   ERROR_ID		  0x10	  /* id not found */
-#define   ERROR_AC		  0x04	  /* aborted command */
-#define   ERROR_TK		  0x02	  /* track zero error */
-#define   ERROR_DM		  0x01	  /* no data address mark */
+#define REG_STATUS              7    /* status */
+#define   STATUS_BSY            0x80    /* controller busy */
+#define   STATUS_RDY            0x40    /* drive ready */
+#define   STATUS_WF             0x20    /* write fault */
+#define   STATUS_SC             0x10    /* seek complete (obsolete) */
+#define   STATUS_DRQ            0x08    /* data transfer request */
+#define   STATUS_CRD            0x04    /* corrected data */
+#define   STATUS_IDX            0x02    /* index pulse */
+#define   STATUS_ERR            0x01    /* error */
+#define REG_ERROR               1       /* error code */
+#define   ERROR_BB              0x80    /* bad block */
+#define   ERROR_ECC             0x40    /* bad ecc bytes */
+#define   ERROR_ID              0x10    /* id not found */
+#define   ERROR_AC              0x04    /* aborted command */
+#define   ERROR_TK              0x02    /* track zero error */
+#define   ERROR_DM              0x01    /* no data address mark */
+
+/* ATAPI error codes */
+#define   ERROR_ATAPI_MCR       0x08    /* media change requested */
+#define   ERROR_ATAPI_AC        ERROR_AC
+#define   ERROR_ATAPI_EOM       0x02    /* end of media detected */
+#define   ERROR_ATAPI_ILI       0x01    /* illegal length indication */
+
+/* Table 140, INF-8020 */
+#define ATAPI_SENSE_NO_SENSE            0
+#define ATAPI_SENSE_RECOVERED_ERROR     1
+#define ATAPI_SENSE_NOT_READY           2
+#define ATAPI_SENSE_MEDIUM_ERROR        3
+#define ATAPI_SENSE_HARDWARE_ERROR      4
+#define ATAPI_SENSE_ILLEGAL_REQUEST     5
+#define ATAPI_SENSE_UNIT_ATTENTION      6
+#define ATAPI_SENSE_ABORTED_COMMAND     11
+#define ATAPI_SENSE_MISCOMPARE          12
 
 /* Write only registers */
-#define REG_COMMAND	    7	 /* command */
-#define   CMD_IDLE		  0x00	  /* for w_command: drive idle */
-#define   CMD_RECALIBRATE	 0x10	 /* recalibrate drive */
-#define   CMD_READ		  0x20	  /* read data */
-#define   CMD_WRITE		0x30	/* write data */
-#define   CMD_READVERIFY	0x40	/* read verify */
-#define   CMD_FORMAT		0x50	/* format track */
-#define   CMD_SEEK		  0x70	  /* seek cylinder */
-#define   CMD_DIAG		  0x90	  /* execute device diagnostics */
-#define   CMD_SPECIFY		 0x91	 /* specify parameters */
-#define   CMD_PACKET		0xA0	/* ATAPI packet cmd */
-#define   ATAPI_IDENTIFY	0xA1	/* ATAPI identify */
-#define   ATA_IDENTIFY		  0xEC	  /* identify drive */
-#define REG_CTL 	0x206	 /* control register */
-#define   CTL_NORETRY		 0x80	 /* disable access retry */
-#define   CTL_NOECC		0x40	/* disable ecc retry */
-#define   CTL_EIGHTHEADS	0x08	/* more than eight heads */
-#define   CTL_RESET		0x04	/* reset controller */
-#define   CTL_INTDISABLE	0x02	/* disable interrupts */
+#define REG_COMMAND             7       /* command */
+#define   CMD_IDLE              0x00    /* for w_command: drive idle */
+#define   CMD_RECALIBRATE       0x10    /* recalibrate drive */
+#define   CMD_READ              0x20    /* read data */
+#define   CMD_WRITE             0x30    /* write data */
+#define   CMD_READVERIFY        0x40    /* read verify */
+#define   CMD_FORMAT            0x50    /* format track */
+#define   CMD_SEEK              0x70    /* seek cylinder */
+#define   CMD_DIAG              0x90    /* execute device diagnostics */
+#define   CMD_SPECIFY           0x91    /* specify parameters */
+#define   CMD_PACKET            0xA0    /* ATAPI packet cmd */
+#define   ATAPI_IDENTIFY        0xA1    /* ATAPI identify */
+#define   ATA_IDENTIFY          0xEC    /* identify drive */
+#define REG_CTL                 0x206   /* control register */
+#define   CTL_NORETRY           0x80    /* disable access retry */
+#define   CTL_NOECC             0x40    /* disable ecc retry */
+#define   CTL_EIGHTHEADS        0x08    /* more than eight heads */
+#define   CTL_RESET             0x04    /* reset controller */
+#define   CTL_INTDISABLE        0x02    /* disable interrupts */
 
 /* ATAPI packet command bytes */
-#define    ATAPI_CMD_START_STOP    0x1B    /* eject/load */
-#define    ATAPI_CMD_READ10	   0x28    /* read data sector(s) */
-#define    ATAPI_CMD_READTOC	    0x43    /* read audio table-of-contents */
-#define    ATAPI_CMD_PLAY	     0x47    /* play audio */
-#define    ATAPI_CMD_PAUSE	      0x4B    /* pause/continue audio */
+#define    ATAPI_CMD_START_STOP 0x1B    /* eject/load */
+#define    ATAPI_CMD_READ10     0x28    /* read data sector(s) */
+#define    ATAPI_CMD_READTOC    0x43    /* read audio table-of-contents */
+#define    ATAPI_CMD_PLAY       0x47    /* play audio */
+#define    ATAPI_CMD_PAUSE      0x4B    /* pause/continue audio */
 
 /* Interrupt request lines. */
-#define AT_IRQ0 	14	  /* interrupt number for controller 0 */
-#define AT_IRQ1 	15	  /* interrupt number for controller 1 */
+#define AT_IRQ0                 14      /* interrupt number for controller 0 */
+#define AT_IRQ1                 15      /* interrupt number for controller 1 */
 
-#define SECTOR_SIZE		   512
-#define ATAPI_SECTOR_SIZE	 2048
-#define DRIVES_PER_CONTROLLER	 2
-#define IDE_BASE_NAME		 L"ide"
+#define SECTOR_SIZE             512
+#define ATAPI_SECTOR_SIZE       2048
+#define DRIVES_PER_CONTROLLER   2
+#define IDE_BASE_NAME           L"ide"
 
 #define waitfor(ctrl, mask, value)    \
-    ((in(ctrl->base + REG_STATUS) & mask) == value \
-	|| AtaWaitForStatus(ctrl, mask, value))
+    ((in(ctrl->base + REG_STATUS) & (mask)) == (value) \
+        || AtaWaitForStatus(ctrl, mask, value))
 
 typedef struct ata_drive_t ata_drive_t;
 struct ata_drive_t
@@ -111,6 +128,8 @@ struct ata_drive_t
     uint8_t ldhpref;
     struct ata_ctrl_t *ctrl;
     bool is_atapi;
+    unsigned rw_multiple;
+    unsigned retries;
 };
 
 typedef struct ata_ctrl_t ata_ctrl_t;
@@ -145,34 +164,34 @@ struct partition_t
 typedef struct ata_identify_t ata_identify_t;
 struct ata_identify_t
 {
-    uint16_t config;		/* obsolete stuff */
-    uint16_t cylinders; 	   /* logical cylinders */
+    uint16_t config;            /* obsolete stuff */
+    uint16_t cylinders;         /* logical cylinders */
     uint16_t _reserved_2;
-    uint16_t heads;		   /* logical heads */
+    uint16_t heads;             /* logical heads */
     uint16_t _vendor_4;
     uint16_t _vendor_5;
-    uint16_t sectors;		  /* logical sectors */
+    uint16_t sectors;           /* logical sectors */
     uint16_t _vendor_7;
     uint16_t _vendor_8;
     uint16_t _vendor_9;
-    char serial[20];		/* serial number */
+    char serial[20];            /* serial number */
     uint16_t _vendor_20;
     uint16_t _vendor_21;
-    uint16_t vend_bytes_long;	  /* no. vendor bytes on long cmd */
+    uint16_t vend_bytes_long;   /* no. vendor bytes on long cmd */
     char firmware[8];
     char model[40];
-    uint16_t mult_support;	  /* vendor stuff and multiple cmds */
+    uint16_t mult_support;      /* vendor stuff and multiple cmds */
     uint16_t _reserved_48;
     uint16_t capabilities;
     uint16_t _reserved_50;
     uint16_t pio;
     uint16_t dma;
     uint16_t _reserved_53;
-    uint16_t curr_cyls; 	   /* current logical cylinders */
-    uint16_t curr_heads;	/* current logical heads */
-    uint16_t curr_sectors;	  /* current logical sectors */
-    uint32_t capacity;		  /* capacity in sectors */
-    uint16_t _pad[256-59];	  /* don't need this stuff for now */
+    uint16_t curr_cyls;         /* current logical cylinders */
+    uint16_t curr_heads;        /* current logical heads */
+    uint16_t curr_sectors;      /* current logical sectors */
+    uint32_t capacity;          /* capacity in sectors */
+    uint16_t _pad[256-59];      /* don't need this stuff for now */
 };
 
 #pragma pack(pop)
@@ -201,7 +220,7 @@ struct atapi_packet_t
 {
     ata_drive_t *drive;
     uint8_t packet[12];
-    void *buffer;
+    page_array_t *pages;
     uint32_t block;
     uint8_t count;
 };
@@ -212,19 +231,19 @@ struct ata_ctrlreq_t
     request_t header;
     union
     {
-	struct
-	{
-	    ata_drive_t *drive;
-	    ata_command_t cmd;
-	    void *buffer;
-	} ata_command;
+        struct
+        {
+            ata_drive_t *drive;
+            ata_command_t cmd;
+            page_array_t *pages;
+        } ata_command;
 
-	atapi_packet_t atapi_packet;
+        atapi_packet_t atapi_packet;
     } params;
 };
 
-#define ATA_COMMAND	   REQUEST_CODE(0, 0, 'a', 'c')
-#define ATAPI_PACKET	REQUEST_CODE(0, 0, 'a', 'p')
+#define ATA_COMMAND     REQUEST_CODE(0, 0, 'a', 'c')
+#define ATAPI_PACKET    REQUEST_CODE(0, 0, 'a', 'p')
 
 unsigned num_controllers;
 uint8_t bios_params[16];
@@ -326,20 +345,6 @@ bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
     return true;
 }
 
-/*
-    ATA_REG_STAT & 0x08 (DRQ)	 ATA_REG_REASON        "phase"
-    0				 0		      ATAPI_PH_ABORT
-    0				 1		      bad
-    0				 2		      bad
-    0				 3		      ATAPI_PH_DONE
-    8				 0		      ATAPI_PH_DATAOUT
-    8				 1		      ATAPI_PH_CMDOUT
-    8				 2		      ATAPI_PH_DATAIN
-    8				 3		      bad
-b0 of ATA_REG_REASON is C/nD (0=data, 1=command)
-b1 of ATA_REG_REASON is IO (0=out to drive, 1=in from drive)
-*/
-
 bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
 {
     ata_ctrl_t *ctrl = drive->ctrl;
@@ -350,9 +355,9 @@ bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
 	wprintf(L"AtaIssuePacket: controller not ready\n");
 	return false;
     }
-    
+
     out(ctrl->base + REG_LDH, LDH_LBA | drive->ldhpref);
-    
+
     if (!waitfor(ctrl, STATUS_BSY, 0))
     {
 	wprintf(L"AtaIssuePacket: drive not ready\n");
@@ -364,12 +369,19 @@ bool AtapiIssuePacket(ata_drive_t *drive, const uint8_t *pkt)
     out(ctrl->base + REG_SECTOR, 0);
     out(ctrl->base + REG_CYL_LO, 0);
     out(ctrl->base + REG_CYL_HI, 0x80);
+    drive->retries = 0;
 
     SemAcquire(&ctrl->sem);
-    out(ctrl->base + REG_COMMAND, CMD_PACKET);
     ctrl->command = CMD_PACKET;
     ctrl->status = STATUS_BSY;
+    out(ctrl->base + REG_COMMAND, CMD_PACKET);
     SemRelease(&ctrl->sem);
+
+    if (!waitfor(ctrl, STATUS_BSY | STATUS_DRQ, STATUS_DRQ))
+    {
+        wprintf(L"AtapiIssuePacket: drive not responding to command\n");
+        return false;
+    }
 
     for (i = 0; i < 6; i++)
 	out16(ctrl->base + REG_DATA, ((uint16_t*) pkt)[i]);
@@ -475,14 +487,18 @@ unsigned AtapiTransferCount(ata_ctrl_t *ctrl)
 unsigned AtapiReadAndDiscard(ata_ctrl_t *ctrl, uint8_t *Buffer, unsigned Want)
 {
     unsigned Count, Got, i;
-    uint16_t *ptr;
+    uint16_t *ptr, w;
 
     Got = AtapiTransferCount(ctrl);
-    /*wprintf(L"atapiReadAndDiscard: Want %u bytes, Got %u\n", Want, Got);*/
+    //wprintf(L"AtapiReadAndDiscard: Want %u bytes, Got %u\n", Want, Got);
     Count = min(Want, Got);
 
     for (i = 0, ptr = (uint16_t*) Buffer; i < Count; i += 2)
-	*ptr++ = in16(ctrl->base + REG_DATA);
+    {
+        w = in16(ctrl->base + REG_DATA);
+        if (ptr != NULL)
+	    *ptr++ = w;
+    }
     
     if (Got > Count)
     {
@@ -501,27 +517,62 @@ unsigned AtapiReadAndDiscard(ata_ctrl_t *ctrl, uint8_t *Buffer, unsigned Want)
     return Want;
 }
 
+/*
+    ATA_REG_STAT & 0x08 (DRQ)	 ATA_REG_REASON        "phase"
+    0				 0		      ATAPI_PH_ABORT
+    0				 1		      bad
+    0				 2		      bad
+    0				 3		      ATAPI_PH_DONE
+    8				 0		      ATAPI_PH_DATAOUT
+    8				 1		      ATAPI_PH_CMDOUT
+    8				 2		      ATAPI_PH_DATAIN
+    8				 3		      bad
+b0 of ATA_REG_REASON is C/nD (0=data, 1=command)
+b1 of ATA_REG_REASON is IO (0=out to drive, 1=in from drive)
+*/
+
 /* ATAPI data/command transfer 'phases' */
-#define    ATAPI_PH_ABORT	 0    /* other possible phases */
-#define    ATAPI_PH_DONE	3    /* (1, 2, 11) are invalid */
-#define    ATAPI_PH_DATAOUT    8
-#define    ATAPI_PH_CMDOUT	  9
-#define    ATAPI_PH_DATAIN	  10
+#define    ATAPI_PH_ABORT       0    /* other possible phases */
+#define    ATAPI_PH_DONE        3    /* (1, 2, 11) are invalid */
+#define    ATAPI_PH_DATAOUT     8
+#define    ATAPI_PH_CMDOUT      9
+#define    ATAPI_PH_DATAIN      10
 
 /******************************************************************************
  * AtaCtrl/Atapi
  */
 
-bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, ata_ctrlreq_t *req_ctrl)
+bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, asyncio_t *io, 
+                          ata_ctrlreq_t *req_ctrl)
 {
     unsigned count, Phase;
     atapi_packet_t *ap;
-    
+    uint8_t *buffer;
+
     ap = &req_ctrl->params.atapi_packet;
-    Phase = ctrl->status & 0x08;
+    Phase = ctrl->status & STATUS_DRQ;
     Phase |= (in(ctrl->base + REG_REASON) & 3);
-    /*wprintf(L"ATAPI interrupt: phase = %u: ", Phase);*/
-    
+    wprintf(L"[%u]", Phase);
+
+    if (ctrl->status & STATUS_ERR)
+    {
+        count = AtapiTransferCount(ctrl);
+	wprintf(L"AtapiPacketInterrupt: error: count = %u, status = %x, retries = %u, error = %x\n", 
+            count, ctrl->status, ap->drive->retries, in(ctrl->base + REG_ERROR));
+
+        ap->drive->retries++;
+        if (ap->drive->retries >= 3)
+        {
+	    req_ctrl->header.result = EHARDWARE;
+            return true;
+        }
+        else
+        {
+            AtaServiceCtrlRequest(ctrl);
+            return false;
+        }
+    }
+
     switch (Phase)
     {
     case ATAPI_PH_ABORT:
@@ -530,11 +581,36 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, ata_ctrlreq_t *req_ctrl)
 	req_ctrl->header.result = EHARDWARE;
 	return true;
 
+    case ATAPI_PH_DONE:
+        if (ap->count == 0)
+        {
+            //wprintf(L"AtapiPacketInterrupt: finished\n");
+            return true;
+        }
+
+        /* fall through */
+
     case ATAPI_PH_DATAIN:
 	/* read data, advance pointers */
-	count = AtapiReadAndDiscard(ctrl, ap->buffer, 0xFFFFu);
-	ap->buffer = (uint8_t*) ap->buffer + count;
-	
+        ap->drive->retries = 0;
+
+        count = AtapiTransferCount(ctrl);
+        if (io->length + count <= io->pages->num_pages * PAGE_SIZE)
+        {
+            buffer = MemMapPageArray(io->pages, PRIV_KERN | PRIV_PRES | PRIV_WR);
+            wprintf(L"buffer = %p io->length = %u count = %u\n", buffer, io->length, count);
+	    count = AtapiReadAndDiscard(ctrl, buffer + io->length, 0xFFFFu);
+            //wprintf(L"ATAPI_PH_DATAIN: %u bytes\n", count);
+            MemUnmapTemp();
+        }
+        else
+        {
+            count = AtapiReadAndDiscard(ctrl, NULL, 0xFFFFu);
+            wprintf(L"ATAPI_PH_DATAIN: excess data (%u bytes)\n", count);
+        }
+
+        io->length += count;
+
 	/* XXX - count had better be a multiple of 2048... */
 	count /= ATAPI_SECTOR_SIZE;
 	ap->count -= count;
@@ -542,26 +618,17 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, ata_ctrlreq_t *req_ctrl)
 
 	if (Phase == ATAPI_PH_DONE)
 	{
-	    /*wprintf(L"finished\n");*/
+	    wprintf(L"finished, %u bytes read\n", io->length);
 	    return true;
 	}
 	else
 	{
-	    /*wprintf(L"%u ", ap->block);*/
+	    wprintf(L"%u ", ap->block);
 	    return false;
 	}
 
 	break;
-    
-    case ATAPI_PH_DONE:
-	if (ap->count != 0)
-	{
-	    wprintf(L"error: data shortage (count = %u)\n", ap->count);
-	    req_ctrl->header.result = EHARDWARE;
-	}
 
-	return true;
-	
     default:
 	/* ATAPI_PH_DATAOUT or ATAPI_PH_CMDOUT or something completely bogus */
 	wprintf(L"error: bad phase %u\n", Phase);
@@ -575,8 +642,8 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
     ata_ctrl_t *ctrl = (ata_ctrl_t*) dev;
     ata_ctrlreq_t *req_ctrl;
     asyncio_t *io;
-    addr_t *ptr;
     uint8_t *buf;
+    size_t mult, total;
     
     ctrl->status = in(ctrl->base + REG_STATUS);
     /*wprintf(L"AtaCtrlIsr: status = %x\n", ctrl->status);*/
@@ -591,25 +658,42 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 	req_ctrl->header.result = 0;
 	if (req_ctrl->header.code == ATA_COMMAND)
 	{
-	    ptr = (addr_t*) (io + 1);
-	    
-	    TRACE3("Finish ATA command: count = %u length = %u phys = %x ",
+	    total = req_ctrl->params.ata_command.cmd.count * SECTOR_SIZE;
+            mult = min(req_ctrl->params.ata_command.drive->rw_multiple, 
+                total - io->length);
+	    /*TRACE4("ATA command: count = %u length = %u length_pages = %u phys = %x ",
 		req_ctrl->params.ata_command.cmd.count,
-		io->length,
-		*ptr);
-	    
-	    buf = MemMapTemp(ptr, io->length_pages, 
-		PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+		total,
+                io->pages->num_pages,
+		io->pages->pages[0]);*/
 
+	    buf = DevMapBuffer(io);
 	    assert(buf != NULL);
-	    TRACE2("buf = %p + %x\n", buf, io->mod_buffer_start);
-	    ins16(ctrl->base + REG_DATA, buf + io->mod_buffer_start, io->length);
-	    
-	    MemUnmapTemp();
-	    finish = true;
+
+            //TRACE1("buf = %p: ", buf);
+            ins16(ctrl->base + REG_DATA, buf + io->length, mult);
+            io->length += mult;
+            req_ctrl->params.ata_command.cmd.block += mult / SECTOR_SIZE;
+
+	    DevUnmapBuffer();
+
+            if (io->length >= total)
+            {
+                //TRACE0("finished\n");
+	        finish = true;
+                req_ctrl->header.result = 0;
+            }
+            else
+            {
+                //TRACE1("%u bytes to go\n", 
+                    //req_ctrl->params.ata_command.cmd.count * SECTOR_SIZE - io->length);
+                finish = false;
+            }
+
+            AtaServiceCtrlRequest(ctrl);
 	}
 	else if (req_ctrl->header.code == ATAPI_PACKET)
-	    finish = AtapiPacketInterrupt(ctrl, req_ctrl);
+	    finish = AtapiPacketInterrupt(ctrl, io, req_ctrl);
 	else
 	{
 	    TRACE1("AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
@@ -620,8 +704,8 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 	if (finish)
 	{
 	    ctrl->command = CMD_IDLE;
-	    DevFinishIo(dev, io, 0);
-	    AtaServiceCtrlRequest(ctrl);
+	    DevFinishIo(dev, io, req_ctrl->header.result);
+            AtaServiceCtrlRequest(ctrl);
 	}
     }
 
@@ -643,8 +727,9 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
     case ATAPI_PACKET:
 	req_ctrl = (ata_ctrlreq_t*) req;
 	io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
-	    req_ctrl->params.atapi_packet.buffer, 
+	    req_ctrl->params.atapi_packet.pages, 
 	    ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
+        io->length = 0;
 	if (ctrl->command == CMD_IDLE)
 	    AtaServiceCtrlRequest(ctrl);
 	return true;
@@ -652,8 +737,9 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
     case ATA_COMMAND:
 	req_ctrl = (ata_ctrlreq_t*) req;
 	io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
-	    req_ctrl->params.ata_command.buffer,
+	    req_ctrl->params.ata_command.pages,
 	    SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count);
+        io->length = 0;
 	if (ctrl->command == CMD_IDLE)
 	    AtaServiceCtrlRequest(ctrl);
 	return true;
@@ -705,13 +791,15 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 	    Pkt[7] = Count >> 8;
 	    Pkt[8] = Count;
 
-	    ctrl_req->header.code = ATAPI_PACKET;
+            wprintf(L"AtaDriveRequest(DEV_READ): atapi packet: block = %u count = %u\n",
+                block, Count);
+            ctrl_req->header.code = ATAPI_PACKET;
 	    ctrl_req->params.atapi_packet.drive = drive;
 	    ctrl_req->params.atapi_packet.count = Count;
 	    ctrl_req->params.atapi_packet.block = block;
 	    memcpy(ctrl_req->params.atapi_packet.packet, Pkt, sizeof(Pkt));
-	    ctrl_req->params.atapi_packet.buffer = 
-		req_dev->params.dev_read.buffer;
+	    ctrl_req->params.atapi_packet.pages = 
+		req_dev->params.dev_read.pages;
 	}
 	else
 	{
@@ -725,8 +813,8 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 	    ctrl_req->header.code = ATA_COMMAND;
 	    ctrl_req->params.ata_command.drive = drive;
 	    ctrl_req->params.ata_command.cmd = cmd;
-	    ctrl_req->params.ata_command.buffer = 
-		req_dev->params.dev_read.buffer;
+	    ctrl_req->params.ata_command.pages = 
+		req_dev->params.dev_read.pages;
 	}
 
 	/*ctrl_req->header.original = req;*/
@@ -752,13 +840,9 @@ void AtaDriveFinishIo(device_t *dev, request_t *req)
 {
     assert(req->original != NULL);
     assert(req->param != NULL);
-    /*wprintf(L"AtaDriveFinishIo: dev = %p, req = %p, req->from = %p\n"
-	L"\treq->param = %p, req->param->from = %p\n", 
-	dev, req, req->from, 
-	req->param, ((request_t*) req->param)->from);*/
-    //if (req->param != req)
-	IoNotifyCompletion(req->param);
-    free(req->param);
+    IoNotifyCompletion(req->param);
+    wprintf(L"AtaDriveFinishIo: freeing %p\n", req);
+    free(req);
 }
 
 static const device_vtbl_t ata_drive_vtbl =
@@ -878,11 +962,19 @@ void AtaFormatString(char *dest, const char *src, size_t count)
 	*ch = '\0';
 }
 
-bool AtaInitController(ata_ctrl_t *ctrl)
+static const device_vtbl_t ata_controller_vtbl =
+{
+    AtaCtrlRequest,
+    AtaCtrlIsr
+};
+
+ata_ctrl_t *AtaInitController(driver_t *drv, uint16_t base, uint8_t irq, 
+                              device_config_t *cfg)
 {
 #define id_byte(n)    (((uint8_t*) tmp_buf) + (n))
 #define id_word(n)    (tmp_buf + (n))
 
+    ata_ctrl_t *ctrl;
     uint8_t r;
     unsigned i, j;
     /*uint16_t tmp_buf[256];*/
@@ -892,7 +984,19 @@ bool AtaInitController(ata_ctrl_t *ctrl)
     uint32_t size;
     wchar_t name[50];
     device_t *dev;
-    
+
+    ctrl = malloc(sizeof(ata_ctrl_t));
+    if (ctrl == NULL)
+        return NULL;
+
+    memset(ctrl, 0, sizeof(ata_ctrl_t));
+    ctrl->dev.vtbl = &ata_controller_vtbl;
+    ctrl->dev.driver = drv;
+    ctrl->dev.cfg = cfg;
+    ctrl->base = base;
+    SemInit(&ctrl->sem);
+    num_controllers++;
+
     wprintf(L"AtaInitController: initialising controller on %x\n", ctrl->base);
 
     /* Check for controller */
@@ -901,12 +1005,12 @@ bool AtaInitController(ata_ctrl_t *ctrl)
     out(ctrl->base + REG_CYL_LO, ~r);
     if (in(ctrl->base + REG_CYL_LO) == r)
     {
-	wprintf(L"Controller not found: %x\n", r);
+	wprintf(L"Controller at %x not found: %x\n", base, r);
 	/*return false;*/
     }
 
-    DevRegisterIrq(AT_IRQ0, &ctrl->dev);
-    ArchMaskIrq(1 << AT_IRQ0, 0);
+    DevRegisterIrq(irq, &ctrl->dev);
+    ArchMaskIrq(1 << irq, 0);
 
     for (i = 0; i < DRIVES_PER_CONTROLLER; i++)
     {
@@ -971,13 +1075,22 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 	    }
 	}
 
-	wprintf(L"CHS = %u:%u:%u size = %luMB \"%.40S\" \"%.20S\"\n",
+        /* xxx - handle id.mult_support later */
+        if (ctrl->drives[i].is_atapi)
+            ctrl->drives[i].rw_multiple = ATAPI_SECTOR_SIZE;
+        else
+            ctrl->drives[i].rw_multiple = SECTOR_SIZE;
+
+        /*ctrl->drives[i].rw_multiple = (id.mult_support & 0xff) * SECTOR_SIZE;*/
+
+	wprintf(L"CHS = %u:%u:%u size = %luMB \"%.40S\" \"%.20S\" mult_support = %u\n",
 	    ctrl->drives[i].pcylinders,
 	    ctrl->drives[i].pheads,
 	    ctrl->drives[i].psectors,
 	    size / 2048,
 	    id.model,
-	    id.serial);
+	    id.serial,
+            id.mult_support & 0xff);
 
 	swprintf(name, IDE_BASE_NAME L"%u", 
 	    (num_controllers - 1) * DRIVES_PER_CONTROLLER + i);
@@ -998,7 +1111,7 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 	    AtaPartitionDevice(dev, name);
     }
 
-    return true;
+    return ctrl;
 }
 
 #pragma pack(push, 1)
@@ -1013,61 +1126,51 @@ typedef struct
 } bios_params_t;
 #pragma pack(pop)
 
-static const device_vtbl_t ata_controller_vtbl =
-{
-    AtaCtrlRequest,
-    AtaCtrlIsr
-};
-
 device_t* AtaAddController(driver_t *drv, const wchar_t *name, 
 			   device_config_t *cfg)
 {
-    ata_ctrl_t* ctrl;
-    addr_t phys;
-    uint32_t *bda;
-    unsigned num_bios_drives;
-    /*unsigned mod;
-    uint16_t vector[2];
-    uint8_t *buf;*/
-
-    phys = 0;
-    bda = MemMapTemp(&phys, 1, PRIV_KERN | PRIV_RD | PRIV_PRES);
-    assert(bda != NULL);
-    num_bios_drives = bda[0x475];
-    TRACE1("ata: num_bios_drives = %u\n", num_bios_drives);
-    
-    /*memcpy(vector, ((uint32_t*) bda)[0x41], sizeof(vector));
-    phys = vector[1] << 16 | vector[0];
-    mod = phys % PAGE_SIZE;
-    phys = PAGE_ALIGN_DOWN(phys);
-    buf = MemMapTemp(&phys, 
-	mod > PAGE_SIZE - sizeof(bios_params_t) ? 2 : 1,
-	PRIV_KERN | PRIV_RD | PRIV_PRES);
-
-    memcpy(vector, ((uint32_t*) bda)[0x46], sizeof(vector));*/
-    MemUnmapTemp();
-
-    if (/*num_bios_drives > 0*/ true)
-    {
-	ctrl = malloc(sizeof(ata_ctrl_t));
-        memset(ctrl, 0, sizeof(ata_ctrl_t));
-	ctrl->dev.vtbl = &ata_controller_vtbl;
-	ctrl->dev.driver = drv;
-	ctrl->dev.cfg = cfg;
-	ctrl->base = 0x1F0;
-	SemInit(&ctrl->sem);
-	num_controllers++;
-
-	if (!AtaInitController(ctrl))
-	{
-	    free(ctrl);
-	    return NULL;
-	}
-
-	return &ctrl->dev;
-    }
+    /*if (cfg == NULL)
+        wprintf(L"ata: no PnP configuration present\n");
     else
-	return NULL;
+    {
+        unsigned i;
+
+        wprintf(L"ata: has %u PnP resources\n", cfg->num_resources);
+        for (i = 0; i < cfg->num_resources; i++)
+        {
+            switch (cfg->resources[i].cls)
+            {
+            case resMemory:
+                wprintf(L"\tmemory: 0x%x bytes at 0x%x\n", 
+                    cfg->resources[i].u.memory.length,
+                    cfg->resources[i].u.memory.base);
+                break;
+
+            case resIo:
+                wprintf(L"\tio: %u ports at 0x%x\n", 
+                    cfg->resources[i].u.io.length,
+                    cfg->resources[i].u.io.base);
+                break;
+
+            case resIrq:
+                wprintf(L"\tirq: %u\n", cfg->resources[i].u.irq);
+                break;
+            }
+        }
+    }*/
+
+    uint16_t ports[] = { REG_BASE0, REG_BASE1 };
+    uint8_t irqs[] = { AT_IRQ0, AT_IRQ1 };
+    ata_ctrl_t *ctrl;
+
+    if (num_controllers >= 2)
+        return NULL;
+    else
+    {
+        ctrl = AtaInitController(drv, ports[num_controllers], 
+            irqs[num_controllers], cfg);
+        return &ctrl->dev;
+    }
 }
 
 bool DrvInit(driver_t *drv)

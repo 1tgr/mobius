@@ -1,4 +1,4 @@
-/* $Id: mgltest.c,v 1.5 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: mgltest.c,v 1.6 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #include <gl/mgl.h>
 #include <gl/wmf.h>
@@ -85,10 +85,9 @@ int wmain(int argc, wchar_t **argv)
     glSetClearColour(0xffffff);
     glClear();
     
-    WmfDraw(wmf);
-    WmfClose(wmf);
-
     mglGetDimensions(NULL, &dims);
+    WmfDraw(wmf, &dims);
+    WmfClose(wmf);
     
     for (i = 0; i < 256; i++) 
     {

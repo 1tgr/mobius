@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.3 2002/04/04 00:09:00 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
 
 #ifndef __INTERNAL_MGL_H
 #define __INTERNAL_MGL_H
@@ -6,7 +6,6 @@
 #include <gl/mgl.h>
 #include <os/video.h>
 #include <os/queue.h>
-#include <freetype/freetype.h>
 #include "render.h"
 
 struct mglrc_t
@@ -17,8 +16,6 @@ struct mglrc_t
     MGLreal scale_x, scale_y;
     MGLcolour colour, clear_colour;
     MGLpoint pos;
-    FT_Library ft_library;
-    FT_Face ft_face;
     queue_t render_queue;
     clip_t vid_clip;
     bool did_set_mode;

@@ -150,7 +150,8 @@ void ps2StartIo(Ps2Mouse* ctx)
     
     for (io = ctx->dev.io_first; io != NULL; io = next)
     {
-	pkt = (mouse_packet_t*) ((uint8_t*) DevMapBuffer(io) + io->mod_buffer_start + io->length);
+	/*pkt = (mouse_packet_t*) ((uint8_t*) DevMapBuffer(io) + io->mod_buffer_start + io->length);*/
+        pkt = (mouse_packet_t*) ((uint8_t*) DevMapBuffer(io) + io->length);
 	
 	pkt->dx = dx;
 	pkt->dy = dy;
@@ -206,7 +207,7 @@ bool ps2Request(device_t* dev, request_t* req)
 	}
 
 	io = DevQueueRequest(dev, &req_dev->header, sizeof(*req_dev),
-	    req_dev->params.dev_read.buffer,
+	    req_dev->params.dev_read.pages,
 	    req_dev->params.dev_read.length);
 	if (io == NULL)
 	{

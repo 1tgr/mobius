@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.10 2002/02/24 19:13:12 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.11 2002/04/20 12:47:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -304,7 +304,8 @@ start:
 		}
 		else if (req_dev->header.code == DEV_WRITE)
 		{
-			buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+			/*buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;*/
+                        buf = DevMapBuffer(io) + io->length;
 			TRACE3("fdc: write block %u: copying from user %p to buffer %p\n", 
 				extra->block, buf, fdc->transfer_buffer);
 			memcpy(fdc->transfer_buffer, buf, 512);
@@ -363,7 +364,8 @@ start:
 			extra->retry = 0;
 			if (req_dev->header.code == DEV_READ)
 			{
-				buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
+				/*buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;*/
+                            buf = DevMapBuffer(io) + io->length;
 				/*wprintf(L"fdc: read block %u: %p => %p: length = %u/%u: ", 
 					extra->block, fdc->transfer_buffer, buf, 
 					io->length, req_dev->params.buffered.length);*/
@@ -528,7 +530,7 @@ bool FdcRequest(device_t *dev, request_t *req)
 				fdc->total_bytes - req_dev->params.buffered.offset;
 		
 		io = DevQueueRequest(dev, req, sizeof(request_dev_t),
-			req_dev->params.buffered.buffer,
+			req_dev->params.buffered.pages,
 			req_dev->params.buffered.length);
 		if (io == NULL)
 			return false;
@@ -544,11 +546,14 @@ bool FdcRequest(device_t *dev, request_t *req)
 		return true;
 
 	case BLK_GETSIZE:
-		size = req_dev->params.buffered.buffer;
-		size->block_size = 512;
-		size->total_blocks = 
-			fdc->geometry.heads * fdc->geometry.tracks * fdc->geometry.spt;
-		return true;
+	    //size = req_dev->params.buffered.buffer;
+            size = MemMapPageArray(req_dev->params.buffered.pages, 
+                PRIV_WR | PRIV_KERN | PRIV_PRES);
+	    size->block_size = 512;
+	    size->total_blocks = 
+		    fdc->geometry.heads * fdc->geometry.tracks * fdc->geometry.spt;
+            MemUnmapTemp();
+	    return true;
 	}
 
 	req->result = ENOTIMPL;
