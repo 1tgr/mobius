@@ -20,54 +20,54 @@ FatAllocDir():
 80051012:	57                   	push   %edi
 80051013:	56                   	push   %esi
 80051014:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:73
+/mn/src/drivers/fat/fat.c:75
 80051015:	8b 45 0c             	mov    0xc(%ebp),%eax
-/mn/src/drivers/fat/fat.c:74
+/mn/src/drivers/fat/fat.c:76
 80051018:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/fat/fat.c:73
+/mn/src/drivers/fat/fat.c:75
 8005101b:	8b 50 1c             	mov    0x1c(%eax),%edx
 8005101e:	81 c2 ff 01 00 00    	add    $0x1ff,%edx
 80051024:	81 e2 00 fe ff ff    	and    $0xfffffe00,%edx
 8005102a:	89 55 fc             	mov    %edx,0xfffffffc(%ebp)
-/mn/src/drivers/fat/fat.c:74
+/mn/src/drivers/fat/fat.c:76
 8005102d:	89 d0                	mov    %edx,%eax
-8005102f:	6a 4a                	push   $0x4a
+8005102f:	6a 4c                	push   $0x4c
 80051031:	83 c0 40             	add    $0x40,%eax
 80051034:	68 00 10 05 80       	push   $0x80051000
 80051039:	50                   	push   %eax
-8005103a:	e8 c1 0e 00 00       	call   80051f00 <___malloc>
+8005103a:	e8 41 0f 00 00       	call   80051f80 <___malloc>
 8005103f:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fat/fat.c:75
+/mn/src/drivers/fat/fat.c:77
 80051041:	83 c4 10             	add    $0x10,%esp
 80051044:	85 db                	test   %ebx,%ebx
 80051046:	75 04                	jne    8005104c <_FatAllocDir+0x40>
-/mn/src/drivers/fat/fat.c:76
+/mn/src/drivers/fat/fat.c:78
 80051048:	31 c0                	xor    %eax,%eax
 8005104a:	eb 76                	jmp    800510c2 <_FatAllocDir+0xb6>
-/mn/src/drivers/fat/fat.c:80
+/mn/src/drivers/fat/fat.c:82
 8005104c:	8b 75 0c             	mov    0xc(%ebp),%esi
 8005104f:	8d 7b 18             	lea    0x18(%ebx),%edi
-/mn/src/drivers/fat/fat.c:78
+/mn/src/drivers/fat/fat.c:80
 80051052:	8b 4d 08             	mov    0x8(%ebp),%ecx
 80051055:	89 0b                	mov    %ecx,(%ebx)
-/mn/src/drivers/fat/fat.c:79
+/mn/src/drivers/fat/fat.c:81
 80051057:	c7 43 08 00 00 00 00 	movl   $0x0,0x8(%ebx)
 8005105e:	c7 43 0c 00 00 00 00 	movl   $0x0,0xc(%ebx)
-/mn/src/drivers/fat/fat.c:80
+/mn/src/drivers/fat/fat.c:82
 80051065:	fc                   	cld    
 80051066:	b9 08 00 00 00       	mov    $0x8,%ecx
 8005106b:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
-/mn/src/drivers/fat/fat.c:81
+/mn/src/drivers/fat/fat.c:83
 8005106d:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 80051070:	c1 e8 05             	shr    $0x5,%eax
-/mn/src/drivers/fat/fat.c:83
+/mn/src/drivers/fat/fat.c:85
 80051073:	8b 55 0c             	mov    0xc(%ebp),%edx
-/mn/src/drivers/fat/fat.c:81
-80051076:	89 43 38             	mov    %eax,0x38(%ebx)
 /mn/src/drivers/fat/fat.c:83
+80051076:	89 43 38             	mov    %eax,0x38(%ebx)
+/mn/src/drivers/fat/fat.c:85
 80051079:	66 83 7a 1a 00       	cmpw   $0x0,0x1a(%edx)
 8005107e:	75 2c                	jne    800510ac <_FatAllocDir+0xa0>
-/mn/src/drivers/fat/fat.c:84
+/mn/src/drivers/fat/fat.c:86
 80051080:	8b 4d fc             	mov    0xfffffffc(%ebp),%ecx
 80051083:	83 c4 f4             	add    $0xfffffff4,%esp
 80051086:	51                   	push   %ecx
@@ -82,16 +82,16 @@ FatAllocDir():
 8005109b:	8b 4d 08             	mov    0x8(%ebp),%ecx
 8005109e:	8b 41 1c             	mov    0x1c(%ecx),%eax
 800510a1:	50                   	push   %eax
-800510a2:	e8 51 0e 00 00       	call   80051ef8 <_DevRead>
+800510a2:	e8 d1 0e 00 00       	call   80051f78 <_DevRead>
 800510a7:	eb 17                	jmp    800510c0 <_FatAllocDir+0xb4>
 800510a9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:86
+/mn/src/drivers/fat/fat.c:88
 800510ac:	83 c4 fc             	add    $0xfffffffc,%esp
-800510af:	6a 56                	push   $0x56
+800510af:	6a 58                	push   $0x58
 800510b1:	68 00 10 05 80       	push   $0x80051000
 800510b6:	68 06 10 05 80       	push   $0x80051006
-800510bb:	e8 30 0e 00 00       	call   80051ef0 <___dj_assert>
-/mn/src/drivers/fat/fat.c:88
+800510bb:	e8 b0 0e 00 00       	call   80051f70 <___dj_assert>
+/mn/src/drivers/fat/fat.c:90
 800510c0:	89 d8                	mov    %ebx,%eax
 800510c2:	8d 65 d8             	lea    0xffffffd8(%ebp),%esp
 800510c5:	5b                   	pop    %ebx
@@ -100,7 +100,7 @@ FatAllocDir():
 800510c8:	89 ec                	mov    %ebp,%esp
 800510ca:	5d                   	pop    %ebp
 800510cb:	c3                   	ret    
-/mn/src/drivers/fat/fat.c:89
+/mn/src/drivers/fat/fat.c:91
 800510cc:	90                   	nop    
 800510cd:	90                   	nop    
 800510ce:	90                   	nop    
@@ -200,10 +200,10 @@ FatGetNextCluster():
 80051193:	83 ec 10             	sub    $0x10,%esp
 80051196:	56                   	push   %esi
 80051197:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:92
+/mn/src/drivers/fat/fat.c:94
 80051198:	8b 5d 08             	mov    0x8(%ebp),%ebx
 8005119b:	8b 4d 0c             	mov    0xc(%ebp),%ecx
-/mn/src/drivers/fat/fat.c:97
+/mn/src/drivers/fat/fat.c:99
 8005119e:	0f b7 53 33          	movzwl 0x33(%ebx),%edx
 800511a2:	0f b6 73 2d          	movzbl 0x2d(%ebx),%esi
 800511a6:	89 d0                	mov    %edx,%eax
@@ -212,7 +212,7 @@ FatGetNextCluster():
 800511ab:	89 c6                	mov    %eax,%esi
 800511ad:	39 f1                	cmp    %esi,%ecx
 800511af:	72 37                	jb     800511e8 <_FatGetNextCluster+0x58>
-/mn/src/drivers/fat/fat.c:100
+/mn/src/drivers/fat/fat.c:102
 800511b1:	83 c4 f4             	add    $0xfffffff4,%esp
 800511b4:	56                   	push   %esi
 800511b5:	0f b7 53 33          	movzwl 0x33(%ebx),%edx
@@ -225,15 +225,15 @@ FatGetNextCluster():
 800511c5:	51                   	push   %ecx
 800511c6:	51                   	push   %ecx
 800511c7:	68 e0 10 05 80       	push   $0x800510e0
-800511cc:	e8 17 0d 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:104
+800511cc:	e8 97 0d 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:106
 800511d1:	83 c4 20             	add    $0x20,%esp
 800511d4:	83 c4 fc             	add    $0xfffffffc,%esp
-800511d7:	6a 68                	push   $0x68
+800511d7:	6a 6a                	push   $0x6a
 800511d9:	68 00 10 05 80       	push   $0x80051000
 800511de:	68 06 10 05 80       	push   $0x80051006
-800511e3:	e8 08 0d 00 00       	call   80051ef0 <___dj_assert>
-/mn/src/drivers/fat/fat.c:107
+800511e3:	e8 88 0d 00 00       	call   80051f70 <___dj_assert>
+/mn/src/drivers/fat/fat.c:109
 800511e8:	8b 93 24 02 00 00    	mov    0x224(%ebx),%edx
 800511ee:	83 fa 0c             	cmp    $0xc,%edx
 800511f1:	74 09                	je     800511fc <_FatGetNextCluster+0x6c>
@@ -241,54 +241,54 @@ FatGetNextCluster():
 800511f6:	74 0c                	je     80051204 <_FatGetNextCluster+0x74>
 800511f8:	eb 12                	jmp    8005120c <_FatGetNextCluster+0x7c>
 800511fa:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:110
+/mn/src/drivers/fat/fat.c:112
 800511fc:	89 c8                	mov    %ecx,%eax
 800511fe:	d1 e8                	shr    %eax
 80051200:	01 c8                	add    %ecx,%eax
-/mn/src/drivers/fat/fat.c:111
-80051202:	eb 30                	jmp    80051234 <_FatGetNextCluster+0xa4>
 /mn/src/drivers/fat/fat.c:113
+80051202:	eb 30                	jmp    80051234 <_FatGetNextCluster+0xa4>
+/mn/src/drivers/fat/fat.c:115
 80051204:	8d 04 09             	lea    (%ecx,%ecx,1),%eax
-/mn/src/drivers/fat/fat.c:114
+/mn/src/drivers/fat/fat.c:116
 80051207:	eb 2b                	jmp    80051234 <_FatGetNextCluster+0xa4>
 80051209:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:116
+/mn/src/drivers/fat/fat.c:118
 8005120c:	83 fa 0c             	cmp    $0xc,%edx
 8005120f:	74 1b                	je     8005122c <_FatGetNextCluster+0x9c>
 80051211:	83 fa 10             	cmp    $0x10,%edx
 80051214:	74 16                	je     8005122c <_FatGetNextCluster+0x9c>
 80051216:	83 c4 fc             	add    $0xfffffffc,%esp
-80051219:	6a 74                	push   $0x74
+80051219:	6a 76                	push   $0x76
 8005121b:	68 00 10 05 80       	push   $0x80051000
 80051220:	68 60 11 05 80       	push   $0x80051160
-80051225:	e8 c6 0c 00 00       	call   80051ef0 <___dj_assert>
+80051225:	e8 46 0d 00 00       	call   80051f70 <___dj_assert>
 8005122a:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:117
+/mn/src/drivers/fat/fat.c:119
 8005122c:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
 80051231:	eb 2c                	jmp    8005125f <_FatGetNextCluster+0xcf>
 80051233:	90                   	nop    
-/mn/src/drivers/fat/fat.c:120
+/mn/src/drivers/fat/fat.c:122
 80051234:	03 83 38 02 00 00    	add    0x238(%ebx),%eax
-/mn/src/drivers/fat/fat.c:121
+/mn/src/drivers/fat/fat.c:123
 8005123a:	0f b7 00             	movzwl (%eax),%eax
-/mn/src/drivers/fat/fat.c:124
+/mn/src/drivers/fat/fat.c:126
 8005123d:	83 fa 0c             	cmp    $0xc,%edx
 80051240:	75 1a                	jne    8005125c <_FatGetNextCluster+0xcc>
-/mn/src/drivers/fat/fat.c:126
+/mn/src/drivers/fat/fat.c:128
 80051242:	f6 c1 01             	test   $0x1,%cl
 80051245:	74 09                	je     80051250 <_FatGetNextCluster+0xc0>
-/mn/src/drivers/fat/fat.c:127
+/mn/src/drivers/fat/fat.c:129
 80051247:	66 c1 e8 04          	shr    $0x4,%ax
 8005124b:	eb 06                	jmp    80051253 <_FatGetNextCluster+0xc3>
 8005124d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:129
-80051250:	80 e4 0f             	and    $0xf,%ah
 /mn/src/drivers/fat/fat.c:131
+80051250:	80 e4 0f             	and    $0xf,%ah
+/mn/src/drivers/fat/fat.c:133
 80051253:	66 3d ef 0f          	cmp    $0xfef,%ax
 80051257:	76 03                	jbe    8005125c <_FatGetNextCluster+0xcc>
-/mn/src/drivers/fat/fat.c:132
+/mn/src/drivers/fat/fat.c:134
 80051259:	80 cc f0             	or     $0xf0,%ah
-/mn/src/drivers/fat/fat.c:135
+/mn/src/drivers/fat/fat.c:137
 8005125c:	0f b7 c0             	movzwl %ax,%eax
 8005125f:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80051262:	5b                   	pop    %ebx
@@ -296,7 +296,7 @@ FatGetNextCluster():
 80051264:	89 ec                	mov    %ebp,%esp
 80051266:	5d                   	pop    %ebp
 80051267:	c3                   	ret    
-/mn/src/drivers/fat/fat.c:136
+/mn/src/drivers/fat/fat.c:138
 80051268:	49                   	dec    %ecx
 80051269:	53                   	push   %ebx
 8005126a:	5f                   	pop    %edi
@@ -325,128 +325,128 @@ FatAllocFile():
 80051286:	57                   	push   %edi
 80051287:	56                   	push   %esi
 80051288:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:145
+/mn/src/drivers/fat/fat.c:147
 80051289:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/fat/fat.c:148
+/mn/src/drivers/fat/fat.c:150
 8005128c:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/fat/fat.c:139
+/mn/src/drivers/fat/fat.c:141
 8005128f:	8b 5d 0c             	mov    0xc(%ebp),%ebx
-/mn/src/drivers/fat/fat.c:145
+/mn/src/drivers/fat/fat.c:147
 80051292:	8b 90 28 02 00 00    	mov    0x228(%eax),%edx
 80051298:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/fat/fat.c:147
+/mn/src/drivers/fat/fat.c:149
 8005129a:	89 d6                	mov    %edx,%esi
-/mn/src/drivers/fat/fat.c:145
+/mn/src/drivers/fat/fat.c:147
 8005129c:	03 43 1c             	add    0x1c(%ebx),%eax
 8005129f:	8d 48 ff             	lea    0xffffffff(%eax),%ecx
 800512a2:	89 d0                	mov    %edx,%eax
 800512a4:	f7 d8                	neg    %eax
 800512a6:	21 c1                	and    %eax,%ecx
-/mn/src/drivers/fat/fat.c:147
+/mn/src/drivers/fat/fat.c:149
 800512a8:	89 c8                	mov    %ecx,%eax
 800512aa:	31 d2                	xor    %edx,%edx
 800512ac:	f7 f6                	div    %esi
 800512ae:	89 45 f8             	mov    %eax,0xfffffff8(%ebp)
-/mn/src/drivers/fat/fat.c:148
+/mn/src/drivers/fat/fat.c:150
 800512b1:	89 c2                	mov    %eax,%edx
-800512b3:	68 94 00 00 00       	push   $0x94
+800512b3:	68 96 00 00 00       	push   $0x96
 800512b8:	8d 04 95 40 00 00 00 	lea    0x40(,%edx,4),%eax
 800512bf:	68 00 10 05 80       	push   $0x80051000
 800512c4:	68 65 6c 69 66       	push   $0x66696c65
 800512c9:	50                   	push   %eax
 800512ca:	6a 00                	push   $0x0
-800512cc:	e8 0f 0c 00 00       	call   80051ee0 <__HndAlloc>
-/mn/src/drivers/fat/fat.c:149
+800512cc:	e8 8f 0c 00 00       	call   80051f60 <__HndAlloc>
+/mn/src/drivers/fat/fat.c:151
 800512d1:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/fat/fat.c:148
+/mn/src/drivers/fat/fat.c:150
 800512d4:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-/mn/src/drivers/fat/fat.c:149
+/mn/src/drivers/fat/fat.c:151
 800512d7:	83 c4 fc             	add    $0xfffffffc,%esp
 800512da:	89 c1                	mov    %eax,%ecx
 800512dc:	68 65 6c 69 66       	push   $0x66696c65
 800512e1:	51                   	push   %ecx
 800512e2:	6a 00                	push   $0x0
-800512e4:	e8 ef 0b 00 00       	call   80051ed8 <_HndLock>
+800512e4:	e8 6f 0c 00 00       	call   80051f58 <_HndLock>
 800512e9:	89 c2                	mov    %eax,%edx
-/mn/src/drivers/fat/fat.c:150
+/mn/src/drivers/fat/fat.c:152
 800512eb:	83 c4 10             	add    $0x10,%esp
 800512ee:	85 d2                	test   %edx,%edx
 800512f0:	75 1a                	jne    8005130c <_FatAllocFile+0x8c>
-/mn/src/drivers/fat/fat.c:152
+/mn/src/drivers/fat/fat.c:154
 800512f2:	83 c4 fc             	add    $0xfffffffc,%esp
 800512f5:	68 65 6c 69 66       	push   $0x66696c65
 800512fa:	8b 75 fc             	mov    0xfffffffc(%ebp),%esi
 800512fd:	56                   	push   %esi
 800512fe:	6a 00                	push   $0x0
-80051300:	e8 cb 0b 00 00       	call   80051ed0 <_HndFree>
-/mn/src/drivers/fat/fat.c:153
+80051300:	e8 4b 0c 00 00       	call   80051f50 <_HndFree>
+/mn/src/drivers/fat/fat.c:155
 80051305:	31 c0                	xor    %eax,%eax
 80051307:	e9 8e 00 00 00       	jmp    8005139a <_FatAllocFile+0x11a>
-/mn/src/drivers/fat/fat.c:156
+/mn/src/drivers/fat/fat.c:158
 8005130c:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/fat/fat.c:159
+/mn/src/drivers/fat/fat.c:161
 8005130f:	89 de                	mov    %ebx,%esi
-/mn/src/drivers/fat/fat.c:156
+/mn/src/drivers/fat/fat.c:158
 80051311:	89 02                	mov    %eax,(%edx)
-/mn/src/drivers/fat/fat.c:159
+/mn/src/drivers/fat/fat.c:161
 80051313:	8d 7a 18             	lea    0x18(%edx),%edi
-/mn/src/drivers/fat/fat.c:157
+/mn/src/drivers/fat/fat.c:159
 80051316:	c7 42 08 00 00 00 00 	movl   $0x0,0x8(%edx)
 8005131d:	c7 42 0c 00 00 00 00 	movl   $0x0,0xc(%edx)
-/mn/src/drivers/fat/fat.c:158
+/mn/src/drivers/fat/fat.c:160
 80051324:	8b 45 10             	mov    0x10(%ebp),%eax
 80051327:	89 42 10             	mov    %eax,0x10(%edx)
-/mn/src/drivers/fat/fat.c:159
+/mn/src/drivers/fat/fat.c:161
 8005132a:	fc                   	cld    
 8005132b:	b9 08 00 00 00       	mov    $0x8,%ecx
 80051330:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
-/mn/src/drivers/fat/fat.c:160
+/mn/src/drivers/fat/fat.c:162
 80051332:	8b 75 f8             	mov    0xfffffff8(%ebp),%esi
 80051335:	89 72 38             	mov    %esi,0x38(%edx)
-/mn/src/drivers/fat/fat.c:163
+/mn/src/drivers/fat/fat.c:165
 80051338:	0f b7 43 1a          	movzwl 0x1a(%ebx),%eax
-/mn/src/drivers/fat/fat.c:162
-8005133c:	8d 72 40             	lea    0x40(%edx),%esi
 /mn/src/drivers/fat/fat.c:164
+8005133c:	8d 72 40             	lea    0x40(%edx),%esi
+/mn/src/drivers/fat/fat.c:166
 8005133f:	31 db                	xor    %ebx,%ebx
 80051341:	3b 5d f8             	cmp    0xfffffff8(%ebp),%ebx
 80051344:	73 1d                	jae    80051363 <_FatAllocFile+0xe3>
 80051346:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:166
+/mn/src/drivers/fat/fat.c:168
 80051348:	89 06                	mov    %eax,(%esi)
-/mn/src/drivers/fat/fat.c:167
+/mn/src/drivers/fat/fat.c:169
 8005134a:	83 c4 f8             	add    $0xfffffff8,%esp
 8005134d:	50                   	push   %eax
-/mn/src/drivers/fat/fat.c:166
+/mn/src/drivers/fat/fat.c:168
 8005134e:	83 c6 04             	add    $0x4,%esi
-/mn/src/drivers/fat/fat.c:167
+/mn/src/drivers/fat/fat.c:169
 80051351:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/fat/fat.c:164
+/mn/src/drivers/fat/fat.c:166
 80051354:	43                   	inc    %ebx
-/mn/src/drivers/fat/fat.c:167
+/mn/src/drivers/fat/fat.c:169
 80051355:	50                   	push   %eax
 80051356:	e8 35 fe ff ff       	call   80051190 <_FatGetNextCluster>
-/mn/src/drivers/fat/fat.c:164
+/mn/src/drivers/fat/fat.c:166
 8005135b:	83 c4 10             	add    $0x10,%esp
 8005135e:	3b 5d f8             	cmp    0xfffffff8(%ebp),%ebx
 80051361:	72 e5                	jb     80051348 <_FatAllocFile+0xc8>
-/mn/src/drivers/fat/fat.c:170
+/mn/src/drivers/fat/fat.c:172
 80051363:	05 08 00 ff ff       	add    $0xffff0008,%eax
 80051368:	83 f8 07             	cmp    $0x7,%eax
 8005136b:	76 17                	jbe    80051384 <_FatAllocFile+0x104>
 8005136d:	83 c4 fc             	add    $0xfffffffc,%esp
-80051370:	68 aa 00 00 00       	push   $0xaa
+80051370:	68 ac 00 00 00       	push   $0xac
 80051375:	68 00 10 05 80       	push   $0x80051000
 8005137a:	68 68 12 05 80       	push   $0x80051268
-8005137f:	e8 6c 0b 00 00       	call   80051ef0 <___dj_assert>
-/mn/src/drivers/fat/fat.c:171
+8005137f:	e8 ec 0b 00 00       	call   80051f70 <___dj_assert>
+/mn/src/drivers/fat/fat.c:173
 80051384:	83 c4 fc             	add    $0xfffffffc,%esp
 80051387:	68 65 6c 69 66       	push   $0x66696c65
 8005138c:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 8005138f:	52                   	push   %edx
 80051390:	6a 00                	push   $0x0
-80051392:	e8 31 0b 00 00       	call   80051ec8 <_HndUnlock>
-/mn/src/drivers/fat/fat.c:172
+80051392:	e8 b1 0b 00 00       	call   80051f48 <_HndUnlock>
+/mn/src/drivers/fat/fat.c:174
 80051397:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 8005139a:	8d 65 d8             	lea    0xffffffd8(%ebp),%esp
 8005139d:	5b                   	pop    %ebx
@@ -464,97 +464,97 @@ FatAssembleName():
 800513aa:	57                   	push   %edi
 800513ab:	56                   	push   %esi
 800513ac:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:180
+/mn/src/drivers/fat/fat.c:182
 800513ad:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/fat/fat.c:176
+/mn/src/drivers/fat/fat.c:178
 800513b0:	8b 55 0c             	mov    0xc(%ebp),%edx
-/mn/src/drivers/fat/fat.c:180
+/mn/src/drivers/fat/fat.c:182
 800513b3:	8a 41 0b             	mov    0xb(%ecx),%al
 800513b6:	24 0f                	and    $0xf,%al
 800513b8:	3c 0f                	cmp    $0xf,%al
 800513ba:	75 18                	jne    800513d4 <_FatAssembleName+0x30>
-/mn/src/drivers/fat/fat.c:182
+/mn/src/drivers/fat/fat.c:184
 800513bc:	83 c4 fc             	add    $0xfffffffc,%esp
-800513bf:	68 b6 00 00 00       	push   $0xb6
+800513bf:	68 b8 00 00 00       	push   $0xb8
 800513c4:	68 00 10 05 80       	push   $0x80051000
 800513c9:	68 06 10 05 80       	push   $0x80051006
-800513ce:	e8 1d 0b 00 00       	call   80051ef0 <___dj_assert>
+800513ce:	e8 9d 0b 00 00       	call   80051f70 <___dj_assert>
 800513d3:	90                   	nop    
-/mn/src/drivers/fat/fat.c:190
+/mn/src/drivers/fat/fat.c:192
 800513d4:	31 c0                	xor    %eax,%eax
 800513d6:	89 d7                	mov    %edx,%edi
 800513d8:	fc                   	cld    
 800513d9:	b9 80 00 00 00       	mov    $0x80,%ecx
 800513de:	f3 ab                	repz stos %eax,%es:(%edi)
-/mn/src/drivers/fat/fat.c:191
+/mn/src/drivers/fat/fat.c:193
 800513e0:	89 d3                	mov    %edx,%ebx
-/mn/src/drivers/fat/fat.c:192
-800513e2:	31 f6                	xor    %esi,%esi
 /mn/src/drivers/fat/fat.c:194
+800513e2:	31 f6                	xor    %esi,%esi
+/mn/src/drivers/fat/fat.c:196
 800513e4:	8b 45 08             	mov    0x8(%ebp),%eax
 800513e7:	80 38 20             	cmpb   $0x20,(%eax)
 800513ea:	74 28                	je     80051414 <_FatAssembleName+0x70>
-/mn/src/drivers/fat/fat.c:197
+/mn/src/drivers/fat/fat.c:199
 800513ec:	8b 55 08             	mov    0x8(%ebp),%edx
 800513ef:	83 c4 f4             	add    $0xfffffff4,%esp
 800513f2:	0f b6 04 16          	movzbl (%esi,%edx,1),%eax
 800513f6:	50                   	push   %eax
-/mn/src/drivers/fat/fat.c:192
+/mn/src/drivers/fat/fat.c:194
 800513f7:	46                   	inc    %esi
-/mn/src/drivers/fat/fat.c:197
-800513f8:	e8 c3 0a 00 00       	call   80051ec0 <_tolower>
+/mn/src/drivers/fat/fat.c:199
+800513f8:	e8 43 0b 00 00       	call   80051f40 <_tolower>
 800513fd:	66 89 03             	mov    %ax,(%ebx)
-/mn/src/drivers/fat/fat.c:192
+/mn/src/drivers/fat/fat.c:194
 80051400:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/fat/fat.c:197
+/mn/src/drivers/fat/fat.c:199
 80051403:	83 c3 02             	add    $0x2,%ebx
-/mn/src/drivers/fat/fat.c:192
+/mn/src/drivers/fat/fat.c:194
 80051406:	83 fe 07             	cmp    $0x7,%esi
 80051409:	77 09                	ja     80051414 <_FatAssembleName+0x70>
-/mn/src/drivers/fat/fat.c:194
+/mn/src/drivers/fat/fat.c:196
 8005140b:	8b 4d 08             	mov    0x8(%ebp),%ecx
 8005140e:	80 3c 0e 20          	cmpb   $0x20,(%esi,%ecx,1)
 80051412:	75 d8                	jne    800513ec <_FatAssembleName+0x48>
-/mn/src/drivers/fat/fat.c:200
+/mn/src/drivers/fat/fat.c:202
 80051414:	8b 45 08             	mov    0x8(%ebp),%eax
 80051417:	80 78 08 20          	cmpb   $0x20,0x8(%eax)
 8005141b:	74 40                	je     8005145d <_FatAssembleName+0xb9>
-/mn/src/drivers/fat/fat.c:202
-8005141d:	66 c7 03 2e 00       	movw   $0x2e,(%ebx)
 /mn/src/drivers/fat/fat.c:204
-80051422:	31 f6                	xor    %esi,%esi
-/mn/src/drivers/fat/fat.c:202
-80051424:	83 c3 02             	add    $0x2,%ebx
+8005141d:	66 c7 03 2e 00       	movw   $0x2e,(%ebx)
 /mn/src/drivers/fat/fat.c:206
+80051422:	31 f6                	xor    %esi,%esi
+/mn/src/drivers/fat/fat.c:204
+80051424:	83 c3 02             	add    $0x2,%ebx
+/mn/src/drivers/fat/fat.c:208
 80051427:	80 78 08 20          	cmpb   $0x20,0x8(%eax)
 8005142b:	74 2b                	je     80051458 <_FatAssembleName+0xb4>
 8005142d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:212
+/mn/src/drivers/fat/fat.c:214
 80051430:	8b 7d 08             	mov    0x8(%ebp),%edi
 80051433:	83 c4 f4             	add    $0xfffffff4,%esp
 80051436:	83 c7 08             	add    $0x8,%edi
 80051439:	0f b6 04 3e          	movzbl (%esi,%edi,1),%eax
 8005143d:	50                   	push   %eax
-/mn/src/drivers/fat/fat.c:204
+/mn/src/drivers/fat/fat.c:206
 8005143e:	46                   	inc    %esi
-/mn/src/drivers/fat/fat.c:212
-8005143f:	e8 7c 0a 00 00       	call   80051ec0 <_tolower>
+/mn/src/drivers/fat/fat.c:214
+8005143f:	e8 fc 0a 00 00       	call   80051f40 <_tolower>
 80051444:	66 89 03             	mov    %ax,(%ebx)
-/mn/src/drivers/fat/fat.c:204
+/mn/src/drivers/fat/fat.c:206
 80051447:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/fat/fat.c:212
+/mn/src/drivers/fat/fat.c:214
 8005144a:	83 c3 02             	add    $0x2,%ebx
-/mn/src/drivers/fat/fat.c:204
+/mn/src/drivers/fat/fat.c:206
 8005144d:	83 fe 02             	cmp    $0x2,%esi
 80051450:	77 0b                	ja     8005145d <_FatAssembleName+0xb9>
-/mn/src/drivers/fat/fat.c:206
+/mn/src/drivers/fat/fat.c:208
 80051452:	80 3c 3e 20          	cmpb   $0x20,(%esi,%edi,1)
 80051456:	75 d8                	jne    80051430 <_FatAssembleName+0x8c>
-/mn/src/drivers/fat/fat.c:208
+/mn/src/drivers/fat/fat.c:210
 80051458:	66 c7 03 00 00       	movw   $0x0,(%ebx)
-/mn/src/drivers/fat/fat.c:216
+/mn/src/drivers/fat/fat.c:218
 8005145d:	66 c7 03 00 00       	movw   $0x0,(%ebx)
-/mn/src/drivers/fat/fat.c:217
+/mn/src/drivers/fat/fat.c:219
 80051462:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 80051465:	5b                   	pop    %ebx
 80051466:	b8 01 00 00 00       	mov    $0x1,%eax
@@ -563,7 +563,7 @@ FatAssembleName():
 8005146d:	89 ec                	mov    %ebp,%esp
 8005146f:	5d                   	pop    %ebp
 80051470:	c3                   	ret    
-/mn/src/drivers/fat/fat.c:219
+/mn/src/drivers/fat/fat.c:221
 80051471:	90                   	nop    
 80051472:	25 00 73 00 20       	and    $0x20007300,%eax
 80051477:	00 66 00             	add    %ah,0x0(%esi)
@@ -634,54 +634,54 @@ FatLookupFile():
 80051501:	57                   	push   %edi
 80051502:	56                   	push   %esi
 80051503:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:229
+/mn/src/drivers/fat/fat.c:231
 80051504:	83 c4 f8             	add    $0xfffffff8,%esp
 80051507:	6a 2f                	push   $0x2f
 80051509:	8b 45 10             	mov    0x10(%ebp),%eax
 8005150c:	50                   	push   %eax
-8005150d:	e8 a6 09 00 00       	call   80051eb8 <_wcschr>
+8005150d:	e8 26 0a 00 00       	call   80051f38 <_wcschr>
 80051512:	89 85 fc fd ff ff    	mov    %eax,0xfffffdfc(%ebp)
-/mn/src/drivers/fat/fat.c:230
+/mn/src/drivers/fat/fat.c:232
 80051518:	83 c4 10             	add    $0x10,%esp
 8005151b:	85 c0                	test   %eax,%eax
 8005151d:	74 31                	je     80051550 <_FatLookupFile+0x58>
-/mn/src/drivers/fat/fat.c:232
-8005151f:	66 c7 00 00 00       	movw   $0x0,(%eax)
-/mn/src/drivers/fat/fat.c:233
-80051524:	c6 85 f3 fd ff ff 01 	movb   $0x1,0xfffffdf3(%ebp)
 /mn/src/drivers/fat/fat.c:234
+8005151f:	66 c7 00 00 00       	movw   $0x0,(%eax)
+/mn/src/drivers/fat/fat.c:235
+80051524:	c6 85 f3 fd ff ff 01 	movb   $0x1,0xfffffdf3(%ebp)
+/mn/src/drivers/fat/fat.c:236
 8005152b:	eb 2a                	jmp    80051557 <_FatLookupFile+0x5f>
 8005152d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:262
+/mn/src/drivers/fat/fat.c:264
 80051530:	83 c4 fc             	add    $0xfffffffc,%esp
-80051533:	68 06 01 00 00       	push   $0x106
+80051533:	68 08 01 00 00       	push   $0x108
 80051538:	68 00 10 05 80       	push   $0x80051000
 8005153d:	8b 55 0c             	mov    0xc(%ebp),%edx
 80051540:	52                   	push   %edx
-80051541:	e8 62 09 00 00       	call   80051ea8 <___free>
-/mn/src/drivers/fat/fat.c:263
+80051541:	e8 e2 09 00 00       	call   80051f28 <___free>
+/mn/src/drivers/fat/fat.c:265
 80051546:	b8 01 00 00 00       	mov    $0x1,%eax
 8005154b:	e9 90 01 00 00       	jmp    800516e0 <_FatLookupFile+0x1e8>
-/mn/src/drivers/fat/fat.c:236
-80051550:	c6 85 f3 fd ff ff 00 	movb   $0x0,0xfffffdf3(%ebp)
-/mn/src/drivers/fat/fat.c:239
-80051557:	8b 4d 0c             	mov    0xc(%ebp),%ecx
 /mn/src/drivers/fat/fat.c:238
+80051550:	c6 85 f3 fd ff ff 00 	movb   $0x0,0xfffffdf3(%ebp)
+/mn/src/drivers/fat/fat.c:241
+80051557:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+/mn/src/drivers/fat/fat.c:240
 8005155a:	c7 85 f8 fd ff ff 00 	movl   $0x0,0xfffffdf8(%ebp)
 80051561:	00 00 00 
-/mn/src/drivers/fat/fat.c:240
+/mn/src/drivers/fat/fat.c:242
 80051564:	8b 45 0c             	mov    0xc(%ebp),%eax
-/mn/src/drivers/fat/fat.c:239
+/mn/src/drivers/fat/fat.c:241
 80051567:	83 c1 40             	add    $0x40,%ecx
 8005156a:	89 8d f4 fd ff ff    	mov    %ecx,0xfffffdf4(%ebp)
-/mn/src/drivers/fat/fat.c:240
+/mn/src/drivers/fat/fat.c:242
 80051570:	8b 50 38             	mov    0x38(%eax),%edx
 80051573:	39 95 f8 fd ff ff    	cmp    %edx,0xfffffdf8(%ebp)
 80051579:	0f 83 4e 01 00 00    	jae    800516cd <_FatLookupFile+0x1d5>
 8005157f:	80 78 40 00          	cmpb   $0x0,0x40(%eax)
 80051583:	0f 84 44 01 00 00    	je     800516cd <_FatLookupFile+0x1d5>
 80051589:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:242
+/mn/src/drivers/fat/fat.c:244
 8005158c:	8b b5 f8 fd ff ff    	mov    0xfffffdf8(%ebp),%esi
 80051592:	c1 e6 05             	shl    $0x5,%esi
 80051595:	8b 8d f4 fd ff ff    	mov    0xfffffdf4(%ebp),%ecx
@@ -689,12 +689,12 @@ FatLookupFile():
 8005159f:	74 07                	je     800515a8 <_FatLookupFile+0xb0>
 800515a1:	f6 44 31 0b 0f       	testb  $0xf,0xb(%ecx,%esi,1)
 800515a6:	74 0c                	je     800515b4 <_FatLookupFile+0xbc>
-/mn/src/drivers/fat/fat.c:245
+/mn/src/drivers/fat/fat.c:247
 800515a8:	ff 85 f8 fd ff ff    	incl   0xfffffdf8(%ebp)
-/mn/src/drivers/fat/fat.c:246
+/mn/src/drivers/fat/fat.c:248
 800515ae:	e9 f9 00 00 00       	jmp    800516ac <_FatLookupFile+0x1b4>
 800515b3:	90                   	nop    
-/mn/src/drivers/fat/fat.c:249
+/mn/src/drivers/fat/fat.c:251
 800515b4:	83 c4 f8             	add    $0xfffffff8,%esp
 800515b7:	8d bd 00 fe ff ff    	lea    0xfffffe00(%ebp),%edi
 800515bd:	57                   	push   %edi
@@ -703,35 +703,35 @@ FatLookupFile():
 800515c6:	89 85 ec fd ff ff    	mov    %eax,0xfffffdec(%ebp)
 800515cc:	50                   	push   %eax
 800515cd:	e8 d2 fd ff ff       	call   800513a4 <_FatAssembleName>
-/mn/src/drivers/fat/fat.c:252
+/mn/src/drivers/fat/fat.c:254
 800515d2:	83 c4 f8             	add    $0xfffffff8,%esp
 800515d5:	8b 55 10             	mov    0x10(%ebp),%edx
 800515d8:	52                   	push   %edx
-/mn/src/drivers/fat/fat.c:249
+/mn/src/drivers/fat/fat.c:251
 800515d9:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fat/fat.c:252
+/mn/src/drivers/fat/fat.c:254
 800515db:	57                   	push   %edi
-800515dc:	e8 cf 08 00 00       	call   80051eb0 <__wcsicmp>
+800515dc:	e8 4f 09 00 00       	call   80051f30 <__wcsicmp>
 800515e1:	83 c4 20             	add    $0x20,%esp
 800515e4:	85 c0                	test   %eax,%eax
 800515e6:	0f 85 b4 00 00 00    	jne    800516a0 <_FatLookupFile+0x1a8>
-/mn/src/drivers/fat/fat.c:254
+/mn/src/drivers/fat/fat.c:256
 800515ec:	8b 8d f4 fd ff ff    	mov    0xfffffdf4(%ebp),%ecx
 800515f2:	83 c4 fc             	add    $0xfffffffc,%esp
 800515f5:	0f b7 44 31 1a       	movzwl 0x1a(%ecx,%esi,1),%eax
 800515fa:	50                   	push   %eax
 800515fb:	57                   	push   %edi
 800515fc:	68 72 14 05 80       	push   $0x80051472
-80051601:	e8 e2 08 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:256
+80051601:	e8 62 09 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:258
 80051606:	83 c4 10             	add    $0x10,%esp
 80051609:	80 bd f3 fd ff ff 00 	cmpb   $0x0,0xfffffdf3(%ebp)
 80051610:	74 66                	je     80051678 <_FatLookupFile+0x180>
-/mn/src/drivers/fat/fat.c:258
+/mn/src/drivers/fat/fat.c:260
 80051612:	83 c4 f4             	add    $0xfffffff4,%esp
 80051615:	68 90 14 05 80       	push   $0x80051490
-8005161a:	e8 c9 08 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:259
+8005161a:	e8 49 09 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:261
 8005161f:	83 c4 f8             	add    $0xfffffff8,%esp
 80051622:	8b 85 ec fd ff ff    	mov    0xfffffdec(%ebp),%eax
 80051628:	50                   	push   %eax
@@ -739,7 +739,7 @@ FatLookupFile():
 8005162c:	52                   	push   %edx
 8005162d:	e8 da f9 ff ff       	call   8005100c <_FatAllocDir>
 80051632:	89 45 0c             	mov    %eax,0xc(%ebp)
-/mn/src/drivers/fat/fat.c:260
+/mn/src/drivers/fat/fat.c:262
 80051635:	83 c4 20             	add    $0x20,%esp
 80051638:	8b 4d 14             	mov    0x14(%ebp),%ecx
 8005163b:	51                   	push   %ecx
@@ -754,37 +754,37 @@ FatLookupFile():
 80051653:	83 c4 10             	add    $0x10,%esp
 80051656:	84 c0                	test   %al,%al
 80051658:	0f 85 d2 fe ff ff    	jne    80051530 <_FatLookupFile+0x38>
-/mn/src/drivers/fat/fat.c:267
+/mn/src/drivers/fat/fat.c:269
 8005165e:	83 c4 fc             	add    $0xfffffffc,%esp
-80051661:	68 0b 01 00 00       	push   $0x10b
+80051661:	68 0d 01 00 00       	push   $0x10d
 80051666:	68 00 10 05 80       	push   $0x80051000
 8005166b:	8b 4d 0c             	mov    0xc(%ebp),%ecx
 8005166e:	51                   	push   %ecx
-8005166f:	e8 34 08 00 00       	call   80051ea8 <___free>
-/mn/src/drivers/fat/fat.c:268
+8005166f:	e8 b4 08 00 00       	call   80051f28 <___free>
+/mn/src/drivers/fat/fat.c:270
 80051674:	eb 68                	jmp    800516de <_FatLookupFile+0x1e6>
 80051676:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:273
+/mn/src/drivers/fat/fat.c:275
 80051678:	83 c4 f4             	add    $0xfffffff4,%esp
 8005167b:	68 94 14 05 80       	push   $0x80051494
-80051680:	e8 63 08 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:274
+80051680:	e8 e3 08 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:276
 80051685:	8b 7d 14             	mov    0x14(%ebp),%edi
-/mn/src/drivers/fat/fat.c:275
+/mn/src/drivers/fat/fat.c:277
 80051688:	b8 01 00 00 00       	mov    $0x1,%eax
-/mn/src/drivers/fat/fat.c:274
+/mn/src/drivers/fat/fat.c:276
 8005168d:	8b b5 ec fd ff ff    	mov    0xfffffdec(%ebp),%esi
 80051693:	fc                   	cld    
 80051694:	b9 08 00 00 00       	mov    $0x8,%ecx
 80051699:	f3 a5                	repz movsl %ds:(%esi),%es:(%edi)
-/mn/src/drivers/fat/fat.c:275
+/mn/src/drivers/fat/fat.c:277
 8005169b:	eb 43                	jmp    800516e0 <_FatLookupFile+0x1e8>
 8005169d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:279
+/mn/src/drivers/fat/fat.c:281
 800516a0:	8b 45 0c             	mov    0xc(%ebp),%eax
 800516a3:	01 9d f8 fd ff ff    	add    %ebx,0xfffffdf8(%ebp)
 800516a9:	8b 50 38             	mov    0x38(%eax),%edx
-/mn/src/drivers/fat/fat.c:280
+/mn/src/drivers/fat/fat.c:282
 800516ac:	39 95 f8 fd ff ff    	cmp    %edx,0xfffffdf8(%ebp)
 800516b2:	73 19                	jae    800516cd <_FatLookupFile+0x1d5>
 800516b4:	8b 85 f8 fd ff ff    	mov    0xfffffdf8(%ebp),%eax
@@ -792,13 +792,13 @@ FatLookupFile():
 800516bd:	8b 8d f4 fd ff ff    	mov    0xfffffdf4(%ebp),%ecx
 800516c3:	80 3c 01 00          	cmpb   $0x0,(%ecx,%eax,1)
 800516c7:	0f 85 bf fe ff ff    	jne    8005158c <_FatLookupFile+0x94>
-/mn/src/drivers/fat/fat.c:282
+/mn/src/drivers/fat/fat.c:284
 800516cd:	83 c4 f8             	add    $0xfffffff8,%esp
 800516d0:	8b 45 10             	mov    0x10(%ebp),%eax
 800516d3:	50                   	push   %eax
 800516d4:	68 c0 14 05 80       	push   $0x800514c0
-800516d9:	e8 0a 08 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:283
+800516d9:	e8 8a 08 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:285
 800516de:	31 c0                	xor    %eax,%eax
 800516e0:	8d a5 c8 fd ff ff    	lea    0xfffffdc8(%ebp),%esp
 800516e6:	5b                   	pop    %ebx
@@ -807,16 +807,16 @@ FatLookupFile():
 800516e9:	89 ec                	mov    %ebp,%esp
 800516eb:	5d                   	pop    %ebp
 800516ec:	c3                   	ret    
-/mn/src/drivers/fat/fat.c:284
+/mn/src/drivers/fat/fat.c:286
 800516ed:	8d 76 00             	lea    0x0(%esi),%esi
 
 800516f0 <_FatClusterToOffset>:
 FatClusterToOffset():
 800516f0:	55                   	push   %ebp
 800516f1:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/fat/fat.c:287
+/mn/src/drivers/fat/fat.c:289
 800516f3:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/fat/fat.c:288
+/mn/src/drivers/fat/fat.c:290
 800516f6:	8b 55 0c             	mov    0xc(%ebp),%edx
 800516f9:	83 c2 fe             	add    $0xfffffffe,%edx
 800516fc:	89 ec                	mov    %ebp,%esp
@@ -833,943 +833,1004 @@ FatClusterToOffset():
 80051724:	74 00                	je     80051726 <_FatClusterToOffset+0x36>
 80051726:	3a 00                	cmp    (%eax),%al
 80051728:	20 00                	and    %al,(%eax)
-8005172a:	72 00                	jb     8005172c <_FatClusterToOffset+0x3c>
-8005172c:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
-80051730:	64 00 69 00          	add    %ch,%fs:0x0(%ecx)
-80051734:	6e                   	outsb  %ds:(%esi),(%dx)
-80051735:	00 67 00             	add    %ah,0x0(%edi)
-80051738:	20 00                	and    %al,(%eax)
-8005173a:	25 00 75 00 20       	and    $0x20007500,%eax
-8005173f:	00 62 00             	add    %ah,0x0(%edx)
-80051742:	79 00                	jns    80051744 <_FatClusterToOffset+0x54>
-80051744:	74 00                	je     80051746 <_FatClusterToOffset+0x56>
-80051746:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
-8005174a:	0a 00                	or     (%eax),%al
-8005174c:	00 00                	add    %al,(%eax)
-8005174e:	90                   	nop    
-8005174f:	90                   	nop    
-80051750:	90                   	nop    
-80051751:	90                   	nop    
-80051752:	90                   	nop    
-80051753:	90                   	nop    
-80051754:	90                   	nop    
-80051755:	90                   	nop    
-80051756:	90                   	nop    
-80051757:	90                   	nop    
-80051758:	90                   	nop    
-80051759:	90                   	nop    
-8005175a:	90                   	nop    
-8005175b:	90                   	nop    
-8005175c:	90                   	nop    
-8005175d:	90                   	nop    
-8005175e:	90                   	nop    
-8005175f:	90                   	nop    
-80051760:	66                   	data16
-80051761:	00 61 00             	add    %ah,0x0(%ecx)
+8005172a:	6e                   	outsb  %ds:(%esi),(%dx)
+8005172b:	00 75 00             	add    %dh,0x0(%ebp)
+8005172e:	6c                   	insb   (%dx),%es:(%edi)
+8005172f:	00 6c 00 20          	add    %ch,0x20(%eax,%eax,1)
+80051733:	00 72 00             	add    %dh,0x0(%edx)
+80051736:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+8005173a:	64 00 0a             	add    %cl,%fs:(%edx)
+8005173d:	00 00                	add    %al,(%eax)
+8005173f:	00 66 00             	add    %ah,0x0(%esi)
+80051742:	61                   	popa   
+80051743:	00 74 00 3a          	add    %dh,0x3a(%eax,%eax,1)
+80051747:	00 20                	add    %ah,(%eax)
+80051749:	00 72 00             	add    %dh,0x0(%edx)
+8005174c:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+80051750:	64 00 69 00          	add    %ch,%fs:0x0(%ecx)
+80051754:	6e                   	outsb  %ds:(%esi),(%dx)
+80051755:	00 67 00             	add    %ah,0x0(%edi)
+80051758:	20 00                	and    %al,(%eax)
+8005175a:	25 00 75 00 20       	and    $0x20007500,%eax
+8005175f:	00 62 00             	add    %ah,0x0(%edx)
+80051762:	79 00                	jns    80051764 <_FatClusterToOffset+0x74>
 80051764:	74 00                	je     80051766 <_FatClusterToOffset+0x76>
-80051766:	3a 00                	cmp    (%eax),%al
-80051768:	20 00                	and    %al,(%eax)
-8005176a:	61                   	popa   
-8005176b:	00 74 00 74          	add    %dh,0x74(%eax,%eax,1)
-8005176f:	00 65 00             	add    %ah,0x0(%ebp)
-80051772:	6d                   	insl   (%dx),%es:(%edi)
-80051773:	00 70 00             	add    %dh,0x0(%eax)
-80051776:	74 00                	je     80051778 <_FatClusterToOffset+0x88>
-80051778:	20 00                	and    %al,(%eax)
-8005177a:	74 00                	je     8005177c <_FatClusterToOffset+0x8c>
-8005177c:	6f                   	outsl  %ds:(%esi),(%dx)
-8005177d:	00 20                	add    %ah,(%eax)
-8005177f:	00 72 00             	add    %dh,0x0(%edx)
-80051782:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
-80051786:	64 00 20             	add    %ah,%fs:(%eax)
-80051789:	00 70 00             	add    %dh,0x0(%eax)
-8005178c:	61                   	popa   
-8005178d:	00 73 00             	add    %dh,0x0(%ebx)
-80051790:	74 00                	je     80051792 <_FatClusterToOffset+0xa2>
-80051792:	20 00                	and    %al,(%eax)
-80051794:	65 00 6e 00          	add    %ch,%gs:0x0(%esi)
-80051798:	64 00 20             	add    %ah,%fs:(%eax)
-8005179b:	00 6f 00             	add    %ch,0x0(%edi)
-8005179e:	66                   	data16
-8005179f:	00 20                	add    %ah,(%eax)
-800517a1:	00 66 00             	add    %ah,0x0(%esi)
-800517a4:	69 00 6c 00 65 00    	imul   $0x65006c,(%eax),%eax
-800517aa:	0a 00                	or     (%eax),%al
-800517ac:	00 00                	add    %al,(%eax)
-800517ae:	90                   	nop    
-800517af:	90                   	nop    
-800517b0:	90                   	nop    
-800517b1:	90                   	nop    
-800517b2:	90                   	nop    
-800517b3:	90                   	nop    
-800517b4:	90                   	nop    
-800517b5:	90                   	nop    
-800517b6:	90                   	nop    
-800517b7:	90                   	nop    
-800517b8:	90                   	nop    
-800517b9:	90                   	nop    
-800517ba:	90                   	nop    
-800517bb:	90                   	nop    
-800517bc:	90                   	nop    
-800517bd:	90                   	nop    
-800517be:	90                   	nop    
-800517bf:	90                   	nop    
-800517c0:	66                   	data16
-800517c1:	00 61 00             	add    %ah,0x0(%ecx)
-800517c4:	74 00                	je     800517c6 <_FatClusterToOffset+0xd6>
-800517c6:	3a 00                	cmp    (%eax),%al
-800517c8:	20 00                	and    %al,(%eax)
-800517ca:	70 00                	jo     800517cc <_FatClusterToOffset+0xdc>
-800517cc:	6f                   	outsl  %ds:(%esi),(%dx)
-800517cd:	00 73 00             	add    %dh,0x0(%ebx)
-800517d0:	20 00                	and    %al,(%eax)
-800517d2:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-800517d7:	00 75 00             	add    %dh,0x0(%ebp)
-800517da:	20 00                	and    %al,(%eax)
-800517dc:	63 00                	arpl   %ax,(%eax)
-800517de:	6c                   	insb   (%dx),%es:(%edi)
-800517df:	00 75 00             	add    %dh,0x0(%ebp)
-800517e2:	73 00                	jae    800517e4 <_FatClusterToOffset+0xf4>
+80051766:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
+8005176a:	0a 00                	or     (%eax),%al
+8005176c:	00 00                	add    %al,(%eax)
+8005176e:	90                   	nop    
+8005176f:	90                   	nop    
+80051770:	90                   	nop    
+80051771:	90                   	nop    
+80051772:	90                   	nop    
+80051773:	90                   	nop    
+80051774:	90                   	nop    
+80051775:	90                   	nop    
+80051776:	90                   	nop    
+80051777:	90                   	nop    
+80051778:	90                   	nop    
+80051779:	90                   	nop    
+8005177a:	90                   	nop    
+8005177b:	90                   	nop    
+8005177c:	90                   	nop    
+8005177d:	90                   	nop    
+8005177e:	90                   	nop    
+8005177f:	90                   	nop    
+80051780:	66                   	data16
+80051781:	00 61 00             	add    %ah,0x0(%ecx)
+80051784:	74 00                	je     80051786 <_FatClusterToOffset+0x96>
+80051786:	3a 00                	cmp    (%eax),%al
+80051788:	20 00                	and    %al,(%eax)
+8005178a:	61                   	popa   
+8005178b:	00 74 00 74          	add    %dh,0x74(%eax,%eax,1)
+8005178f:	00 65 00             	add    %ah,0x0(%ebp)
+80051792:	6d                   	insl   (%dx),%es:(%edi)
+80051793:	00 70 00             	add    %dh,0x0(%eax)
+80051796:	74 00                	je     80051798 <_FatClusterToOffset+0xa8>
+80051798:	20 00                	and    %al,(%eax)
+8005179a:	74 00                	je     8005179c <_FatClusterToOffset+0xac>
+8005179c:	6f                   	outsl  %ds:(%esi),(%dx)
+8005179d:	00 20                	add    %ah,(%eax)
+8005179f:	00 72 00             	add    %dh,0x0(%edx)
+800517a2:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+800517a6:	64 00 20             	add    %ah,%fs:(%eax)
+800517a9:	00 70 00             	add    %dh,0x0(%eax)
+800517ac:	61                   	popa   
+800517ad:	00 73 00             	add    %dh,0x0(%ebx)
+800517b0:	74 00                	je     800517b2 <_FatClusterToOffset+0xc2>
+800517b2:	20 00                	and    %al,(%eax)
+800517b4:	65 00 6e 00          	add    %ch,%gs:0x0(%esi)
+800517b8:	64 00 20             	add    %ah,%fs:(%eax)
+800517bb:	00 6f 00             	add    %ch,0x0(%edi)
+800517be:	66                   	data16
+800517bf:	00 20                	add    %ah,(%eax)
+800517c1:	00 66 00             	add    %ah,0x0(%esi)
+800517c4:	69 00 6c 00 65 00    	imul   $0x65006c,(%eax),%eax
+800517ca:	0a 00                	or     (%eax),%al
+800517cc:	00 00                	add    %al,(%eax)
+800517ce:	90                   	nop    
+800517cf:	90                   	nop    
+800517d0:	90                   	nop    
+800517d1:	90                   	nop    
+800517d2:	90                   	nop    
+800517d3:	90                   	nop    
+800517d4:	90                   	nop    
+800517d5:	90                   	nop    
+800517d6:	90                   	nop    
+800517d7:	90                   	nop    
+800517d8:	90                   	nop    
+800517d9:	90                   	nop    
+800517da:	90                   	nop    
+800517db:	90                   	nop    
+800517dc:	90                   	nop    
+800517dd:	90                   	nop    
+800517de:	90                   	nop    
+800517df:	90                   	nop    
+800517e0:	66                   	data16
+800517e1:	00 61 00             	add    %ah,0x0(%ecx)
 800517e4:	74 00                	je     800517e6 <_FatClusterToOffset+0xf6>
-800517e6:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
-800517ea:	20 00                	and    %al,(%eax)
-800517ec:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-800517f1:	00 75 00             	add    %dh,0x0(%ebp)
-800517f4:	20 00                	and    %al,(%eax)
-800517f6:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-800517fb:	00 78 00             	add    %bh,0x0(%eax)
-800517fe:	20 00                	and    %al,(%eax)
-80051800:	62 00                	bound  %eax,(%eax)
-80051802:	79 00                	jns    80051804 <_FatClusterToOffset+0x114>
+800517e6:	3a 00                	cmp    (%eax),%al
+800517e8:	20 00                	and    %al,(%eax)
+800517ea:	70 00                	jo     800517ec <_FatClusterToOffset+0xfc>
+800517ec:	6f                   	outsl  %ds:(%esi),(%dx)
+800517ed:	00 73 00             	add    %dh,0x0(%ebx)
+800517f0:	20 00                	and    %al,(%eax)
+800517f2:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+800517f7:	00 75 00             	add    %dh,0x0(%ebp)
+800517fa:	20 00                	and    %al,(%eax)
+800517fc:	63 00                	arpl   %ax,(%eax)
+800517fe:	6c                   	insb   (%dx),%es:(%edi)
+800517ff:	00 75 00             	add    %dh,0x0(%ebp)
+80051802:	73 00                	jae    80051804 <_FatClusterToOffset+0x114>
 80051804:	74 00                	je     80051806 <_FatClusterToOffset+0x116>
-80051806:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
+80051806:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
 8005180a:	20 00                	and    %al,(%eax)
 8005180c:	3d 00 20 00 25       	cmp    $0x25002000,%eax
 80051811:	00 75 00             	add    %dh,0x0(%ebp)
-80051814:	0a 00                	or     (%eax),%al
-80051816:	00 00                	add    %al,(%eax)
-80051818:	90                   	nop    
-80051819:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
-80051820:	66                   	data16
-80051821:	00 61 00             	add    %ah,0x0(%ecx)
+80051814:	20 00                	and    %al,(%eax)
+80051816:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+8005181b:	00 78 00             	add    %bh,0x0(%eax)
+8005181e:	20 00                	and    %al,(%eax)
+80051820:	62 00                	bound  %eax,(%eax)
+80051822:	79 00                	jns    80051824 <_FatClusterToOffset+0x134>
 80051824:	74 00                	je     80051826 <_FatClusterToOffset+0x136>
-80051826:	3a 00                	cmp    (%eax),%al
-80051828:	20 00                	and    %al,(%eax)
-8005182a:	64 00 65 00          	add    %ah,%fs:0x0(%ebp)
-8005182e:	76 00                	jbe    80051830 <_FatClusterToOffset+0x140>
-80051830:	69 00 63 00 65 00    	imul   $0x650063,(%eax),%eax
-80051836:	20 00                	and    %al,(%eax)
-80051838:	66                   	data16
-80051839:	00 61 00             	add    %ah,0x0(%ecx)
-8005183c:	69 00 6c 00 75 00    	imul   $0x75006c,(%eax),%eax
-80051842:	72 00                	jb     80051844 <_FatClusterToOffset+0x154>
-80051844:	65 00 0a             	add    %cl,%gs:(%edx)
-80051847:	00 00                	add    %al,(%eax)
-80051849:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
-8005184f:	90                   	nop    
-80051850:	90                   	nop    
-80051851:	90                   	nop    
-80051852:	90                   	nop    
-80051853:	90                   	nop    
-80051854:	90                   	nop    
-80051855:	90                   	nop    
-80051856:	90                   	nop    
-80051857:	90                   	nop    
-80051858:	90                   	nop    
-80051859:	90                   	nop    
-8005185a:	90                   	nop    
-8005185b:	90                   	nop    
-8005185c:	90                   	nop    
-8005185d:	90                   	nop    
-8005185e:	90                   	nop    
-8005185f:	90                   	nop    
-80051860:	66                   	data16
-80051861:	00 61 00             	add    %ah,0x0(%ecx)
-80051864:	74 00                	je     80051866 <_FatClusterToOffset+0x176>
-80051866:	3a 00                	cmp    (%eax),%al
-80051868:	20 00                	and    %al,(%eax)
-8005186a:	6c                   	insb   (%dx),%es:(%edi)
-8005186b:	00 61 00             	add    %ah,0x0(%ecx)
-8005186e:	73 00                	jae    80051870 <_FatClusterToOffset+0x180>
-80051870:	74 00                	je     80051872 <_FatClusterToOffset+0x182>
-80051872:	20 00                	and    %al,(%eax)
-80051874:	63 00                	arpl   %ax,(%eax)
-80051876:	6c                   	insb   (%dx),%es:(%edi)
-80051877:	00 75 00             	add    %dh,0x0(%ebp)
-8005187a:	73 00                	jae    8005187c <_FatClusterToOffset+0x18c>
-8005187c:	74 00                	je     8005187e <_FatClusterToOffset+0x18e>
-8005187e:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
-80051882:	20 00                	and    %al,(%eax)
-80051884:	72 00                	jb     80051886 <_FatClusterToOffset+0x196>
-80051886:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
-8005188a:	63 00                	arpl   %ax,(%eax)
-8005188c:	68 00 65 00 64       	push   $0x64006500
-80051891:	00 0a                	add    %cl,(%edx)
-80051893:	00 00                	add    %al,(%eax)
-80051895:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
+80051826:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
+8005182a:	20 00                	and    %al,(%eax)
+8005182c:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80051831:	00 75 00             	add    %dh,0x0(%ebp)
+80051834:	0a 00                	or     (%eax),%al
+80051836:	00 00                	add    %al,(%eax)
+80051838:	90                   	nop    
+80051839:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+80051840:	66                   	data16
+80051841:	00 61 00             	add    %ah,0x0(%ecx)
+80051844:	74 00                	je     80051846 <_FatClusterToOffset+0x156>
+80051846:	3a 00                	cmp    (%eax),%al
+80051848:	20 00                	and    %al,(%eax)
+8005184a:	64 00 65 00          	add    %ah,%fs:0x0(%ebp)
+8005184e:	76 00                	jbe    80051850 <_FatClusterToOffset+0x160>
+80051850:	69 00 63 00 65 00    	imul   $0x650063,(%eax),%eax
+80051856:	20 00                	and    %al,(%eax)
+80051858:	66                   	data16
+80051859:	00 61 00             	add    %ah,0x0(%ecx)
+8005185c:	69 00 6c 00 75 00    	imul   $0x75006c,(%eax),%eax
+80051862:	72 00                	jb     80051864 <_FatClusterToOffset+0x174>
+80051864:	65 00 0a             	add    %cl,%gs:(%edx)
+80051867:	00 00                	add    %al,(%eax)
+80051869:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+8005186f:	90                   	nop    
+80051870:	90                   	nop    
+80051871:	90                   	nop    
+80051872:	90                   	nop    
+80051873:	90                   	nop    
+80051874:	90                   	nop    
+80051875:	90                   	nop    
+80051876:	90                   	nop    
+80051877:	90                   	nop    
+80051878:	90                   	nop    
+80051879:	90                   	nop    
+8005187a:	90                   	nop    
+8005187b:	90                   	nop    
+8005187c:	90                   	nop    
+8005187d:	90                   	nop    
+8005187e:	90                   	nop    
+8005187f:	90                   	nop    
+80051880:	66                   	data16
+80051881:	00 61 00             	add    %ah,0x0(%ecx)
+80051884:	74 00                	je     80051886 <_FatClusterToOffset+0x196>
+80051886:	3a 00                	cmp    (%eax),%al
+80051888:	20 00                	and    %al,(%eax)
+8005188a:	6c                   	insb   (%dx),%es:(%edi)
+8005188b:	00 61 00             	add    %ah,0x0(%ecx)
+8005188e:	73 00                	jae    80051890 <_FatClusterToOffset+0x1a0>
+80051890:	74 00                	je     80051892 <_FatClusterToOffset+0x1a2>
+80051892:	20 00                	and    %al,(%eax)
+80051894:	63 00                	arpl   %ax,(%eax)
+80051896:	6c                   	insb   (%dx),%es:(%edi)
+80051897:	00 75 00             	add    %dh,0x0(%ebp)
+8005189a:	73 00                	jae    8005189c <_FatClusterToOffset+0x1ac>
+8005189c:	74 00                	je     8005189e <_FatClusterToOffset+0x1ae>
+8005189e:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
+800518a2:	20 00                	and    %al,(%eax)
+800518a4:	72 00                	jb     800518a6 <_FatClusterToOffset+0x1b6>
+800518a6:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+800518aa:	63 00                	arpl   %ax,(%eax)
+800518ac:	68 00 65 00 64       	push   $0x64006500
+800518b1:	00 0a                	add    %cl,(%edx)
+800518b3:	00 00                	add    %al,(%eax)
+800518b5:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
 
-80051898 <_FatRead>:
+800518b8 <_FatRead>:
 FatRead():
-80051898:	55                   	push   %ebp
-80051899:	89 e5                	mov    %esp,%ebp
-8005189b:	83 ec 2c             	sub    $0x2c,%esp
-8005189e:	57                   	push   %edi
-8005189f:	56                   	push   %esi
-800518a0:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:300
-800518a1:	83 c4 fc             	add    $0xfffffffc,%esp
-800518a4:	68 65 6c 69 66       	push   $0x66696c65
-800518a9:	8b 55 0c             	mov    0xc(%ebp),%edx
-800518ac:	8b 42 18             	mov    0x18(%edx),%eax
-800518af:	50                   	push   %eax
-800518b0:	6a 00                	push   $0x0
-800518b2:	e8 21 06 00 00       	call   80051ed8 <_HndLock>
-800518b7:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/fat/fat.c:301
-800518b9:	83 c4 10             	add    $0x10,%esp
-800518bc:	85 ff                	test   %edi,%edi
-800518be:	74 25                	je     800518e5 <_FatRead+0x4d>
-/mn/src/drivers/fat/fat.c:304
-800518c0:	8b 5d 08             	mov    0x8(%ebp),%ebx
-800518c3:	8b 47 08             	mov    0x8(%edi),%eax
-800518c6:	8b 57 0c             	mov    0xc(%edi),%edx
-800518c9:	8a 8b 34 02 00 00    	mov    0x234(%ebx),%cl
-800518cf:	0f ad d0             	shrd   %cl,%edx,%eax
-800518d2:	d3 ea                	shr    %cl,%edx
-800518d4:	f6 c1 20             	test   $0x20,%cl
-800518d7:	74 04                	je     800518dd <_FatRead+0x45>
-800518d9:	89 d0                	mov    %edx,%eax
-800518db:	31 d2                	xor    %edx,%edx
-800518dd:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-/mn/src/drivers/fat/fat.c:305
-800518e0:	3b 47 38             	cmp    0x38(%edi),%eax
-800518e3:	72 27                	jb     8005190c <_FatRead+0x74>
+800518b8:	55                   	push   %ebp
+800518b9:	89 e5                	mov    %esp,%ebp
+800518bb:	83 ec 2c             	sub    $0x2c,%esp
+800518be:	57                   	push   %edi
+800518bf:	56                   	push   %esi
+800518c0:	53                   	push   %ebx
+/mn/src/drivers/fat/fat.c:302
+800518c1:	83 c4 fc             	add    $0xfffffffc,%esp
+800518c4:	68 65 6c 69 66       	push   $0x66696c65
+800518c9:	8b 55 0c             	mov    0xc(%ebp),%edx
+800518cc:	8b 42 18             	mov    0x18(%edx),%eax
+800518cf:	50                   	push   %eax
+800518d0:	6a 00                	push   $0x0
+800518d2:	e8 81 06 00 00       	call   80051f58 <_HndLock>
+800518d7:	89 c7                	mov    %eax,%edi
+/mn/src/drivers/fat/fat.c:303
+800518d9:	83 c4 10             	add    $0x10,%esp
+800518dc:	85 ff                	test   %edi,%edi
+800518de:	0f 84 89 00 00 00    	je     8005196d <_FatRead+0xb5>
 /mn/src/drivers/fat/fat.c:306
-800518e5:	31 c0                	xor    %eax,%eax
-800518e7:	e9 6a 01 00 00       	jmp    80051a56 <_FatRead+0x1be>
-/mn/src/drivers/fat/fat.c:342
-800518ec:	83 c4 f4             	add    $0xfffffff4,%esp
-800518ef:	68 20 18 05 80       	push   $0x80051820
-/mn/src/drivers/fat/fat.c:344
-800518f4:	e9 37 01 00 00       	jmp    80051a30 <_FatRead+0x198>
-800518f9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:356
-800518fc:	83 c4 f4             	add    $0xfffffff4,%esp
-800518ff:	68 60 18 05 80       	push   $0x80051860
-/mn/src/drivers/fat/fat.c:358
-80051904:	e9 27 01 00 00       	jmp    80051a30 <_FatRead+0x198>
-80051909:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:309
-8005190c:	8b 4d 08             	mov    0x8(%ebp),%ecx
+800518e4:	8b 47 08             	mov    0x8(%edi),%eax
+800518e7:	8b 57 0c             	mov    0xc(%edi),%edx
+800518ea:	89 55 e4             	mov    %edx,0xffffffe4(%ebp)
+800518ed:	8b 55 08             	mov    0x8(%ebp),%edx
+800518f0:	89 45 e0             	mov    %eax,0xffffffe0(%ebp)
+800518f3:	8b 45 e0             	mov    0xffffffe0(%ebp),%eax
+800518f6:	8a 8a 34 02 00 00    	mov    0x234(%edx),%cl
+800518fc:	8b 55 e4             	mov    0xffffffe4(%ebp),%edx
+800518ff:	0f ad d0             	shrd   %cl,%edx,%eax
+80051902:	d3 ea                	shr    %cl,%edx
+80051904:	f6 c1 20             	test   $0x20,%cl
+80051907:	74 04                	je     8005190d <_FatRead+0x55>
+80051909:	89 d0                	mov    %edx,%eax
+8005190b:	31 d2                	xor    %edx,%edx
+8005190d:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
+/mn/src/drivers/fat/fat.c:307
+80051910:	3b 47 38             	cmp    0x38(%edi),%eax
+80051913:	73 58                	jae    8005196d <_FatRead+0xb5>
 /mn/src/drivers/fat/fat.c:311
-8005190f:	8d 5f 40             	lea    0x40(%edi),%ebx
-/mn/src/drivers/fat/fat.c:309
-80051912:	8b 47 08             	mov    0x8(%edi),%eax
-/mn/src/drivers/fat/fat.c:317
-80051915:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/fat/fat.c:309
-80051918:	31 d2                	xor    %edx,%edx
-8005191a:	f7 b1 28 02 00 00    	divl   0x228(%ecx)
-/mn/src/drivers/fat/fat.c:312
-80051920:	8b 45 0c             	mov    0xc(%ebp),%eax
-/mn/src/drivers/fat/fat.c:309
-80051923:	89 55 f4             	mov    %edx,0xfffffff4(%ebp)
-/mn/src/drivers/fat/fat.c:311
-80051926:	89 5d f0             	mov    %ebx,0xfffffff0(%ebp)
-/mn/src/drivers/fat/fat.c:313
-80051929:	8b 55 0c             	mov    0xc(%ebp),%edx
-/mn/src/drivers/fat/fat.c:312
-8005192c:	8b 40 10             	mov    0x10(%eax),%eax
-8005192f:	89 45 f8             	mov    %eax,0xfffffff8(%ebp)
-/mn/src/drivers/fat/fat.c:313
-80051932:	c7 42 10 00 00 00 00 	movl   $0x0,0x10(%edx)
-/mn/src/drivers/fat/fat.c:314
-80051939:	c6 45 eb 01          	movb   $0x1,0xffffffeb(%ebp)
+80051915:	8b 4d 08             	mov    0x8(%ebp),%ecx
 /mn/src/drivers/fat/fat.c:315
-8005193d:	8b 4a 14             	mov    0x14(%edx),%ecx
-80051940:	89 4d ec             	mov    %ecx,0xffffffec(%ebp)
-/mn/src/drivers/fat/fat.c:317
-80051943:	50                   	push   %eax
-80051944:	68 20 17 05 80       	push   $0x80051720
-80051949:	e8 9a 05 00 00       	call   80051ee8 <_wprintf>
+80051918:	31 db                	xor    %ebx,%ebx
+/mn/src/drivers/fat/fat.c:311
+8005191a:	8b 77 08             	mov    0x8(%edi),%esi
+8005191d:	89 f0                	mov    %esi,%eax
+8005191f:	31 d2                	xor    %edx,%edx
+80051921:	f7 b1 28 02 00 00    	divl   0x228(%ecx)
+80051927:	89 55 f4             	mov    %edx,0xfffffff4(%ebp)
+/mn/src/drivers/fat/fat.c:313
+8005192a:	8d 47 40             	lea    0x40(%edi),%eax
+/mn/src/drivers/fat/fat.c:314
+8005192d:	8b 55 0c             	mov    0xc(%ebp),%edx
+/mn/src/drivers/fat/fat.c:313
+80051930:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
+/mn/src/drivers/fat/fat.c:314
+80051933:	8b 52 10             	mov    0x10(%edx),%edx
+80051936:	89 55 f8             	mov    %edx,0xfffffff8(%ebp)
+/mn/src/drivers/fat/fat.c:315
+80051939:	8b 4f 34             	mov    0x34(%edi),%ecx
+8005193c:	8b 45 e0             	mov    0xffffffe0(%ebp),%eax
+8005193f:	8b 55 e4             	mov    0xffffffe4(%ebp),%edx
+80051942:	03 45 f8             	add    0xfffffff8(%ebp),%eax
+80051945:	83 d2 00             	adc    $0x0,%edx
+80051948:	39 d3                	cmp    %edx,%ebx
+8005194a:	77 0e                	ja     8005195a <_FatRead+0xa2>
+8005194c:	75 04                	jne    80051952 <_FatRead+0x9a>
+8005194e:	39 c1                	cmp    %eax,%ecx
+80051950:	77 08                	ja     8005195a <_FatRead+0xa2>
+/mn/src/drivers/fat/fat.c:316
+80051952:	8b 4f 34             	mov    0x34(%edi),%ecx
+80051955:	29 f1                	sub    %esi,%ecx
+80051957:	89 4d f8             	mov    %ecx,0xfffffff8(%ebp)
 /mn/src/drivers/fat/fat.c:318
-8005194e:	83 c4 10             	add    $0x10,%esp
-80051951:	e9 aa 00 00 00       	jmp    80051a00 <_FatRead+0x168>
-/mn/src/drivers/fat/fat.c:326
-80051956:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:329
-80051958:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/fat/fat.c:328
-8005195b:	8b 5d f8             	mov    0xfffffff8(%ebp),%ebx
-8005195e:	29 f3                	sub    %esi,%ebx
-/mn/src/drivers/fat/fat.c:329
-80051960:	8b 82 28 02 00 00    	mov    0x228(%edx),%eax
-80051966:	39 c3                	cmp    %eax,%ebx
-80051968:	76 02                	jbe    8005196c <_FatRead+0xd4>
-/mn/src/drivers/fat/fat.c:330
-8005196a:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fat/fat.c:331
-8005196c:	83 c4 f4             	add    $0xfffffff4,%esp
-8005196f:	53                   	push   %ebx
-80051970:	8b 4d fc             	mov    0xfffffffc(%ebp),%ecx
-80051973:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
-80051976:	8b 04 8a             	mov    (%edx,%ecx,4),%eax
-80051979:	50                   	push   %eax
-8005197a:	51                   	push   %ecx
-8005197b:	8b 47 08             	mov    0x8(%edi),%eax
-8005197e:	50                   	push   %eax
-8005197f:	68 c0 17 05 80       	push   $0x800517c0
-80051984:	e8 5f 05 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:335
-80051989:	83 c4 20             	add    $0x20,%esp
-8005198c:	83 c4 f4             	add    $0xfffffff4,%esp
-8005198f:	53                   	push   %ebx
-80051990:	8b 4d ec             	mov    0xffffffec(%ebp),%ecx
-80051993:	51                   	push   %ecx
-80051994:	8b 5d fc             	mov    0xfffffffc(%ebp),%ebx
-80051997:	83 c4 f8             	add    $0xfffffff8,%esp
-8005199a:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
-8005199d:	8b 04 9a             	mov    (%edx,%ebx,4),%eax
-800519a0:	50                   	push   %eax
-800519a1:	8b 4d 08             	mov    0x8(%ebp),%ecx
-800519a4:	51                   	push   %ecx
-800519a5:	e8 46 fd ff ff       	call   800516f0 <_FatClusterToOffset>
-800519aa:	03 45 f4             	add    0xfffffff4(%ebp),%eax
-800519ad:	83 c4 10             	add    $0x10,%esp
-800519b0:	31 d2                	xor    %edx,%edx
-800519b2:	52                   	push   %edx
-800519b3:	50                   	push   %eax
-800519b4:	8b 5d 08             	mov    0x8(%ebp),%ebx
-800519b7:	8b 43 1c             	mov    0x1c(%ebx),%eax
-800519ba:	50                   	push   %eax
-800519bb:	e8 38 05 00 00       	call   80051ef8 <_DevRead>
-800519c0:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fat/fat.c:339
-800519c2:	83 c4 20             	add    $0x20,%esp
-800519c5:	85 db                	test   %ebx,%ebx
-800519c7:	0f 84 1f ff ff ff    	je     800518ec <_FatRead+0x54>
-/mn/src/drivers/fat/fat.c:348
-800519cd:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/fat/fat.c:347
-800519d0:	01 5d f4             	add    %ebx,0xfffffff4(%ebp)
-/mn/src/drivers/fat/fat.c:348
-800519d3:	8b 82 28 02 00 00    	mov    0x228(%edx),%eax
-800519d9:	39 45 f4             	cmp    %eax,0xfffffff4(%ebp)
-800519dc:	72 12                	jb     800519f0 <_FatRead+0x158>
-/mn/src/drivers/fat/fat.c:352
-800519de:	ff 45 fc             	incl   0xfffffffc(%ebp)
-/mn/src/drivers/fat/fat.c:350
-800519e1:	29 45 f4             	sub    %eax,0xfffffff4(%ebp)
-/mn/src/drivers/fat/fat.c:353
-800519e4:	8b 4d fc             	mov    0xfffffffc(%ebp),%ecx
-800519e7:	3b 4f 38             	cmp    0x38(%edi),%ecx
-800519ea:	0f 83 0c ff ff ff    	jae    800518fc <_FatRead+0x64>
-/mn/src/drivers/fat/fat.c:364
-800519f0:	8b 45 0c             	mov    0xc(%ebp),%eax
-/mn/src/drivers/fat/fat.c:362
-800519f3:	01 5f 08             	add    %ebx,0x8(%edi)
-800519f6:	83 57 0c 00          	adcl   $0x0,0xc(%edi)
-/mn/src/drivers/fat/fat.c:363
-800519fa:	01 5d ec             	add    %ebx,0xffffffec(%ebp)
-/mn/src/drivers/fat/fat.c:364
-800519fd:	01 58 10             	add    %ebx,0x10(%eax)
-/mn/src/drivers/fat/fat.c:365
-80051a00:	8b 55 0c             	mov    0xc(%ebp),%edx
-80051a03:	8b 42 10             	mov    0x10(%edx),%eax
-80051a06:	89 c6                	mov    %eax,%esi
-80051a08:	3b 75 f8             	cmp    0xfffffff8(%ebp),%esi
-80051a0b:	73 2f                	jae    80051a3c <_FatRead+0x1a4>
-/mn/src/drivers/fat/fat.c:320
-80051a0d:	8b 57 34             	mov    0x34(%edi),%edx
-80051a10:	31 c9                	xor    %ecx,%ecx
-80051a12:	8b 47 0c             	mov    0xc(%edi),%eax
-80051a15:	39 c1                	cmp    %eax,%ecx
-80051a17:	0f 87 3b ff ff ff    	ja     80051958 <_FatRead+0xc0>
-80051a1d:	75 09                	jne    80051a28 <_FatRead+0x190>
-80051a1f:	3b 57 08             	cmp    0x8(%edi),%edx
-80051a22:	0f 87 30 ff ff ff    	ja     80051958 <_FatRead+0xc0>
-/mn/src/drivers/fat/fat.c:323
-80051a28:	83 c4 f4             	add    $0xfffffff4,%esp
-80051a2b:	68 60 17 05 80       	push   $0x80051760
-80051a30:	e8 b3 04 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:324
-80051a35:	c6 45 eb 00          	movb   $0x0,0xffffffeb(%ebp)
-/mn/src/drivers/fat/fat.c:325
-80051a39:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/fat/fat.c:367
-80051a3c:	83 c4 fc             	add    $0xfffffffc,%esp
-80051a3f:	68 65 6c 69 66       	push   $0x66696c65
-80051a44:	8b 4d 0c             	mov    0xc(%ebp),%ecx
-80051a47:	8b 41 18             	mov    0x18(%ecx),%eax
-80051a4a:	50                   	push   %eax
-80051a4b:	6a 00                	push   $0x0
-80051a4d:	e8 76 04 00 00       	call   80051ec8 <_HndUnlock>
-/mn/src/drivers/fat/fat.c:368
-80051a52:	0f be 45 eb          	movsbl 0xffffffeb(%ebp),%eax
-80051a56:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
-80051a59:	5b                   	pop    %ebx
-80051a5a:	5e                   	pop    %esi
-80051a5b:	5f                   	pop    %edi
-80051a5c:	89 ec                	mov    %ebp,%esp
-80051a5e:	5d                   	pop    %ebp
-80051a5f:	c3                   	ret    
+8005195a:	83 7d f8 00          	cmpl   $0x0,0xfffffff8(%ebp)
+8005195e:	75 34                	jne    80051994 <_FatRead+0xdc>
+/mn/src/drivers/fat/fat.c:321
+80051960:	83 c4 f4             	add    $0xfffffff4,%esp
+80051963:	68 20 17 05 80       	push   $0x80051720
+80051968:	e8 fb 05 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:322
+8005196d:	31 c0                	xor    %eax,%eax
+8005196f:	e9 4e 01 00 00       	jmp    80051ac2 <_FatRead+0x20a>
+/mn/src/drivers/fat/fat.c:355
+80051974:	83 c4 f4             	add    $0xfffffff4,%esp
+80051977:	68 40 18 05 80       	push   $0x80051840
+/mn/src/drivers/fat/fat.c:357
+8005197c:	e9 1b 01 00 00       	jmp    80051a9c <_FatRead+0x1e4>
+80051981:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/fat/fat.c:369
-80051a60:	66                   	data16
-80051a61:	00 61 00             	add    %ah,0x0(%ecx)
-80051a64:	74 00                	je     80051a66 <_FatRead+0x1ce>
-80051a66:	3a 00                	cmp    (%eax),%al
-80051a68:	20 00                	and    %al,(%eax)
-80051a6a:	6f                   	outsl  %ds:(%esi),(%dx)
-80051a6b:	00 70 00             	add    %dh,0x0(%eax)
-80051a6e:	65 00 6e 00          	add    %ch,%gs:0x0(%esi)
-80051a72:	69 00 6e 00 67 00    	imul   $0x67006e,(%eax),%eax
-80051a78:	20 00                	and    %al,(%eax)
-80051a7a:	25 00 73 00 20       	and    $0x20007300,%eax
-80051a7f:	00 61 00             	add    %ah,0x0(%ecx)
-80051a82:	74 00                	je     80051a84 <_FatRead+0x1ec>
-80051a84:	20 00                	and    %al,(%eax)
-80051a86:	63 00                	arpl   %ax,(%eax)
-80051a88:	6c                   	insb   (%dx),%es:(%edi)
-80051a89:	00 75 00             	add    %dh,0x0(%ebp)
-80051a8c:	73 00                	jae    80051a8e <_FatRead+0x1f6>
-80051a8e:	74 00                	je     80051a90 <_FatRead+0x1f8>
-80051a90:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
-80051a94:	20 00                	and    %al,(%eax)
-80051a96:	25 00 75 00 0a       	and    $0xa007500,%eax
-80051a9b:	00 00                	add    %al,(%eax)
-80051a9d:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
-
-80051aa0 <_FatRequest>:
-FatRequest():
-80051aa0:	55                   	push   %ebp
-80051aa1:	89 e5                	mov    %esp,%ebp
-80051aa3:	83 ec 3c             	sub    $0x3c,%esp
-80051aa6:	57                   	push   %edi
-80051aa7:	56                   	push   %esi
-80051aa8:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:372
-80051aa9:	8b 75 0c             	mov    0xc(%ebp),%esi
-80051aac:	8b 7d 08             	mov    0x8(%ebp),%edi
+80051984:	83 c4 f4             	add    $0xfffffff4,%esp
+80051987:	68 80 18 05 80       	push   $0x80051880
+/mn/src/drivers/fat/fat.c:371
+8005198c:	e9 0b 01 00 00       	jmp    80051a9c <_FatRead+0x1e4>
+80051991:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/fat/fat.c:325
+80051994:	8b 45 0c             	mov    0xc(%ebp),%eax
+/mn/src/drivers/fat/fat.c:329
+80051997:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/fat/fat.c:325
+8005199a:	c7 40 10 00 00 00 00 	movl   $0x0,0x10(%eax)
+/mn/src/drivers/fat/fat.c:326
+800519a1:	c6 45 eb 01          	movb   $0x1,0xffffffeb(%ebp)
+/mn/src/drivers/fat/fat.c:329
+800519a5:	8b 4d f8             	mov    0xfffffff8(%ebp),%ecx
+/mn/src/drivers/fat/fat.c:327
+800519a8:	8b 50 14             	mov    0x14(%eax),%edx
+800519ab:	89 55 ec             	mov    %edx,0xffffffec(%ebp)
+/mn/src/drivers/fat/fat.c:329
+800519ae:	51                   	push   %ecx
+800519af:	68 40 17 05 80       	push   $0x80051740
+800519b4:	e8 af 05 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:330
+800519b9:	83 c4 10             	add    $0x10,%esp
+800519bc:	e9 ab 00 00 00       	jmp    80051a6c <_FatRead+0x1b4>
+/mn/src/drivers/fat/fat.c:338
+800519c1:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/fat/fat.c:341
+800519c4:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/fat/fat.c:340
+800519c7:	8b 5d f8             	mov    0xfffffff8(%ebp),%ebx
+800519ca:	29 f3                	sub    %esi,%ebx
+/mn/src/drivers/fat/fat.c:341
+800519cc:	8b 82 28 02 00 00    	mov    0x228(%edx),%eax
+800519d2:	39 c3                	cmp    %eax,%ebx
+800519d4:	76 02                	jbe    800519d8 <_FatRead+0x120>
+/mn/src/drivers/fat/fat.c:342
+800519d6:	89 c3                	mov    %eax,%ebx
+/mn/src/drivers/fat/fat.c:344
+800519d8:	83 c4 f4             	add    $0xfffffff4,%esp
+800519db:	53                   	push   %ebx
+800519dc:	8b 4d fc             	mov    0xfffffffc(%ebp),%ecx
+800519df:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+800519e2:	8b 04 8a             	mov    (%edx,%ecx,4),%eax
+800519e5:	50                   	push   %eax
+800519e6:	51                   	push   %ecx
+800519e7:	8b 47 08             	mov    0x8(%edi),%eax
+800519ea:	50                   	push   %eax
+800519eb:	68 e0 17 05 80       	push   $0x800517e0
+800519f0:	e8 73 05 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:348
+800519f5:	83 c4 20             	add    $0x20,%esp
+800519f8:	83 c4 f4             	add    $0xfffffff4,%esp
+800519fb:	53                   	push   %ebx
+800519fc:	8b 4d ec             	mov    0xffffffec(%ebp),%ecx
+800519ff:	51                   	push   %ecx
+80051a00:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
+80051a03:	83 c4 f8             	add    $0xfffffff8,%esp
+80051a06:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
+80051a09:	8b 04 91             	mov    (%ecx,%edx,4),%eax
+80051a0c:	50                   	push   %eax
+80051a0d:	8b 45 08             	mov    0x8(%ebp),%eax
+80051a10:	50                   	push   %eax
+80051a11:	e8 da fc ff ff       	call   800516f0 <_FatClusterToOffset>
+80051a16:	03 45 f4             	add    0xfffffff4(%ebp),%eax
+80051a19:	83 c4 10             	add    $0x10,%esp
+80051a1c:	31 d2                	xor    %edx,%edx
+80051a1e:	52                   	push   %edx
+80051a1f:	50                   	push   %eax
+80051a20:	8b 55 08             	mov    0x8(%ebp),%edx
+80051a23:	8b 42 1c             	mov    0x1c(%edx),%eax
+80051a26:	50                   	push   %eax
+80051a27:	e8 4c 05 00 00       	call   80051f78 <_DevRead>
+80051a2c:	89 c3                	mov    %eax,%ebx
+/mn/src/drivers/fat/fat.c:352
+80051a2e:	83 c4 20             	add    $0x20,%esp
+80051a31:	85 db                	test   %ebx,%ebx
+80051a33:	0f 84 3b ff ff ff    	je     80051974 <_FatRead+0xbc>
+/mn/src/drivers/fat/fat.c:361
+80051a39:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mn/src/drivers/fat/fat.c:360
+80051a3c:	01 5d f4             	add    %ebx,0xfffffff4(%ebp)
+/mn/src/drivers/fat/fat.c:361
+80051a3f:	8b 81 28 02 00 00    	mov    0x228(%ecx),%eax
+80051a45:	39 45 f4             	cmp    %eax,0xfffffff4(%ebp)
+80051a48:	72 12                	jb     80051a5c <_FatRead+0x1a4>
+/mn/src/drivers/fat/fat.c:363
+80051a4a:	29 45 f4             	sub    %eax,0xfffffff4(%ebp)
+/mn/src/drivers/fat/fat.c:365
+80051a4d:	ff 45 fc             	incl   0xfffffffc(%ebp)
+/mn/src/drivers/fat/fat.c:366
+80051a50:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
+80051a53:	3b 47 38             	cmp    0x38(%edi),%eax
+80051a56:	0f 83 28 ff ff ff    	jae    80051984 <_FatRead+0xcc>
+/mn/src/drivers/fat/fat.c:377
+80051a5c:	8b 55 0c             	mov    0xc(%ebp),%edx
+/mn/src/drivers/fat/fat.c:375
+80051a5f:	01 5f 08             	add    %ebx,0x8(%edi)
+80051a62:	83 57 0c 00          	adcl   $0x0,0xc(%edi)
+/mn/src/drivers/fat/fat.c:376
+80051a66:	01 5d ec             	add    %ebx,0xffffffec(%ebp)
+/mn/src/drivers/fat/fat.c:377
+80051a69:	01 5a 10             	add    %ebx,0x10(%edx)
+/mn/src/drivers/fat/fat.c:378
+80051a6c:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+80051a6f:	8b 41 10             	mov    0x10(%ecx),%eax
+80051a72:	89 c6                	mov    %eax,%esi
+80051a74:	3b 75 f8             	cmp    0xfffffff8(%ebp),%esi
+80051a77:	73 2f                	jae    80051aa8 <_FatRead+0x1f0>
+/mn/src/drivers/fat/fat.c:332
+80051a79:	8b 57 34             	mov    0x34(%edi),%edx
+80051a7c:	31 c9                	xor    %ecx,%ecx
+80051a7e:	8b 47 0c             	mov    0xc(%edi),%eax
+80051a81:	39 c1                	cmp    %eax,%ecx
+80051a83:	0f 87 3b ff ff ff    	ja     800519c4 <_FatRead+0x10c>
+80051a89:	75 09                	jne    80051a94 <_FatRead+0x1dc>
+80051a8b:	3b 57 08             	cmp    0x8(%edi),%edx
+80051a8e:	0f 87 30 ff ff ff    	ja     800519c4 <_FatRead+0x10c>
+/mn/src/drivers/fat/fat.c:335
+80051a94:	83 c4 f4             	add    $0xfffffff4,%esp
+80051a97:	68 80 17 05 80       	push   $0x80051780
+80051a9c:	e8 c7 04 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:336
+80051aa1:	c6 45 eb 00          	movb   $0x0,0xffffffeb(%ebp)
+/mn/src/drivers/fat/fat.c:337
+80051aa5:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/fat/fat.c:380
-80051aaf:	8b 06                	mov    (%esi),%eax
-80051ab1:	3d 6f 66 00 80       	cmp    $0x8000666f,%eax
-80051ab6:	74 10                	je     80051ac8 <_FatRequest+0x28>
-80051ab8:	3d 72 66 00 80       	cmp    $0x80006672,%eax
-80051abd:	0f 84 85 00 00 00    	je     80051b48 <_FatRequest+0xa8>
-80051ac3:	e9 90 00 00 00       	jmp    80051b58 <_FatRequest+0xb8>
-/mn/src/drivers/fat/fat.c:383
-80051ac8:	83 c4 f4             	add    $0xfffffff4,%esp
-80051acb:	8b 46 14             	mov    0x14(%esi),%eax
-80051ace:	50                   	push   %eax
-80051acf:	e8 cc 03 00 00       	call   80051ea0 <__wcsdup>
-80051ad4:	89 c3                	mov    %eax,%ebx
-/mn/src/drivers/fat/fat.c:384
-80051ad6:	8d 45 e0             	lea    0xffffffe0(%ebp),%eax
-80051ad9:	89 45 dc             	mov    %eax,0xffffffdc(%ebp)
-80051adc:	50                   	push   %eax
-80051add:	8d 43 02             	lea    0x2(%ebx),%eax
-80051ae0:	50                   	push   %eax
-80051ae1:	8b 87 20 02 00 00    	mov    0x220(%edi),%eax
-80051ae7:	50                   	push   %eax
-80051ae8:	57                   	push   %edi
-80051ae9:	e8 0a fa ff ff       	call   800514f8 <_FatLookupFile>
-80051aee:	83 c4 20             	add    $0x20,%esp
-80051af1:	84 c0                	test   %al,%al
-80051af3:	75 0b                	jne    80051b00 <_FatRequest+0x60>
-/mn/src/drivers/fat/fat.c:386
-80051af5:	c7 06 06 00 00 00    	movl   $0x6,(%esi)
-/mn/src/drivers/fat/fat.c:387
-80051afb:	eb 61                	jmp    80051b5e <_FatRequest+0xbe>
-80051afd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/fat/fat.c:390
-80051b00:	83 c4 fc             	add    $0xfffffffc,%esp
-80051b03:	0f b7 45 fa          	movzwl 0xfffffffa(%ebp),%eax
-80051b07:	50                   	push   %eax
-80051b08:	53                   	push   %ebx
-80051b09:	68 60 1a 05 80       	push   $0x80051a60
-80051b0e:	e8 d5 03 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:391
-80051b13:	83 c4 fc             	add    $0xfffffffc,%esp
-80051b16:	68 87 01 00 00       	push   $0x187
-80051b1b:	68 00 10 05 80       	push   $0x80051000
-80051b20:	53                   	push   %ebx
-80051b21:	e8 82 03 00 00       	call   80051ea8 <___free>
+80051aa8:	83 c4 fc             	add    $0xfffffffc,%esp
+80051aab:	68 65 6c 69 66       	push   $0x66696c65
+80051ab0:	8b 55 0c             	mov    0xc(%ebp),%edx
+80051ab3:	8b 42 18             	mov    0x18(%edx),%eax
+80051ab6:	50                   	push   %eax
+80051ab7:	6a 00                	push   $0x0
+80051ab9:	e8 8a 04 00 00       	call   80051f48 <_HndUnlock>
+/mn/src/drivers/fat/fat.c:381
+80051abe:	0f be 45 eb          	movsbl 0xffffffeb(%ebp),%eax
+80051ac2:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
+80051ac5:	5b                   	pop    %ebx
+80051ac6:	5e                   	pop    %esi
+80051ac7:	5f                   	pop    %edi
+80051ac8:	89 ec                	mov    %ebp,%esp
+80051aca:	5d                   	pop    %ebp
+80051acb:	c3                   	ret    
+/mn/src/drivers/fat/fat.c:382
+80051acc:	90                   	nop    
+80051acd:	90                   	nop    
+80051ace:	90                   	nop    
+80051acf:	90                   	nop    
+80051ad0:	90                   	nop    
+80051ad1:	90                   	nop    
+80051ad2:	90                   	nop    
+80051ad3:	90                   	nop    
+80051ad4:	90                   	nop    
+80051ad5:	90                   	nop    
+80051ad6:	90                   	nop    
+80051ad7:	90                   	nop    
+80051ad8:	90                   	nop    
+80051ad9:	90                   	nop    
+80051ada:	90                   	nop    
+80051adb:	90                   	nop    
+80051adc:	90                   	nop    
+80051add:	90                   	nop    
+80051ade:	90                   	nop    
+80051adf:	90                   	nop    
+80051ae0:	66                   	data16
+80051ae1:	00 61 00             	add    %ah,0x0(%ecx)
+80051ae4:	74 00                	je     80051ae6 <_FatRead+0x22e>
+80051ae6:	3a 00                	cmp    (%eax),%al
+80051ae8:	20 00                	and    %al,(%eax)
+80051aea:	6f                   	outsl  %ds:(%esi),(%dx)
+80051aeb:	00 70 00             	add    %dh,0x0(%eax)
+80051aee:	65 00 6e 00          	add    %ch,%gs:0x0(%esi)
+80051af2:	69 00 6e 00 67 00    	imul   $0x67006e,(%eax),%eax
+80051af8:	20 00                	and    %al,(%eax)
+80051afa:	25 00 73 00 20       	and    $0x20007300,%eax
+80051aff:	00 61 00             	add    %ah,0x0(%ecx)
+80051b02:	74 00                	je     80051b04 <_FatRead+0x24c>
+80051b04:	20 00                	and    %al,(%eax)
+80051b06:	63 00                	arpl   %ax,(%eax)
+80051b08:	6c                   	insb   (%dx),%es:(%edi)
+80051b09:	00 75 00             	add    %dh,0x0(%ebp)
+80051b0c:	73 00                	jae    80051b0e <_FatRead+0x256>
+80051b0e:	74 00                	je     80051b10 <_FatRead+0x258>
+80051b10:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
+80051b14:	20 00                	and    %al,(%eax)
+80051b16:	25 00 75 00 0a       	and    $0xa007500,%eax
+80051b1b:	00 00                	add    %al,(%eax)
+80051b1d:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
+
+80051b20 <_FatRequest>:
+FatRequest():
+80051b20:	55                   	push   %ebp
+80051b21:	89 e5                	mov    %esp,%ebp
+80051b23:	83 ec 3c             	sub    $0x3c,%esp
+80051b26:	57                   	push   %edi
+80051b27:	56                   	push   %esi
+80051b28:	53                   	push   %ebx
+/mn/src/drivers/fat/fat.c:385
+80051b29:	8b 75 0c             	mov    0xc(%ebp),%esi
+80051b2c:	8b 7d 08             	mov    0x8(%ebp),%edi
 /mn/src/drivers/fat/fat.c:393
-80051b26:	83 c4 20             	add    $0x20,%esp
-80051b29:	8b 46 1c             	mov    0x1c(%esi),%eax
-80051b2c:	83 c4 fc             	add    $0xfffffffc,%esp
-80051b2f:	50                   	push   %eax
-80051b30:	8b 45 dc             	mov    0xffffffdc(%ebp),%eax
-80051b33:	50                   	push   %eax
-80051b34:	57                   	push   %edi
-80051b35:	e8 46 f7 ff ff       	call   80051280 <_FatAllocFile>
-80051b3a:	89 46 18             	mov    %eax,0x18(%esi)
-/mn/src/drivers/fat/fat.c:395
-80051b3d:	85 c0                	test   %eax,%eax
-80051b3f:	0f 95 c0             	setne  %al
-80051b42:	0f b6 c0             	movzbl %al,%eax
-80051b45:	eb 19                	jmp    80051b60 <_FatRequest+0xc0>
-80051b47:	90                   	nop    
-/mn/src/drivers/fat/fat.c:398
-80051b48:	83 c4 f8             	add    $0xfffffff8,%esp
-80051b4b:	56                   	push   %esi
-80051b4c:	57                   	push   %edi
-80051b4d:	e8 46 fd ff ff       	call   80051898 <_FatRead>
-80051b52:	0f be c0             	movsbl %al,%eax
-80051b55:	eb 09                	jmp    80051b60 <_FatRequest+0xc0>
-80051b57:	90                   	nop    
-/mn/src/drivers/fat/fat.c:401
-80051b58:	c7 06 04 00 00 00    	movl   $0x4,(%esi)
-/mn/src/drivers/fat/fat.c:402
-80051b5e:	31 c0                	xor    %eax,%eax
-80051b60:	8d 65 b8             	lea    0xffffffb8(%ebp),%esp
-80051b63:	5b                   	pop    %ebx
-80051b64:	5e                   	pop    %esi
-80051b65:	5f                   	pop    %edi
-80051b66:	89 ec                	mov    %ebp,%esp
-80051b68:	5d                   	pop    %ebp
-80051b69:	c3                   	ret    
+80051b2f:	8b 06                	mov    (%esi),%eax
+80051b31:	3d 6f 66 00 80       	cmp    $0x8000666f,%eax
+80051b36:	74 10                	je     80051b48 <_FatRequest+0x28>
+80051b38:	3d 72 66 00 80       	cmp    $0x80006672,%eax
+80051b3d:	0f 84 85 00 00 00    	je     80051bc8 <_FatRequest+0xa8>
+80051b43:	e9 90 00 00 00       	jmp    80051bd8 <_FatRequest+0xb8>
+/mn/src/drivers/fat/fat.c:396
+80051b48:	83 c4 f4             	add    $0xfffffff4,%esp
+80051b4b:	8b 46 14             	mov    0x14(%esi),%eax
+80051b4e:	50                   	push   %eax
+80051b4f:	e8 cc 03 00 00       	call   80051f20 <__wcsdup>
+80051b54:	89 c3                	mov    %eax,%ebx
+/mn/src/drivers/fat/fat.c:397
+80051b56:	8d 45 e0             	lea    0xffffffe0(%ebp),%eax
+80051b59:	89 45 dc             	mov    %eax,0xffffffdc(%ebp)
+80051b5c:	50                   	push   %eax
+80051b5d:	8d 43 02             	lea    0x2(%ebx),%eax
+80051b60:	50                   	push   %eax
+80051b61:	8b 87 20 02 00 00    	mov    0x220(%edi),%eax
+80051b67:	50                   	push   %eax
+80051b68:	57                   	push   %edi
+80051b69:	e8 8a f9 ff ff       	call   800514f8 <_FatLookupFile>
+80051b6e:	83 c4 20             	add    $0x20,%esp
+80051b71:	84 c0                	test   %al,%al
+80051b73:	75 0b                	jne    80051b80 <_FatRequest+0x60>
+/mn/src/drivers/fat/fat.c:399
+80051b75:	c7 06 06 00 00 00    	movl   $0x6,(%esi)
+/mn/src/drivers/fat/fat.c:400
+80051b7b:	eb 61                	jmp    80051bde <_FatRequest+0xbe>
+80051b7d:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/fat/fat.c:403
-80051b6a:	90                   	nop    
-80051b6b:	90                   	nop    
-80051b6c:	90                   	nop    
-80051b6d:	90                   	nop    
-80051b6e:	90                   	nop    
-80051b6f:	90                   	nop    
-80051b70:	90                   	nop    
-80051b71:	90                   	nop    
-80051b72:	90                   	nop    
-80051b73:	90                   	nop    
-80051b74:	90                   	nop    
-80051b75:	90                   	nop    
-80051b76:	90                   	nop    
-80051b77:	90                   	nop    
-80051b78:	90                   	nop    
-80051b79:	90                   	nop    
-80051b7a:	90                   	nop    
-80051b7b:	90                   	nop    
-80051b7c:	90                   	nop    
-80051b7d:	90                   	nop    
-80051b7e:	90                   	nop    
-80051b7f:	90                   	nop    
-80051b80:	09 00                	or     %eax,(%eax)
-80051b82:	41                   	inc    %ecx
-80051b83:	00 6c 00 6c          	add    %ch,0x6c(%eax,%eax,1)
-80051b87:	00 6f 00             	add    %ch,0x0(%edi)
-80051b8a:	63 00                	arpl   %ax,(%eax)
-80051b8c:	61                   	popa   
-80051b8d:	00 74 00 69          	add    %dh,0x69(%eax,%eax,1)
-80051b91:	00 6e 00             	add    %ch,0x0(%esi)
-80051b94:	67 00 20             	addr16 add %ah,(%bx,%si)
-80051b97:	00 25 00 75 00 20    	add    %ah,0x20007500
-80051b9d:	00 62 00             	add    %ah,0x0(%edx)
-80051ba0:	79 00                	jns    80051ba2 <_FatRequest+0x102>
-80051ba2:	74 00                	je     80051ba4 <_FatRequest+0x104>
-80051ba4:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
-80051ba8:	20 00                	and    %al,(%eax)
-80051baa:	66                   	data16
-80051bab:	00 6f 00             	add    %ch,0x0(%edi)
-80051bae:	72 00                	jb     80051bb0 <_FatRequest+0x110>
-80051bb0:	20 00                	and    %al,(%eax)
-80051bb2:	46                   	inc    %esi
-80051bb3:	00 41 00             	add    %al,0x0(%ecx)
-80051bb6:	54                   	push   %esp
-80051bb7:	00 0a                	add    %cl,(%edx)
-80051bb9:	00 00                	add    %al,(%eax)
-80051bbb:	00 72 6f             	add    %dh,0x6f(%edx)
-80051bbe:	6f                   	outsl  %ds:(%esi),(%dx)
-80051bbf:	74 2d                	je     80051bee <_FatRequest+0x14e>
-80051bc1:	3e                   	ds
-80051bc2:	66 61                	popaw  
-80051bc4:	74 20                	je     80051be6 <_FatRequest+0x146>
-80051bc6:	21 3d 20 4e 55 4c    	and    %edi,0x4c554e20
-80051bcc:	4c                   	dec    %esp
-80051bcd:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
-80051bd3:	90                   	nop    
-80051bd4:	90                   	nop    
-80051bd5:	90                   	nop    
-80051bd6:	90                   	nop    
-80051bd7:	90                   	nop    
-80051bd8:	90                   	nop    
-80051bd9:	90                   	nop    
-80051bda:	90                   	nop    
-80051bdb:	90                   	nop    
-80051bdc:	90                   	nop    
-80051bdd:	90                   	nop    
-80051bde:	90                   	nop    
-80051bdf:	90                   	nop    
-80051be0:	09 00                	or     %eax,(%eax)
-80051be2:	46                   	inc    %esi
-80051be3:	00 41 00             	add    %al,0x0(%ecx)
-80051be6:	54                   	push   %esp
-80051be7:	00 20                	add    %ah,(%eax)
-80051be9:	00 73 00             	add    %dh,0x0(%ebx)
-80051bec:	74 00                	je     80051bee <_FatRequest+0x14e>
-80051bee:	61                   	popa   
-80051bef:	00 72 00             	add    %dh,0x0(%edx)
-80051bf2:	74 00                	je     80051bf4 <_FatRequest+0x154>
-80051bf4:	73 00                	jae    80051bf6 <_FatRequest+0x156>
-80051bf6:	20 00                	and    %al,(%eax)
-80051bf8:	61                   	popa   
-80051bf9:	00 74 00 20          	add    %dh,0x20(%eax,%eax,1)
-80051bfd:	00 73 00             	add    %dh,0x0(%ebx)
-80051c00:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
-80051c04:	74 00                	je     80051c06 <_FatRequest+0x166>
-80051c06:	6f                   	outsl  %ds:(%esi),(%dx)
-80051c07:	00 72 00             	add    %dh,0x0(%edx)
-80051c0a:	20 00                	and    %al,(%eax)
-80051c0c:	25 00 64 00 20       	and    $0x20006400,%eax
-80051c11:	00 3d 00 20 00 30    	add    %bh,0x30002000
-80051c17:	00 78 00             	add    %bh,0x0(%eax)
-80051c1a:	25 00 78 00 0a       	and    $0xa007800,%eax
-80051c1f:	00 00                	add    %al,(%eax)
-80051c21:	00 09                	add    %cl,(%ecx)
-80051c23:	00 52 00             	add    %dl,0x0(%edx)
-80051c26:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
-80051c2a:	64 00 69 00          	add    %ch,%fs:0x0(%ecx)
-80051c2e:	6e                   	outsb  %ds:(%esi),(%dx)
-80051c2f:	00 67 00             	add    %ah,0x0(%edi)
-80051c32:	20 00                	and    %al,(%eax)
-80051c34:	46                   	inc    %esi
-80051c35:	00 41 00             	add    %al,0x0(%ecx)
-80051c38:	54                   	push   %esp
-80051c39:	00 0a                	add    %cl,(%edx)
-80051c3b:	00 00                	add    %al,(%eax)
-80051c3d:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
-
-80051c40 <_FatMountFs>:
-FatMountFs():
-80051c40:	55                   	push   %ebp
-80051c41:	89 e5                	mov    %esp,%ebp
-80051c43:	83 ec 2c             	sub    $0x2c,%esp
-80051c46:	57                   	push   %edi
-80051c47:	56                   	push   %esi
-80051c48:	53                   	push   %ebx
-/mn/src/drivers/fat/fat.c:412
-80051c49:	83 c4 fc             	add    $0xfffffffc,%esp
+80051b80:	83 c4 fc             	add    $0xfffffffc,%esp
+80051b83:	0f b7 45 fa          	movzwl 0xfffffffa(%ebp),%eax
+80051b87:	50                   	push   %eax
+80051b88:	53                   	push   %ebx
+80051b89:	68 e0 1a 05 80       	push   $0x80051ae0
+80051b8e:	e8 d5 03 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:404
+80051b93:	83 c4 fc             	add    $0xfffffffc,%esp
+80051b96:	68 94 01 00 00       	push   $0x194
+80051b9b:	68 00 10 05 80       	push   $0x80051000
+80051ba0:	53                   	push   %ebx
+80051ba1:	e8 82 03 00 00       	call   80051f28 <___free>
 /mn/src/drivers/fat/fat.c:406
-80051c4c:	8b 5d 10             	mov    0x10(%ebp),%ebx
-/mn/src/drivers/fat/fat.c:412
-80051c4f:	68 9c 01 00 00       	push   $0x19c
-80051c54:	68 00 10 05 80       	push   $0x80051000
-80051c59:	68 3c 02 00 00       	push   $0x23c
-80051c5e:	e8 9d 02 00 00       	call   80051f00 <___malloc>
-80051c63:	89 c6                	mov    %eax,%esi
-/mn/src/drivers/fat/fat.c:413
-80051c65:	83 c4 10             	add    $0x10,%esp
-80051c68:	85 f6                	test   %esi,%esi
-80051c6a:	0f 84 fb 01 00 00    	je     80051e6b <_FatMountFs+0x22b>
+80051ba6:	83 c4 20             	add    $0x20,%esp
+80051ba9:	8b 46 1c             	mov    0x1c(%esi),%eax
+80051bac:	83 c4 fc             	add    $0xfffffffc,%esp
+80051baf:	50                   	push   %eax
+80051bb0:	8b 45 dc             	mov    0xffffffdc(%ebp),%eax
+80051bb3:	50                   	push   %eax
+80051bb4:	57                   	push   %edi
+80051bb5:	e8 c6 f6 ff ff       	call   80051280 <_FatAllocFile>
+80051bba:	89 46 18             	mov    %eax,0x18(%esi)
+/mn/src/drivers/fat/fat.c:408
+80051bbd:	85 c0                	test   %eax,%eax
+80051bbf:	0f 95 c0             	setne  %al
+80051bc2:	0f b6 c0             	movzbl %al,%eax
+80051bc5:	eb 19                	jmp    80051be0 <_FatRequest+0xc0>
+80051bc7:	90                   	nop    
+/mn/src/drivers/fat/fat.c:411
+80051bc8:	83 c4 f8             	add    $0xfffffff8,%esp
+80051bcb:	56                   	push   %esi
+80051bcc:	57                   	push   %edi
+80051bcd:	e8 e6 fc ff ff       	call   800518b8 <_FatRead>
+80051bd2:	0f be c0             	movsbl %al,%eax
+80051bd5:	eb 09                	jmp    80051be0 <_FatRequest+0xc0>
+80051bd7:	90                   	nop    
+/mn/src/drivers/fat/fat.c:414
+80051bd8:	c7 06 04 00 00 00    	movl   $0x4,(%esi)
+/mn/src/drivers/fat/fat.c:415
+80051bde:	31 c0                	xor    %eax,%eax
+80051be0:	8d 65 b8             	lea    0xffffffb8(%ebp),%esp
+80051be3:	5b                   	pop    %ebx
+80051be4:	5e                   	pop    %esi
+80051be5:	5f                   	pop    %edi
+80051be6:	89 ec                	mov    %ebp,%esp
+80051be8:	5d                   	pop    %ebp
+80051be9:	c3                   	ret    
 /mn/src/drivers/fat/fat.c:416
-80051c70:	31 c0                	xor    %eax,%eax
-80051c72:	89 f7                	mov    %esi,%edi
-80051c74:	fc                   	cld    
-80051c75:	b9 8f 00 00 00       	mov    $0x8f,%ecx
-80051c7a:	f3 ab                	repz stos %eax,%es:(%edi)
-/mn/src/drivers/fat/fat.c:421
-80051c7c:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/fat/fat.c:417
-80051c7f:	8b 45 08             	mov    0x8(%ebp),%eax
-80051c82:	89 46 0c             	mov    %eax,0xc(%esi)
-/mn/src/drivers/fat/fat.c:418
-80051c85:	c7 06 a0 1a 05 80    	movl   $0x80051aa0,(%esi)
-/mn/src/drivers/fat/fat.c:421
-80051c8b:	8d 46 20             	lea    0x20(%esi),%eax
+80051bea:	90                   	nop    
+80051beb:	90                   	nop    
+80051bec:	90                   	nop    
+80051bed:	90                   	nop    
+80051bee:	90                   	nop    
+80051bef:	90                   	nop    
+80051bf0:	90                   	nop    
+80051bf1:	90                   	nop    
+80051bf2:	90                   	nop    
+80051bf3:	90                   	nop    
+80051bf4:	90                   	nop    
+80051bf5:	90                   	nop    
+80051bf6:	90                   	nop    
+80051bf7:	90                   	nop    
+80051bf8:	90                   	nop    
+80051bf9:	90                   	nop    
+80051bfa:	90                   	nop    
+80051bfb:	90                   	nop    
+80051bfc:	90                   	nop    
+80051bfd:	90                   	nop    
+80051bfe:	90                   	nop    
+80051bff:	90                   	nop    
+80051c00:	09 00                	or     %eax,(%eax)
+80051c02:	41                   	inc    %ecx
+80051c03:	00 6c 00 6c          	add    %ch,0x6c(%eax,%eax,1)
+80051c07:	00 6f 00             	add    %ch,0x0(%edi)
+80051c0a:	63 00                	arpl   %ax,(%eax)
+80051c0c:	61                   	popa   
+80051c0d:	00 74 00 69          	add    %dh,0x69(%eax,%eax,1)
+80051c11:	00 6e 00             	add    %ch,0x0(%esi)
+80051c14:	67 00 20             	addr16 add %ah,(%bx,%si)
+80051c17:	00 25 00 75 00 20    	add    %ah,0x20007500
+80051c1d:	00 62 00             	add    %ah,0x0(%edx)
+80051c20:	79 00                	jns    80051c22 <_FatRequest+0x102>
+80051c22:	74 00                	je     80051c24 <_FatRequest+0x104>
+80051c24:	65 00 73 00          	add    %dh,%gs:0x0(%ebx)
+80051c28:	20 00                	and    %al,(%eax)
+80051c2a:	66                   	data16
+80051c2b:	00 6f 00             	add    %ch,0x0(%edi)
+80051c2e:	72 00                	jb     80051c30 <_FatRequest+0x110>
+80051c30:	20 00                	and    %al,(%eax)
+80051c32:	46                   	inc    %esi
+80051c33:	00 41 00             	add    %al,0x0(%ecx)
+80051c36:	54                   	push   %esp
+80051c37:	00 0a                	add    %cl,(%edx)
+80051c39:	00 00                	add    %al,(%eax)
+80051c3b:	00 72 6f             	add    %dh,0x6f(%edx)
+80051c3e:	6f                   	outsl  %ds:(%esi),(%dx)
+80051c3f:	74 2d                	je     80051c6e <_FatRequest+0x14e>
+80051c41:	3e                   	ds
+80051c42:	66 61                	popaw  
+80051c44:	74 20                	je     80051c66 <_FatRequest+0x146>
+80051c46:	21 3d 20 4e 55 4c    	and    %edi,0x4c554e20
+80051c4c:	4c                   	dec    %esp
+80051c4d:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+80051c53:	90                   	nop    
+80051c54:	90                   	nop    
+80051c55:	90                   	nop    
+80051c56:	90                   	nop    
+80051c57:	90                   	nop    
+80051c58:	90                   	nop    
+80051c59:	90                   	nop    
+80051c5a:	90                   	nop    
+80051c5b:	90                   	nop    
+80051c5c:	90                   	nop    
+80051c5d:	90                   	nop    
+80051c5e:	90                   	nop    
+80051c5f:	90                   	nop    
+80051c60:	09 00                	or     %eax,(%eax)
+80051c62:	46                   	inc    %esi
+80051c63:	00 41 00             	add    %al,0x0(%ecx)
+80051c66:	54                   	push   %esp
+80051c67:	00 20                	add    %ah,(%eax)
+80051c69:	00 73 00             	add    %dh,0x0(%ebx)
+80051c6c:	74 00                	je     80051c6e <_FatRequest+0x14e>
+80051c6e:	61                   	popa   
+80051c6f:	00 72 00             	add    %dh,0x0(%edx)
+80051c72:	74 00                	je     80051c74 <_FatRequest+0x154>
+80051c74:	73 00                	jae    80051c76 <_FatRequest+0x156>
+80051c76:	20 00                	and    %al,(%eax)
+80051c78:	61                   	popa   
+80051c79:	00 74 00 20          	add    %dh,0x20(%eax,%eax,1)
+80051c7d:	00 73 00             	add    %dh,0x0(%ebx)
+80051c80:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
+80051c84:	74 00                	je     80051c86 <_FatRequest+0x166>
+80051c86:	6f                   	outsl  %ds:(%esi),(%dx)
+80051c87:	00 72 00             	add    %dh,0x0(%edx)
+80051c8a:	20 00                	and    %al,(%eax)
+80051c8c:	25 00 64 00 20       	and    $0x20006400,%eax
+80051c91:	00 3d 00 20 00 30    	add    %bh,0x30002000
+80051c97:	00 78 00             	add    %bh,0x0(%eax)
+80051c9a:	25 00 78 00 0a       	and    $0xa007800,%eax
+80051c9f:	00 00                	add    %al,(%eax)
+80051ca1:	00 09                	add    %cl,(%ecx)
+80051ca3:	00 52 00             	add    %dl,0x0(%edx)
+80051ca6:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+80051caa:	64 00 69 00          	add    %ch,%fs:0x0(%ecx)
+80051cae:	6e                   	outsb  %ds:(%esi),(%dx)
+80051caf:	00 67 00             	add    %ah,0x0(%edi)
+80051cb2:	20 00                	and    %al,(%eax)
+80051cb4:	46                   	inc    %esi
+80051cb5:	00 41 00             	add    %al,0x0(%ecx)
+80051cb8:	54                   	push   %esp
+80051cb9:	00 0a                	add    %cl,(%edx)
+80051cbb:	00 00                	add    %al,(%eax)
+80051cbd:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
+
+80051cc0 <_FatMountFs>:
+FatMountFs():
+80051cc0:	55                   	push   %ebp
+80051cc1:	89 e5                	mov    %esp,%ebp
+80051cc3:	83 ec 2c             	sub    $0x2c,%esp
+80051cc6:	57                   	push   %edi
+80051cc7:	56                   	push   %esi
+80051cc8:	53                   	push   %ebx
+/mn/src/drivers/fat/fat.c:425
+80051cc9:	83 c4 fc             	add    $0xfffffffc,%esp
 /mn/src/drivers/fat/fat.c:419
-80051c8e:	89 5e 1c             	mov    %ebx,0x1c(%esi)
-/mn/src/drivers/fat/fat.c:421
-80051c91:	68 00 02 00 00       	push   $0x200
-80051c96:	50                   	push   %eax
-80051c97:	6a 00                	push   $0x0
-80051c99:	6a 00                	push   $0x0
-80051c9b:	53                   	push   %ebx
-80051c9c:	e8 57 02 00 00       	call   80051ef8 <_DevRead>
-80051ca1:	83 c4 20             	add    $0x20,%esp
-80051ca4:	3d ff 01 00 00       	cmp    $0x1ff,%eax
-80051ca9:	77 0d                	ja     80051cb8 <_FatMountFs+0x78>
-/mn/src/drivers/fat/fat.c:423
-80051cab:	83 c4 fc             	add    $0xfffffffc,%esp
-80051cae:	68 a7 01 00 00       	push   $0x1a7
-/mn/src/drivers/fat/fat.c:424
-80051cb3:	e9 a8 01 00 00       	jmp    80051e60 <_FatMountFs+0x220>
-/mn/src/drivers/fat/fat.c:428
-80051cb8:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
-/mn/src/drivers/fat/fat.c:427
-80051cbc:	c7 86 24 02 00 00 0c 	movl   $0xc,0x224(%esi)
-80051cc3:	00 00 00 
-/mn/src/drivers/fat/fat.c:428
-80051cc6:	0f b6 56 2d          	movzbl 0x2d(%esi),%edx
-/mn/src/drivers/fat/fat.c:431
-80051cca:	c7 86 34 02 00 00 00 	movl   $0x0,0x234(%esi)
-80051cd1:	00 00 00 
-/mn/src/drivers/fat/fat.c:428
-80051cd4:	0f af c2             	imul   %edx,%eax
-80051cd7:	89 86 28 02 00 00    	mov    %eax,0x228(%esi)
-/mn/src/drivers/fat/fat.c:431
-80051cdd:	a8 01                	test   $0x1,%al
-80051cdf:	75 10                	jne    80051cf1 <_FatMountFs+0xb1>
-80051ce1:	31 d2                	xor    %edx,%edx
-80051ce3:	90                   	nop    
-/mn/src/drivers/fat/fat.c:432
-80051ce4:	d1 e8                	shr    %eax
-/mn/src/drivers/fat/fat.c:431
-80051ce6:	42                   	inc    %edx
-80051ce7:	a8 01                	test   $0x1,%al
-80051ce9:	74 f9                	je     80051ce4 <_FatMountFs+0xa4>
-80051ceb:	89 96 34 02 00 00    	mov    %edx,0x234(%esi)
+80051ccc:	8b 5d 10             	mov    0x10(%ebp),%ebx
+/mn/src/drivers/fat/fat.c:425
+80051ccf:	68 a9 01 00 00       	push   $0x1a9
+80051cd4:	68 00 10 05 80       	push   $0x80051000
+80051cd9:	68 3c 02 00 00       	push   $0x23c
+80051cde:	e8 9d 02 00 00       	call   80051f80 <___malloc>
+80051ce3:	89 c6                	mov    %eax,%esi
+/mn/src/drivers/fat/fat.c:426
+80051ce5:	83 c4 10             	add    $0x10,%esp
+80051ce8:	85 f6                	test   %esi,%esi
+80051cea:	0f 84 fb 01 00 00    	je     80051eeb <_FatMountFs+0x22b>
+/mn/src/drivers/fat/fat.c:429
+80051cf0:	31 c0                	xor    %eax,%eax
+80051cf2:	89 f7                	mov    %esi,%edi
+80051cf4:	fc                   	cld    
+80051cf5:	b9 8f 00 00 00       	mov    $0x8f,%ecx
+80051cfa:	f3 ab                	repz stos %eax,%es:(%edi)
 /mn/src/drivers/fat/fat.c:434
-80051cf1:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
-80051cf5:	83 c4 f8             	add    $0xfffffff8,%esp
-80051cf8:	0f b7 46 36          	movzwl 0x36(%esi),%eax
-80051cfc:	0f af c2             	imul   %edx,%eax
-80051cff:	50                   	push   %eax
-80051d00:	68 80 1b 05 80       	push   $0x80051b80
-80051d05:	e8 de 01 00 00       	call   80051ee8 <_wprintf>
+80051cfc:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/fat/fat.c:430
+80051cff:	8b 45 08             	mov    0x8(%ebp),%eax
+80051d02:	89 46 0c             	mov    %eax,0xc(%esi)
+/mn/src/drivers/fat/fat.c:431
+80051d05:	c7 06 20 1b 05 80    	movl   $0x80051b20,(%esi)
+/mn/src/drivers/fat/fat.c:434
+80051d0b:	8d 46 20             	lea    0x20(%esi),%eax
+/mn/src/drivers/fat/fat.c:432
+80051d0e:	89 5e 1c             	mov    %ebx,0x1c(%esi)
+/mn/src/drivers/fat/fat.c:434
+80051d11:	68 00 02 00 00       	push   $0x200
+80051d16:	50                   	push   %eax
+80051d17:	6a 00                	push   $0x0
+80051d19:	6a 00                	push   $0x0
+80051d1b:	53                   	push   %ebx
+80051d1c:	e8 57 02 00 00       	call   80051f78 <_DevRead>
+80051d21:	83 c4 20             	add    $0x20,%esp
+80051d24:	3d ff 01 00 00       	cmp    $0x1ff,%eax
+80051d29:	77 0d                	ja     80051d38 <_FatMountFs+0x78>
+/mn/src/drivers/fat/fat.c:436
+80051d2b:	83 c4 fc             	add    $0xfffffffc,%esp
+80051d2e:	68 b4 01 00 00       	push   $0x1b4
 /mn/src/drivers/fat/fat.c:437
-80051d0a:	83 c4 fc             	add    $0xfffffffc,%esp
-80051d0d:	68 b5 01 00 00       	push   $0x1b5
-80051d12:	68 00 10 05 80       	push   $0x80051000
-80051d17:	0f b7 46 36          	movzwl 0x36(%esi),%eax
-80051d1b:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
-80051d1f:	0f af c2             	imul   %edx,%eax
-80051d22:	50                   	push   %eax
-80051d23:	e8 d8 01 00 00       	call   80051f00 <___malloc>
-80051d28:	89 86 38 02 00 00    	mov    %eax,0x238(%esi)
-/mn/src/drivers/fat/fat.c:438
-80051d2e:	83 c4 20             	add    $0x20,%esp
-80051d31:	85 c0                	test   %eax,%eax
-80051d33:	75 17                	jne    80051d4c <_FatMountFs+0x10c>
-80051d35:	83 c4 fc             	add    $0xfffffffc,%esp
-80051d38:	68 b6 01 00 00       	push   $0x1b6
-80051d3d:	68 00 10 05 80       	push   $0x80051000
-80051d42:	68 bc 1b 05 80       	push   $0x80051bbc
-80051d47:	e8 a4 01 00 00       	call   80051ef0 <___dj_assert>
+80051d33:	e9 a8 01 00 00       	jmp    80051ee0 <_FatMountFs+0x220>
+/mn/src/drivers/fat/fat.c:441
+80051d38:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
 /mn/src/drivers/fat/fat.c:440
-80051d4c:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
-80051d50:	83 c4 fc             	add    $0xfffffffc,%esp
-80051d53:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
-80051d57:	0f af c2             	imul   %edx,%eax
-80051d5a:	50                   	push   %eax
-80051d5b:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
-80051d5f:	50                   	push   %eax
-80051d60:	68 e0 1b 05 80       	push   $0x80051be0
-80051d65:	e8 7e 01 00 00       	call   80051ee8 <_wprintf>
+80051d3c:	c7 86 24 02 00 00 0c 	movl   $0xc,0x224(%esi)
+80051d43:	00 00 00 
+/mn/src/drivers/fat/fat.c:441
+80051d46:	0f b6 56 2d          	movzbl 0x2d(%esi),%edx
+/mn/src/drivers/fat/fat.c:444
+80051d4a:	c7 86 34 02 00 00 00 	movl   $0x0,0x234(%esi)
+80051d51:	00 00 00 
+/mn/src/drivers/fat/fat.c:441
+80051d54:	0f af c2             	imul   %edx,%eax
+80051d57:	89 86 28 02 00 00    	mov    %eax,0x228(%esi)
+/mn/src/drivers/fat/fat.c:444
+80051d5d:	a8 01                	test   $0x1,%al
+80051d5f:	75 10                	jne    80051d71 <_FatMountFs+0xb1>
+80051d61:	31 d2                	xor    %edx,%edx
+80051d63:	90                   	nop    
 /mn/src/drivers/fat/fat.c:445
-80051d6a:	0f b7 5e 36          	movzwl 0x36(%esi),%ebx
+80051d64:	d1 e8                	shr    %eax
+/mn/src/drivers/fat/fat.c:444
+80051d66:	42                   	inc    %edx
+80051d67:	a8 01                	test   $0x1,%al
+80051d69:	74 f9                	je     80051d64 <_FatMountFs+0xa4>
+80051d6b:	89 96 34 02 00 00    	mov    %edx,0x234(%esi)
 /mn/src/drivers/fat/fat.c:447
-80051d6e:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/fat/fat.c:445
-80051d71:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
-80051d75:	0f af d8             	imul   %eax,%ebx
-/mn/src/drivers/fat/fat.c:447
-80051d78:	68 22 1c 05 80       	push   $0x80051c22
-80051d7d:	e8 66 01 00 00       	call   80051ee8 <_wprintf>
-/mn/src/drivers/fat/fat.c:448
-80051d82:	83 c4 20             	add    $0x20,%esp
-80051d85:	83 c4 f4             	add    $0xfffffff4,%esp
-80051d88:	53                   	push   %ebx
-80051d89:	8b 86 38 02 00 00    	mov    0x238(%esi),%eax
-80051d8f:	50                   	push   %eax
-80051d90:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
-80051d94:	0f b7 56 2e          	movzwl 0x2e(%esi),%edx
-80051d98:	0f af d0             	imul   %eax,%edx
-80051d9b:	89 d0                	mov    %edx,%eax
-80051d9d:	99                   	cltd   
-80051d9e:	52                   	push   %edx
-80051d9f:	50                   	push   %eax
-80051da0:	8b 46 1c             	mov    0x1c(%esi),%eax
-80051da3:	50                   	push   %eax
-80051da4:	e8 4f 01 00 00       	call   80051ef8 <_DevRead>
-80051da9:	83 c4 20             	add    $0x20,%esp
-80051dac:	39 d8                	cmp    %ebx,%eax
-80051dae:	74 28                	je     80051dd8 <_FatMountFs+0x198>
-/mn/src/drivers/fat/fat.c:454
-80051db0:	83 c4 fc             	add    $0xfffffffc,%esp
-80051db3:	68 c6 01 00 00       	push   $0x1c6
-80051db8:	68 00 10 05 80       	push   $0x80051000
-80051dbd:	8b 86 38 02 00 00    	mov    0x238(%esi),%eax
-80051dc3:	50                   	push   %eax
-80051dc4:	e8 df 00 00 00       	call   80051ea8 <___free>
-/mn/src/drivers/fat/fat.c:455
-80051dc9:	83 c4 fc             	add    $0xfffffffc,%esp
-80051dcc:	68 c7 01 00 00       	push   $0x1c7
-/mn/src/drivers/fat/fat.c:456
-80051dd1:	e9 8a 00 00 00       	jmp    80051e60 <_FatMountFs+0x220>
-80051dd6:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/fat/fat.c:459
-80051dd8:	0f b7 56 31          	movzwl 0x31(%esi),%edx
-/mn/src/drivers/fat/fat.c:470
-80051ddc:	8d 7d e0             	lea    0xffffffe0(%ebp),%edi
-/mn/src/drivers/fat/fat.c:459
-80051ddf:	c1 e2 05             	shl    $0x5,%edx
-80051de2:	0f b7 4e 2b          	movzwl 0x2b(%esi),%ecx
-80051de6:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/fat/fat.c:473
-80051de8:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/fat/fat.c:459
-80051deb:	99                   	cltd   
-80051dec:	f7 f9                	idiv   %ecx
-80051dee:	89 c1                	mov    %eax,%ecx
+80051d71:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
+80051d75:	83 c4 f8             	add    $0xfffffff8,%esp
+80051d78:	0f b7 46 36          	movzwl 0x36(%esi),%eax
+80051d7c:	0f af c2             	imul   %edx,%eax
+80051d7f:	50                   	push   %eax
+80051d80:	68 00 1c 05 80       	push   $0x80051c00
+80051d85:	e8 de 01 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:450
+80051d8a:	83 c4 fc             	add    $0xfffffffc,%esp
+80051d8d:	68 c2 01 00 00       	push   $0x1c2
+80051d92:	68 00 10 05 80       	push   $0x80051000
+80051d97:	0f b7 46 36          	movzwl 0x36(%esi),%eax
+80051d9b:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
+80051d9f:	0f af c2             	imul   %edx,%eax
+80051da2:	50                   	push   %eax
+80051da3:	e8 d8 01 00 00       	call   80051f80 <___malloc>
+80051da8:	89 86 38 02 00 00    	mov    %eax,0x238(%esi)
+/mn/src/drivers/fat/fat.c:451
+80051dae:	83 c4 20             	add    $0x20,%esp
+80051db1:	85 c0                	test   %eax,%eax
+80051db3:	75 17                	jne    80051dcc <_FatMountFs+0x10c>
+80051db5:	83 c4 fc             	add    $0xfffffffc,%esp
+80051db8:	68 c3 01 00 00       	push   $0x1c3
+80051dbd:	68 00 10 05 80       	push   $0x80051000
+80051dc2:	68 3c 1c 05 80       	push   $0x80051c3c
+80051dc7:	e8 a4 01 00 00       	call   80051f70 <___dj_assert>
+/mn/src/drivers/fat/fat.c:453
+80051dcc:	0f b7 56 2b          	movzwl 0x2b(%esi),%edx
+80051dd0:	83 c4 fc             	add    $0xfffffffc,%esp
+80051dd3:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
+80051dd7:	0f af c2             	imul   %edx,%eax
+80051dda:	50                   	push   %eax
+80051ddb:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
+80051ddf:	50                   	push   %eax
+80051de0:	68 60 1c 05 80       	push   $0x80051c60
+80051de5:	e8 7e 01 00 00       	call   80051f68 <_wprintf>
+/mn/src/drivers/fat/fat.c:458
+80051dea:	0f b7 5e 36          	movzwl 0x36(%esi),%ebx
+/mn/src/drivers/fat/fat.c:460
+80051dee:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/fat/fat.c:458
+80051df1:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
+80051df5:	0f af d8             	imul   %eax,%ebx
+/mn/src/drivers/fat/fat.c:460
+80051df8:	68 a2 1c 05 80       	push   $0x80051ca2
+80051dfd:	e8 66 01 00 00       	call   80051f68 <_wprintf>
 /mn/src/drivers/fat/fat.c:461
-80051df0:	0f b6 56 30          	movzbl 0x30(%esi),%edx
-80051df4:	0f b7 46 36          	movzwl 0x36(%esi),%eax
-80051df8:	0f af d0             	imul   %eax,%edx
-/mn/src/drivers/fat/fat.c:462
-80051dfb:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
-80051dff:	01 d0                	add    %edx,%eax
-80051e01:	01 c8                	add    %ecx,%eax
-/mn/src/drivers/fat/fat.c:466
-80051e03:	0f b6 56 30          	movzbl 0x30(%esi),%edx
-/mn/src/drivers/fat/fat.c:462
-80051e07:	89 86 30 02 00 00    	mov    %eax,0x230(%esi)
-/mn/src/drivers/fat/fat.c:466
-80051e0d:	0f b7 4e 2e          	movzwl 0x2e(%esi),%ecx
-80051e11:	0f b7 46 36          	movzwl 0x36(%esi),%eax
-80051e15:	03 4e 3c             	add    0x3c(%esi),%ecx
-80051e18:	0f af c2             	imul   %edx,%eax
-80051e1b:	01 c1                	add    %eax,%ecx
-80051e1d:	89 8e 2c 02 00 00    	mov    %ecx,0x22c(%esi)
-/mn/src/drivers/fat/fat.c:470
-80051e23:	31 c0                	xor    %eax,%eax
-80051e25:	fc                   	cld    
-80051e26:	b9 08 00 00 00       	mov    $0x8,%ecx
-80051e2b:	f3 ab                	repz stos %eax,%es:(%edi)
-/mn/src/drivers/fat/fat.c:471
-80051e2d:	0f b7 46 31          	movzwl 0x31(%esi),%eax
-80051e31:	c1 e0 05             	shl    $0x5,%eax
+80051e02:	83 c4 20             	add    $0x20,%esp
+80051e05:	83 c4 f4             	add    $0xfffffff4,%esp
+80051e08:	53                   	push   %ebx
+80051e09:	8b 86 38 02 00 00    	mov    0x238(%esi),%eax
+80051e0f:	50                   	push   %eax
+80051e10:	0f b7 46 2b          	movzwl 0x2b(%esi),%eax
+80051e14:	0f b7 56 2e          	movzwl 0x2e(%esi),%edx
+80051e18:	0f af d0             	imul   %eax,%edx
+80051e1b:	89 d0                	mov    %edx,%eax
+80051e1d:	99                   	cltd   
+80051e1e:	52                   	push   %edx
+80051e1f:	50                   	push   %eax
+80051e20:	8b 46 1c             	mov    0x1c(%esi),%eax
+80051e23:	50                   	push   %eax
+80051e24:	e8 4f 01 00 00       	call   80051f78 <_DevRead>
+80051e29:	83 c4 20             	add    $0x20,%esp
+80051e2c:	39 d8                	cmp    %ebx,%eax
+80051e2e:	74 28                	je     80051e58 <_FatMountFs+0x198>
+/mn/src/drivers/fat/fat.c:467
+80051e30:	83 c4 fc             	add    $0xfffffffc,%esp
+80051e33:	68 d3 01 00 00       	push   $0x1d3
+80051e38:	68 00 10 05 80       	push   $0x80051000
+80051e3d:	8b 86 38 02 00 00    	mov    0x238(%esi),%eax
+80051e43:	50                   	push   %eax
+80051e44:	e8 df 00 00 00       	call   80051f28 <___free>
+/mn/src/drivers/fat/fat.c:468
+80051e49:	83 c4 fc             	add    $0xfffffffc,%esp
+80051e4c:	68 d4 01 00 00       	push   $0x1d4
+/mn/src/drivers/fat/fat.c:469
+80051e51:	e9 8a 00 00 00       	jmp    80051ee0 <_FatMountFs+0x220>
+80051e56:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/fat/fat.c:472
-80051e34:	66 c7 45 fa 00 00    	movw   $0x0,0xfffffffa(%ebp)
-/mn/src/drivers/fat/fat.c:471
-80051e3a:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-/mn/src/drivers/fat/fat.c:473
-80051e3d:	8d 45 e0             	lea    0xffffffe0(%ebp),%eax
-80051e40:	50                   	push   %eax
-80051e41:	56                   	push   %esi
-80051e42:	e8 c5 f1 ff ff       	call   8005100c <_FatAllocDir>
-80051e47:	89 86 20 02 00 00    	mov    %eax,0x220(%esi)
-/mn/src/drivers/fat/fat.c:474
-80051e4d:	83 c4 10             	add    $0x10,%esp
-80051e50:	85 c0                	test   %eax,%eax
-80051e52:	74 04                	je     80051e58 <_FatMountFs+0x218>
-/mn/src/drivers/fat/fat.c:480
-80051e54:	89 f0                	mov    %esi,%eax
-80051e56:	eb 15                	jmp    80051e6d <_FatMountFs+0x22d>
-/mn/src/drivers/fat/fat.c:476
-80051e58:	83 c4 fc             	add    $0xfffffffc,%esp
-80051e5b:	68 dc 01 00 00       	push   $0x1dc
-80051e60:	68 00 10 05 80       	push   $0x80051000
-80051e65:	56                   	push   %esi
-80051e66:	e8 3d 00 00 00       	call   80051ea8 <___free>
-/mn/src/drivers/fat/fat.c:477
-80051e6b:	31 c0                	xor    %eax,%eax
-80051e6d:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
-80051e70:	5b                   	pop    %ebx
-80051e71:	5e                   	pop    %esi
-80051e72:	5f                   	pop    %edi
-80051e73:	89 ec                	mov    %ebp,%esp
-80051e75:	5d                   	pop    %ebp
-80051e76:	c3                   	ret    
-/mn/src/drivers/fat/fat.c:481
-80051e77:	90                   	nop    
-
-80051e78 <_DrvInit>:
-DrvInit():
-80051e78:	55                   	push   %ebp
-80051e79:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/fat/fat.c:484
-80051e7b:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/fat/fat.c:485
-80051e7e:	c7 40 0c 00 00 00 00 	movl   $0x0,0xc(%eax)
-/mn/src/drivers/fat/fat.c:487
-80051e85:	89 ec                	mov    %ebp,%esp
+80051e58:	0f b7 56 31          	movzwl 0x31(%esi),%edx
+/mn/src/drivers/fat/fat.c:483
+80051e5c:	8d 7d e0             	lea    0xffffffe0(%ebp),%edi
+/mn/src/drivers/fat/fat.c:472
+80051e5f:	c1 e2 05             	shl    $0x5,%edx
+80051e62:	0f b7 4e 2b          	movzwl 0x2b(%esi),%ecx
+80051e66:	89 d0                	mov    %edx,%eax
 /mn/src/drivers/fat/fat.c:486
-80051e87:	c7 40 10 40 1c 05 80 	movl   $0x80051c40,0x10(%eax)
+80051e68:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/fat/fat.c:472
+80051e6b:	99                   	cltd   
+80051e6c:	f7 f9                	idiv   %ecx
+80051e6e:	89 c1                	mov    %eax,%ecx
+/mn/src/drivers/fat/fat.c:474
+80051e70:	0f b6 56 30          	movzbl 0x30(%esi),%edx
+80051e74:	0f b7 46 36          	movzwl 0x36(%esi),%eax
+80051e78:	0f af d0             	imul   %eax,%edx
+/mn/src/drivers/fat/fat.c:475
+80051e7b:	0f b7 46 2e          	movzwl 0x2e(%esi),%eax
+80051e7f:	01 d0                	add    %edx,%eax
+80051e81:	01 c8                	add    %ecx,%eax
+/mn/src/drivers/fat/fat.c:479
+80051e83:	0f b6 56 30          	movzbl 0x30(%esi),%edx
+/mn/src/drivers/fat/fat.c:475
+80051e87:	89 86 30 02 00 00    	mov    %eax,0x230(%esi)
+/mn/src/drivers/fat/fat.c:479
+80051e8d:	0f b7 4e 2e          	movzwl 0x2e(%esi),%ecx
+80051e91:	0f b7 46 36          	movzwl 0x36(%esi),%eax
+80051e95:	03 4e 3c             	add    0x3c(%esi),%ecx
+80051e98:	0f af c2             	imul   %edx,%eax
+80051e9b:	01 c1                	add    %eax,%ecx
+80051e9d:	89 8e 2c 02 00 00    	mov    %ecx,0x22c(%esi)
+/mn/src/drivers/fat/fat.c:483
+80051ea3:	31 c0                	xor    %eax,%eax
+80051ea5:	fc                   	cld    
+80051ea6:	b9 08 00 00 00       	mov    $0x8,%ecx
+80051eab:	f3 ab                	repz stos %eax,%es:(%edi)
+/mn/src/drivers/fat/fat.c:484
+80051ead:	0f b7 46 31          	movzwl 0x31(%esi),%eax
+80051eb1:	c1 e0 05             	shl    $0x5,%eax
+/mn/src/drivers/fat/fat.c:485
+80051eb4:	66 c7 45 fa 00 00    	movw   $0x0,0xfffffffa(%ebp)
+/mn/src/drivers/fat/fat.c:484
+80051eba:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
+/mn/src/drivers/fat/fat.c:486
+80051ebd:	8d 45 e0             	lea    0xffffffe0(%ebp),%eax
+80051ec0:	50                   	push   %eax
+80051ec1:	56                   	push   %esi
+80051ec2:	e8 45 f1 ff ff       	call   8005100c <_FatAllocDir>
+80051ec7:	89 86 20 02 00 00    	mov    %eax,0x220(%esi)
 /mn/src/drivers/fat/fat.c:487
-80051e8e:	b8 01 00 00 00       	mov    $0x1,%eax
-80051e93:	5d                   	pop    %ebp
-80051e94:	c3                   	ret    
-80051e95:	8d 74 26 00          	lea    0x0(%esi,1),%esi
-80051e99:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
-
-80051ea0 <__wcsdup>:
-80051ea0:	ff 25 88 20 05 80    	jmp    *0x80052088
-80051ea6:	90                   	nop    
-80051ea7:	90                   	nop    
-
-80051ea8 <___free>:
-80051ea8:	ff 25 80 20 05 80    	jmp    *0x80052080
-80051eae:	90                   	nop    
-80051eaf:	90                   	nop    
-
-80051eb0 <__wcsicmp>:
-80051eb0:	ff 25 8c 20 05 80    	jmp    *0x8005208c
-80051eb6:	90                   	nop    
-80051eb7:	90                   	nop    
-
-80051eb8 <_wcschr>:
-80051eb8:	ff 25 94 20 05 80    	jmp    *0x80052094
-80051ebe:	90                   	nop    
-80051ebf:	90                   	nop    
-
-80051ec0 <_tolower>:
-80051ec0:	ff 25 90 20 05 80    	jmp    *0x80052090
-80051ec6:	90                   	nop    
-80051ec7:	90                   	nop    
-
-80051ec8 <_HndUnlock>:
-80051ec8:	ff 25 74 20 05 80    	jmp    *0x80052074
-80051ece:	90                   	nop    
-80051ecf:	90                   	nop    
-
-80051ed0 <_HndFree>:
-80051ed0:	ff 25 6c 20 05 80    	jmp    *0x8005206c
-80051ed6:	90                   	nop    
-80051ed7:	90                   	nop    
-
-80051ed8 <_HndLock>:
-80051ed8:	ff 25 70 20 05 80    	jmp    *0x80052070
-80051ede:	90                   	nop    
-80051edf:	90                   	nop    
-
-80051ee0 <__HndAlloc>:
-80051ee0:	ff 25 78 20 05 80    	jmp    *0x80052078
-80051ee6:	90                   	nop    
-80051ee7:	90                   	nop    
-
-80051ee8 <_wprintf>:
-80051ee8:	ff 25 98 20 05 80    	jmp    *0x80052098
-80051eee:	90                   	nop    
-80051eef:	90                   	nop    
-
-80051ef0 <___dj_assert>:
-80051ef0:	ff 25 7c 20 05 80    	jmp    *0x8005207c
-80051ef6:	90                   	nop    
+80051ecd:	83 c4 10             	add    $0x10,%esp
+80051ed0:	85 c0                	test   %eax,%eax
+80051ed2:	74 04                	je     80051ed8 <_FatMountFs+0x218>
+/mn/src/drivers/fat/fat.c:493
+80051ed4:	89 f0                	mov    %esi,%eax
+80051ed6:	eb 15                	jmp    80051eed <_FatMountFs+0x22d>
+/mn/src/drivers/fat/fat.c:489
+80051ed8:	83 c4 fc             	add    $0xfffffffc,%esp
+80051edb:	68 e9 01 00 00       	push   $0x1e9
+80051ee0:	68 00 10 05 80       	push   $0x80051000
+80051ee5:	56                   	push   %esi
+80051ee6:	e8 3d 00 00 00       	call   80051f28 <___free>
+/mn/src/drivers/fat/fat.c:490
+80051eeb:	31 c0                	xor    %eax,%eax
+80051eed:	8d 65 c8             	lea    0xffffffc8(%ebp),%esp
+80051ef0:	5b                   	pop    %ebx
+80051ef1:	5e                   	pop    %esi
+80051ef2:	5f                   	pop    %edi
+80051ef3:	89 ec                	mov    %ebp,%esp
+80051ef5:	5d                   	pop    %ebp
+80051ef6:	c3                   	ret    
+/mn/src/drivers/fat/fat.c:494
 80051ef7:	90                   	nop    
 
-80051ef8 <_DevRead>:
-80051ef8:	ff 25 68 20 05 80    	jmp    *0x80052068
-80051efe:	90                   	nop    
-80051eff:	90                   	nop    
+80051ef8 <_DrvInit>:
+DrvInit():
+80051ef8:	55                   	push   %ebp
+80051ef9:	89 e5                	mov    %esp,%ebp
+/mn/src/drivers/fat/fat.c:497
+80051efb:	8b 45 08             	mov    0x8(%ebp),%eax
+/mn/src/drivers/fat/fat.c:498
+80051efe:	c7 40 0c 00 00 00 00 	movl   $0x0,0xc(%eax)
+/mn/src/drivers/fat/fat.c:500
+80051f05:	89 ec                	mov    %ebp,%esp
+/mn/src/drivers/fat/fat.c:499
+80051f07:	c7 40 10 c0 1c 05 80 	movl   $0x80051cc0,0x10(%eax)
+/mn/src/drivers/fat/fat.c:500
+80051f0e:	b8 01 00 00 00       	mov    $0x1,%eax
+80051f13:	5d                   	pop    %ebp
+80051f14:	c3                   	ret    
+80051f15:	8d 74 26 00          	lea    0x0(%esi,1),%esi
+80051f19:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
 
-80051f00 <___malloc>:
-80051f00:	ff 25 84 20 05 80    	jmp    *0x80052084
-80051f06:	90                   	nop    
-80051f07:	90                   	nop    
+80051f20 <__wcsdup>:
+80051f20:	ff 25 88 20 05 80    	jmp    *0x80052088
+80051f26:	90                   	nop    
+80051f27:	90                   	nop    
 
-80051f08 <__CTOR_LIST__>:
-80051f08:	ff                   	(bad)  
-80051f09:	ff                   	(bad)  
-80051f0a:	ff                   	(bad)  
-80051f0b:	ff 00                	incl   (%eax)
-80051f0d:	00 00                	add    %al,(%eax)
+80051f28 <___free>:
+80051f28:	ff 25 80 20 05 80    	jmp    *0x80052080
+80051f2e:	90                   	nop    
+80051f2f:	90                   	nop    
+
+80051f30 <__wcsicmp>:
+80051f30:	ff 25 8c 20 05 80    	jmp    *0x8005208c
+80051f36:	90                   	nop    
+80051f37:	90                   	nop    
+
+80051f38 <_wcschr>:
+80051f38:	ff 25 94 20 05 80    	jmp    *0x80052094
+80051f3e:	90                   	nop    
+80051f3f:	90                   	nop    
+
+80051f40 <_tolower>:
+80051f40:	ff 25 90 20 05 80    	jmp    *0x80052090
+80051f46:	90                   	nop    
+80051f47:	90                   	nop    
+
+80051f48 <_HndUnlock>:
+80051f48:	ff 25 74 20 05 80    	jmp    *0x80052074
+80051f4e:	90                   	nop    
+80051f4f:	90                   	nop    
+
+80051f50 <_HndFree>:
+80051f50:	ff 25 6c 20 05 80    	jmp    *0x8005206c
+80051f56:	90                   	nop    
+80051f57:	90                   	nop    
+
+80051f58 <_HndLock>:
+80051f58:	ff 25 70 20 05 80    	jmp    *0x80052070
+80051f5e:	90                   	nop    
+80051f5f:	90                   	nop    
+
+80051f60 <__HndAlloc>:
+80051f60:	ff 25 78 20 05 80    	jmp    *0x80052078
+80051f66:	90                   	nop    
+80051f67:	90                   	nop    
+
+80051f68 <_wprintf>:
+80051f68:	ff 25 98 20 05 80    	jmp    *0x80052098
+80051f6e:	90                   	nop    
+80051f6f:	90                   	nop    
+
+80051f70 <___dj_assert>:
+80051f70:	ff 25 7c 20 05 80    	jmp    *0x8005207c
+80051f76:	90                   	nop    
+80051f77:	90                   	nop    
+
+80051f78 <_DevRead>:
+80051f78:	ff 25 68 20 05 80    	jmp    *0x80052068
+80051f7e:	90                   	nop    
+80051f7f:	90                   	nop    
+
+80051f80 <___malloc>:
+80051f80:	ff 25 84 20 05 80    	jmp    *0x80052084
+80051f86:	90                   	nop    
+80051f87:	90                   	nop    
+
+80051f88 <__CTOR_LIST__>:
+80051f88:	ff                   	(bad)  
+80051f89:	ff                   	(bad)  
+80051f8a:	ff                   	(bad)  
+80051f8b:	ff 00                	incl   (%eax)
+80051f8d:	00 00                	add    %al,(%eax)
 	...
 
-80051f10 <__DTOR_LIST__>:
-80051f10:	ff                   	(bad)  
-80051f11:	ff                   	(bad)  
-80051f12:	ff                   	(bad)  
-80051f13:	ff 00                	incl   (%eax)
-80051f15:	00 00                	add    %al,(%eax)
+80051f90 <__DTOR_LIST__>:
+80051f90:	ff                   	(bad)  
+80051f91:	ff                   	(bad)  
+80051f92:	ff                   	(bad)  
+80051f93:	ff 00                	incl   (%eax)
+80051f95:	00 00                	add    %al,(%eax)
 	...
 
-80051f18 <etext>:
+80051f98 <etext>:
 	...

@@ -13977,10 +13977,10 @@ c0009168:	55                   	push   %ebp
 c0009169:	89 e5                	mov    %esp,%ebp
 c000916b:	83 ec 24             	sub    $0x24,%esp
 c000916e:	53                   	push   %ebx
-/mn/src/kernel/cache.c:26
+/mn/src/kernel/cache.c:28
 c000916f:	8b 45 0c             	mov    0xc(%ebp),%eax
 c0009172:	88 45 ff             	mov    %al,0xffffffff(%ebp)
-/mn/src/kernel/cache.c:27
+/mn/src/kernel/cache.c:29
 c0009175:	83 c4 f8             	add    $0xfffffff8,%esp
 c0009178:	8b 55 08             	mov    0x8(%ebp),%edx
 c000917b:	8b 42 1c             	mov    0x1c(%edx),%eax
@@ -13995,7 +13995,7 @@ c000918f:	88 c0                	mov    %al,%al
 c0009191:	0f be d0             	movsbl %al,%edx
 c0009194:	89 d0                	mov    %edx,%eax
 c0009196:	eb 00                	jmp    c0009198 <_CcIsr+0x30>
-/mn/src/kernel/cache.c:28
+/mn/src/kernel/cache.c:30
 c0009198:	8b 5d d8             	mov    0xffffffd8(%ebp),%ebx
 c000919b:	89 ec                	mov    %ebp,%esp
 c000919d:	5d                   	pop    %ebp
@@ -14031,34 +14031,34 @@ c00091e5:	89 e5                	mov    %esp,%ebp
 c00091e7:	83 ec 40             	sub    $0x40,%esp
 c00091ea:	56                   	push   %esi
 c00091eb:	53                   	push   %ebx
-/mn/src/kernel/cache.c:32
+/mn/src/kernel/cache.c:34
 c00091ec:	8b 45 0c             	mov    0xc(%ebp),%eax
 c00091ef:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-/mn/src/kernel/cache.c:38
+/mn/src/kernel/cache.c:40
 c00091f2:	8b 45 08             	mov    0x8(%ebp),%eax
 c00091f5:	89 45 f8             	mov    %eax,0xfffffff8(%ebp)
-/mn/src/kernel/cache.c:39
+/mn/src/kernel/cache.c:41
 c00091f8:	8b 45 0c             	mov    0xc(%ebp),%eax
 c00091fb:	8b 10                	mov    (%eax),%edx
 c00091fd:	81 fa 72 64 00 80    	cmp    $0x80006472,%edx
 c0009203:	74 07                	je     c000920c <_CcRequest+0x28>
 c0009205:	e9 0a 02 00 00       	jmp    c0009414 <_CcRequest+0x230>
 c000920a:	89 f6                	mov    %esi,%esi
-/mn/src/kernel/cache.c:42
+/mn/src/kernel/cache.c:44
 c000920c:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000920f:	8b 50 10             	mov    0x10(%eax),%edx
 c0009212:	89 55 ec             	mov    %edx,0xffffffec(%ebp)
-/mn/src/kernel/cache.c:43
+/mn/src/kernel/cache.c:45
 c0009215:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009218:	c7 40 10 00 00 00 00 	movl   $0x0,0x10(%eax)
-/mn/src/kernel/cache.c:45
+/mn/src/kernel/cache.c:47
 c000921f:	90                   	nop    
 c0009220:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009223:	8b 50 10             	mov    0x10(%eax),%edx
 c0009226:	3b 55 ec             	cmp    0xffffffec(%ebp),%edx
 c0009229:	72 05                	jb     c0009230 <_CcRequest+0x4c>
 c000922b:	e9 dc 01 00 00       	jmp    c000940c <_CcRequest+0x228>
-/mn/src/kernel/cache.c:51
+/mn/src/kernel/cache.c:53
 c0009230:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009233:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c0009236:	8b 4a 10             	mov    0x10(%edx),%ecx
@@ -14071,7 +14071,7 @@ c0009247:	03 50 18             	add    0x18(%eax),%edx
 c000924a:	13 48 1c             	adc    0x1c(%eax),%ecx
 c000924d:	89 55 e0             	mov    %edx,0xffffffe0(%ebp)
 c0009250:	89 4d e4             	mov    %ecx,0xffffffe4(%ebp)
-/mn/src/kernel/cache.c:52
+/mn/src/kernel/cache.c:54
 c0009253:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c0009256:	8b 50 20             	mov    0x20(%eax),%edx
 c0009259:	f7 da                	neg    %edx
@@ -14079,7 +14079,7 @@ c000925b:	89 d1                	mov    %edx,%ecx
 c000925d:	31 db                	xor    %ebx,%ebx
 c000925f:	21 4d e0             	and    %ecx,0xffffffe0(%ebp)
 c0009262:	21 5d e4             	and    %ebx,0xffffffe4(%ebp)
-/mn/src/kernel/cache.c:55
+/mn/src/kernel/cache.c:57
 c0009265:	8b 4d f8             	mov    0xfffffff8(%ebp),%ecx
 c0009268:	89 4d d4             	mov    %ecx,0xffffffd4(%ebp)
 c000926b:	8b 4d e0             	mov    0xffffffe0(%ebp),%ecx
@@ -14090,7 +14090,7 @@ c0009275:	f7 73 20             	divl   0x20(%ebx)
 c0009278:	89 45 d4             	mov    %eax,0xffffffd4(%ebp)
 c000927b:	8b 45 d4             	mov    0xffffffd4(%ebp),%eax
 c000927e:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
-/mn/src/kernel/cache.c:57
+/mn/src/kernel/cache.c:59
 c0009281:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 c0009284:	89 55 d4             	mov    %edx,0xffffffd4(%ebp)
 c0009287:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
@@ -14099,7 +14099,7 @@ c000928c:	8b 5d d4             	mov    0xffffffd4(%ebp),%ebx
 c000928f:	31 d2                	xor    %edx,%edx
 c0009291:	f7 73 24             	divl   0x24(%ebx)
 c0009294:	89 55 f4             	mov    %edx,0xfffffff4(%ebp)
-/mn/src/kernel/cache.c:66
+/mn/src/kernel/cache.c:68
 c0009297:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c000929a:	8b 55 f4             	mov    0xfffffff4(%ebp),%edx
 c000929d:	8d 0c d5 00 00 00 00 	lea    0x0(,%edx,8),%ecx
@@ -14117,11 +14117,11 @@ c00092c5:	3b 55 f0             	cmp    0xfffffff0(%ebp),%edx
 c00092c8:	75 06                	jne    c00092d0 <_CcRequest+0xec>
 c00092ca:	e9 c6 00 00 00       	jmp    c0009395 <_CcRequest+0x1b1>
 c00092cf:	90                   	nop    
-/mn/src/kernel/cache.c:73
+/mn/src/kernel/cache.c:75
 c00092d0:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c00092d3:	8b 50 20             	mov    0x20(%eax),%edx
 c00092d6:	89 55 e8             	mov    %edx,0xffffffe8(%ebp)
-/mn/src/kernel/cache.c:74
+/mn/src/kernel/cache.c:76
 c00092d9:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c00092dc:	8b 55 f4             	mov    0xfffffff4(%ebp),%edx
 c00092df:	0f af 50 20          	imul   0x20(%eax),%edx
@@ -14130,13 +14130,13 @@ c00092e5:	03 45 e8             	add    0xffffffe8(%ebp),%eax
 c00092e8:	3d 00 40 00 00       	cmp    $0x4000,%eax
 c00092ed:	76 19                	jbe    c0009308 <_CcRequest+0x124>
 c00092ef:	83 c4 fc             	add    $0xfffffffc,%esp
-c00092f2:	6a 4a                	push   $0x4a
+c00092f2:	6a 4c                	push   $0x4c
 c00092f4:	68 9f 91 00 c0       	push   $0xc000919f
 c00092f9:	68 a8 91 00 c0       	push   $0xc00091a8
 c00092fe:	e8 89 80 ff ff       	call   c000138c <___dj_assert>
 c0009303:	83 c4 10             	add    $0x10,%esp
 c0009306:	eb 00                	jmp    c0009308 <_CcRequest+0x124>
-/mn/src/kernel/cache.c:76
+/mn/src/kernel/cache.c:78
 c0009308:	83 c4 f4             	add    $0xfffffff4,%esp
 c000930b:	8b 45 e8             	mov    0xffffffe8(%ebp),%eax
 c000930e:	50                   	push   %eax
@@ -14159,14 +14159,14 @@ c0009336:	83 c4 20             	add    $0x20,%esp
 c0009339:	89 c0                	mov    %eax,%eax
 c000933b:	3b 45 e8             	cmp    0xffffffe8(%ebp),%eax
 c000933e:	74 14                	je     c0009354 <_CcRequest+0x170>
-/mn/src/kernel/cache.c:81
+/mn/src/kernel/cache.c:83
 c0009340:	8b 45 0c             	mov    0xc(%ebp),%eax
 c0009343:	c7 40 04 ff ff ff ff 	movl   $0xffffffff,0x4(%eax)
-/mn/src/kernel/cache.c:82
+/mn/src/kernel/cache.c:84
 c000934a:	31 c0                	xor    %eax,%eax
 c000934c:	e9 e7 00 00 00       	jmp    c0009438 <_CcRequest+0x254>
 c0009351:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/kernel/cache.c:85
+/mn/src/kernel/cache.c:87
 c0009354:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 c0009357:	8b 4d f4             	mov    0xfffffff4(%ebp),%ecx
 c000935a:	8d 04 cd 00 00 00 00 	lea    0x0(,%ecx,8),%eax
@@ -14178,14 +14178,14 @@ c0009371:	8b 49 28             	mov    0x28(%ecx),%ecx
 c0009374:	8a 5c 31 04          	mov    0x4(%ecx,%esi,1),%bl
 c0009378:	80 cb 01             	or     $0x1,%bl
 c000937b:	88 5c 02 04          	mov    %bl,0x4(%edx,%eax,1)
-/mn/src/kernel/cache.c:86
+/mn/src/kernel/cache.c:88
 c000937f:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c0009382:	8b 4d f4             	mov    0xfffffff4(%ebp),%ecx
 c0009385:	8d 14 cd 00 00 00 00 	lea    0x0(,%ecx,8),%edx
 c000938c:	8b 40 28             	mov    0x28(%eax),%eax
 c000938f:	8b 4d f0             	mov    0xfffffff0(%ebp),%ecx
 c0009392:	89 0c 10             	mov    %ecx,(%eax,%edx,1)
-/mn/src/kernel/cache.c:92
+/mn/src/kernel/cache.c:94
 c0009395:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c0009398:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c000939b:	8b 4d ec             	mov    0xffffffec(%ebp),%ecx
@@ -14196,7 +14196,7 @@ c00093a5:	3b 50 20             	cmp    0x20(%eax),%edx
 c00093a8:	76 03                	jbe    c00093ad <_CcRequest+0x1c9>
 c00093aa:	8b 50 20             	mov    0x20(%eax),%edx
 c00093ad:	89 55 e8             	mov    %edx,0xffffffe8(%ebp)
-/mn/src/kernel/cache.c:94
+/mn/src/kernel/cache.c:96
 c00093b0:	83 c4 fc             	add    $0xfffffffc,%esp
 c00093b3:	8b 45 e8             	mov    0xffffffe8(%ebp),%eax
 c00093b6:	50                   	push   %eax
@@ -14221,21 +14221,21 @@ c00093e7:	01 d0                	add    %edx,%eax
 c00093e9:	50                   	push   %eax
 c00093ea:	e8 c5 3e 00 00       	call   c000d2b4 <_memcpy>
 c00093ef:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/cache.c:99
+/mn/src/kernel/cache.c:101
 c00093f2:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c00093f5:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c00093f8:	8b 4a 10             	mov    0x10(%edx),%ecx
 c00093fb:	8b 55 e8             	mov    0xffffffe8(%ebp),%edx
 c00093fe:	8d 1c 0a             	lea    (%edx,%ecx,1),%ebx
 c0009401:	89 58 10             	mov    %ebx,0x10(%eax)
-/mn/src/kernel/cache.c:100
+/mn/src/kernel/cache.c:102
 c0009404:	e9 17 fe ff ff       	jmp    c0009220 <_CcRequest+0x3c>
 c0009409:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/kernel/cache.c:102
+/mn/src/kernel/cache.c:104
 c000940c:	b8 01 00 00 00       	mov    $0x1,%eax
 c0009411:	eb 25                	jmp    c0009438 <_CcRequest+0x254>
 c0009413:	90                   	nop    
-/mn/src/kernel/cache.c:105
+/mn/src/kernel/cache.c:107
 c0009414:	83 c4 f8             	add    $0xfffffff8,%esp
 c0009417:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 c000941a:	8b 42 1c             	mov    0x1c(%edx),%eax
@@ -14251,7 +14251,7 @@ c000942f:	88 c0                	mov    %al,%al
 c0009431:	0f be d0             	movsbl %al,%edx
 c0009434:	89 d0                	mov    %edx,%eax
 c0009436:	eb 00                	jmp    c0009438 <_CcRequest+0x254>
-/mn/src/kernel/cache.c:107
+/mn/src/kernel/cache.c:109
 c0009438:	8d 65 b8             	lea    0xffffffb8(%ebp),%esp
 c000943b:	5b                   	pop    %ebx
 c000943c:	5e                   	pop    %esi
@@ -14321,15 +14321,15 @@ CcInstallBlockCache():
 c00094b8:	55                   	push   %ebp
 c00094b9:	89 e5                	mov    %esp,%ebp
 c00094bb:	83 ec 18             	sub    $0x18,%esp
-/mn/src/kernel/cache.c:114
+/mn/src/kernel/cache.c:116
 c00094be:	b8 00 40 00 00       	mov    $0x4000,%eax
 c00094c3:	8d 4d 0c             	lea    0xc(%ebp),%ecx
 c00094c6:	31 d2                	xor    %edx,%edx
 c00094c8:	f7 31                	divl   (%ecx)
 c00094ca:	89 45 f8             	mov    %eax,0xfffffff8(%ebp)
-/mn/src/kernel/cache.c:115
+/mn/src/kernel/cache.c:117
 c00094cd:	83 c4 fc             	add    $0xfffffffc,%esp
-c00094d0:	6a 73                	push   $0x73
+c00094d0:	6a 75                	push   $0x75
 c00094d2:	68 9f 91 00 c0       	push   $0xc000919f
 c00094d7:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
 c00094da:	89 c2                	mov    %eax,%edx
@@ -14340,53 +14340,53 @@ c00094ea:	e8 35 26 00 00       	call   c000bb24 <___malloc>
 c00094ef:	83 c4 10             	add    $0x10,%esp
 c00094f2:	89 c0                	mov    %eax,%eax
 c00094f4:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-/mn/src/kernel/cache.c:116
+/mn/src/kernel/cache.c:118
 c00094f7:	83 7d fc 00          	cmpl   $0x0,0xfffffffc(%ebp)
 c00094fb:	75 1b                	jne    c0009518 <_CcInstallBlockCache+0x60>
 c00094fd:	83 c4 fc             	add    $0xfffffffc,%esp
-c0009500:	6a 74                	push   $0x74
+c0009500:	6a 76                	push   $0x76
 c0009502:	68 9f 91 00 c0       	push   $0xc000919f
 c0009507:	68 41 94 00 c0       	push   $0xc0009441
 c000950c:	e8 7b 7e ff ff       	call   c000138c <___dj_assert>
 c0009511:	83 c4 10             	add    $0x10,%esp
 c0009514:	eb 02                	jmp    c0009518 <_CcInstallBlockCache+0x60>
 c0009516:	89 f6                	mov    %esi,%esi
-/mn/src/kernel/cache.c:118
+/mn/src/kernel/cache.c:120
 c0009518:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000951b:	c7 00 e4 91 00 c0    	movl   $0xc00091e4,(%eax)
-/mn/src/kernel/cache.c:120
+/mn/src/kernel/cache.c:122
 c0009521:	8b 45 08             	mov    0x8(%ebp),%eax
 c0009524:	83 78 04 00          	cmpl   $0x0,0x4(%eax)
 c0009528:	74 0e                	je     c0009538 <_CcInstallBlockCache+0x80>
-/mn/src/kernel/cache.c:121
+/mn/src/kernel/cache.c:123
 c000952a:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000952d:	c7 40 04 68 91 00 c0 	movl   $0xc0009168,0x4(%eax)
 c0009534:	eb 0c                	jmp    c0009542 <_CcInstallBlockCache+0x8a>
 c0009536:	89 f6                	mov    %esi,%esi
-/mn/src/kernel/cache.c:123
+/mn/src/kernel/cache.c:125
 c0009538:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000953b:	c7 40 04 00 00 00 00 	movl   $0x0,0x4(%eax)
-/mn/src/kernel/cache.c:125
+/mn/src/kernel/cache.c:127
 c0009542:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009545:	c7 40 08 00 00 00 00 	movl   $0x0,0x8(%eax)
-/mn/src/kernel/cache.c:126
+/mn/src/kernel/cache.c:128
 c000954c:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000954f:	8b 55 0c             	mov    0xc(%ebp),%edx
 c0009552:	89 50 20             	mov    %edx,0x20(%eax)
-/mn/src/kernel/cache.c:127
+/mn/src/kernel/cache.c:129
 c0009555:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009558:	8b 55 08             	mov    0x8(%ebp),%edx
 c000955b:	89 50 1c             	mov    %edx,0x1c(%eax)
-/mn/src/kernel/cache.c:128
+/mn/src/kernel/cache.c:130
 c000955e:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c0009561:	8b 55 f8             	mov    0xfffffff8(%ebp),%edx
 c0009564:	89 50 24             	mov    %edx,0x24(%eax)
-/mn/src/kernel/cache.c:129
+/mn/src/kernel/cache.c:131
 c0009567:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000956a:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c000956d:	81 c2 2c 40 00 00    	add    $0x402c,%edx
 c0009573:	89 50 28             	mov    %edx,0x28(%eax)
-/mn/src/kernel/cache.c:131
+/mn/src/kernel/cache.c:133
 c0009576:	83 c4 f8             	add    $0xfffffff8,%esp
 c0009579:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
 c000957c:	8b 50 24             	mov    0x24(%eax),%edx
@@ -14394,11 +14394,11 @@ c000957f:	52                   	push   %edx
 c0009580:	68 68 94 00 c0       	push   $0xc0009468
 c0009585:	e8 4e 25 00 00       	call   c000bad8 <_wprintf>
 c000958a:	83 c4 10             	add    $0x10,%esp
-/mn/src/kernel/cache.c:132
+/mn/src/kernel/cache.c:134
 c000958d:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 c0009590:	89 d0                	mov    %edx,%eax
 c0009592:	eb 00                	jmp    c0009594 <_CcInstallBlockCache+0xdc>
-/mn/src/kernel/cache.c:133
+/mn/src/kernel/cache.c:135
 c0009594:	89 ec                	mov    %ebp,%esp
 c0009596:	5d                   	pop    %ebp
 c0009597:	c3                   	ret    

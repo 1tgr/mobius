@@ -1,3 +1,5 @@
+/* $Id: fat.c,v 1.6 2002/01/05 01:30:56 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -310,11 +312,21 @@ bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 
 	ptr = (uint32_t*) (file + 1);
 	user_length = req_fs->params.fs_read.length;
+	if (file->file.pos + user_length >= file->di.file_length)
+		user_length = file->di.file_length - file->file.pos;
+
+	if (user_length == 0)
+	{
+		/* null read */
+		TRACE0("fat: null read\n");
+		return false;
+	}
+
 	req_fs->params.fs_read.length = 0;
 	ret = true;
 	buf = (uint8_t*) req_fs->params.fs_read.buffer;
 
-	wprintf(L"fat: reading %u bytes\n", user_length);
+	TRACE1("fat: reading %u bytes\n", user_length);
 	while (req_fs->params.fs_read.length < user_length)
 	{
 		if (file->file.pos >= file->di.file_length)
@@ -328,7 +340,8 @@ bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 		bytes = user_length - req_fs->params.fs_read.length;
 		if (bytes > root->bytes_per_cluster)
 			bytes = root->bytes_per_cluster;
-		wprintf(L"fat: pos = %u cluster = %u = %x bytes = %u\n", 
+		
+		TRACE4("fat: pos = %u cluster = %u = %x bytes = %u\n", 
 			(uint32_t) file->file.pos, cluster_index, 
 			ptr[cluster_index], bytes);
 

@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.6 2002/01/05 00:54:11 pavlovskii Exp $ */
+/* $Id: test.c,v 1.7 2002/01/05 01:30:56 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,8 +16,8 @@ int main(void)
 	process_info_t *info;*/
 	handle_t file;
 	wchar_t name[] = L"/hd/test.txt";
-	char key[4];
-	wchar_t str[5];
+	char key[20];
+	wchar_t str[_countof(key) + 1];
 	size_t len;
 	
 	wprintf(L"Hello from tty0!\n");
@@ -34,10 +34,12 @@ int main(void)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		while (FsRead(file, key, sizeof(key)))
+		while ((len = FsRead(file, key, sizeof(key))))
 		{
 			/*wprintf(L"Read %u bytes; the device says: %02x %02x %02x %02x\n", 
 				bytes, buf[0], buf[1], buf[2], buf[3]);*/
+			if (len < sizeof(key))
+				key[len] = '\0';
 			len = mbstowcs(str, key, _countof(key));
 			wprintf(L"%.*s", len, str);
 		}
