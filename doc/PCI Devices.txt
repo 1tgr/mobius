@@ -1,0 +1,9 @@
+PCI Devices:
+
+pci:0:0:0 Vendor8086Device7190 => Intel 82443BX/ZX 440BX/ZX CPU to PCI Bridge (AGP Implemented)
+pci:0:1:0 Vendor8086Device7191 => Intel 82443BX/ZX 440BX/ZX PCI to AGP Bridge
+pci:0:7:0 Vendor8086Device7110 => Intel 82371AB/EB/MB PIIX4 ISA Bridge
+pci:0:7:1 Vendor8086Device7111 => Intel 82371AB/EB/MB PIIX4 EIDE Controller
+pci:0:7:2 Vendor8086Device7112 => Intel 82371AB/EB/MB PIIX4 USB Controller
+pci:0:7:3 Vendor8086Device7113 => Intel 82371AB/EB/MB PIIX4 Power Management Controller
+pci:0:20:0 Vendor5333Device8811 => S3 86C732 Trio32, 86C764 Trio64, 86C765 Trio64V+ Rev 01
