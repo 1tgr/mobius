@@ -1,16 +1,18 @@
-/* $Id: desktop.h,v 1.1 2002/04/03 23:26:44 pavlovskii Exp $ */
+/* $Id: desktop.h,v 1.2 2002/04/10 12:25:45 pavlovskii Exp $ */
 
 #ifndef DESKTOP_H__
 #define DESKTOP_H__
 
-#include <gui/window.h>
+#include <gui/container.h>
 
 class AltTabWindow;
+class IconView;
 
-class Desktop : public os::Window
+class Desktop : public os::Container
 {
 public:
     AltTabWindow *m_altTabWindow;
+    IconView *m_icons;
 
     Desktop();
     void OnPaint();

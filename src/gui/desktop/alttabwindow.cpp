@@ -1,4 +1,4 @@
-/* $Id: alttabwindow.cpp,v 1.1 2002/04/03 23:26:44 pavlovskii Exp $ */
+/* $Id: alttabwindow.cpp,v 1.2 2002/04/10 12:25:45 pavlovskii Exp $ */
 
 #include "alttabwindow.h"
 #include "desktop.h"
@@ -9,11 +9,14 @@
 AltTabWindow::AltTabWindow(os::Window *parent)
 {
     MGLrect rect;
+    MGLreal width, height;
     mglGetDimensions(NULL, &rect);
+    width = rect.Width();
+    height = rect.Height();
     rect.left = (rect.left * 2 + rect.right) / 3;
     rect.top = (rect.top * 2 + rect.bottom) / 3;
-    rect.right = rect.right - (rect.right - rect.left) / 3;
-    rect.bottom = rect.bottom - (rect.bottom - rect.top) / 3;
+    rect.right = rect.right - width / 3;
+    rect.bottom = rect.bottom - height / 3;
     Create(parent, NULL, rect);
 }
 

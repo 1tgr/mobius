@@ -1,7 +1,8 @@
-/* $Id: desktop.cpp,v 1.1 2002/04/03 23:26:44 pavlovskii Exp $ */
+/* $Id: desktop.cpp,v 1.2 2002/04/10 12:25:45 pavlovskii Exp $ */
 
 #include "desktop.h"
 #include "alttabwindow.h"
+#include "iconview.h"
 #include <os/syscall.h>
 #include <os/defs.h>
 #include <os/keyboard.h>
@@ -24,7 +25,7 @@ public:
 
 RunDialog::RunDialog() : 
     os::MessageBox(L"Run", L"Enter the name of the program to run:", btnOkCancel),
-    m_edit(this, L"", MGLrect(310, 500, 890, 530), 0)
+    m_edit(this, L"", MGLrect(310, 490, 890, 530), 0)
 {
 }
 
@@ -37,25 +38,15 @@ Desktop::Desktop() : m_altTabWindow(NULL)
     WndSetAttribute(m_handle, WND_ATTR_USERDATA, WND_TYPE_VOID, this, sizeof(this));
     WndInvalidate(m_handle, NULL);
 
+    m_icons = new IconView(this);
     new os::Button(this, L"Run...",       MGLrect(25, 25, 225, 75), 1);
     new os::Button(this, L"Shut Down...", MGLrect(25, 100, 225, 150), 2);
+    /* xxx - I shouldn't need to do this... */
+    m_icons->Invalidate();
 }
 
 void Desktop::OnPaint()
 {
-    static const wchar_t str[] = L"The Möbius";
-    MGLrect rect;
-    MGLpoint size;
-
-    GetPosition(&rect);
-    glSetColour(0x0040C0);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
-
-    glSetColour(0x000000);
-    glGetTextSize(str, -1, &size);
-    rect.left = rect.right - size.x;
-    rect.top = rect.bottom - size.y;
-    glDrawText(&rect, str, -1);
 }
 
 void Desktop::PowerOff()
