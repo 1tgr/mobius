@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.26 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.27 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -34,7 +34,7 @@ static void FsCompletionApc(void *param)
         io,
         io->owner->process->exe, io->owner->id, 
         current->process->exe, current->id);*/
-    assert(io->owner == current);
+    assert(io->owner == current());
     *io->original = io->op;
     io->original = NULL;
     HndUnlock(NULL, io->file_handle, 'file');
@@ -50,7 +50,7 @@ void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
     /*wprintf(L"FsNotifyCompletion(%p): io->owner = %p current = %p\n", 
         io, io->owner, current);*/
 
-    if (io->owner == current)
+    if (io->owner == current())
         FsCompletionApc(io);
     else
     {
@@ -320,10 +320,10 @@ bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
 
     if (op.result == SIOPENDING)
     {
-        wprintf(L"FsReadSync: op.result == SIOPENDING, waiting\n");
-        ThrWaitHandle(current, op.event, 0);
+        //wprintf(L"FsReadSync: op.result == SIOPENDING, waiting\n");
+        ThrWaitHandle(current(), op.event, 0);
         KeYield();
-        wprintf(L"FsReadSync: finished wait\n");
+        //wprintf(L"FsReadSync: finished wait\n");
     }
 
     errno = op.result;
@@ -362,7 +362,7 @@ bool FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_wri
 
     if (op.result == SIOPENDING)
     {
-        ThrWaitHandle(current, op.event, 0);
+        ThrWaitHandle(current(), op.event, 0);
         SysYield();
     }
 
@@ -420,7 +420,7 @@ static bool FsReadWritePhysical(handle_t file, page_array_t *pages, size_t bytes
     op->result = 0;
     io->original = op;
     io->op = *op;
-    io->owner = current;
+    io->owner = current();
     io->file = fd;
     io->file_handle = file;
 
@@ -618,7 +618,7 @@ bool FsRequestSync(handle_t file, uint32_t code, void *params, size_t size, file
     op->event = file;
     io->original = op;
     io->op = *op;
-    io->owner = current;
+    io->owner = current();
     io->file = fd;
     io->file_handle = file;
 
@@ -702,7 +702,7 @@ bool FsIoCtl(handle_t file, uint32_t code, void *buffer, size_t length, fileop_t
     op->event = file;
     io->original = op;
     io->op = *op;
-    io->owner = current;
+    io->owner = current();
     io->file = fd;
     io->file_handle = file;
 
@@ -770,6 +770,11 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
     if (root->vtbl->lookup_file == NULL)
         ret = ENOTIMPL;
     else
+        /*
+         * xxx -- this is a very weird bug!
+         *  'name' here should be 'fullname', yet using 'fullname' corrupts 
+         *  the stack when used with ext2.
+         */
         ret = root->vtbl->lookup_file(root, name, &fsd, &cookie);
 
     if (ret != 0)

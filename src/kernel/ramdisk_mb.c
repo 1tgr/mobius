@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.12 2002/06/14 13:05:37 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.13 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -117,9 +117,16 @@ bool RdRead(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fs_asy
     multiboot_module_t *mod;
     void *ptr;
 
+    io->op.bytes = 0;
     mod = file->fsd_cookie;
     if (file->pos + length >= mod->mod_end - mod->mod_start)
         length = mod->mod_end - mod->mod_start - file->pos;
+
+    if (length == 0)
+    {
+        io->op.result = EEOF;
+        return false;
+    }
 
     ptr = (uint8_t*) PHYSICAL(mod->mod_start) + (uint32_t) file->pos;
     /*wprintf(L"RdRead: %x (%S) at %x => %x = %08x\n",

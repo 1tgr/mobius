@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.6 2002/06/14 13:05:38 pavlovskii Exp $
+; $Id: isr.asm,v 1.7 2002/06/22 17:20:06 pavlovskii Exp $
 
 [bits           32]
 
@@ -14,16 +14,15 @@
 [extern         _i386Isr]
 [extern         _i386DoubleFault]
 [extern         _tss]
-[extern         _current]
 
 _SemAcquire:
     push    ebp
     mov     ebp, [esp+8]
 
     ; Check if the semaphore has already been acquired
-    mov     eax, [ebp]
-    test    eax, eax
-    jnz	    .2
+    ;mov     eax, [ebp]
+    ;test    eax, eax
+    ;jnz	    .2
 
     ; Save EFLAGS and store in semaphore
     pushfd
@@ -158,22 +157,29 @@ _isr_and_switch:
     push    gs                        ; saving segment registers and
     pushad                            ; other regs because it's an ISR
 
-    mov        bx, 0x20                ; use the kernel selectors
-    mov        ds, ebx
-    mov        es, ebx
-    mov        gs, ebx
-    mov        bx, 0x40
-    mov        fs, ebx
-    
-    mov        ebx, [_current]            ; ebx = current
-    mov        ebx, [ebx]                ; ebx = current->ctx_last
-    push    ebx
+    mov         bx, 0x20                ; use the kernel selectors
+    mov         ds, ebx
+    mov         es, ebx
+    mov         gs, ebx
+    mov         bx, 0x40
+    mov         fs, ebx
+
+%ifdef __SMP__
+[extern         _ThrGetCurrent]
+    call        _ThrGetCurrent
+%else
+[extern         _thr_cpu_single]
+    mov         eax, [_thr_cpu_single + 4]            ; ebx = current
+%endif
+
+    mov         eax, [eax]                ; ebx = current->ctx_last
+    push        eax
     ;push    dword 0x12345678
     
-    mov     ebx, esp
-    push    ebx                     ; pass esp of the current thread
+    mov         ebx, esp
+    push        ebx                     ; pass esp of the current thread
 
-    call    _i386Isr                ; call scheduler
+    call        _i386Isr                ; call scheduler
 [global _isr_switch_ret]
 _isr_switch_ret:
     lea     esp, [eax+4]            ; get esp of a new thread

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.19 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: main.c,v 1.20 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -40,12 +40,12 @@ static void KernelCpuMeter(void)
     for (;;)
     {
         up_cur = sc_uptime;
-        up_own = thr_idle.cputime;
-        thr_idle.cputime = 0;
+        up_own = cpu()->thr_idle.cputime;
+        cpu()->thr_idle.cputime = 0;
         TextUpdateProgress(0, up_cur - up_last - up_own, up_cur - up_last);
         up_last = up_cur;
 
-        ThrSleep(current, 100);
+        ThrSleep(current(), 100);
         KeYield();
     }
 }
@@ -156,6 +156,7 @@ static void KeInstallDevices(void)
 void KernelMain(void)
 {
     MemInit();
+    RtlInit();
     ArchInit();
 
     TRACE0("ProcInit\n");

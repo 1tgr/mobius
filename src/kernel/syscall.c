@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.16 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.17 2002/06/22 17:20:06 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -38,8 +38,8 @@ int DbgWrite(const wchar_t *str, size_t count)
 
 void ThrExitThread(int code)
 {
-    wprintf(L"Thread %u exited with code %d\n", current->id, code);
-    ThrDeleteThread(current);
+    wprintf(L"Thread %u exited with code %d\n", current()->id, code);
+    ThrDeleteThread(current());
     ScNeedSchedule(true);
 }
 
@@ -50,7 +50,7 @@ unsigned SysUpTime(void)
 
 bool SysThrWaitHandle(handle_t hnd)
 {
-    if (ThrWaitHandle(current, hnd, 0))
+    if (ThrWaitHandle(current(), hnd, 0))
     {
 	ScNeedSchedule(true);
 	return true;
@@ -61,7 +61,7 @@ bool SysThrWaitHandle(handle_t hnd)
 
 void SysThrSleep(unsigned ms)
 {
-    ThrSleep(current, ms);
+    ThrSleep(current(), ms);
 }
 
 bool SysGetInfo(sysinfo_t *info)
@@ -78,7 +78,7 @@ bool SysGetTimes(systimes_t *times)
 {
     times->quantum = SCHED_QUANTUM;
     times->uptime = sc_uptime;
-    times->current_cputime = current->cputime;
+    times->current_cputime = current()->cputime;
     return true;
 }
 
@@ -88,7 +88,7 @@ handle_t ThrCreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority, v
     thread_t *thr;
     thr = i386CreateV86Thread(entry, stack_top, priority, handler);
     if (thr != NULL)
-	return HndDuplicate(current->process, &thr->hdr);
+	return HndDuplicate(current()->process, &thr->hdr);
     else
 	return NULL;
 }
@@ -101,10 +101,10 @@ bool ThrGetV86Context(context_v86_t* ctx)
 	return false;
     }
 
-    if (current->v86_in_handler)
+    if (current()->v86_in_handler)
     {
-	*ctx = current->v86_context;
-	if (current->v86_if)
+	*ctx = current()->v86_context;
+	if (current()->v86_if)
 	    ctx->eflags |= EFLAG_IF;
 	else
 	    ctx->eflags &= ~EFLAG_IF;
@@ -125,9 +125,9 @@ bool ThrSetV86Context(const context_v86_t* ctx)
 	return false;
     }
 
-    if (current->v86_in_handler)
+    if (current()->v86_in_handler)
     {
-	current->v86_context = *ctx;
+	current()->v86_context = *ctx;
 	return true;
     }
     else
@@ -143,25 +143,25 @@ bool ThrContinueV86(void)
     context_v86_t *v86;
     uint32_t kernel_esp;
 
-    if (current->v86_in_handler)
+    if (current()->v86_in_handler)
     {
-	ctx = ThrGetUserContext(current);
+	ctx = ThrGetUserContext(current());
 	kernel_esp = ctx->kernel_esp;
 	kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
 	/*current->kernel_esp = */ctx->kernel_esp = kernel_esp;
 
 	/*v86 = (context_v86_t*) ThrGetUserContext(current);*/
 	v86 = (context_v86_t*) (kernel_esp - 4);
-	*v86 = current->v86_context;
+	*v86 = current()->v86_context;
 
-	current->v86_if = (v86->eflags & EFLAG_IF) == EFLAG_IF;
+	current()->v86_if = (v86->eflags & EFLAG_IF) == EFLAG_IF;
 
 	TRACE2("ThrContinueV86: continuing: new esp = %x, old esp = %x\n",
 	    kernel_esp, v86->kernel_esp);
 	v86->eflags |= EFLAG_IF | EFLAG_VM;
 	/*v86->kernel_esp = kernel_esp;*/
 	/*ArchDbgDumpContext((context_t*) v86);*/
-	current->v86_in_handler = false;
+	current()->v86_in_handler = false;
 	__asm__("mov %0,%%eax\n"
 	    "jmp _isr_switch_ret" : : "g" (kernel_esp));
 	return true;
@@ -184,17 +184,17 @@ handle_t ThrCreateV86Thread(uint32_t entry, uint32_t stack_top, unsigned priorit
 handle_t SysThrCreateThread(void (*entry)(void), void *param, unsigned priority)
 {
     thread_t *thr;
-    thr = ThrCreateThread(current->process, false, entry, true, param, priority);
+    thr = ThrCreateThread(current()->process, false, entry, true, param, priority);
     if (thr == NULL)
         return NULL;
     else
-        return HndDuplicate(current->process, &thr->hdr);
+        return HndDuplicate(current()->process, &thr->hdr);
 }
 
 bool SysVmmFree(void *base)
 {
     vm_area_t *area;
-    area = VmmArea(current->process, base);
+    area = VmmArea(current()->process, base);
     if (area == NULL)
     {
 	errno = ENOTFOUND;
@@ -274,7 +274,7 @@ void SysYield(void)
 void KeSetSingleStep(bool set)
 {
     context_t *ctx;
-    ctx = ThrGetUserContext(current);
+    ctx = ThrGetUserContext(current());
     if (set)
         ctx->eflags |= EFLAG_TF;
     else

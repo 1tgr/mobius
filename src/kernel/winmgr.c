@@ -1,4 +1,4 @@
-/* $Id: winmgr.c,v 1.3 2002/04/20 12:30:04 pavlovskii Exp $ */
+/* $Id: winmgr.c,v 1.4 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -224,7 +224,7 @@ handle_t WndCreate(handle_t parent, const wndattr_t *attribs, unsigned num_attri
     memset(wnd, 0, sizeof(window_t));
     HndInit(&wnd->hdr, 'wndo');
     SemInit(&wnd->sem);
-    wnd->owner = current;
+    wnd->owner = current();
     wnd->parent = par;
 
     for (i = 0; i < num_attribs; i++)
@@ -403,15 +403,15 @@ bool WndGetMessage(msg_t *msg)
         return false;
     }
 
-    while (QUEUE_COUNT(current->msgqueue, msg_t) > 0)
+    while (QUEUE_COUNT(current()->msgqueue, msg_t) > 0)
     {
-        QueuePopFirst(&current->msgqueue, msg, sizeof(msg_t));
+        QueuePopFirst(&current()->msgqueue, msg, sizeof(msg_t));
 
         if (msg->window != NULL)
         {
             wchar_t *title;
             title = WndiGetTitle((window_t*) msg->window);
-            msg->window = WndiGetHandle(current->process, (window_t*) msg->window);
+            msg->window = WndiGetHandle(current()->process, (window_t*) msg->window);
             /*wprintf(L"WndGetMessage: window = %d(%s) code = %x\n",
                 msg->window, title, msg->code);*/
 
@@ -439,8 +439,8 @@ bool WndGetMessage(msg_t *msg)
                 WndUnlockWindow(NULL, msg->window);
             }
 
-            /*if (QUEUE_COUNT(current->msgqueue, msg_t) > 0)
-                EvtSignal(NULL, current->info->msgqueue_event);*/
+            /*if (QUEUE_COUNT(current()->msgqueue, msg_t) > 0)
+                EvtSignal(NULL, current()->info->msgqueue_event);*/
 
             return true;
         }
@@ -613,7 +613,7 @@ handle_t WndOwnRoot(void)
         return NULL;
     }
 
-    wnd_root.owner = current;
+    wnd_root.owner = current();
     return HndDuplicate(NULL, &wnd_root.hdr);
 }
 

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.25 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.26 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -112,7 +112,7 @@ uint32_t i386_lpeek32(addr_t off)
 
 bool i386HandlePageFault(addr_t cr2, bool is_writing)
 {
-    if (!ProcPageFault(current->process, cr2, is_writing))
+    if (!ProcPageFault(current()->process, cr2, is_writing))
     {
         if (cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
             kernel_pagedir[PAGE_DIRENT(cr2)] &&
@@ -120,7 +120,7 @@ bool i386HandlePageFault(addr_t cr2, bool is_writing)
         {
             cr2 = PAGE_ALIGN(cr2);
             wprintf(L"Mapping kernel page at %x for process %u...", 
-                cr2, current->process->id);
+                cr2, current()->process->id);
             *ADDR_TO_PDE(cr2) = kernel_pagedir[PAGE_DIRENT(cr2)];
             invalidate_page((void*) cr2);
             wprintf(L"done\n");
@@ -137,8 +137,14 @@ uint32_t i386Isr(context_t ctx)
 {
     thread_t *old_current;
 
-    old_current = current;
-    current->ctx_last = &ctx;
+    if (kernel_startup.num_cpus > 1 && ArchThisCpu() != 2)
+    {
+        wprintf(L"i386Isr: interrupt %u on CPU %u\n", ctx.intr, ArchThisCpu());
+        __asm__("hlt");
+    }
+
+    old_current = current();
+    old_current->ctx_last = &ctx;
     
     if (ctx.error == (uint32_t) -1)
     {
@@ -152,7 +158,7 @@ uint32_t i386Isr(context_t ctx)
         if (ctx.intr == 0)
         {
             sc_uptime += SCHED_QUANTUM;
-            current->cputime += SCHED_QUANTUM;
+            old_current->cputime += SCHED_QUANTUM;
             ScNeedSchedule(true);
         }
         
@@ -213,7 +219,7 @@ uint32_t i386Isr(context_t ctx)
             TextSwitchToKernel();
 
             wprintf(L"Thread %s/%u: Interrupt %ld at %lx:%08lx: %08lx\n", 
-                current->process->exe, current->id, 
+                old_current->process->exe, old_current->id, 
                 ctx.intr, ctx.cs, ctx.eip, cr2);
             
             if (ctx.intr == 14)
@@ -243,12 +249,12 @@ uint32_t i386Isr(context_t ctx)
                 if (ctx.eflags & EFLAG_VM)
                     wprintf(L"Stack dump not available in V86 mode\n");
                 else
-                    DbgDumpStack(current->process, ctx.regs.ebp);
+                    DbgDumpStack(old_current->process, ctx.regs.ebp);
 
                 ArchDbgDumpContext(&ctx);
                 /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-                if (current->process == &proc_idle)
+                if (old_current->process == &proc_idle)
                     halt(ctx.eip);
                 else
                         ProcExitProcess(-ctx.intr);
@@ -256,17 +262,17 @@ uint32_t i386Isr(context_t ctx)
         }
     }
     
-    current->ctx_last = ctx.ctx_prev;
+    old_current->ctx_last = ctx.ctx_prev;
     while (true)
     {
         if (sc_need_schedule)
             ScSchedule();
         
-        if (old_current != current)
+        if (old_current != current())
         {
             old_current->kernel_esp = ctx.kernel_esp;
-            if (ArchAttachToThread(current, old_current != current))
-                return current->kernel_esp;
+            if (ArchAttachToThread(current(), old_current != current()))
+                return current()->kernel_esp;
             else
                 ScNeedSchedule(true);
         }
@@ -295,7 +301,7 @@ thread_t *i386CreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority,
     thread_t *thr;
     context_v86_t *ctx;
 
-    thr = ThrCreateThread(current->process, false, NULL, false, NULL, priority);
+    thr = ThrCreateThread(current()->process, false, NULL, false, NULL, priority);
     if (thr == NULL)
         return NULL;
 
@@ -372,7 +378,7 @@ bool i386V86Gpf(context_v86_t *ctx)
                 stack32--;
                 stack32[0] = ctx->eflags & VALID_FLAGS;
 
-                if (current->v86_if)
+                if (current()->v86_if)
                     stack32[0] |= EFLAG_IF;
                 else
                     stack32[0] &= ~EFLAG_IF;
@@ -383,7 +389,7 @@ bool i386V86Gpf(context_v86_t *ctx)
                 stack--;
                 stack[0] = (uint16_t) ctx->eflags;
 
-                if (current->v86_if)
+                if (current()->v86_if)
                     stack[0] |= EFLAG_IF;
                 else
                     stack[0] &= ~EFLAG_IF;
@@ -398,13 +404,13 @@ bool i386V86Gpf(context_v86_t *ctx)
             if (is_operand32)
             {
                 ctx->eflags = EFLAG_IF | EFLAG_VM | (stack32[0] & VALID_FLAGS);
-                current->v86_if = (stack32[0] & EFLAG_IF) != 0;
+                current()->v86_if = (stack32[0] & EFLAG_IF) != 0;
                 ctx->esp = ((ctx->esp & 0xffff) + 4) & 0xffff;
             }
             else
             {
                 ctx->eflags = EFLAG_IF | EFLAG_VM | stack[0];
-                current->v86_if = (stack[0] & EFLAG_IF) != 0;
+                current()->v86_if = (stack[0] & EFLAG_IF) != 0;
                 ctx->esp = ((ctx->esp & 0xffff) + 2) & 0xffff;
             }
             
@@ -424,19 +430,19 @@ bool i386V86Gpf(context_v86_t *ctx)
             case 0x20:
             case 0x21:
                 /*i386V86EmulateInt21(ctx);*/
-                if (current->v86_in_handler)
+                if (current()->v86_in_handler)
                     return false;
 
-                TRACE1("redirect to %x\n", current->v86_handler);
-                current->v86_in_handler = true;
-                current->v86_context = *ctx;
-                current->kernel_esp += sizeof(context_v86_t) - sizeof(context_t);
+                TRACE1("redirect to %x\n", current()->v86_handler);
+                current()->v86_in_handler = true;
+                current()->v86_context = *ctx;
+                current()->kernel_esp += sizeof(context_v86_t) - sizeof(context_t);
                 ctx->eflags = EFLAG_IF | 2;
-                ctx->eip = current->v86_handler;
+                ctx->eip = current()->v86_handler;
                 ctx->cs = USER_FLAT_CODE | 3;
                 ctx->ds = ctx->es = ctx->gs = ctx->ss = USER_FLAT_DATA | 3;
                 ctx->fs = USER_THREAD_INFO | 3;
-                ctx->esp = current->user_stack_top;
+                ctx->esp = current()->user_stack_top;
                 return true;
 
             default:
@@ -447,7 +453,7 @@ bool i386V86Gpf(context_v86_t *ctx)
                 stack[1] = ctx->cs;
                 stack[2] = (uint16_t) ctx->eflags;
                 
-                if (current->v86_if)
+                if (current()->v86_if)
                     stack[2] |= EFLAG_IF;
                 else
                     stack[2] &= ~EFLAG_IF;
@@ -465,7 +471,7 @@ bool i386V86Gpf(context_v86_t *ctx)
             ctx->eip = stack[0];
             ctx->cs = stack[1];
             ctx->eflags = EFLAG_IF | EFLAG_VM | stack[2];
-            current->v86_if = (stack[2] & EFLAG_IF) != 0;
+            current()->v86_if = (stack[2] & EFLAG_IF) != 0;
 
             ctx->esp = ((ctx->esp & 0xffff) + 6) & 0xffff;
             TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
@@ -473,13 +479,13 @@ bool i386V86Gpf(context_v86_t *ctx)
 
         case 0xfa:            /* CLI */
             TRACE0("cli\n");
-            current->v86_if = false;
+            current()->v86_if = false;
             ctx->eip = (uint16_t) (ctx->eip + 1);
             return true;
 
         case 0xfb:            /* STI */
             TRACE0("sti\n");
-            current->v86_if = true;
+            current()->v86_if = true;
             ctx->eip = (uint16_t) (ctx->eip + 1);
             return true;
 

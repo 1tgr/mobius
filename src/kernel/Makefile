@@ -1,14 +1,17 @@
 TARGET=	$(BIN)/kernel.exe
-ARCH=	i386/libi386.lib
+ARCH=	i386/isr.o i386/i386.o i386/memory.o i386/arch.o \
+	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o \
+	i386/bsp.o
 OBJS=	start.o main.o thread.o \
 	proc.o handle.o fs.o vfs.o \
 	device.o io.o vmm.o \
 	mod_pe.o syscall.o port.o \
 	ramdisk_mb.o cache.o cppsup.o \
 	rtlsup.o debug.o profile.o winmgr.o \
-	queue.o clip.o kernel.res.o
-LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
-DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
+	queue.o clip.o kernel.res.o \
+	$(ARCH)
+LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc_s.lib
+DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC -D__SMP__
 DEF=	kernel.def
 IMP=	$(LIB)/kernel.lib
 EXP=	kernel.exp
@@ -18,15 +21,12 @@ CPPFLAGS+=	-fvtable-thunks
 
 include ../make.conf
 
-all:	$(ARCH) $(TARGET) $(IMP)
-
-.arch $(ARCH):
-	make -C i386
+all:	$(TARGET) $(IMP)
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.exe)
 
-$(TARGET):	.arch $(ARCH) $(OBJS) $(LIBS) $(EXP)
+$(TARGET):	$(OBJS) $(LIBS) $(EXP)
 	$(LD) -o kernel_d.exe $(OBJS) $(EXP) $(LIBS) \
 		$(LDFLAGS) --entry _KernelEntry -T kernel.ld
 	objdump -ld kernel_d.exe > listing.txt
@@ -34,7 +34,6 @@ $(TARGET):	.arch $(ARCH) $(OBJS) $(LIBS) $(EXP)
 		$(LDFLAGS) --strip-all --entry _KernelEntry -T kernel.ld
 
 clean:
-	make -C i386 clean
 	rm $(OBJS:.o=.d)
 	rm $(OBJS)
 	rm $(TARGET)

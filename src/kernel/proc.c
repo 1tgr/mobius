@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.15 2002/06/14 13:05:37 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.16 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -90,12 +90,12 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     wchar_t temp[MAX_PATH];
 
     FsFullPath(exe, temp);
-    KeAtomicInc((unsigned*) &current->process->hdr.copies);
+    KeAtomicInc((unsigned*) &current()->process->hdr.copies);
     proc = ProcCreateProcess(temp);
     if (proc == NULL)
             return NULL;
 
-    proc->creator = current->process;
+    proc->creator = current()->process;
     proc->info = malloc(sizeof(*proc->info));
     if (defaults == NULL)
             defaults = proc->creator->info;
@@ -103,7 +103,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
 
     thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
     ScNeedSchedule(true);
-    return HndDuplicate(current->process, &proc->hdr);
+    return HndDuplicate(current()->process, &proc->hdr);
 }
 
 process_t *ProcCreateProcess(const wchar_t *exe)
@@ -266,7 +266,7 @@ bool ProcFirstTimeInit(process_t *proc)
 
     info->base = mod->base;
     /*ctx = ThrGetContext(current);*/
-    ctx = ThrGetUserContext(current);
+    ctx = ThrGetUserContext(current());
     ctx->eip = mod->entry;
 
     TRACE2("Successful; continuing at %lx, ctx = %p\n", ctx->eip, ctx);
@@ -280,7 +280,7 @@ void ProcExitProcess(int code)
     process_t *proc;
     unsigned i;
 
-    proc = current->process;
+    proc = current()->process;
     wprintf(L"Process %u exited with code %d: ", proc->id, code);
 
     SemAcquire(&proc->sem_lock);

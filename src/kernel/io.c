@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.10 2002/05/19 13:04:36 pavlovskii Exp $ */
+/* $Id: io.c,v 1.11 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -160,7 +160,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
                 ScEnableSwitch(false);
                 enable();
 
-                if (true || current == &thr_idle)
+                if (true || current() == &cpu()->thr_idle)
                 {
                     TRACE0("IoRequestSync: busy-waiting\n");
                     while (!sync.is_completed)
@@ -171,7 +171,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
                 else
                 {
                     wprintf(L"IoRequestSync: doing proper wait\n");
-                    ThrWaitHandle(current, sync.event, 'evnt');
+                    ThrWaitHandle(current(), sync.event, 'evnt');
                     __asm__("int $0x30" : : "a" (SYS_SysYield), "c" (0), "d" (0));
 
                     /*while (!EvtIsSignalled(NULL, sync.event))

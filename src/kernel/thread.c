@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.18 2002/06/14 13:05:38 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.19 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -8,6 +8,7 @@
 #include <kernel/handle.h>
 #include <kernel/vmm.h>
 #include <kernel/memory.h>
+#include <kernel/init.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -18,7 +19,7 @@
 
 extern process_t proc_idle;
 
-thread_info_t idle_thread_info;
+//thread_info_t idle_thread_info;
 uint32_t thr_queue_ready;
 
 /*! Running threads: one queue per priority level */
@@ -30,6 +31,13 @@ thread_queue_t thr_sleeping;
 /*! Threads that have APCs queues */
 thread_queue_t thr_apc;
 
+#ifdef __SMP__
+cpu_t thr_cpu[MAX_CPU];
+#else
+cpu_t thr_cpu_single;
+#endif
+
+#if 0
 thread_t thr_idle =
 {
     NULL,                           /* ctx_last */
@@ -57,9 +65,12 @@ thread_t thr_idle =
     true,
 };
 
-thread_t *current = &thr_idle, 
+thread_t /**current = &thr_idle, */
     *thr_first = &thr_idle, 
     *thr_last = &thr_idle;
+#endif
+
+thread_t *thr_first, *thr_last;
 unsigned thr_last_id;
 uint8_t *thr_kernel_stack_end = (void*) 0xE0000000;
 semaphore_t thr_kernel_stack_sem;
@@ -70,10 +81,17 @@ semaphore_t sc_sem;
 
 handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
 
+#ifdef __SMP__
 thread_t *ThrGetCurrent(void)
 {
-    return current;
+    return thr_cpu[ArchThisCpu()].current_thread;
 }
+#else
+thread_t *ThrGetCurrent(void)
+{
+    return thr_single.current_thread;
+}
+#endif
 
 thread_queuent_t *ThrFindInQueue(thread_queue_t *queue, thread_t *thr)
 {
@@ -201,7 +219,9 @@ void ScSchedule(void)
     thread_t *new;
     uint16_t *scr = PHYSICAL(0xb8000);
     thread_queuent_t *newent;
+    cpu_t *c;
 
+    c = cpu();
     if (sc_switch_enabled <= 0)
         return;
 
@@ -252,18 +272,18 @@ void ScSchedule(void)
                     new->span = 0;
                 else
                 {
-                    if (current != new)
-                        current->span = 0;
+                    if (c->current_thread != new)
+                        c->current_thread->span = 0;
                     
-                    current = new;
-                    scr[79] = 0x7100 | current->id;
+                    c->current_thread = new;
+                    scr[79] = 0x7100 | c->current_thread->id;
                     return;
                 }
             }
     }
 
-    current = &thr_idle;
-    scr[79] = 0x7100 | current->id;
+    c->current_thread = &c->thr_idle;
+    scr[79 - 1 - ArchThisCpu()] = 0x7100 | c->current_thread->id;
 }
 
 /*!
@@ -296,7 +316,7 @@ void ScNeedSchedule(bool need)
 
 bool ThrAllocateThreadInfo(thread_t *thr)
 {
-    assert(thr->process == current->process);
+    assert(thr->process == current()->process);
 
     if (thr->is_kernel)
         thr->info = malloc(sizeof(thread_info_t));
@@ -405,7 +425,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     {
         proc->stack_end -= 0x100000;
 
-        if (proc == current->process)
+        if (proc == current()->process)
         {
             stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
                 3 | MEM_READ | MEM_WRITE);
@@ -432,7 +452,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     TRACE3("thread %u: kernel stack at %p = %x\n",
         thr->id, thr->kernel_stack, thr->kernel_stack_phys);
 
-    if (proc != current->process)
+    if (proc != current()->process)
         thr->info = NULL;
     else
         ThrAllocateThreadInfo(thr);
@@ -500,7 +520,7 @@ void ThrDeleteThread(thread_t *thr)
         TRACE2("ThrDeleteThread: thread %u still has %u refs\n",
             thr->id, thr->hdr.copies);
 
-    if (thr == current)
+    if (thr == current())
         ScNeedSchedule(true);
 }
 
@@ -597,7 +617,7 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
         return false;
 
     TRACE4("ThrWaitHandle: waiting on %s:%S:%d(%lx)\n", 
-        current->process->exe, ptr->file, ptr->line, handle);
+        current()->process->exe, ptr->file, ptr->line, handle);
     if (ptr->signals)
     {
         /*wprintf(L"ThrWaitHandle: already signalled...\n");*/
@@ -635,4 +655,35 @@ void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
     LIST_ADD(thr->apc, apc);
     ThrInsertQueue(thr, &thr_apc, NULL);
     SemRelease(&sc_sem);
+}
+
+bool ThrInit(void)
+{
+    unsigned i;
+    cpu_t *c;
+
+#ifdef __SMP__
+    for (c = thr_cpu, i = 0; i < kernel_startup.num_cpus; c++, i++)
+#else
+    c = &thr_cpu_single;
+#endif
+    {
+        HndInit(&c->thr_idle.hdr, 'thrd');
+        c->current_thread = &c->thr_idle;
+        c->thr_idle.info = &c->thr_idle_info;
+        c->thr_idle.process = &proc_idle;
+
+        if (i == 0)
+            thr_first = &c->thr_idle;
+        if (i == kernel_startup.num_cpus - 1)
+            thr_last = &c->thr_idle;
+#ifdef __SMP__
+        if (i > 0)
+            c->thr_idle.all_prev = &thr_cpu[i - 1].thr_idle;
+        if (i < kernel_startup.num_cpus - 1)
+            c->thr_idle.all_next = &thr_cpu[i + 1].thr_idle;
+#endif
+    }
+
+    return true;
 }

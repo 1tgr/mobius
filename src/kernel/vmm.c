@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.11 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.12 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -26,7 +26,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 
     is_kernel = ((flags & 3) == 0) || 
         (type == VM_AREA_IMAGE && start >= 0x80000000);
-    proc = current->process;
+    proc = current()->process;
     area = malloc(sizeof(vm_area_t));
     if (!area)
         return NULL;
@@ -210,14 +210,14 @@ bool VmmShare(void *base, const wchar_t *name)
 {
     vm_area_t *area;
 
-    area = VmmArea(current->process, base);
+    area = VmmArea(current()->process, base);
     if (area == NULL)
     {
         errno = ENOTFOUND;
         return false;
     }
 
-    SemAcquire(&current->process->sem_vmm);
+    SemAcquire(&current()->process->sem_vmm);
     free(area->name);
     area->name = _wcsdup(name);
     
@@ -233,7 +233,7 @@ bool VmmShare(void *base, const wchar_t *name)
 
     SemRelease(&sem_share);
 
-    SemRelease(&current->process->sem_vmm);
+    SemRelease(&current()->process->sem_vmm);
     return true;
 }
 
@@ -325,7 +325,7 @@ bool VmmDoMapFile(vm_area_t *area, addr_t start, bool is_writing)
     size_t bytes;
     handle_t file;
 
-    assert(area->owner == current->process || 
+    assert(area->owner == current()->process || 
         area->owner == &proc_idle);
 
     voff = start - area->start;
@@ -469,9 +469,9 @@ tryagain:
         }
         else
         {
-            wprintf(L"PAGE_READINPROG(%x): waiting, result = %d\n", 
-                start, area->pagingop.result);
-            ThrWaitHandle(current, area->pagingop.event, 0);
+            /*wprintf(L"PAGE_READINPROG(%x): waiting, result = %d\n", 
+                start, area->pagingop.result);*/
+            ThrWaitHandle(current(), area->pagingop.event, 0);
         }
 
         MtxRelease(&area->mtx_allocate);
@@ -529,7 +529,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
     addr_t phys;
     unsigned page;
 
-    assert(area->owner == current->process || area->owner == &proc_idle);
+    assert(area->owner == current()->process || area->owner == &proc_idle);
 
     state = MemGetPageState((const void*) start);
     SemAcquire(&area->owner->sem_vmm);
@@ -680,7 +680,7 @@ void VmmUncommit(vm_area_t* area)
     int i;
     addr_t virt, phys;
 
-    assert(area->owner == current->process);
+    assert(area->owner == current()->process);
     /*wprintf(L"vmmUncommit: %d => %x...", area->pages, area->start);*/
 
     SemAcquire(&area->owner->sem_vmm);

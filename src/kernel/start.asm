@@ -71,4 +71,4 @@ _KernelEntry:
 	align 4
 
 [section .data]
-_kernel_startup	times 7 dd 0
+_kernel_startup	times 8 dd 0

@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.13 2002/06/14 13:05:35 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.14 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -29,7 +29,7 @@ bool HndClose(struct process_t *proc, handle_t hnd, uint32_t tag)
 		return false;
 
 	if (proc == NULL)
-		proc = current->process;
+		proc = current()->process;
 
 	proc->handles[hnd] = NULL;
 
@@ -52,7 +52,7 @@ handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag)
 	handle_hdr_t *ptr;
 
 	if (proc == NULL)
-		proc = current->process;
+		proc = current()->process;
 
 	if (proc->handles == NULL)
 	{
@@ -103,7 +103,7 @@ void *HndLock(struct process_t *proc, handle_t hnd, uint32_t tag)
 	else
 	{
 		KeAtomicInc(&ptr->locks);
-		ptr->locked_by = current;
+		ptr->locked_by = current();
 		return (void*) (ptr + 1);
 	}
 }
@@ -156,7 +156,7 @@ void HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr)
 	handle_t hnd;
 
 	if (proc == NULL)
-		proc = current->process;
+		proc = current()->process;
 
 	assert(proc->handle_count == 0 || proc->handles != NULL);
 	for (hnd = 0; hnd < proc->handle_count; hnd++)
@@ -170,7 +170,7 @@ void HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr)
 handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 {
 	if (proc == NULL)
-		proc = current->process;
+		proc = current()->process;
 
 	/*wprintf(L"HndDuplicate: handles = %p handle_count = %u\n", 
 		proc->handles, proc->handle_count);*/

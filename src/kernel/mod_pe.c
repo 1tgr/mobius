@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.12 2002/06/14 13:05:36 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.13 2002/06/22 17:20:06 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -82,6 +82,9 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     size_t size;
     const wchar_t *temp;
     wchar_t *search_path, *ch;
+
+    if (proc == NULL)
+        proc = current()->process;
 
     KeAtomicInc(&nesting);
 
@@ -195,7 +198,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 
     PeGetHeaders(mod->base);
 
-    if (proc == current->process)
+    if (proc == current()->process)
         PeInitImage(mod);
 
     KeAtomicDec(&nesting);
@@ -336,7 +339,7 @@ void PeInitImage(module_t *mod)
 
     pe = PeGetHeaders(mod->base);
     if (!mod->imported &&
-        !PeDoImports(current->process, mod, pe->OptionalHeader.DataDirectory))
+        !PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory))
         ;
         //wprintf(L"%s: imports failed\n", mod->name);
 }
