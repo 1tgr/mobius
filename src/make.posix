@@ -1,0 +1,3 @@
+DEFINES+=-D_POSIX_SOURCE
+CFLAGS+=-I$(INCLUDE)/posix
+LIBS+=	$(LIB)/libposix.lib

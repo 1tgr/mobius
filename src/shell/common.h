@@ -1,4 +1,4 @@
-/* $Id: common.h,v 1.1 2002/03/04 19:28:55 pavlovskii Exp $ */
+/* $Id: common.h,v 1.2 2002/08/17 22:52:13 pavlovskii Exp $ */
 
 #ifndef COMMON_H__
 #define COMMON_H__
@@ -24,7 +24,16 @@ struct shell_command_t
     unsigned help_id;
 };
 
+typedef struct shell_action_t shell_action_t;
+struct shell_action_t
+{
+    const wchar_t *name;
+    const wchar_t *mimetype;
+    const wchar_t *program;
+};
+
 extern shell_command_t sh_commands[];
+extern shell_action_t sh_actions[];
 
 #define PARAMSEP	    '\\'
 #define ___CASSERT(a, b)    a##b

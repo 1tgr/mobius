@@ -537,6 +537,18 @@ SOURCE=.\stdlib\lldiv.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdlib\maldebug.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\malloc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\mbtowc.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdlib\qsort.c
 # End Source File
 # Begin Source File
@@ -570,6 +582,14 @@ SOURCE=.\stdlib\strtoull.c
 # Begin Source File
 
 SOURCE=.\stdlib\wcstol.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\wcstoul.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\wctomb.c
 # End Source File
 # End Group
 # Begin Group "string"
@@ -954,6 +974,18 @@ SOURCE=".\malloc-1.18\verify.c"
 # Begin Source File
 
 SOURCE=".\malloc-1.18\version.c"
+# End Source File
+# End Group
+# Begin Group "crt0"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\crt0\args.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\crt0\crt0.c
 # End Source File
 # End Group
 # Begin Source File

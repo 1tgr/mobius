@@ -1,4 +1,4 @@
-/* $Id: tetris.c,v 1.6 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: tetris.c,v 1.7 2002/08/17 22:52:14 pavlovskii Exp $ */
 
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
@@ -266,7 +266,8 @@ bool _kbhit(void)
     fileop_t op;
     size_t bytes;
     bytes = 0;
-    if (FsIoCtl(ProcGetProcessInfo()->std_in, IOCTL_BYTES_AVAILABLE, &bytes, 
+    op.event = ProcGetProcessInfo()->std_in;
+    if (FsIoCtl(op.event, IOCTL_BYTES_AVAILABLE, &bytes, 
         sizeof(bytes), &op))
         return bytes > 0;
     else
@@ -274,6 +275,8 @@ bool _kbhit(void)
         errno = op.result;
         return false;
     }
+
+    return false;
 }
 
 wint_t getKey(void)
@@ -313,7 +316,9 @@ int main(void)
 /* re-seed the random number generator */
     srand(SysUpTime());
 
-        rc = mglCreateRc(NULL);
+    rc = mglCreateRc(NULL);
+    if (rc == NULL)
+        return EXIT_FAILURE;
 
 NEW:
         screenInit();

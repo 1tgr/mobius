@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# $Id: Makefile,v 1.2 2002/03/07 15:52:03 pavlovskii Exp $
+# $Id: Makefile,v 1.3 2002/08/17 22:52:13 pavlovskii Exp $
 #
 # Auto-configuring Makefile for the Netwide Assembler.
 #
@@ -46,17 +46,17 @@ NROFF		= nroff
 NASM = nasm.o nasmlib.o float.o insnsa.o assemble.o labels.o \
        parser.o outform.o outbin.o outaout.o outcoff.o outelf.o \
        outobj.o outas86.o outrdf.o outrdf2.o outdbg.o zoutieee.o \
-       preproc.o listing.o eval.o ../crt0.o
+       preproc.o listing.o eval.o
 
-NDISASM = ndisasm.o disasm.o sync.o nasmlib.o insnsd.o ../crt0.o
+NDISASM = ndisasm.o disasm.o sync.o nasmlib.o insnsd.o
 
 all: $(BIN)/nasm.exe $(BIN)/ndisasm.exe nasm.man ndisasm.man
 
 $(BIN)/nasm.exe: $(NASM)
-	ld -o $(BIN)/nasm.exe $(NASM) $(LDFLAGS) 
+	ld -o $(BIN)/nasm.exe $(NASM) $(LIB)/crt0.o $(LDFLAGS) 
 
 $(BIN)/ndisasm.exe: $(NDISASM)
-	ld -o $(BIN)/ndisasm.exe $(NDISASM) $(LDFLAGS) 
+	ld -o $(BIN)/ndisasm.exe $(NDISASM) $(LIB)/crt0.o $(LDFLAGS) 
 
 # These source files are automagically generated from a single
 # instruction-table file by a Perl script. They're distributed,

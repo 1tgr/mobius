@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.3 2002/03/27 22:06:32 pavlovskii Exp $ */
+/* $Id: console.c,v 1.4 2002/08/17 22:52:06 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -13,7 +13,7 @@
 
 handle_t hnd;
 
-bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
+/*bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
 {
     fileop_t op;
 
@@ -37,7 +37,7 @@ bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
         *bytes_read = op.bytes;
 
     return true;
-}
+}*/
 
 void ConClientThread(void)
 {
@@ -57,11 +57,11 @@ void ConClientThread(void)
                 if (size > sizeof(buf) - 1)
                     size = sizeof(buf) - 1;
 
-                /*if (!FsReadSync(client, buf, size, &size))
+                if (!FsReadSync(client, buf, size, &size))
                     break;
 
                 buf[size] = '\0';
-                fprintf(stderr, "console: got string: %u bytes: %s", size, buf);*/
+                fprintf(stderr, "console: got string: %u bytes: %s", size, buf);
             }
 
         perror("console");
@@ -79,10 +79,9 @@ int main(void)
 
     fprintf(stderr, "Hello from the console!\n");
     server = FsCreate(SYS_PORTS L"/console", 0);
-    PortListen(server);
     hnd = EvtAlloc();
 
-    while (true)
+    while (PortListen(server))
     {
         if (!ThrWaitHandle(server))
             break;

@@ -12,11 +12,11 @@ $(TARGET_S):	$(OBJS)
 # DLL
 $(TARGET_D):	$(OBJS) $(LIBS) $(EXP) .base
 	$(LD) --dll -o $(TARGET_D) --image-base `cat .base` \
-		--entry _DllMainCRTStartup $(EXP) $(OBJS) $(LIBS)
+		--entry _DllMainCRTStartup $(LDFLAGS) $(EXP) $(OBJS) $(LIBS)
 
 # Normal EXE
 $(TARGET):	$(OBJS) $(LIBS)
-	$(LD) -o $(TARGET) --entry _mainCRTStartup $(OBJS) $(LIBS)
+	$(LD) -o $(TARGET) --entry _mainCRTStartup $(OBJS) $(LDFLAGS) $(LIBS)
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.dll)

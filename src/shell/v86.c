@@ -1,4 +1,4 @@
-/* $Id: v86.c,v 1.2 2002/03/05 02:04:48 pavlovskii Exp $ */
+/* $Id: v86.c,v 1.3 2002/08/17 22:52:13 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -47,7 +47,7 @@ void ShInt21(context_v86_t *ctx)
     case 9:
 	ptr = FP_TO_LINEAR(ctx->v86_ds, ctx->regs.edx);
 	ch = strchr(ptr, '$');
-	_cputs(ptr, ch - (char*) ptr);
+	fwrite(ptr, 1, ch - (char*) ptr, stdout);
 	break;
 
     case 0x4c:

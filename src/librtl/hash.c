@@ -1,4 +1,4 @@
-/* $Id: hash.c,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $
+/* $Id: hash.c,v 1.3 2002/08/17 22:52:13 pavlovskii Exp $
    +++Date last modified: 05-Jul-1997  
    Modified: $LOG$
    By: $Author: pavlovskii $
@@ -6,6 +6,9 @@
 
 /*#include <stdio.h>*/
 
+#ifdef _MSC_VER
+#define inline
+#endif
 
 #include <os/hash.h>
 #include <wchar.h>
@@ -39,7 +42,7 @@ inline static void skip_empty_slots(hash_table*);
 
 
 
-hash_table *new_hash_table(size_t size)
+hash_table *HashCreate(size_t size)
 {
       size_t i;
       bucket **temp;
@@ -81,7 +84,7 @@ hash_table *new_hash_table(size_t size)
       
       for (i=0;i<size;i++)
           temp[i] = NULL;
-      
+
       result->table = temp;
       result->off = TRUE;
       result->found = FALSE;
@@ -96,7 +99,7 @@ hash_table *new_hash_table(size_t size)
  sufficient for most purposes.
 */
 
-unsigned hash(const wchar_t *string)
+uint32_t HashString(const wchar_t *string)
 {
       unsigned int ret_val = 0;
       int i;
@@ -108,6 +111,7 @@ unsigned hash(const wchar_t *string)
             ret_val <<= 1;
             string ++;
       }
+
       return ret_val;
 }
 
@@ -118,9 +122,9 @@ unsigned hash(const wchar_t *string)
  failes
 */
 
-void insert(hash_table *table, void *item, const wchar_t *key)
+void HashInsertItem(struct hash_table *table, void * item, const wchar_t *key)
 {
-    unsigned val = hash(key) % table->size;
+    unsigned val = HashString(key) % table->size;
     bucket *ptr;
 
     /*
@@ -136,7 +140,7 @@ void insert(hash_table *table, void *item, const wchar_t *key)
             table->insertation_failed =  TRUE;
             return;
         }
-        
+
         (table->table)[val] -> key = _wcsdup(key);
         (table->table)[val] -> next = NULL;
         (table->table)[val] -> item = item;
@@ -144,14 +148,17 @@ void insert(hash_table *table, void *item, const wchar_t *key)
         return;
         /* return (table->table)[val] -> item; */
     }
-    
-    for (ptr = (table->table)[val];NULL != ptr; ptr = ptr -> next){
-        if (0 == _wcsicmp(key, ptr->key)){
+
+    for (ptr = (table->table)[val];NULL != ptr; ptr = ptr -> next)
+    {
+        if (_wcsicmp(key, ptr->key) == 0)
+        {
             ptr -> item = item;
             table->insertation_failed = FALSE;
             return;
         }
     }
+
     /*
       This key must not be in the table yet.  We'll add it to the head of
       the list at this spot in the hash table.  Speed would be
@@ -178,9 +185,9 @@ void insert(hash_table *table, void *item, const wchar_t *key)
   Look up a key and set found to TRUE if found and adjust values in iterator
 */
 
-void search(hash_table *table, const wchar_t *key) {
-    
-    unsigned val = hash(key) % table->size;
+void HashSearch(hash_table *table, const wchar_t *key)
+{
+    unsigned val = HashString(key) % table->size;
     bucket *ptr;
     /* standard not found */
     table->found = FALSE;
@@ -192,7 +199,7 @@ void search(hash_table *table, const wchar_t *key) {
     }
     
     for ( ptr = (table->table)[val];NULL != ptr; ptr = ptr->next ){
-        if (0 == _wcsicmp(key, ptr -> key ) ){
+        if (0 == _wcsicmp(key, ptr -> key) ){
             /* how lucky we're, found ;-) */
             table->found = TRUE;
             table->off = FALSE;
@@ -207,8 +214,8 @@ void search(hash_table *table, const wchar_t *key) {
    implementation */
 inline static void set_iterator(hash_table* table,
                                 bucket *new_bucket,
-                                size_t new_position){
-    
+                                size_t new_position)
+{
     assert(table); /* act_pos should be there */
     
     set_iterator_bucket(table,new_bucket);
@@ -256,7 +263,8 @@ inline size_t position (hash_table *table){
   return table->iterator->it_position;
 }
 
-inline wchar_t* key(hash_table *table){
+inline wchar_t *HashGetKey(hash_table *table)
+{
   assert(table->iterator->it_bucket->key);
   return table->iterator->it_bucket->key;
 }
@@ -311,7 +319,8 @@ inline static void skip_empty_slots(hash_table  *table){
   it.
 */
 
-static void free_bucket(bucket* t_bucket){
+static void free_bucket(bucket* t_bucket)
+{
     /* eif_wean((EIF_OBJ)t_bucket->item); */
     free(t_bucket->key);
     free(t_bucket);
@@ -331,7 +340,7 @@ static void free_bucket_entries(hash_table *table){
     }
 }
 
-void free_table(hash_table *table){
+void HashDelete(hash_table *table){
     
         
     table->off = TRUE;
@@ -350,9 +359,9 @@ void free_table(hash_table *table){
 ** item, or NULL if not present.
 */
 
-void del(hash_table *table, const wchar_t *key )
+void HashDeleteItem(hash_table *table, const wchar_t *key)
 {
-      unsigned val = hash(key) % table->size;
+      unsigned val = HashString(key) % table->size;
       bucket *ptr, *last = NULL;
 
       if (NULL == (table->table)[val])

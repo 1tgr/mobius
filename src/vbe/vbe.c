@@ -1,11 +1,10 @@
-/* $Id: vbe.c,v 1.1 2002/03/14 01:27:08 pavlovskii Exp $ */
+/* $Id: vbe.c,v 1.2 2002/08/17 22:52:14 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <os/syscall.h>
 #include <os/defs.h>
 #include <os/rtl.h>
-#include <unistd.h>
 
 uint8_t *vbe_code;
 unsigned vbe_num_modes;
@@ -181,7 +180,7 @@ int main(int argc, char **argv)
     printf("Code is %u bytes\n", size);
     fflush(stdout);
 
-    vbe_code = sbrk(size);
+    vbe_code = VmmAlloc(PAGE_ALIGN_UP(size) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
     *(uint16_t*) vbe_code = 0x20cd;
 
     memcpy(vbe_code + 0x100, rsrc, size);
@@ -189,7 +188,7 @@ int main(int argc, char **argv)
     fp_code = i386LinearToFp(vbe_code);
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
 	
-    stack = sbrk(65536);
+    stack = VmmAlloc(PAGE_ALIGN_UP(65536) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
     fp_stackend = i386LinearToFp(stack);
     memset(stack, 0, 65536);
     

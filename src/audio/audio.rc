@@ -1,0 +1,27 @@
+/* $Id: audio.rc,v 1.1 2002/08/17 22:52:06 pavlovskii Exp $ */
+
+#ifdef APSTUDIO_INVOKED
+#error Do not edit this with the Visual Studio resource editor
+#endif
+
+#include "resource.h"
+
+STRINGTABLE
+BEGIN
+
+/*
+ * xxx - GNU windres lacks Unicode support; in any case, it doesn't support strings with \xnnnn.
+ */
+
+    1 "AUDIO\n\
+\x2022 Plays sound files and allows you to adjust your computer's volume settings\n\
+\n\
+Options:\n\
+\\PLAY filename         Plays a sound file\n\
+\\VOLUME channel volume Adjusts one of the volume settings\n\
+\\VOLUME LIST           Lists the volume channels available\n\
+\\HELP                  Display this help screen\n"
+
+    2 "%s: unknown option; use %s\\HELP for help\n"
+    3 "\\PLAY: please provide the name of a sound file to play\n"
+END

@@ -1,12 +1,10 @@
-/* $Id: shell.c,v 1.19 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.20 2002/08/17 22:52:13 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <wchar.h>
-#include <iconv.h>
 #include <string.h>
-#include <unistd.h>    /* just for sbrk */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -16,7 +14,6 @@
 
 bool sh_exit;
 wchar_t sh_path[MAX_PATH];
-iconv_t sh_iconv;
 
 void ShCtrlCThread(void *param)
 {
@@ -78,6 +75,16 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
             if (i > 0 && i % 8 == 0)
                 printf("\n");
         }
+
+        printf("\n\nValid file actions are:\n");
+        for (i = 0; sh_actions[i].name != NULL; i++)
+        {
+            for (j = wcslen(sh_actions[i].name); j < 8; j++)
+                printf(" ");
+            _cputws(sh_actions[i].name, wcslen(sh_actions[i].name));
+            if (i > 0 && i % 8 == 0)
+                printf("\n");
+        }
     }
     else
         onlyOnce = true;
@@ -95,9 +102,7 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
                 if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)) ||
                     text[0] == '\0')
                     swprintf(text, L"no string for ID %u", sh_commands[i].help_id);
-                _cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
-                _cputs(": ", 2);
-                _cputws(text, wcslen(text));
+                wprintf(L"%s: %s", sh_commands[i].name, text);
                 break;
             }
         }
@@ -120,10 +125,11 @@ void ShCmdExit(const wchar_t *command, wchar_t *params)
     sh_exit = true;
 }
 
-static bool ShNormalizePath(wchar_t *path)
+/*static bool ShNormalizePath(wchar_t *path)
 {
     wchar_t *ch, *prev;
-    dirent_t di;
+    dirent_standard_t standard;
+    dirent_t dirent;
     bool isEnd;
 
     if (*path == '/')
@@ -148,23 +154,26 @@ static bool ShNormalizePath(wchar_t *path)
         }
 
         *ch = '\0';
-        if (!FsQueryFile(path, FILE_QUERY_STANDARD, &di, sizeof(di)))
+        if (!FsQueryFile(path, FILE_QUERY_STANDARD, &standard, sizeof(standard)))
             return false;
 
-        if ((di.standard_attributes & FILE_ATTR_DIRECTORY) == 0)
+        if ((standard.attributes & FILE_ATTR_DIRECTORY) == 0)
         {
             errno = ENOTADIR;
             return false;
         }
 
-        wcscpy(prev, di.name);
+        if (!FsQueryFile(path, FILE_QUERY_DIRENT, &dirent, sizeof(dirent)))
+            return false;
+        
+        wcscpy(prev, dirent.name);
         prev = ch + 1;
         *ch = '/';
     }
 
     *ch = '\0';
     return true;
-}
+}*/
 
 void ShCmdCd(const wchar_t *command, wchar_t *params)
 {
@@ -174,25 +183,176 @@ void ShCmdCd(const wchar_t *command, wchar_t *params)
 
     if (FsFullPath(params, sh_path))
     {
-        if (ShNormalizePath(sh_path))
-            wcscpy(ProcGetProcessInfo()->cwd, sh_path);
-        else
-            _pwerror(sh_path);
+        //if (ShNormalizePath(sh_path))
+            //wcscpy(ProcGetProcessInfo()->cwd, sh_path);
+            FsChangeDir(sh_path);
+        //else
+            //_pwerror(sh_path);
     }
     else
         _pwerror(params);
 }
 
-void ShCmdDir(const wchar_t *command, wchar_t *params)
+typedef struct file_info_t file_info_t;
+struct file_info_t
+{
+    dirent_t dirent;
+    dirent_standard_t standard;
+};
+
+static int ShCompareDirent(const void *a, const void *b)
+{
+    const file_info_t *da, *db;
+
+    da = a;
+    db = b;
+    if((da->standard.attributes & FILE_ATTR_DIRECTORY) &&
+       (db->standard.attributes & FILE_ATTR_DIRECTORY) == 0)
+        return -1;
+    else if ((db->standard.attributes & FILE_ATTR_DIRECTORY) &&
+             (da->standard.attributes & FILE_ATTR_DIRECTORY) == 0)
+        return 1;
+    else
+        return _wcsicmp(((const dirent_t*) a)->name, 
+            ((const dirent_t*) b)->name);
+}
+
+static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent, 
+                            bool do_recurse, bool is_full)
 {
     handle_t search;
-    dirent_t dir;
-    /*dirent_device_t dev;*/
-    fileop_t op;
-    wchar_t *star;
-    
+    file_info_t *entries;
+    wchar_t *end;
+    unsigned num_entries, alloc_entries, i, n, columns;
+    size_t max_len;
+
+    end = path + wcslen(path);
+    if (end[-1] != '/')
+    {
+        wcscpy(end, L"/");
+        end++;
+    }
+    //end++;
+
+    //KeLeakBegin();
+    search = FsOpenDir(path);
+
+    if (search != NULL)
+    {
+        entries = malloc(sizeof(file_info_t));
+        num_entries = alloc_entries = 0;
+        max_len = 0;
+        while (FsReadDir(search, &entries[num_entries].dirent, sizeof(dirent_t)))
+        {
+            if (wcslen(entries[num_entries].dirent.name) > max_len)
+                max_len = wcslen(entries[num_entries].dirent.name);
+
+            wcscpy(end, entries[num_entries].dirent.name);
+            if (!FsQueryFile(path, 
+                FILE_QUERY_STANDARD, 
+                &entries[num_entries].standard, 
+                sizeof(dirent_standard_t)))
+            {
+                _pwerror(path);
+                continue;
+            }
+
+            num_entries++;
+            if (num_entries >= alloc_entries)
+            {
+                alloc_entries = num_entries + 16;
+                //wprintf(L"ShListDirectory: alloc_entries = %u\n", alloc_entries);
+                entries = realloc(entries, sizeof(file_info_t) * (alloc_entries + 1));
+            }
+        }
+
+        FsClose(search);
+
+        qsort(entries, num_entries, sizeof(file_info_t), ShCompareDirent);
+        columns = 80 / (max_len + 2) - 1;
+        for (i = n = 0; i < num_entries; i++)
+        {
+            if (do_recurse)
+            {
+                if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
+                {
+                    printf("%*s+ %S\n", indent * 2, "", entries[i].dirent.name);                
+                    ShListDirectory(path, spec, indent + 1, true, is_full);
+                }
+                else if (_wcsmatch(spec, entries[i].dirent.name) == 0)
+                    printf("%*s  %S\n", indent * 2, "", entries[i].dirent.name);
+            }
+            else if (_wcsmatch(spec, entries[i].dirent.name) == 0)
+            {
+                if (is_full)
+                {
+                    if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
+                        printf("[Directory]\t");
+                    else if (entries[i].standard.attributes & FILE_ATTR_DEVICE)
+                        printf("   [Device]\t");
+                    else
+                        printf("%10lu\t", (uint32_t) entries[i].standard.length);
+
+                    printf("\t%S", entries[i].dirent.name);
+
+                    printf("%*s%S\n", 
+                        20 - wcslen(entries[i].dirent.name) + 1, "", 
+                        entries[i].standard.mimetype);
+                }
+                else
+                {
+                    if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
+                        printf("\x1b[1m");
+
+                    printf("%S  %*s", entries[i].dirent.name, 
+                        max_len - wcslen(entries[i].dirent.name), "");
+
+                    if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
+                        printf("\x1b[m");
+
+                    if (n == columns)
+                    {
+                        printf("\n");
+                        n = 0;
+                    }
+                    else
+                        n++;
+                }
+            }
+        }
+
+        if (!do_recurse && !is_full && (n - 1) != columns)
+            printf("\n");
+        free(entries);
+    }
+    else
+        _pwerror(path);
+
+    //KeLeakEnd();
+}
+
+void ShCmdDir(const wchar_t *command, wchar_t *params)
+{
+    wchar_t **names, **values, *spec;
+
+    ShParseParams(params, &names, &values, &params);
+
+    spec = wcsrchr(params, '/');
+    if (spec == NULL)
+    {
+        spec = params;
+        params = L".";
+    }
+    else
+    {
+        *spec = '\0';
+        spec++;
+    }
+
+    if (*spec == '\0')
+        spec = L"*";
     if (*params == '\0')
-        params = L"*";
+        params = L".";
 
     if (!FsFullPath(params, sh_path))
     {
@@ -200,42 +360,12 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
         return;
     }
 
-    star = wcsrchr(sh_path, '*');
-    if (star == NULL)
-        star = sh_path + wcslen(sh_path);
+    ShListDirectory(sh_path, spec, 0, 
+        ShHasParam(names, L"s"), 
+        ShHasParam(names, L"full"));
 
-    search = FsOpenSearch(sh_path);
-    if (search != NULL)
-    {
-        op.event = NULL;
-        while (FsRead(search, &dir, sizeof(dir), &op))
-        {
-            if (op.result == SIOPENDING)
-                ThrWaitHandle(op.event);
-
-            if (dir.standard_attributes & FILE_ATTR_DIRECTORY)
-                printf("[Directory]\t");
-            else if (dir.standard_attributes & FILE_ATTR_DEVICE)
-                printf("   [Device]\t");
-            else
-                printf("%10lu\t", (uint32_t) dir.length);
-
-            printf("\t%S", dir.name);
-            /*if (dir.standard_attributes & FILE_ATTR_DEVICE)
-            {
-                wcscpy(star, dir.name);
-                if (FsQueryFile(sh_path, FILE_QUERY_DEVICE, &dev, sizeof(dev)))
-                {
-                    printf("%*s", 20 - wcslen(dir.name) + 1, "");
-                    _cputws(dev.description, wcslen(dev.description));
-                }
-            }*/
-
-            _cputs("\n", 1);
-        }
-
-        FsClose(search);
-    }
+    free(names);
+    free(values);
 }
 
 static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
@@ -246,7 +376,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
     size_t len;
     fileop_t op;
     addr_t origin;
-    dirent_t di;
+    dirent_standard_t di;
     char *ptr, *dyn;
 
     di.length = 0;
@@ -277,7 +407,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
     {
         //KeLeakBegin();
 
-        printf("[b]");
+        //printf("[b]");
         if (!FsRead(file, ptr, di.length, &op))
         {
             /* Some catastrophic error */
@@ -300,8 +430,8 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
         
         if (len < di.length)
             ptr[len] = '\0';
-        printf("%u", len);
-        /*fn(ptr, origin, len);*/
+        /*printf("%u", len);*/
+        fn(ptr, origin, len);
 
         origin += len;
         if (len < di.length)
@@ -310,7 +440,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
             break;
         }
 
-        printf("[e]");
+        //printf("[e]");
         fflush(stdout);
     } while (true);
 
@@ -404,46 +534,64 @@ void ShCmdPoke(const wchar_t *command, wchar_t *params)
     FsClose(file);
 }
 
-void ShCmdRun(const wchar_t *command, wchar_t *params)
+static bool ShExecProcess(const wchar_t *command, const wchar_t *params)
 {
     wchar_t buf[MAX_PATH], *space;
     handle_t spawned;
     static process_info_t info;
 
-    params = ShPrompt(L" Program? ", params);
-    if (*params == '\0')
-        return;
-
-    space = wcschr(params, ' ');
-    if (space)
+    if (command == NULL ||
+        *command == '\0')
     {
-        wcsncpy(buf, params, space - params);
-        wcscpy(buf + (space - params), L".exe");
+        space = wcschr(params, ' ');
+        if (space)
+        {
+            wcsncpy(buf, params, space - params);
+            wcscpy(buf + (space - params), L".exe");
+        }
+        else
+        {
+            wcscpy(buf, params);
+            wcscat(buf, L".exe");
+        }
     }
     else
     {
-        wcscpy(buf, params);
+        wcscpy(buf, command);
         wcscat(buf, L".exe");
     }
 
     spawned = FsOpen(buf, 0);
     if (spawned)
     {
+        int code;
+
         FsClose(spawned);
         info = *ProcGetProcessInfo();
         memset(info.cmdline, 0, sizeof(info.cmdline));
-        wcsncpy(info.cmdline, params, _countof(info.cmdline));
+        //wcsncpy(info.cmdline, params, _countof(info.cmdline) - 1);
+
+        if (*params == '\0')
+            wcscpy(info.cmdline, buf);
+        else
+            swprintf(info.cmdline, L"%s %s", buf, params);
+
         spawned = ProcSpawnProcess(buf, &info);
         ThrWaitHandle(spawned);
+        code = ProcGetExitCode(spawned);
+        wprintf(L"The process %s has exited with code %d\n", 
+            buf, code);
         HndClose(spawned);
+        //__asm__("int3");
+        return true;
     }
     else
-        _pwerror(buf);
+        return false;
 }
 
 void ShCmdDetach(const wchar_t *command, wchar_t *params)
 {
-    wchar_t buf[MAX_PATH], *out, *in;
+    wchar_t buf[MAX_PATH], *out, *in, *space;
     handle_t spawned;
     process_info_t proc;
     wchar_t **names, **values;
@@ -469,9 +617,18 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
     free(names);
     free(values);
 
-    wcscpy(buf, params);
-    wcscat(buf, L".exe");
-    
+    space = wcschr(params, ' ');
+    if (space)
+    {
+        wcsncpy(buf, params, space - params);
+        wcscpy(buf + (space - params), L".exe");
+    }
+    else
+    {
+        wcscpy(buf, params);
+        wcscat(buf, L".exe");
+    }
+
     spawned = FsOpen(buf, 0);
     if (spawned)
     {
@@ -481,6 +638,8 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
             proc.std_in = FsOpen(in, FILE_READ);
         if (out)
             proc.std_out = FsOpen(out, FILE_WRITE);
+        memset(proc.cmdline, 0, sizeof(proc.cmdline));
+        wcsncpy(proc.cmdline, params, _countof(proc.cmdline) - 1);
         spawned = ProcSpawnProcess(buf, &proc);
         if (in)
             FsClose(proc.std_in);
@@ -579,13 +738,18 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
 
 uint8_t *sh_v86stack;
 
+void *aligned_alloc(size_t bytes)
+{
+    return VmmAlloc(PAGE_ALIGN_UP(bytes) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
+}
+
 void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 {
     uint8_t *code;
     psp_t *psp;
     FARPTR fp_code, fp_stackend;
     handle_t thr, file;
-    dirent_t di;
+    dirent_standard_t di;
     fileop_t op;
     bool doWait;
     wchar_t **names, **values;
@@ -617,7 +781,7 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
         return;
     }
 
-    code = sbrk(di.length + 0x100);
+    code = aligned_alloc(di.length + 0x100);
     psp = (psp_t*) code;
     memset(psp, 0, sizeof(*psp));
     psp->int20 = 0x20cd;
@@ -648,7 +812,7 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
         
     if (sh_v86stack == NULL)
-        sh_v86stack = sbrk(65536);
+        sh_v86stack = aligned_alloc(65536);
 
     fp_stackend = i386LinearToFp(sh_v86stack);
     memset(sh_v86stack, 0, 65536);
@@ -663,37 +827,7 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 
 void ShCmdOff(const wchar_t *cmd, wchar_t *params)
 {
-    uint8_t *code;
-    FARPTR fp_code, fp_stackend;
-    handle_t thr;
-    const void *rsrc;
-    size_t size;
-    
-    rsrc = ResFindResource(NULL, 256, 1, 0);
-    if (rsrc == NULL)
-        return;
-    
-    size = ResSizeOfResource(NULL, 256, 1, 0);
-    
-    code = sbrk((size + 0x10000) & 0xffff);
-    *(uint16_t*) code = 0x20cd;
-
-    memcpy(code + 0x100, rsrc, size);
-    
-    fp_code = i386LinearToFp(code);
-    fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
-        
-    if (sh_v86stack == NULL)
-        sh_v86stack = sbrk(65536);
-
-    fp_stackend = i386LinearToFp(sh_v86stack);
-    memset(sh_v86stack, 0, 65536);
-    
-    thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
-    ThrWaitHandle(thr);
-
-    /* xxx - need to clean up HndClose() implementation before we can use this */
-    /*HndClose(thr);*/
+    SysShutdown(SHUTDOWN_POWEROFF);
 }
 
 void ShCmdSleep(const wchar_t *cmd, wchar_t *params)
@@ -705,6 +839,11 @@ void ShCmdSleep(const wchar_t *cmd, wchar_t *params)
     ThrSleep(wcstol(params, NULL, 0));
 }
 
+void ShCmdEcho(const wchar_t *cmd, wchar_t *params)
+{
+    wprintf(L"%s\n", params);
+}
+
 shell_command_t sh_commands[] =
 {
     { L"cd",        ShCmdCd,        3 },
@@ -712,14 +851,13 @@ shell_command_t sh_commands[] =
     { L"detach",    ShCmdDetach,    10 },
     { L"dir",       ShCmdDir,       4 },
     { L"dump",      ShCmdDump,      8 },
+    { L"echo",      ShCmdEcho,      16 },
     { L"exit",      ShCmdExit,      2 },
     { L"help",      ShCmdHelp,      1 },
     { L"info",      ShCmdInfo,      12 },
     { L"off",       ShCmdOff,       14 },
     { L"parse",     ShCmdParse,     11 },
     { L"poke",      ShCmdPoke,      7 },
-    { L"r",         ShCmdRun,       9 },
-    { L"run",       ShCmdRun,       9 },
     { L"sleep",     ShCmdSleep,     15 },
     { L"type",      ShCmdType,      5 },
     { L"v86",       ShCmdV86,       13 },
@@ -742,12 +880,84 @@ bool ShInternalCommand(const wchar_t *command, wchar_t *params)
     return false;
 }
 
+shell_action_t sh_actions[] =
+{
+    { L"edit",  L"text/*",  L"/hd/mobius/ziing", },
+    { L"play",  L"audio/*", L"/hd/mobius/audio", },
+    { NULL,     NULL,       NULL, },
+};
+
+bool ShAction(const wchar_t *command, wchar_t *params)
+{
+    unsigned i;
+    dirent_standard_t info;
+    bool got_dirent;
+
+    got_dirent = false;
+    for (i = 0; sh_actions[i].name != NULL; i++)
+    {
+        if (_wcsicmp(command, sh_actions[i].name) == 0)
+        {
+            params = ShPrompt(L" File? ", params);
+            if (*params == '\0')
+                return true;
+
+            if (!got_dirent)
+            {
+                if (!FsQueryFile(params, FILE_QUERY_STANDARD, &info, sizeof(info)))
+                {
+                    _pwerror(params);
+                    return true;
+                }
+
+                got_dirent = true;
+            }
+
+            if (_wcsmatch(info.mimetype, sh_actions[i].mimetype) == 0)
+            {
+                if (!ShExecProcess(sh_actions[i].program, params))
+                    _pwerror(sh_actions[i].program);
+                return true;
+            }
+        }
+    }
+
+    if (got_dirent)
+    {
+        wprintf(L"%s: no %s action for %s files\n",
+            params, command, info.mimetype);
+        return true;
+    }
+    else
+        return false;
+}
+
+bool ShExternalCommand(const wchar_t *command, wchar_t *params)
+{
+    return ShExecProcess(command, params);
+}
+
+bool ShInvalidCommand(const wchar_t *command, wchar_t *params)
+{
+    wprintf(L"%s: invalid command\n", command);
+    return true;
+}
+
 wchar_t *sh_startup[] =
 {
     /*L"detach console",
     L"sleep 100",
     L"poke ../ports/console",*/
+    L"echo \x1b[37;40m\x1b[2J",
     NULL,
+};
+
+bool (*sh_filters[])(const wchar_t *, wchar_t *) =
+{
+    ShInternalCommand,
+    ShAction,
+    ShExternalCommand,
+    ShInvalidCommand,
 };
 
 int main(void)
@@ -755,33 +965,11 @@ int main(void)
     wchar_t str[256], *buf, *space, **startup_ptr;
     process_info_t *proc;
     shell_line_t *line;
-    /*char inbuf[256], *outptr;
-    const char *inptr;
-    size_t inbytes, outbytes, len;*/
-    
-    /*ThrCreateThread(ShCtrlCThread, NULL, 16);*/
+    unsigned i;
 
     proc = ProcGetProcessInfo();
     if (ResLoadString(proc->base, 4096, str, _countof(str)))
         _cputws(str, wcslen(str));
-    
-    /*sh_iconv = iconv_open("UCS-2LE", "ISO-8859-7");
-
-    strcpy(inbuf, "Hello, world: £€\n");
-    inbytes = strlen(inbuf);
-    outbytes = sizeof(buf);
-    inptr = inbuf;
-    outptr = (char*) buf;
-    len = iconv(sh_iconv, &inptr, &inbytes, &outptr, &outbytes);
-    if (len != -1)
-    {
-        *((wchar_t*) outptr) = '\0';
-        ShDumpOutput(buf, wcslen(buf) * sizeof(wchar_t));
-        _cputws(buf, wcslen(buf));
-    }
-    else
-        wprintf(L"invalid input sequence: inbytes = %u, outbytes = %u\n", 
-            inbytes, outbytes);*/
 
     startup_ptr = sh_startup;
     while (!sh_exit)
@@ -790,7 +978,7 @@ int main(void)
         {
             wprintf(L"[%s] ", proc->cwd);
             fflush(stdout);
-        
+
             line = ShReadLine();
             if (line == NULL)
             {
@@ -801,10 +989,7 @@ int main(void)
             buf = _wcsdup(line->text);
         }
         else
-        {
             buf = *startup_ptr++;
-            wprintf(L">%s\n", buf);
-        }
 
         space = wcschr(buf, PARAMSEP);
         if (space)
@@ -822,8 +1007,9 @@ int main(void)
         else
             space = buf + wcslen(buf);
 
-        if (!ShInternalCommand(buf, space))
-            wprintf(L"%s: invalid command\n", buf);
+        for (i = 0; i < _countof(sh_filters); i++)
+            if (sh_filters[i](buf, space))
+                break;    
     }
 
     /*iconv_close(sh_iconv);*/

@@ -1,7 +1,6 @@
 TARGET=	$(BIN)/shell.exe
-OBJS=	shell.o line.o params.o v86.o \
-    shell.res.o ../crt0.o
-LIBS=	$(LIB)/libc.lib $(LIB)/libsys.lib
+OBJS=	shell.o line.o params.o v86.o shell.res.o
+LIBS=	$(LIB)/crt0.o $(LIB)/libc.lib $(LIB)/libsys.lib
 
 include ../make.conf
 include ../make.actions
@@ -14,4 +13,4 @@ $(BIN)/v86.com: v86.asm
 %.com: %.asm
 	nasm -f bin $< -o `cygpath -w $@`
 
-shell.res.o: shell.rc poweroff.com
+shell.res.o: shell.rc

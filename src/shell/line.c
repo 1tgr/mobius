@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.5 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: line.c,v 1.6 2002/08/17 22:52:13 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -24,24 +24,24 @@ shell_line_t *ShReadLine(void)
     /*line = *ptr;
     if (line == NULL)*/
     {
-	line = malloc(sizeof(shell_line_t));
-	line->next = NULL;
-	line->prev = sh_line_last;
-	line->text = _wcsdup(L"");
-	line->widths = strdup("");
-	
-	if (sh_line_first == NULL)
-	{
-	    line->num = 0;
-	    sh_line_first = line;
-	}
-	else
-	    line->num = sh_line_last->num + 1;
+        line = malloc(sizeof(shell_line_t));
+        line->next = NULL;
+        line->prev = sh_line_last;
+        line->text = _wcsdup(L"");
+        line->widths = _strdup("");
+        
+        if (sh_line_first == NULL)
+        {
+            line->num = 0;
+            sh_line_first = line;
+        }
+        else
+            line->num = sh_line_last->num + 1;
 
-	if (sh_line_last != NULL)
-	    sh_line_last->next = line;
+        if (sh_line_last != NULL)
+            sh_line_last->next = line;
 
-	sh_line_last = line;
+        sh_line_last = line;
     }
     
     read = wcslen(line->text);
@@ -51,105 +51,108 @@ shell_line_t *ShReadLine(void)
     while (true)
     {
         ch = ConReadKey();
-        if ((ch == (uint32_t) -1) || (ch & KBD_BUCKY_RELEASE))
+        if (ch == (uint32_t) -1)
+            break;
+        else if (ch & KBD_BUCKY_RELEASE)
             continue;
 
-	switch (ch)
-	{
-	case KEY_UP:
-	    if (line->prev != NULL)
-	    {
-		printf("\x1b[%uD\x1b[K", read);
-		line = line->prev;
-		read = wcslen(line->text);
-		allocd = (read + 15) & -16;
-		_cputws(line->text, read);
-	    }
-	    break;
+        switch (ch)
+        {
+        case KEY_UP:
+            if (line->prev != NULL)
+            {
+                printf("\x1b[%uD\x1b[K", read);
+                line = line->prev;
+                read = wcslen(line->text);
+                allocd = (read + 15) & -16;
+                _cputws(line->text, read);
+            }
+            break;
 
-	case KEY_DOWN:
-	    if (line->next != NULL)
-	    {
-		printf("\x1b[%uD\x1b[K", read);
-		line = line->next;
-		read = wcslen(line->text);
-		allocd = (read + 15) & -16;
-		_cputws(line->text, read);
-	    }
-	    break;
+        case KEY_DOWN:
+            if (line->next != NULL)
+            {
+                printf("\x1b[%uD\x1b[K", read);
+                line = line->next;
+                read = wcslen(line->text);
+                allocd = (read + 15) & -16;
+                _cputws(line->text, read);
+            }
+            break;
 
-	case '\n':
-	    line->text[read] = '\0';
-	    line->widths[read] = 0;
-	    
-	    if (line != sh_line_last)
-	    {
-		free(sh_line_last->text);
-		sh_line_last->text = _wcsdup(line->text);
-		free(sh_line_last->widths);
-		sh_line_last->widths = strdup(line->widths);
-		line = sh_line_last;
-	    }
+        case '\n':
+            line->text[read] = '\0';
+            line->widths[read] = 0;
+            
+            if (line != sh_line_last)
+            {
+                free(sh_line_last->text);
+                sh_line_last->text = _wcsdup(line->text);
+                free(sh_line_last->widths);
+                sh_line_last->widths = _strdup(line->widths);
+                line = sh_line_last;
+            }
 
-	    _cputs("\n", 1);
-	    fflush(stdout);
+            putchar('\n');
+            fflush(stdout);
             return line;
-	    
-	case '\b':
-	    if (read > 0)
-	    {
-		read--;
-		len = line->widths[read];
-		printf("\x1b[%uD%*s\x1b[%uD", 
-		    len, len, "", len);
-	    }
-	    break;
+            
+        case '\b':
+            if (read > 0)
+            {
+                read--;
+                len = line->widths[read];
+                printf("\x1b[%uD%*s\x1b[%uD", 
+                    len, len, "", len);
+            }
+            break;
 
-	default:
-	    if ((wchar_t) ch != 0)
-	    {
-		if (ch & KBD_BUCKY_CTRL)
-		{
-	    	    ch = towupper((wchar_t) ch);
-		    len = sprintf(mb, "^%c", (char) ch);
-		    ch = ch - 'A' + 1;
-		}
-		else if (ch == '\t')
-		{
-		    strcpy(mb, "    ");
-		    len = 4;
-		}
-		else
-		{
-		    wc[0] = ch;
-		    wc[1] = '\0';
-		    len = wcstombs(mb, wc, _countof(mb));
-		    if (len == -1)
-			mb[0] = '\0';
-		    else
-			mb[len] = '\0';
-		}
-		    
-		if (mb[0] != '\0')
-		{
-		    _cputs(mb, len);
+        default:
+            if ((wchar_t) ch != 0)
+            {
+                if (ch & KBD_BUCKY_CTRL)
+                {
+                    ch = towupper((wchar_t) ch);
+                    len = sprintf(mb, "^%c", (char) ch);
+                    ch = ch - 'A' + 1;
+                }
+                else if (ch == '\t')
+                {
+                    strcpy(mb, "    ");
+                    len = 4;
+                }
+                else
+                {
+                    wc[0] = ch;
+                    wc[1] = '\0';
+                    len = wcstombs(mb, wc, _countof(mb));
+                    if (len == -1)
+                        mb[0] = '\0';
+                    else
+                        mb[len] = '\0';
+                    len = 1;
+                }
 
-		    if (read + 1 >= allocd)
-		    {
-			allocd = (read + 16) & -16;
-			line->text = realloc(line->text, sizeof(wchar_t) * (allocd + 1));
-			line->widths = realloc(line->widths, allocd + 1);
-		    }
+                if (mb[0] != '\0')
+                {
+                    fwrite(mb, 1, strlen(mb), stdout);
 
-		    line->widths[read] = len;
-		    line->text[read] = ch;
-		    read++;
-		}
-	    }
-	    break;
-	}
+                    if (read + 1 >= allocd)
+                    {
+                        allocd = (read + 16) & -16;
+                        line->text = realloc(line->text, sizeof(wchar_t) * (allocd + 1));
+                        line->widths = realloc(line->widths, allocd + 1);
+                    }
 
-	fflush(stdout);
+                    line->widths[read] = len;
+                    line->text[read] = ch;
+                    read++;
+                }
+            }
+            break;
+        }
+
+        fflush(stdout);
     }
 
     free(line->text);
@@ -161,12 +164,12 @@ wchar_t *ShPrompt(const wchar_t *prompt, wchar_t *params)
 {
     shell_line_t *line;
     if (*params != '\0')
-	return params;
+        return params;
     else
     {
-	_cputws(prompt, wcslen(prompt));
-	fflush(stdout);
-	line = ShReadLine();
-	return line->text;
+        _cputws(prompt, wcslen(prompt));
+        fflush(stdout);
+        line = ShReadLine();
+        return line->text;
     }
 }

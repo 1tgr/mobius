@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.7 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.8 2002/08/17 22:52:14 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -11,80 +11,37 @@
 #include <os/rtl.h>
 
 handle_t vid;
-volatile bool key_pressed;
 videomode_t mode;
 
-bool VidFillRect(const rect_t *rect, colour_t clr)
+static inline uint16_t s3ColourToPixel16(colour_t clr)
 {
-    fileop_t op;
-    params_vid_t params;
-    vid_shape_t shape;
-
-    shape.shape = VID_SHAPE_FILLRECT;
-    shape.s.rect.rect = *rect;
-    shape.s.rect.colour = clr;
-    params.vid_draw.shapes = &shape;
-    params.vid_draw.length = sizeof(shape);
-    if (!FsRequestSync(vid, VID_DRAW, &params, sizeof(params), &op))
-    {
-        errno = op.result;
-        return false;
-    }
-
-    return true;
-}
-
-void KeyboardThread(void)
-{
-    params_vid_t params;
-    wchar_t ch;
-    uint32_t key;
-    fileop_t op;
-
-    params.vid_textout.rect.left = 0;
-    params.vid_textout.rect.top = 20;
-    params.vid_textout.rect.right = mode.width;
-    params.vid_textout.rect.bottom = mode.height;
-    
-    do
-    {
-        ch = key = ConReadKey();
-        
-        if (ch != 0)
-        {
-            params.vid_textout.buffer = &ch;
-            params.vid_textout.length = sizeof(ch);
-            params.vid_textout.foreColour = 0;
-            params.vid_textout.backColour = (colour_t) -1;
-            if (!FsRequestSync(vid, VID_TEXTOUT, &params, sizeof(params), &op))
-            {
-                errno = op.result;
-                _pwerror(L"VID_TEXTOUT");
-            }
-
-            params.vid_textout.rect.left = params.vid_textout.rect.right;
-            params.vid_textout.rect.right = mode.width;
-            params.vid_textout.rect.bottom = mode.height;
-        }
-    } while (key != 27);
-
-    key_pressed = true;
-    ThrExitThread(0);
+    uint8_t r, g, b;
+    r = COLOUR_RED(clr);
+    g = COLOUR_GREEN(clr);
+    b = COLOUR_BLUE(clr);
+    /* 5-6-5 R-G-B */
+    return ((r >> 3) << 11) |
+           ((g >> 2) << 5) |
+           ((b >> 3) << 0);
 }
 
 int main(int argc, char **argv)
 {
     params_vid_t params;
     fileop_t op;
-    vid_shape_t shapes[2];
-    wchar_t str[] = L"Hello from vidtest!";
-    rect_t rc;
-    int dx, dy;
+    void *mem;
+    unsigned x, y;
+    union
+    {
+        uint8_t *p8;
+        uint16_t *p16;
+        void *v;
+    } pix;
     
-    vid = FsOpen(SYS_DEVICES L"/video", FILE_READ | FILE_WRITE);
+    vid = FsOpen(SYS_DEVICES L"/Classes/video0", FILE_READ | FILE_WRITE);
     if (vid == NULL)
     {
-        _pwerror(L"video");
+        _pwerror(SYS_DEVICES L"/Classes/video0");
         return EXIT_FAILURE;
     }
 
@@ -109,77 +66,30 @@ int main(int argc, char **argv)
     }
 
     mode = params.vid_setmode;
-
-    shapes[0].shape = VID_SHAPE_LINE;
-    shapes[0].s.line.a.x = 0;
-    shapes[0].s.line.a.y = 0;
-    shapes[0].s.line.b.x = mode.width;
-    shapes[0].s.line.b.y = mode.height;
-    shapes[0].s.line.colour = 9;
-
-    shapes[1].shape = VID_SHAPE_LINE;
-    shapes[1].s.line.a.x = mode.width;
-    shapes[1].s.line.a.y = 0;
-    shapes[1].s.line.b.x = 0;
-    shapes[1].s.line.b.y = mode.height;
-    shapes[1].s.line.colour = 9;
-
-    params.vid_draw.shapes = shapes;
-    params.vid_draw.length = sizeof(shapes);
-    if (!FsRequestSync(vid, VID_DRAW, &params, sizeof(params), &op))
+    mem = VmmMapShared(mode.framebuffer, NULL, MEM_READ | MEM_WRITE);
+    if (mem != NULL)
     {
-        errno = op.result;
-        _pwerror(L"VID_DRAW");
+        pix.v = mem;
+        for (y = 0; y < mode.height; y++)
+        {
+            for (x = 0; x < mode.width; x++)
+            {
+                switch (mode.bitsPerPixel)
+                {
+                case 8:
+                    pix.p8[x] = x * y;
+                    break;
+                case 16:
+                    pix.p16[x] = s3ColourToPixel16(MAKE_COLOUR(x * x, y * y, x * y));
+                    break;
+                }
+            }
+
+            pix.v = (uint8_t*) pix.v + mode.bytesPerLine;
+        }
     }
 
-    params.vid_textout.buffer = str;
-    params.vid_textout.length = wcslen(str) * sizeof(wchar_t);
-    params.vid_textout.rect.left = 100;
-    params.vid_textout.rect.top = 100;
-    params.vid_textout.rect.right = mode.width;
-    params.vid_textout.rect.bottom = mode.height;
-    params.vid_textout.foreColour = 0;
-    params.vid_textout.backColour = 1;
-    if (!FsRequestSync(vid, VID_TEXTOUT, &params, sizeof(params), &op))
-    {
-        errno = op.result;
-        _pwerror(L"VID_TEXTOUT");
-    }
-
-    rc.left = rc.top = 150;
-    rc.right = rc.bottom = 400;
-    if (rc.right >= mode.width)
-        rc.right = mode.width;
-    if (rc.bottom >= mode.height)
-        rc.bottom = mode.height;
-    VidFillRect(&rc, 14);
-
-    rc.left = rc.top = 0;
-    rc.right = rc.bottom = 100;
-    dx = dy = 1;
-    ThrCreateThread(KeyboardThread, NULL, 10);
-    while (!key_pressed)
-    {
-        VidFillRect(&rc, rand() % (1 << mode.bitsPerPixel));
-
-        if (rc.left <= 0 && dx < 0)
-            dx = -dx;
-        else if (rc.right > mode.width && dx > 0)
-            dx = -dx;
-
-        if (rc.top <= 0 && dy < 0)
-            dy = -dy;
-        else if (rc.bottom > mode.height && dy > 0)
-            dy = -dy;
-
-        rc.left += dx;
-        rc.top += dy;
-        rc.right += dx;
-        rc.bottom += dy;
-
-        VidFillRect(&rc, 15);
-        ThrSleep(50);
-    }
+    ConReadKey();
 
     memset(&params, 0, sizeof(params));
     params.vid_setmode.width = 80;

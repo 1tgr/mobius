@@ -1,15 +1,15 @@
-DIRS=	librtl libsys libc kernel/i386 \
+DIRS=	librtl libsys libc \
 	kernel drivers test shell \
 	hello nasm vidtest mgl \
-	tetris vbe console gui \
+	vbe console \
 	../bin
 
+# tetris gui
+
 all:
-	make -C boot --win32
 	for dir in $(DIRS); do make -C $$dir; done
 
 clean:
-	make -C boot --win32 clean
 	for dir in $(DIRS); do make -C $$dir clean; done
 
 floppy:	all

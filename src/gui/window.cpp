@@ -1,4 +1,4 @@
-/* $Id: window.cpp,v 1.4 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: window.cpp,v 1.5 2002/08/17 22:52:12 pavlovskii Exp $ */
 
 #define __THROW_BAD_ALLOC printf("out of memory\n"); exit(1)
 #include <stdio.h>
@@ -175,25 +175,29 @@ void Window::HandleMessage(const msg_t *msg)
 {
     MGLclip clip;
     size_t size;
+    mgl::Rc *rc;
 
     switch (msg->code)
     {
     case MSG_PAINT:
-        mglUseRc(Application::GetApplication()->m_rc);
+        /*mglUseRc(Application::GetApplication()->m_rc);*/
 
+        rc = &Application::GetApplication()->m_rc;
         clip.num_rects = msg->p.params[0];
         clip.rects = new MGLrect[clip.num_rects];
         size = clip.num_rects * sizeof(MGLrect);
         WndGetClip(m_handle, clip.rects, &size);
-        mglSetClip(NULL, &clip);
+        rc->SetClip(clip);
+        /*mglSetClip(NULL, &clip);*/
         
-        OnPaint();
+        OnPaint(rc);
 
-        glFlush();
+        /*glFlush();*/
         clip.num_rects = 0;
         delete[] clip.rects;
         clip.rects = NULL;
-        mglSetClip(NULL, &clip);
+        /*mglSetClip(NULL, &clip);*/
+        rc->SetClip(clip);
         break;
 
     case MSG_KEYDOWN:
@@ -230,12 +234,14 @@ void Window::HandleMessage(const msg_t *msg)
     }
 }
 
-void Window::OnPaint()
+void Window::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect;
     GetPosition(&rect);
-    glSetColour(0x123456);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    /*glSetColour(0x123456);
+    glFillRect(rect.left, rect.top, rect.right, rect.bottom);*/
+    rc->SetFillColour(0x123456);
+    rc->FillRect(rect);
 }
 
 void Window::OnKeyDown(uint32_t key)

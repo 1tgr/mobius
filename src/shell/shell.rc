@@ -1,6 +1,4 @@
-/* $Id: shell.rc,v 1.8 2002/03/27 22:13:01 pavlovskii Exp $ */
-
-1 256 "poweroff.com"
+/* $Id: shell.rc,v 1.9 2002/08/17 22:52:13 pavlovskii Exp $ */
 
 STRINGTABLE DISCARDABLE 
 BEGIN

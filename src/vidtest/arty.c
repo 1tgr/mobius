@@ -23,6 +23,8 @@
 		resolution mode will be used (if possible).
 */
 
+int ViewXmax, ViewYmax, MaxColors;
+
 void AdjustX(int *X, int *DeltaX)
 {
     int TestX;
@@ -97,7 +99,7 @@ void Regenerate(void)
     Frame;
 }
 
-procedure Updateline;
+void Updateline(void)
 {
     Inc(CurrentLine);
     if CurrentLine > Memory then CurrentLine = 1;
@@ -105,7 +107,7 @@ procedure Updateline;
     Dec(IncrementCount);
 }
 
-procedure CheckForUserInput;
+void CheckForUserInput(void)
 {
     if (KeyPressed) {
 	Ch = ReadKey;
@@ -122,9 +124,9 @@ procedure CheckForUserInput;
     }
 }
 
-procedure DrawCurrentLine;
-var c1,c2,c3,c4: integer;
+void DrawCurrentLine(void)
 {
+    int c1,c2,c3,c4;
     c1 = Colors[1];
     c2 = Colors[2];
     c3 = Colors[3];
@@ -141,7 +143,7 @@ var c1,c2,c3,c4: integer;
     SaveCurrentLine(Colors);
 }
 
-procedure EraseCurrentLine;
+void EraseCurrentLine(void)
 {
     with Line[CurrentLine] do {
 	Draw(LX1,LY1,LX2,LY2,0);
@@ -152,7 +154,7 @@ procedure EraseCurrentLine;
 }
 
 
-procedure DoArt;
+void DoArt(void)
 {
     SelectNewColors;
     repeat
@@ -176,12 +178,12 @@ procedure DoArt;
 }
 
 {
-     Init;
-     Frame;
-     MessageFrame('Press a key to stop action, Esc quits.');
-     DoArt;
-     CloseGraph;
-     RestoreCrtMode;
-     Writeln('The }.');
+     Init();
+     Frame();
+     MessageFrame("Press a key to stop action, Esc quits.");
+     DoArt();
+     CloseGraph();
+     RestoreCrtMode();
+     printf("The end.\n");
 }.
 

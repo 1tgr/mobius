@@ -4,10 +4,14 @@ EXPORTS
     EvtAlloc
     EvtIsSignalled
     EvtSignal
+    FsChangeDir
     FsClose
     FsCreate
+    FsCreateDir
+    FsDismount
     FsFullPath
     FsIoCtl
+    FsMount
     FsOpen
     FsOpenDir
     FsQueryFile
@@ -27,6 +31,7 @@ EXPORTS
     ProcExitProcess
     ProcGetCwd
     ProcGetExeBase
+    ProcGetExitCode
     ProcGetProcessInfo
     ProcSpawnProcess
     PortAccept

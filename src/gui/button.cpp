@@ -1,7 +1,7 @@
-/* $Id: button.cpp,v 1.2 2002/04/10 12:27:44 pavlovskii Exp $ */
+/* $Id: button.cpp,v 1.3 2002/08/17 22:52:12 pavlovskii Exp $ */
 
 #include <gui/button.h>
-#include <gl/mgl.h>
+//#include <gl/mgl.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <os/keyboard.h>
@@ -15,25 +15,25 @@ Button::Button(Window *parent, const wchar_t *text, const MGLrect &pos, unsigned
 {
 }
 
-void Button::OnPaint()
+void Button::OnPaint(mgl::Rc *rc)
 {
     MGLrect rect;
     wchar_t text[256];
 
     GetPosition(&rect);
-    glBevel(&rect, 0x808080, 2, 0x80, !m_isDown);
-    RectInflate(&rect, -2, -2);
-    glBevel(&rect, 0x808080, 2, 0x40, !m_isDown);
-    RectInflate(&rect, -2, -2);
+    rc->SetFillColour(0x808080);
+    rc->Bevel(rect, 2, 0x80, !m_isDown);
+    rect.Inflate(-2, -2);
+    rc->Bevel(rect, 2, 0x40, !m_isDown);
+    rect.Inflate(-2, -2);
 
-    glSetColour(0x808080);
-    glFillRect(rect.left, rect.top, rect.right, rect.bottom);
+    rc->FillRect(rect);
 
     if (GetTitle(text, _countof(text)))
     {
         MGLpoint size;
-        glGetTextSize(text, -1, &size);
-        glSetColour(0x000000);
+        size = rc->GetTextSize(text, -1);
+        rc->SetPenColour(0x000000);
         rect.left = (rect.left + rect.right - size.x) / 2;
         rect.top = (rect.top + rect.bottom - size.y) / 2;
 
@@ -43,7 +43,7 @@ void Button::OnPaint()
             rect.top += 2;
         }
 
-        glDrawText(&rect, text, -1);
+        rc->DrawText(rect, text, -1);
     }
 }
 

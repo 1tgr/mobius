@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/vidtest.exe
-OBJS=	vidtest.o ../crt0.o
-LIBS=	$(LIB)/libc_s.lib $(LIB)/libsys.lib
+OBJS=	vidtest.o
+LIBS=	$(LIB)/crt0.o $(LIB)/libc_s.lib $(LIB)/libsys.lib
 
 include ../make.conf
 include ../make.actions
