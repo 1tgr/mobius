@@ -23,9 +23,11 @@ $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.exe)
 
 $(TARGET):	$(ARCH) $(OBJS) $(LIBS) $(EXP)
-	$(LD) -o $(TARGET) $(OBJS) $(EXP) $(LIBS) \
+	$(LD) -o kernel_d.exe $(OBJS) $(EXP) $(LIBS) \
 		$(LDFLAGS) --entry _KernelEntry -T kernel.ld
-	objdump -ld $(TARGET) > listing.txt
+	objdump -ld kernel_d.exe > listing.txt
+	$(LD) -o $(TARGET) $(OBJS) $(EXP) $(LIBS) \
+		$(LDFLAGS) --strip-all --entry _KernelEntry -T kernel.ld
 
 clean:
 	make -C i386 clean

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.4 2002/01/03 15:44:07 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -26,6 +26,8 @@ struct asyncio_t
 	device_t *dev;
 	/** Size, in bytes, of the user buffer */
 	size_t length;
+	/** Size, in pages, of the user buffer */
+	size_t length_pages;
 	/** Offset of the start of the user buffer from the previous page boundary */
 	unsigned mod_buffer_start;
 	/** Physical page addresses follow this structure */

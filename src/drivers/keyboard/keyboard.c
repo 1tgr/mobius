@@ -2,6 +2,7 @@
 #include <kernel/thread.h>
 #include <kernel/handle.h>
 #include <kernel/arch.h>
+#include <kernel/memory.h>
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -9,7 +10,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-/*#define DEBUG */
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <kernel/driver.h>
@@ -45,14 +46,14 @@ struct Keyboard
 			var &= ~bit; \
 	}
 
-void kbdHwWrite(Keyboard* ctx, uint16_t port, uint8_t data)
+void kbdHwWrite(Keyboard* keyb, uint16_t port, uint8_t data)
 {
 	uint32_t timeout;
 	uint8_t stat;
 
 	for (timeout = 500000L; timeout != 0; timeout--)
 	{
-		stat = in(ctx->ctrl);
+		stat = in(keyb->ctrl);
 
 		if ((stat & 0x02) == 0)
 			break;
@@ -62,19 +63,19 @@ void kbdHwWrite(Keyboard* ctx, uint16_t port, uint8_t data)
 		out(port, data);
 }
 
-uint8_t kbdHwRead(Keyboard* ctx)
+uint8_t kbdHwRead(Keyboard* keyb)
 {
 	unsigned long Timeout;
 	uint8_t Stat, Data;
 
 	for (Timeout = 50000L; Timeout != 0; Timeout--)
 	{
-		Stat = in(ctx->ctrl);
+		Stat = in(keyb->ctrl);
 
 		/* loop until 8042 output buffer full */
 		if ((Stat & 0x01) != 0)
 		{
-			Data = in(ctx->port);
+			Data = in(keyb->port);
 
 			/* loop if parity error or receive timeout */
 			if((Stat & 0xC0) == 0)
@@ -85,14 +86,14 @@ uint8_t kbdHwRead(Keyboard* ctx)
 	return -1;
 }
 
-uint8_t kbdHwWriteRead(Keyboard* ctx, uint16_t port, uint8_t data, const char* expect)
+uint8_t kbdHwWriteRead(Keyboard* keyb, uint16_t port, uint8_t data, const char* expect)
 {
 	int RetVal;
 
-	kbdHwWrite(ctx, port, data);
+	kbdHwWrite(keyb, port, data);
 	for (; *expect; expect++)
 	{
-		RetVal = kbdHwRead(ctx);
+		RetVal = kbdHwRead(keyb);
 		if ((uint8_t) *expect != RetVal)
 		{
 			TRACE2("[keyboard] error: expected 0x%x, got 0x%x\n",
@@ -104,7 +105,7 @@ uint8_t kbdHwWriteRead(Keyboard* ctx, uint16_t port, uint8_t data, const char* e
 	return 0;
 }
 
-uint32_t kbdScancodeToKey(Keyboard* ctx, uint8_t scancode)
+uint32_t kbdScancodeToKey(Keyboard* keyb, uint8_t scancode)
 {
 	static int keypad[RAW_NUM0 - RAW_NUM7 + 1] =
 	{
@@ -123,28 +124,28 @@ uint32_t kbdScancodeToKey(Keyboard* ctx, uint8_t scancode)
 	{
 	case RAW_LEFT_CTRL:
 	case RAW_RIGHT_CTRL:
-		SET(ctx->keys, KBD_BUCKY_CTRL, down);
+		SET(keyb->keys, KBD_BUCKY_CTRL, down);
 		break;
 
 	case RAW_LEFT_ALT:
 	/*case RAW_RIGHT_ALT: */
-		if (down && (ctx->keys & KBD_BUCKY_ALT) == 0)
-			ctx->compose = 0;
-		else if (!down && (ctx->keys & KBD_BUCKY_ALT))
-			key = ctx->compose;
+		if (down && (keyb->keys & KBD_BUCKY_ALT) == 0)
+			keyb->compose = 0;
+		else if (!down && (keyb->keys & KBD_BUCKY_ALT))
+			key = keyb->compose;
 
-		SET(ctx->keys, KBD_BUCKY_ALT, down);
+		SET(keyb->keys, KBD_BUCKY_ALT, down);
 		break;
 
 	case RAW_LEFT_SHIFT:
 	case RAW_RIGHT_SHIFT:
-		SET(ctx->keys, KBD_BUCKY_SHIFT, down);
+		SET(keyb->keys, KBD_BUCKY_SHIFT, down);
 		break;
 
 	case RAW_NUM_LOCK:
 		if (!down)
 		{
-			ctx->keys ^= KBD_BUCKY_NUM;
+			keyb->keys ^= KBD_BUCKY_NUM;
 			goto leds;
 		}
 		break;
@@ -152,7 +153,7 @@ uint32_t kbdScancodeToKey(Keyboard* ctx, uint8_t scancode)
 	case RAW_CAPS_LOCK:
 		if (!down)
 		{
-			ctx->keys ^= KBD_BUCKY_CAPS;
+			keyb->keys ^= KBD_BUCKY_CAPS;
 			goto leds;
 		}
 		break;
@@ -160,21 +161,21 @@ uint32_t kbdScancodeToKey(Keyboard* ctx, uint8_t scancode)
 	case RAW_SCROLL_LOCK:
 		if (!down)
 		{
-			ctx->keys ^= KBD_BUCKY_SCRL;
+			keyb->keys ^= KBD_BUCKY_SCRL;
 			goto leds;
 		}
 		break;
 
 leds:
-		kbdHwWrite(ctx, ctx->port, KEYB_SET_LEDS);
+		kbdHwWrite(keyb, keyb->port, KEYB_SET_LEDS);
 		temp = 0;
-		if (ctx->keys & KBD_BUCKY_SCRL)
+		if (keyb->keys & KBD_BUCKY_SCRL)
 			temp |= 1;
-		if (ctx->keys & KBD_BUCKY_NUM)
+		if (keyb->keys & KBD_BUCKY_NUM)
 			temp |= 2;
-		if (ctx->keys & KBD_BUCKY_CAPS)
+		if (keyb->keys & KBD_BUCKY_CAPS)
 			temp |= 4;
-		kbdHwWrite(ctx, ctx->port, temp);
+		kbdHwWrite(keyb, keyb->port, temp);
 		break;
 
 	default:
@@ -185,25 +186,25 @@ leds:
 				code != 0x4a &&
 				code != 0x4e)
 			{
-				if (ctx->keys & KBD_BUCKY_ALT &&
+				if (keyb->keys & KBD_BUCKY_ALT &&
 					keypad[code - RAW_NUM7] != -1)
 				{
-					ctx->compose *= 10;
-					ctx->compose += keypad[code - RAW_NUM7];
+					keyb->compose *= 10;
+					keyb->compose += keypad[code - RAW_NUM7];
 					/*wprintf(L"pad = %d compose = %d\n",  */
-						/*keypad[code - RAW_NUM7], ctx->compose); */
+						/*keypad[code - RAW_NUM7], keyb->compose); */
 				}
-				else if (ctx->keys & KBD_BUCKY_NUM)
+				else if (keyb->keys & KBD_BUCKY_NUM)
 					key = '0' + keypad[code - RAW_NUM7];
 				else
 					key = keys[code];
 			}
-			else if (ctx->keys & KBD_BUCKY_SHIFT)
+			else if (keyb->keys & KBD_BUCKY_SHIFT)
 				key = keys_shift[code];
 			else
 				key = keys[code];
 
-			if (ctx->keys & KBD_BUCKY_CAPS)
+			if (keyb->keys & KBD_BUCKY_CAPS)
 			{
 				if (iswupper(key))
 					key = towlower(key);
@@ -213,23 +214,23 @@ leds:
 		}
 	}
 	
-	return key | ctx->keys;
+	return key | keyb->keys;
 }
 
-size_t kbdRead(Keyboard* ctx, void* buffer, size_t length)
+/*size_t kbdRead(Keyboard* keyb, void* buffer, size_t length)
 {
 	uint32_t ch, *buf = (uint32_t*) buffer;
 	size_t read = 0;
 
 	while (length > 0)
 	{
-		if (ctx->read == ctx->write)
+		if (keyb->read == keyb->write)
 			return read;
 		
-		ch = *ctx->read;
-		ctx->read++;
-		if (ctx->read >= ctx->buffer + _countof(ctx->buffer))
-			ctx->read = ctx->buffer;
+		ch = *keyb->read;
+		keyb->read++;
+		if (keyb->read >= keyb->buffer + _countof(keyb->buffer))
+			keyb->read = keyb->buffer;
 
 		*buf = ch;
 		buf++;
@@ -238,49 +239,69 @@ size_t kbdRead(Keyboard* ctx, void* buffer, size_t length)
 	}
 
 	return read;
+}*/
+
+uint32_t kbdRead(Keyboard* keyb)
+{
+	uint32_t ch;
+	
+	if (keyb->read == keyb->write)
+		return 0;
+		
+	ch = *keyb->read;
+	keyb->read++;
+	if (keyb->read >= keyb->buffer + _countof(keyb->buffer))
+		keyb->read = keyb->buffer;
+
+	return ch;
 }
 
-void kbdDoRequests(Keyboard* ctx)
+void kbdDoRequests(Keyboard* keyb)
 {
 	asyncio_t *io, *ionext;
 	request_dev_t *req;
-	size_t read;
 	uint32_t key;
+	addr_t *ptr;
+	uint8_t *buf;
 
-	while (ctx->dev.io_first &&
-		(read = kbdRead(ctx, &key, sizeof(key))))
+	while (keyb->dev.io_first && (key = kbdRead(keyb)))
 	{
-		for (io = ctx->dev.io_first; io; io = ionext)
+		for (io = keyb->dev.io_first; io; io = ionext)
 		{
 			req = (request_dev_t*) io->req;
-		
-			wprintf(L"read = %d req = %p ", read, req);
-			wprintf(L"buffer = %p size = %d\n", 
-				io->buffer, 
+			ptr = (addr_t*) (io + 1);
+			buf = MemMapTemp(ptr, io->length_pages, 
+				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+
+			wprintf(L"req = %p buffer = %p + %x size = %d\n", 
+				req,
+				buf, io->mod_buffer_start,
 				io->length);
 
 			wprintf(L"Writing buffer...");
 
-			*(uint32_t*) ((uint8_t*) io->buffer + io->length) = key;
+			*(uint32_t*) (buf + io->mod_buffer_start + io->length) = key;
+			MemUnmapTemp();
+
 			wprintf(L"done\n");
-			io->length += read;
+			io->length += sizeof(uint32_t);
 			
 			ionext = io->next;
 			if (io->length >= req->params.dev_read.length)
-				DevFinishIo(&ctx->dev, io);
+				DevFinishIo(&keyb->dev, io);
 			/*else */
 				/*_cputws(L"more to do\n"); */
 		}
 	}
 }
 
-void kbdKey(Keyboard* ctx, uint8_t scancode)
+void kbdKey(Keyboard* keyb, uint8_t scancode)
 {
 	uint32_t key;
 
-	if (ctx->write >= ctx->read)
+	if (keyb->write >= keyb->read)
 	{
-		key = kbdScancodeToKey(ctx, scancode);
+		key = kbdScancodeToKey(keyb, scancode);
 
 		/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
 			keShutdown(SHUTDOWN_REBOOT);
@@ -289,57 +310,64 @@ void kbdKey(Keyboard* ctx, uint8_t scancode)
 				return;*/
 		
 		if (key >= KEY_F1 && key <= KEY_F12)
+		{
+			TRACE1("[keyboard] Switching to console %d\n",
+				key - KEY_F1);
 			TtySwitchConsoles(key - KEY_F1);
+		}
 		else if (key)
 		{
-			*ctx->write = key;
-			ctx->write++;
+			*keyb->write = key;
+			keyb->write++;
 
-			if (ctx->write >= ctx->buffer + _countof(ctx->buffer))
-				ctx->write = ctx->buffer;
+			if (keyb->write >= keyb->buffer + _countof(keyb->buffer))
+				keyb->write = keyb->buffer;
 
-			/*wprintf(L"read = %d, write = %d\n", ctx->read - ctx->buffer, ctx->write - ctx->buffer); */
+			/*wprintf(L"read = %d, write = %d\n", keyb->read - keyb->buffer, keyb->write - keyb->buffer); */
 			/*Read(&key, sizeof(key)); */
 			/*wprintf(L"%c", key); */
 		}
 
-		kbdDoRequests(ctx);
+		kbdDoRequests(keyb);
 	}
 }
 
 bool KbdIsr(device_t *dev, uint8_t irq)
 {
-	Keyboard* ctx = (Keyboard*) dev;
-	kbdKey(ctx, kbdHwRead(ctx));
+	Keyboard* keyb = (Keyboard*) dev;
+	TRACE0("[di]");
+	kbdKey(keyb, kbdHwRead(keyb));
 	return true;
 }
 
-void KbdFinishIo(device_t *dev, asyncio_t *io)
+/*void KbdFinishIo(device_t *dev, asyncio_t *io)
 {
 	request_dev_t *req_dev = (request_dev_t*) io->req;
 	memcpy(req_dev->params.dev_read.buffer,
 		io->buffer,
 		io->length);
 	free(io->buffer);
-}
+}*/
 
 bool kbdRequest(device_t* dev, request_t* req)
 {
-	Keyboard* ctx = (Keyboard*) dev;
+	Keyboard* keyb = (Keyboard*) dev;
 	request_dev_t *req_dev = (request_dev_t*) req;
+	asyncio_t *io;
 
 	TRACE2("[%c%c]", req->code / 256, req->code % 256);
 	switch (req->code)
 	{
 	case DEV_READ:
-		DevQueueRequest(dev, req, sizeof(request_dev_t));
-		req_dev->header.user_length = req_dev->params.dev_read.length;
-		req_dev->params.dev_read.length = 0;
-		kbdDoRequests(ctx);
+		io = DevQueueRequest(dev, req, sizeof(request_dev_t),
+			req_dev->params.dev_read.buffer,
+			req_dev->params.dev_read.length);
+		io->length = 0;
+		kbdDoRequests(keyb);
 		return true;
 
 	case CHR_GETSIZE:
-		*((size_t*) req_dev->params.buffered.buffer) = ctx->write - ctx->read;
+		*((size_t*) req_dev->params.buffered.buffer) = keyb->write - keyb->read;
 		return true;
 	}
 
@@ -347,15 +375,15 @@ bool kbdRequest(device_t* dev, request_t* req)
 	return false;
 }
 
-Keyboard* kbdInit(driver_t* drv, device_config_t *cfg)
+device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
-	Keyboard* ctx;
+	Keyboard* keyb;
 	uint32_t i;
 	uint16_t port, ctrl;
-	device_t* kdebug;
+	/*device_t* kdebug;*/
 	uint8_t status;
 
-	ctx = (Keyboard*) malloc(sizeof(Keyboard));
+	keyb = malloc(sizeof(Keyboard));
 
 	/*if (cfg)
 		i = devFindResource(cfg, dresIo, 0);
@@ -380,14 +408,15 @@ Keyboard* kbdInit(driver_t* drv, device_config_t *cfg)
 	port = KEYB_PORT;
 	ctrl = KEYB_CTRL;
 
-	ctx->dev.driver = drv;
-	ctx->dev.request = kbdRequest;
-	ctx->dev.cfg = cfg;
-	ctx->dev.req_first = ctx->dev.req_last = NULL;
-	ctx->keys = 0;
-	ctx->write = ctx->read = ctx->buffer;
-	ctx->port = port;
-	ctx->ctrl = ctrl;
+	keyb->dev.driver = drv;
+	keyb->dev.request = kbdRequest;
+	keyb->dev.isr = KbdIsr;
+	keyb->dev.cfg = cfg;
+	keyb->dev.io_first = keyb->dev.io_last = NULL;
+	keyb->keys = 0;
+	keyb->write = keyb->read = keyb->buffer;
+	keyb->port = port;
+	keyb->ctrl = ctrl;
 
 	TRACE2("keyboard: port = %x ctrl = %x\n", port, ctrl);
 
@@ -399,7 +428,7 @@ Keyboard* kbdInit(driver_t* drv, device_config_t *cfg)
 	devRegisterIrq(kdebug, 1, false);
 	devClose(kdebug);*/
 
-#if 0
+#if 1
 	out(port, 0xff); /*reset keyboard   */ 
     do {
         status = in(ctrl);
@@ -426,70 +455,64 @@ Keyboard* kbdInit(driver_t* drv, device_config_t *cfg)
 #else
 	/* Reset keyboard and disable scanning until further down */
 	TRACE0("Disable...");
-	kbdHwWriteRead(ctx, ctx->port, KEYB_RESET_DISABLE, KEYB_ACK);
+	kbdHwWriteRead(keyb, keyb->port, KEYB_RESET_DISABLE, KEYB_ACK);
 
 	/* Set keyboard controller flags: 
 	   interrupts for keyboard & aux port
 	   SYS bit (?) */
 	TRACE0("done\nFlags...");
-	kbdHwWrite(ctx, ctx->ctrl, KCTRL_WRITE_CMD_BYTE);
-	kbdHwWrite(ctx, ctx->port, KCTRL_IRQ1 | KCTRL_SYS | KCTRL_IRQ12);
+	kbdHwWrite(keyb, keyb->ctrl, KCTRL_WRITE_CMD_BYTE);
+	kbdHwWrite(keyb, keyb->port, KCTRL_IRQ1 | KCTRL_SYS | KCTRL_IRQ12);
 
 	TRACE0("done\nIdentify...");
-	kbdHwWriteRead(ctx, ctx->port, KEYB_IDENTIFY, KEYB_ACK);
-	if (kbdHwRead(ctx) == 0xAB &&
-		kbdHwRead(ctx) == 0x83)
+	kbdHwWriteRead(keyb, keyb->port, KEYB_IDENTIFY, KEYB_ACK);
+	if (kbdHwRead(keyb) == 0xAB &&
+		kbdHwRead(keyb) == 0x83)
 	{
 		TRACE0("[keyboard] PS/2 keyboard detected\n");
 
 		/* Program desired scancode set, expect 0xFA (ACK)... */
-		kbdHwWriteRead(ctx, ctx->port, KEYB_SET_SCANCODE_SET, KEYB_ACK);
+		kbdHwWriteRead(keyb, keyb->port, KEYB_SET_SCANCODE_SET, KEYB_ACK);
 
 		/* ...send scancode set value, expect 0xFA (ACK) */
-		kbdHwWriteRead(ctx, ctx->port, 1, KEYB_ACK);
+		kbdHwWriteRead(keyb, keyb->port, 1, KEYB_ACK);
 
 		/* make all keys typematic (auto-repeat) and make-break. This may work
 		   only with scancode set 3, I'm not sure. Expect 0xFA (ACK) */
-		kbdHwWriteRead(ctx, ctx->port, KEYB_ALL_TYPM_MAKE_BRK, KEYB_ACK);
+		kbdHwWriteRead(keyb, keyb->port, KEYB_ALL_TYPM_MAKE_BRK, KEYB_ACK);
 
-		ctx->isps2 = true;
+		keyb->isps2 = true;
 	}
 	else
 	{
 		/* Argh... bloody bochs */
 		TRACE0("[keyboard] AT keyboard detected\n");
-		ctx->isps2 = false;
+		keyb->isps2 = false;
 	}
 
 	/* Set typematic delay as short as possible;
 	   Repeat as fast as possible, expect ACK... */
 	TRACE0("Typematic...");
-	kbdHwWriteRead(ctx, ctx->port, KEYB_SET_TYPEMATIC, KEYB_ACK);
+	kbdHwWriteRead(keyb, keyb->port, KEYB_SET_TYPEMATIC, KEYB_ACK);
 
-	/* ...typematic control uint8_t (0 corresponds to MODE CON RATE=30 DELAY=1),
+	/* ...typematic control byte (0 corresponds to MODE CON RATE=30 DELAY=1),
 	   expect 0xFA (ACK) */
-	kbdHwWriteRead(ctx, ctx->port, 0, KEYB_ACK);
+	kbdHwWriteRead(keyb, keyb->port, 0, KEYB_ACK);
 
 	/* Enable keyboard, expect 0xFA (ACK) */
 	TRACE0("done\nEnable...");
-	kbdHwWriteRead(ctx, ctx->port, KEYB_ENABLE, KEYB_ACK);
+	kbdHwWriteRead(keyb, keyb->port, KEYB_ENABLE, KEYB_ACK);
 #endif
 
 	TRACE0("done\nIRQ...");
-	DevRegisterIrq(1, &ctx->dev);
+	DevRegisterIrq(1, &keyb->dev);
 	TRACE0("done\n");
-	return ctx;
-}
-
-device_t* kbdAddDevice(driver_t* drv, const wchar_t* name, 
-					   device_config_t* cfg)
-{
-	return (device_t*) kbdInit(drv, cfg);
+	return &keyb->dev;
 }
 
 bool DrvInit(driver_t* drv)
 {
-	drv->add_device = kbdAddDevice;
+	drv->add_device = KbdAddDevice;
 	/*devRegister(L"keyboard", kbdAddDevice(drv, L"keyboard", NULL), NULL); */
 	return true;
 }

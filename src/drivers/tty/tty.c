@@ -553,8 +553,12 @@ bool TtyIsr(device_t *dev, uint8_t irq)
 	uint8_t scan;
 	scan = in(0x60);
 	if (scan >= 0x3b && scan < 0x3b + 12)
+	{
 		TtySwitchTo(consoles + scan - 0x3b);
-	return true;
+		return true;
+	}
+	else
+		return false;
 }
 
 bool TtyRequest(device_t* dev, request_t* req)
@@ -622,6 +626,6 @@ bool DrvInit(driver_t *drv)
 	consoles[0].height = 25;
 	consoles[0].escape = 0;
 
-	DevRegisterIrq(1, &consoles[0].dev);
+	/*DevRegisterIrq(1, &consoles[0].dev);*/
 	return true;
 }

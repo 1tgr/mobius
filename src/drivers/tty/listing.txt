@@ -1077,226 +1077,227 @@ TtyIsr():
 /mn/src/drivers/tty/tty.c:555
 800f187e:	8d 42 c5             	lea    0xffffffc5(%edx),%eax
 800f1881:	3c 0b                	cmp    $0xb,%al
-800f1883:	77 14                	ja     800f1899 <_TtyIsr+0x29>
-/mn/src/drivers/tty/tty.c:556
-800f1885:	0f b6 c2             	movzbl %dl,%eax
-800f1888:	83 c4 f4             	add    $0xfffffff4,%esp
-800f188b:	6b c0 58             	imul   $0x58,%eax,%eax
-800f188e:	05 c8 1b 0f 80       	add    $0x800f1bc8,%eax
-800f1893:	50                   	push   %eax
-800f1894:	e8 b3 f8 ff ff       	call   800f114c <_TtySwitchTo>
-/mn/src/drivers/tty/tty.c:557
-800f1899:	89 ec                	mov    %ebp,%esp
-800f189b:	b8 01 00 00 00       	mov    $0x1,%eax
-800f18a0:	5d                   	pop    %ebp
-800f18a1:	c3                   	ret    
-/mn/src/drivers/tty/tty.c:558
-800f18a2:	89 f6                	mov    %esi,%esi
-
-800f18a4 <_TtyRequest>:
-TtyRequest():
-800f18a4:	55                   	push   %ebp
-800f18a5:	89 e5                	mov    %esp,%ebp
-800f18a7:	83 ec 08             	sub    $0x8,%esp
+800f1883:	76 07                	jbe    800f188c <_TtyIsr+0x1c>
 /mn/src/drivers/tty/tty.c:561
-800f18aa:	8b 55 0c             	mov    0xc(%ebp),%edx
-800f18ad:	8b 4d 08             	mov    0x8(%ebp),%ecx
+800f1885:	31 c0                	xor    %eax,%eax
+800f1887:	eb 1c                	jmp    800f18a5 <_TtyIsr+0x35>
+800f1889:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.c:557
+800f188c:	0f b6 c2             	movzbl %dl,%eax
+800f188f:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1892:	6b c0 58             	imul   $0x58,%eax,%eax
+800f1895:	05 c8 1b 0f 80       	add    $0x800f1bc8,%eax
+800f189a:	50                   	push   %eax
+800f189b:	e8 ac f8 ff ff       	call   800f114c <_TtySwitchTo>
+/mn/src/drivers/tty/tty.c:558
+800f18a0:	b8 01 00 00 00       	mov    $0x1,%eax
+800f18a5:	89 ec                	mov    %ebp,%esp
+800f18a7:	5d                   	pop    %ebp
+800f18a8:	c3                   	ret    
+/mn/src/drivers/tty/tty.c:562
+800f18a9:	74 74                	je     800f191f <_TtyAddDevice+0x7>
+800f18ab:	79 2e                	jns    800f18db <_TtyRequest+0x2b>
+800f18ad:	63 00                	arpl   %ax,(%eax)
+800f18af:	90                   	nop    
+
+800f18b0 <_TtyRequest>:
+TtyRequest():
+800f18b0:	55                   	push   %ebp
+800f18b1:	89 e5                	mov    %esp,%ebp
+800f18b3:	83 ec 08             	sub    $0x8,%esp
 /mn/src/drivers/tty/tty.c:565
-800f18b0:	8b 02                	mov    (%edx),%eax
-800f18b2:	3d 52 64 00 00       	cmp    $0x6452,%eax
-800f18b7:	74 0b                	je     800f18c4 <_TtyRequest+0x20>
-800f18b9:	3d 77 64 00 80       	cmp    $0x80006477,%eax
-800f18be:	74 14                	je     800f18d4 <_TtyRequest+0x30>
-800f18c0:	eb 2e                	jmp    800f18f0 <_TtyRequest+0x4c>
-800f18c2:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.c:568
-800f18c4:	83 c4 f4             	add    $0xfffffff4,%esp
-800f18c7:	51                   	push   %ecx
-800f18c8:	e8 9b 01 00 00       	call   800f1a68 <_free>
+800f18b6:	8b 55 0c             	mov    0xc(%ebp),%edx
+800f18b9:	8b 4d 08             	mov    0x8(%ebp),%ecx
 /mn/src/drivers/tty/tty.c:569
-800f18cd:	b8 01 00 00 00       	mov    $0x1,%eax
-800f18d2:	eb 25                	jmp    800f18f9 <_TtyRequest+0x55>
+800f18bc:	8b 02                	mov    (%edx),%eax
+800f18be:	3d 52 64 00 00       	cmp    $0x6452,%eax
+800f18c3:	74 0b                	je     800f18d0 <_TtyRequest+0x20>
+800f18c5:	3d 77 64 00 80       	cmp    $0x80006477,%eax
+800f18ca:	74 20                	je     800f18ec <_TtyRequest+0x3c>
+800f18cc:	eb 3a                	jmp    800f1908 <_TtyRequest+0x58>
+800f18ce:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.c:572
-800f18d4:	8b 42 10             	mov    0x10(%edx),%eax
-800f18d7:	83 c4 fc             	add    $0xfffffffc,%esp
-800f18da:	d1 e8                	shr    %eax
-800f18dc:	50                   	push   %eax
-800f18dd:	8b 42 14             	mov    0x14(%edx),%eax
-800f18e0:	50                   	push   %eax
-800f18e1:	51                   	push   %ecx
-800f18e2:	e8 85 fd ff ff       	call   800f166c <_TtyWriteString>
-/mn/src/drivers/tty/tty.c:575
-800f18e7:	b8 01 00 00 00       	mov    $0x1,%eax
-800f18ec:	eb 0b                	jmp    800f18f9 <_TtyRequest+0x55>
-800f18ee:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.c:578
-800f18f0:	c7 42 04 04 00 00 00 	movl   $0x4,0x4(%edx)
+800f18d0:	83 c4 fc             	add    $0xfffffffc,%esp
+800f18d3:	68 3c 02 00 00       	push   $0x23c
+800f18d8:	68 a9 18 0f 80       	push   $0x800f18a9
+800f18dd:	51                   	push   %ecx
+800f18de:	e8 85 01 00 00       	call   800f1a68 <___free>
+/mn/src/drivers/tty/tty.c:573
+800f18e3:	b8 01 00 00 00       	mov    $0x1,%eax
+800f18e8:	eb 27                	jmp    800f1911 <_TtyRequest+0x61>
+800f18ea:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.c:576
+800f18ec:	8b 42 10             	mov    0x10(%edx),%eax
+800f18ef:	83 c4 fc             	add    $0xfffffffc,%esp
+800f18f2:	d1 e8                	shr    %eax
+800f18f4:	50                   	push   %eax
+800f18f5:	8b 42 14             	mov    0x14(%edx),%eax
+800f18f8:	50                   	push   %eax
+800f18f9:	51                   	push   %ecx
+800f18fa:	e8 6d fd ff ff       	call   800f166c <_TtyWriteString>
 /mn/src/drivers/tty/tty.c:579
-800f18f7:	31 c0                	xor    %eax,%eax
-800f18f9:	89 ec                	mov    %ebp,%esp
-800f18fb:	5d                   	pop    %ebp
-800f18fc:	c3                   	ret    
-/mn/src/drivers/tty/tty.c:580
-800f18fd:	8d 76 00             	lea    0x0(%esi),%esi
-
-800f1900 <_TtyAddDevice>:
-TtyAddDevice():
-800f1900:	55                   	push   %ebp
-800f1901:	89 e5                	mov    %esp,%ebp
-800f1903:	83 ec 10             	sub    $0x10,%esp
-800f1906:	56                   	push   %esi
-800f1907:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.c:587
-800f1908:	a1 00 20 0f 80       	mov    0x800f2000,%eax
-/mn/src/drivers/tty/tty.c:594
-800f190d:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.c:587
-800f1910:	8d 1c 80             	lea    (%eax,%eax,4),%ebx
+800f18ff:	b8 01 00 00 00       	mov    $0x1,%eax
+800f1904:	eb 0b                	jmp    800f1911 <_TtyRequest+0x61>
+800f1906:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.c:582
+800f1908:	c7 42 04 04 00 00 00 	movl   $0x4,0x4(%edx)
 /mn/src/drivers/tty/tty.c:583
-800f1913:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/tty/tty.c:587
-800f1916:	8d 1c 58             	lea    (%eax,%ebx,2),%ebx
-800f1919:	c1 e3 03             	shl    $0x3,%ebx
-/mn/src/drivers/tty/tty.c:592
-800f191c:	89 93 1c 30 0f 80    	mov    %edx,0x800f301c(%ebx)
-/mn/src/drivers/tty/tty.c:587
-800f1922:	8d b3 10 30 0f 80    	lea    0x800f3010(%ebx),%esi
-/mn/src/drivers/tty/tty.c:589
-800f1928:	c7 83 10 30 0f 80 a4 	movl   $0x800f18a4,0x800f3010(%ebx)
-800f192f:	18 0f 80 
-/mn/src/drivers/tty/tty.c:590
-800f1932:	c7 83 14 30 0f 80 70 	movl   $0x800f1870,0x800f3014(%ebx)
-800f1939:	18 0f 80 
+800f190f:	31 c0                	xor    %eax,%eax
+800f1911:	89 ec                	mov    %ebp,%esp
+800f1913:	5d                   	pop    %ebp
+800f1914:	c3                   	ret    
+/mn/src/drivers/tty/tty.c:584
+800f1915:	8d 76 00             	lea    0x0(%esi),%esi
+
+800f1918 <_TtyAddDevice>:
+TtyAddDevice():
+800f1918:	55                   	push   %ebp
+800f1919:	89 e5                	mov    %esp,%ebp
+800f191b:	83 ec 10             	sub    $0x10,%esp
+800f191e:	56                   	push   %esi
+800f191f:	53                   	push   %ebx
 /mn/src/drivers/tty/tty.c:591
-800f193c:	c7 83 18 30 0f 80 00 	movl   $0x0,0x800f3018(%ebx)
-800f1943:	00 00 00 
+800f1920:	a1 00 20 0f 80       	mov    0x800f2000,%eax
+/mn/src/drivers/tty/tty.c:598
+800f1925:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.c:591
+800f1928:	8d 1c 80             	lea    (%eax,%eax,4),%ebx
+/mn/src/drivers/tty/tty.c:587
+800f192b:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/tty/tty.c:591
+800f192e:	8d 1c 58             	lea    (%eax,%ebx,2),%ebx
+800f1931:	c1 e3 03             	shl    $0x3,%ebx
+/mn/src/drivers/tty/tty.c:596
+800f1934:	89 93 1c 30 0f 80    	mov    %edx,0x800f301c(%ebx)
+/mn/src/drivers/tty/tty.c:591
+800f193a:	8d b3 10 30 0f 80    	lea    0x800f3010(%ebx),%esi
+/mn/src/drivers/tty/tty.c:593
+800f1940:	c7 83 10 30 0f 80 b0 	movl   $0x800f18b0,0x800f3010(%ebx)
+800f1947:	18 0f 80 
 /mn/src/drivers/tty/tty.c:594
-800f1946:	68 30 34 0f 80       	push   $0x800f3430
-800f194b:	e8 10 01 00 00       	call   800f1a60 <_SemAcquire>
+800f194a:	c7 83 14 30 0f 80 70 	movl   $0x800f1870,0x800f3014(%ebx)
+800f1951:	18 0f 80 
 /mn/src/drivers/tty/tty.c:595
-800f1950:	8b 15 00 20 0f 80    	mov    0x800f2000,%edx
-/mn/src/drivers/tty/tty.c:597
-800f1956:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.c:595
-800f1959:	89 d0                	mov    %edx,%eax
-800f195b:	c1 e0 05             	shl    $0x5,%eax
-800f195e:	29 d0                	sub    %edx,%eax
-800f1960:	8d 04 82             	lea    (%edx,%eax,4),%eax
-800f1963:	c1 e0 05             	shl    $0x5,%eax
-/mn/src/drivers/tty/tty.c:596
-800f1966:	42                   	inc    %edx
-/mn/src/drivers/tty/tty.c:595
-800f1967:	05 00 80 0b f0       	add    $0xf00b8000,%eax
-/mn/src/drivers/tty/tty.c:596
-800f196c:	89 15 00 20 0f 80    	mov    %edx,0x800f2000
-/mn/src/drivers/tty/tty.c:595
-800f1972:	89 83 2c 30 0f 80    	mov    %eax,0x800f302c(%ebx)
-/mn/src/drivers/tty/tty.c:597
-800f1978:	68 30 34 0f 80       	push   $0x800f3430
-800f197d:	e8 d6 00 00 00       	call   800f1a58 <_SemRelease>
-/mn/src/drivers/tty/tty.c:604
-800f1982:	83 c4 20             	add    $0x20,%esp
+800f1954:	c7 83 18 30 0f 80 00 	movl   $0x0,0x800f3018(%ebx)
+800f195b:	00 00 00 
+/mn/src/drivers/tty/tty.c:598
+800f195e:	68 30 34 0f 80       	push   $0x800f3430
+800f1963:	e8 f8 00 00 00       	call   800f1a60 <_SemAcquire>
 /mn/src/drivers/tty/tty.c:599
-800f1985:	66 c7 83 30 30 0f 80 	movw   $0x1700,0x800f3030(%ebx)
-800f198c:	00 17 
-/mn/src/drivers/tty/tty.c:600
-800f198e:	c7 83 3c 30 0f 80 50 	movl   $0x50,0x800f303c(%ebx)
-800f1995:	00 00 00 
-/mn/src/drivers/tty/tty.c:604
-800f1998:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1968:	8b 15 00 20 0f 80    	mov    0x800f2000,%edx
 /mn/src/drivers/tty/tty.c:601
-800f199b:	c7 83 40 30 0f 80 19 	movl   $0x19,0x800f3040(%ebx)
-800f19a2:	00 00 00 
-/mn/src/drivers/tty/tty.c:602
-800f19a5:	c7 83 4c 30 0f 80 00 	movl   $0x0,0x800f304c(%ebx)
-800f19ac:	00 00 00 
+800f196e:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.c:599
+800f1971:	89 d0                	mov    %edx,%eax
+800f1973:	c1 e0 05             	shl    $0x5,%eax
+800f1976:	29 d0                	sub    %edx,%eax
+800f1978:	8d 04 82             	lea    (%edx,%eax,4),%eax
+800f197b:	c1 e0 05             	shl    $0x5,%eax
+/mn/src/drivers/tty/tty.c:600
+800f197e:	42                   	inc    %edx
+/mn/src/drivers/tty/tty.c:599
+800f197f:	05 00 80 0b f0       	add    $0xf00b8000,%eax
+/mn/src/drivers/tty/tty.c:600
+800f1984:	89 15 00 20 0f 80    	mov    %edx,0x800f2000
+/mn/src/drivers/tty/tty.c:599
+800f198a:	89 83 2c 30 0f 80    	mov    %eax,0x800f302c(%ebx)
+/mn/src/drivers/tty/tty.c:601
+800f1990:	68 30 34 0f 80       	push   $0x800f3430
+800f1995:	e8 be 00 00 00       	call   800f1a58 <_SemRelease>
+/mn/src/drivers/tty/tty.c:608
+800f199a:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/tty/tty.c:603
+800f199d:	66 c7 83 30 30 0f 80 	movw   $0x1700,0x800f3030(%ebx)
+800f19a4:	00 17 
 /mn/src/drivers/tty/tty.c:604
-800f19af:	56                   	push   %esi
-800f19b0:	e8 53 f9 ff ff       	call   800f1308 <_TtyClear>
+800f19a6:	c7 83 3c 30 0f 80 50 	movl   $0x50,0x800f303c(%ebx)
+800f19ad:	00 00 00 
+/mn/src/drivers/tty/tty.c:608
+800f19b0:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.c:605
+800f19b3:	c7 83 40 30 0f 80 19 	movl   $0x19,0x800f3040(%ebx)
+800f19ba:	00 00 00 
 /mn/src/drivers/tty/tty.c:606
-800f19b5:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f19b8:	89 f0                	mov    %esi,%eax
-800f19ba:	5b                   	pop    %ebx
-800f19bb:	5e                   	pop    %esi
-800f19bc:	89 ec                	mov    %ebp,%esp
-800f19be:	5d                   	pop    %ebp
-800f19bf:	c3                   	ret    
-
-800f19c0 <_DrvInit>:
-DrvInit():
-800f19c0:	55                   	push   %ebp
-800f19c1:	89 e5                	mov    %esp,%ebp
-800f19c3:	83 ec 08             	sub    $0x8,%esp
+800f19bd:	c7 83 4c 30 0f 80 00 	movl   $0x0,0x800f304c(%ebx)
+800f19c4:	00 00 00 
+/mn/src/drivers/tty/tty.c:608
+800f19c7:	56                   	push   %esi
+800f19c8:	e8 3b f9 ff ff       	call   800f1308 <_TtyClear>
 /mn/src/drivers/tty/tty.c:610
-800f19c6:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/tty/tty.c:625
-800f19c9:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/tty/tty.c:611
-800f19cc:	c7 40 0c 00 19 0f 80 	movl   $0x800f1900,0xc(%eax)
-/mn/src/drivers/tty/tty.c:613
-800f19d3:	c7 05 10 30 0f 80 a4 	movl   $0x800f18a4,0x800f3010
-800f19da:	18 0f 80 
-/mn/src/drivers/tty/tty.c:614
-800f19dd:	c7 05 14 30 0f 80 70 	movl   $0x800f1870,0x800f3014
-800f19e4:	18 0f 80 
-/mn/src/drivers/tty/tty.c:615
-800f19e7:	c7 05 18 30 0f 80 00 	movl   $0x0,0x800f3018
-800f19ee:	00 00 00 
-/mn/src/drivers/tty/tty.c:616
-800f19f1:	a3 1c 30 0f 80       	mov    %eax,0x800f301c
-/mn/src/drivers/tty/tty.c:617
-800f19f6:	c7 05 2c 30 0f 80 00 	movl   $0xf00b8000,0x800f302c
-800f19fd:	80 0b f0 
-/mn/src/drivers/tty/tty.c:618
-800f1a00:	66 c7 05 30 30 0f 80 	movw   $0x1700,0x800f3030
-800f1a07:	00 17 
-/mn/src/drivers/tty/tty.c:619
-800f1a09:	c7 05 34 30 0f 80 00 	movl   $0x0,0x800f3034
-800f1a10:	00 00 00 
-/mn/src/drivers/tty/tty.c:620
-800f1a13:	c7 05 38 30 0f 80 00 	movl   $0x0,0x800f3038
-800f1a1a:	00 00 00 
-/mn/src/drivers/tty/tty.c:621
-800f1a1d:	c7 05 3c 30 0f 80 50 	movl   $0x50,0x800f303c
-800f1a24:	00 00 00 
-/mn/src/drivers/tty/tty.c:622
-800f1a27:	c7 05 40 30 0f 80 19 	movl   $0x19,0x800f3040
-800f1a2e:	00 00 00 
-/mn/src/drivers/tty/tty.c:623
-800f1a31:	c7 05 4c 30 0f 80 00 	movl   $0x0,0x800f304c
-800f1a38:	00 00 00 
-/mn/src/drivers/tty/tty.c:625
-800f1a3b:	68 10 30 0f 80       	push   $0x800f3010
-800f1a40:	6a 01                	push   $0x1
-800f1a42:	e8 09 00 00 00       	call   800f1a50 <_DevRegisterIrq>
-/mn/src/drivers/tty/tty.c:626
-800f1a47:	89 ec                	mov    %ebp,%esp
-800f1a49:	b8 01 00 00 00       	mov    $0x1,%eax
-800f1a4e:	5d                   	pop    %ebp
-800f1a4f:	c3                   	ret    
+800f19cd:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f19d0:	89 f0                	mov    %esi,%eax
+800f19d2:	5b                   	pop    %ebx
+800f19d3:	5e                   	pop    %esi
+800f19d4:	89 ec                	mov    %ebp,%esp
+800f19d6:	5d                   	pop    %ebp
+800f19d7:	c3                   	ret    
 
-800f1a50 <_DevRegisterIrq>:
-800f1a50:	ff 25 48 50 0f 80    	jmp    *0x800f5048
-800f1a56:	90                   	nop    
-800f1a57:	90                   	nop    
+800f19d8 <_DrvInit>:
+DrvInit():
+800f19d8:	55                   	push   %ebp
+800f19d9:	89 e5                	mov    %esp,%ebp
+/mn/src/drivers/tty/tty.c:614
+800f19db:	8b 45 08             	mov    0x8(%ebp),%eax
+/mn/src/drivers/tty/tty.c:615
+800f19de:	c7 40 0c 18 19 0f 80 	movl   $0x800f1918,0xc(%eax)
+/mn/src/drivers/tty/tty.c:630
+800f19e5:	89 ec                	mov    %ebp,%esp
+/mn/src/drivers/tty/tty.c:620
+800f19e7:	a3 1c 30 0f 80       	mov    %eax,0x800f301c
+/mn/src/drivers/tty/tty.c:617
+800f19ec:	c7 05 10 30 0f 80 b0 	movl   $0x800f18b0,0x800f3010
+800f19f3:	18 0f 80 
+/mn/src/drivers/tty/tty.c:630
+800f19f6:	b8 01 00 00 00       	mov    $0x1,%eax
+/mn/src/drivers/tty/tty.c:618
+800f19fb:	c7 05 14 30 0f 80 70 	movl   $0x800f1870,0x800f3014
+800f1a02:	18 0f 80 
+/mn/src/drivers/tty/tty.c:619
+800f1a05:	c7 05 18 30 0f 80 00 	movl   $0x0,0x800f3018
+800f1a0c:	00 00 00 
+/mn/src/drivers/tty/tty.c:621
+800f1a0f:	c7 05 2c 30 0f 80 00 	movl   $0xf00b8000,0x800f302c
+800f1a16:	80 0b f0 
+/mn/src/drivers/tty/tty.c:622
+800f1a19:	66 c7 05 30 30 0f 80 	movw   $0x1700,0x800f3030
+800f1a20:	00 17 
+/mn/src/drivers/tty/tty.c:623
+800f1a22:	c7 05 34 30 0f 80 00 	movl   $0x0,0x800f3034
+800f1a29:	00 00 00 
+/mn/src/drivers/tty/tty.c:624
+800f1a2c:	c7 05 38 30 0f 80 00 	movl   $0x0,0x800f3038
+800f1a33:	00 00 00 
+/mn/src/drivers/tty/tty.c:625
+800f1a36:	c7 05 3c 30 0f 80 50 	movl   $0x50,0x800f303c
+800f1a3d:	00 00 00 
+/mn/src/drivers/tty/tty.c:626
+800f1a40:	c7 05 40 30 0f 80 19 	movl   $0x19,0x800f3040
+800f1a47:	00 00 00 
+/mn/src/drivers/tty/tty.c:627
+800f1a4a:	c7 05 4c 30 0f 80 00 	movl   $0x0,0x800f304c
+800f1a51:	00 00 00 
+/mn/src/drivers/tty/tty.c:630
+800f1a54:	5d                   	pop    %ebp
+800f1a55:	c3                   	ret    
+800f1a56:	89 f6                	mov    %esi,%esi
 
 800f1a58 <_SemRelease>:
-800f1a58:	ff 25 50 50 0f 80    	jmp    *0x800f5050
+800f1a58:	ff 25 48 50 0f 80    	jmp    *0x800f5048
 800f1a5e:	90                   	nop    
 800f1a5f:	90                   	nop    
 
 800f1a60 <_SemAcquire>:
-800f1a60:	ff 25 4c 50 0f 80    	jmp    *0x800f504c
+800f1a60:	ff 25 44 50 0f 80    	jmp    *0x800f5044
 800f1a66:	90                   	nop    
 800f1a67:	90                   	nop    
 
-800f1a68 <_free>:
-800f1a68:	ff 25 54 50 0f 80    	jmp    *0x800f5054
+800f1a68 <___free>:
+800f1a68:	ff 25 4c 50 0f 80    	jmp    *0x800f504c
 800f1a6e:	90                   	nop    
 800f1a6f:	90                   	nop    
 
 800f1a70 <_memmove>:
-800f1a70:	ff 25 58 50 0f 80    	jmp    *0x800f5058
+800f1a70:	ff 25 50 50 0f 80    	jmp    *0x800f5050
 800f1a76:	90                   	nop    
 800f1a77:	90                   	nop    
 

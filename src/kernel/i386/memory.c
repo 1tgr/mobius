@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.5 2002/01/03 15:44:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -167,7 +167,6 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 	ptr = (void*) mem_temp_end;
 	for (; num_pages > 0; phys++, num_pages--)
 	{
-		assert(*phys != 0);
 		if (!MemMap(mem_temp_end, *phys, mem_temp_end + PAGE_SIZE, priv))
 			return NULL;
 

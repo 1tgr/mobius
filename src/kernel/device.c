@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
+/* $Id: device.c,v 1.5 2002/01/03 15:44:07 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -272,6 +272,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	req->original = NULL;
 	io->dev = dev;
 	io->length = user_buffer_length;
+	io->length_pages = pages;
 	io->mod_buffer_start = (unsigned) user_buffer % PAGE_SIZE;
 	ptr = (addr_t*) (io + 1);
 	user_addr = PAGE_ALIGN((addr_t) user_buffer);
@@ -294,7 +295,7 @@ void DevFinishIo(device_t *dev, asyncio_t *io)
 	unsigned i;
 
 	ptr = (addr_t*) (io + 1);
-	for (i = 0; i < io->length; i += PAGE_SIZE, ptr++)
+	for (i = 0; i < io->length_pages; i++, ptr++)
 		MemLockPages(*ptr, 1, false);
 	
 	LIST_REMOVE(dev->io, io);

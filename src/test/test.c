@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
+/* $Id: test.c,v 1.5 2002/01/03 15:44:08 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,8 +16,8 @@ int main(void)
 	process_info_t *info;*/
 	handle_t file;
 	size_t bytes;
-	wchar_t name[] = SYS_DEVICES L"/fdc0";
-	uint8_t buf[512];
+	wchar_t name[] = SYS_DEVICES L"/keyboard";
+	uint32_t key;
 	
 	wprintf(L"Hello from tty0!\n");
 	wprintf(L"Here's an escape sequence: \x1b[31mThis should be red!\x1b[37m\n");
@@ -33,19 +33,21 @@ int main(void)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		bytes = FsRead(file, buf, sizeof(buf));
+		do
+		{
+			bytes = FsRead(file, &key, sizeof(key));
+			/*wprintf(L"Read %u bytes; the device says: %02x %02x %02x %02x\n", 
+				bytes, buf[0], buf[1], buf[2], buf[3]);*/
+			wprintf(L"%c", (wchar_t) key);
+		} while (bytes > 0);
+
 		FsClose(file);
-		wprintf(L"Read %u bytes\n", bytes);
-		wprintf(L"The disk says: %02x %02x %02x\n", buf[0], buf[1], buf[2]);
 	}
 
 	/*info = ProcGetProcessInfo();
 	while (FsRead(info->std_in, &key, sizeof(key)) == sizeof(key))
 		wprintf(L"Key: %u\n", key);*/
 	
-	for (;;)
-		;
-
 	wprintf(L"Bye now...\n");
 	return EXIT_SUCCESS;
 }

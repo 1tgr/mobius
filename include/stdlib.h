@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.3 2002/01/03 15:44:07 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -63,6 +63,13 @@ unsigned long	strtoul(const char *_s, char **_endptr, int _base);
 int 	system(const char *_s);
 size_t	wcstombs(char *_s, const wchar_t *_wcs, size_t _n);
 int 	wctomb(char *_s, wchar_t _wchar);
+
+void *	__malloc(size_t _size, const char *, int);
+void	__free(void *_ptr, const char *, int);
+#ifdef KERNEL
+#define	malloc(s)	__malloc(s, __FILE__, __LINE__)
+#define	free(s)		__free(s, __FILE__, __LINE__)
+#endif
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.5 2002/01/03 15:44:07 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -222,6 +222,7 @@ struct ata_ctrlreq_t
 #define ATAPI_PACKET	REQUEST_CODE(0, 0, 'a', 'p')
 
 unsigned num_controllers;
+uint8_t bios_params[16];
 
 void nsleep(unsigned ns)
 {
@@ -567,33 +568,6 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, ata_ctrlreq_t *req_ctrl)
 	}
 }
 
-/*void AtaCtrlFinish(device_t *dev, asyncio_t *io)
-{
-	ata_ctrlreq_t *req_ctrl = (ata_ctrlreq_t*) io->req;
-
-	if (io->req->result == 0)
-	{
-		switch (io->req->code)
-		{
-		case ATA_COMMAND:
-			memcpy(req_ctrl->params.ata_command.buffer, 
-				io->buffer, 
-				io->length);
-			free(io->buffer);
-			EvtSignal(NULL, io->req->event);
-			break;
-
-		case ATAPI_PACKET:
-			memcpy(req_ctrl->params.atapi_packet.buffer, 
-				io->buffer, 
-				io->length);
-			free(io->buffer);
-			EvtSignal(NULL, io->req->event);
-			break;
-		}
-	}
-}*/
-
 bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 {
 	ata_ctrl_t *ctrl = (ata_ctrl_t*) dev;
@@ -622,7 +596,7 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 				io->length,
 				*ptr);
 			
-			buf = MemMapTemp(ptr, PAGE_ALIGN_UP(io->length) / PAGE_SIZE, 
+			buf = MemMapTemp(ptr, io->length_pages, 
 				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
 
 			assert(buf != NULL);
@@ -669,8 +643,6 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
 		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
 			req_ctrl->params.atapi_packet.buffer, 
 			ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
-		/*io->length = ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count;
-		io->buffer = malloc(io->length);*/
 		if (ctrl->command == CMD_IDLE)
 			AtaServiceCtrlRequest(ctrl);
 		break;
@@ -680,8 +652,6 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
 		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
 			req_ctrl->params.ata_command.buffer,
 			SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count);
-		/*io->length = SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count;
-		io->buffer = malloc(io->length);*/
 		if (ctrl->command == CMD_IDLE)
 			AtaServiceCtrlRequest(ctrl);
 		return true;
@@ -869,7 +839,7 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 	uint32_t size;
 	wchar_t name[50];
 	device_t *dev;
-
+	
 	wprintf(L"AtaInitController: initialising controller on %x\n", ctrl->base);
 
 	/* Check for controller */
@@ -973,28 +943,67 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 	return true;
 }
 
+#pragma pack(push, 1)
+typedef struct
+{
+	uint16_t cylinders;
+	uint8_t heads;
+	uint16_t starting_reduced_write_current_cylinder;
+	uint16_t starting_write_precomp_cylinder;
+	uint8_t maximum_ECC_data_burst_length;
+	uint8_t flags;
+} bios_params_t;
+#pragma pack(pop)
+
 device_t* AtaAddController(driver_t *drv, const wchar_t *name, 
 						   device_config_t *cfg)
 {
 	ata_ctrl_t* ctrl;
+	addr_t phys;
+	uint32_t *bda;
+	unsigned num_bios_drives, mod;
+	uint16_t vector[2];
+	uint8_t *buf;
 
-	ctrl = malloc(sizeof(ata_ctrl_t));
-	ctrl->dev.request = AtaCtrlRequest;
-	ctrl->dev.isr = AtaCtrlIsr;
-	ctrl->dev.finishio = NULL;
-	ctrl->dev.driver = drv;
-	ctrl->dev.cfg = cfg;
-	ctrl->base = 0x1F0;
-	SemInit(&ctrl->sem);
-	num_controllers++;
+	phys = 0;
+	bda = MemMapTemp(&phys, 1, PRIV_KERN | PRIV_RD | PRIV_PRES);
+	assert(bda != NULL);
+	num_bios_drives = bda[0x475];
+	wprintf(L"ata: num_bios_drives = %u\n", num_bios_drives);
+	
+	/*memcpy(vector, ((uint32_t*) bda)[0x41], sizeof(vector));
+	phys = vector[1] << 16 | vector[0];
+	mod = phys % PAGE_SIZE;
+	phys = PAGE_ALIGN_DOWN(phys);
+	buf = MemMapTemp(&phys, 
+		mod > PAGE_SIZE - sizeof(bios_params_t) ? 2 : 1,
+		PRIV_KERN | PRIV_RD | PRIV_PRES);
 
-	if (!AtaInitController(ctrl))
+	memcpy(vector, ((uint32_t*) bda)[0x46], sizeof(vector));*/
+	MemUnmapTemp();
+
+	if (num_bios_drives > 0)
 	{
-		free(ctrl);
-		return NULL;
-	}
+		ctrl = malloc(sizeof(ata_ctrl_t));
+		ctrl->dev.request = AtaCtrlRequest;
+		ctrl->dev.isr = AtaCtrlIsr;
+		ctrl->dev.finishio = NULL;
+		ctrl->dev.driver = drv;
+		ctrl->dev.cfg = cfg;
+		ctrl->base = 0x1F0;
+		SemInit(&ctrl->sem);
+		num_controllers++;
 
-	return &ctrl->dev;
+		if (!AtaInitController(ctrl))
+		{
+			free(ctrl);
+			return NULL;
+		}
+
+		return &ctrl->dev;
+	}
+	else
+		return NULL;
 }
 
 bool DrvInit(driver_t *drv)
