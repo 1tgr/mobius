@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.13 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.14 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -59,10 +59,12 @@ struct thread_t
     void *param;
     queue_t msgqueue;
 
+#ifdef i386
     bool v86_if;
     addr_t v86_handler;
     bool v86_in_handler;
     context_v86_t v86_context;
+#endif
 };
 
 typedef struct cpu_t cpu_t;

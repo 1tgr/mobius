@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.7 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.8 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -9,6 +9,7 @@ extern "C"
 
 #include <sys/types.h>
 #include <kernel/handle.h>
+#include <kernel/fs.h>
 
 struct thread_t;
 
@@ -51,6 +52,8 @@ struct process_t
 	struct process_info_t *info;
 	unsigned id;
 	process_t *creator;
+    int exit_code;
+    vnode_t root, cur_dir;
 };
 
 extern process_t *proc_first, *proc_last;
@@ -65,7 +68,7 @@ void        PeUnload(process_t* proc, module_t* mod);
 addr_t      PeGetExport(module_t* mod, const char* name, uint16_t hint);
 bool        PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
                                size_t *bytes, uint32_t *flags);
-void        PeInitImage(module_t *mod);
+void        PeProcessSection(module_t *mod, addr_t addr);
 
 /*! @} */
 

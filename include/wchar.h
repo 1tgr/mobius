@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.11 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.12 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -88,10 +88,12 @@ float wcstof(const wchar_t *restrict nptr,
     wchar_t **restrict endptr);
 long double wcstold(const wchar_t *restrict nptr,
     wchar_t **restrict endptr);
+#ifndef _MSC_VER
 long long wcstoll(const wchar_t *restrict nptr, wchar_t **restrict endptr,
     int base);
 unsigned long long wcstoull(const wchar_t *restrict nptr, wchar_t **restrict endptr,
     int base);
+#endif
 long wcstol(const wchar_t *restrict nptr, wchar_t **restrict endptr,
     int base);
 unsigned long wcstoul(const wchar_t *restrict nptr, wchar_t **restrict endptr,

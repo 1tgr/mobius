@@ -1,4 +1,4 @@
-/* $Id: coff.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: coff.h,v 1.4 2002/08/14 16:30:53 pavlovskii Exp $ */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_coff_h_
 #define __dj_include_coff_h_
@@ -132,13 +132,16 @@ struct external_scnhdr {
  * grouping will have l_lnno = 0 and in place of physical address will be the
  * symbol table index of the function name.
  */
+
+#pragma pack(push, 1)
 struct external_lineno {
 	union {
-		unsigned long l_symndx __attribute__((packed));	/* function name symbol index, iff l_lnno == 0 */
-		unsigned long l_paddr __attribute__((packed));		/* (physical) address of line number */
+		unsigned long l_symndx;	/* function name symbol index, iff l_lnno == 0 */
+		unsigned long l_paddr;		/* (physical) address of line number */
 	} l_addr;
 	unsigned short l_lnno;						/* line number */
 };
+#pragma pack(pop)
 
 
 #define	LINENO	struct external_lineno
@@ -151,16 +154,17 @@ struct external_lineno {
 #define E_FILNMLEN	14	/* # characters in a file name		*/
 #define E_DIMNUM	4	/* # array dimensions in auxiliary entry */
 
+#pragma pack(push, 1)
 struct external_syment 
 {
   union {
     char e_name[E_SYMNMLEN];
     struct {
-      unsigned long e_zeroes __attribute__((packed));
-      unsigned long e_offset __attribute__((packed));
+      unsigned long e_zeroes;
+      unsigned long e_offset;
     } e;
   } e;
-  unsigned long e_value __attribute__((packed));
+  unsigned long e_value;
   short e_scnum;
   unsigned short e_type;
   unsigned char e_sclass;
@@ -174,18 +178,18 @@ struct external_syment
   
 union external_auxent {
 	struct {
-		unsigned long x_tagndx __attribute__((packed));		/* str, un, or enum tag indx */
+		unsigned long x_tagndx;		/* str, un, or enum tag indx */
 		union {
 			struct {
 			    unsigned short  x_lnno;				/* declaration line number */
 			    unsigned short  x_size; 				/* str/union/array size */
 			} x_lnsz;
-			unsigned long x_fsize __attribute__((packed));		/* size of function */
+			unsigned long x_fsize;		/* size of function */
 		} x_misc;
 		union {
 			struct {					/* if ISFCN, tag, or .bb */
-			    unsigned long x_lnnoptr __attribute__((packed));	/* ptr to fcn line # */
-			    unsigned long x_endndx __attribute__((packed));	/* entry ndx past block end */
+			    unsigned long x_lnnoptr;	/* ptr to fcn line # */
+			    unsigned long x_endndx;	/* entry ndx past block end */
 			} x_fcn;
 			struct {					/* if ISARY, up to 4 dimen. */
 			    unsigned short x_dimen[E_DIMNUM];
@@ -197,25 +201,27 @@ union external_auxent {
 	union {
 		char x_fname[E_FILNMLEN];
 		struct {
-			unsigned long x_zeroes __attribute__((packed));
-			unsigned long x_offset __attribute__((packed));
+			unsigned long x_zeroes;
+			unsigned long x_offset;
 		} x_n;
 	} x_file;
 
 	struct {
-		unsigned long x_scnlen __attribute__((packed));		/* section length */
+		unsigned long x_scnlen;		/* section length */
 		unsigned short x_nreloc;					/* # relocation entries */
 		unsigned short x_nlinno;					/* # line numbers */
 	} x_scn;
 
         struct {
-		unsigned long x_tvfill __attribute__((packed));		/* tv fill value */
+		unsigned long x_tvfill;		/* tv fill value */
 		unsigned short x_tvlen;						/* length of .tv */
 		unsigned short x_tvran[2];					/* tv range */
 	} x_tv;		/* info about .tv section (in auxent of symbol .tv)) */
 
 
 };
+
+#pragma pack(pop)
 
 #define	SYMENT	struct external_syment
 #define	SYMESZ	sizeof(SYMENT)
@@ -309,11 +315,13 @@ union external_auxent {
 
 
 
+#pragma pack(push, 1)
 struct external_reloc {
-  unsigned long r_vaddr __attribute__((packed));
-  unsigned long r_symndx __attribute__((packed));
+  unsigned long r_vaddr;
+  unsigned long r_symndx;
   unsigned short r_type;
 };
+#pragma pack(pop)
 
 
 #define RELOC struct external_reloc

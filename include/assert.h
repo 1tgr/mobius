@@ -1,4 +1,4 @@
-/* $Id: assert.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: assert.h,v 1.3 2002/08/14 16:30:53 pavlovskii Exp $ */
 /* Copyright (C) 1997 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_ENFORCE_ANSI_FREESTANDING
 
@@ -17,7 +17,7 @@
 extern "C" {
 #endif
 
-void	__dj_assert(const char *,const char *,int) __attribute__((__noreturn__));
+void	__dj_assert(const char *,const char *,int);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.13 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.14 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -320,6 +320,8 @@ struct thread_t *i386CreateV86Thread(uint32_t entry, uint32_t stack_top,
 bool    i386HandlePageFault(addr_t cr2, bool is_writing);
 void    i386MpProbe(void);
 void    i386MpInit(void);
+
+extern char scode[];
 
 /*
  * Remote debugging in gdb_stub.c

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.17 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.18 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -406,13 +406,29 @@ struct device_vtbl_t
 #define DEVICE_IO_PAGED     0
 #define DEVICE_IO_DIRECT    1
 
+#ifndef __cominterface
+#ifdef _MSC_VER
+#define __cominterface
+#else
+#define __cominterface  __attribute__((com_interface))
+#endif
+#endif
+
+#ifndef __comcall
+#ifdef _MSC_VER
+#define __comcall       __cdecl
+#else
+#define __comcall
+#endif
+#endif
+
 #ifdef __cplusplus
 /*!    \brief    Device object (C++ definition) */
-struct __attribute__((com_interface)) device_t
+struct __cominterface device_t
 {
-    virtual bool request(request_t *req) = 0;
-    virtual bool isr(uint8_t irq) = 0;
-    virtual void finishio(request_t *req) = 0;
+    virtual bool __comcall request(request_t *req) = 0;
+    virtual bool __comcall isr(uint8_t irq) = 0;
+    virtual void __comcall finishio(request_t *req) = 0;
 
     driver_t *driver;
     device_config_t *cfg;
@@ -446,6 +462,7 @@ bool        DevInstallDevice(const wchar_t *driver, const wchar_t *name, device_
 void	    DevUnloadDriver(driver_t *driver);
 
 bool	    DevRegisterIrq(uint8_t irq, device_t *dev);
+void        DevInitDevice(device_t *dev, const device_vtbl_t *vtbl, driver_t *drv, uint32_t flags);
 bool	    DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg);
 asyncio_t*  DevQueueRequest(device_t *dev, request_t *req, size_t size, 
                             page_array_t *pages, size_t user_buffer_length);

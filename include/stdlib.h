@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.10 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.11 2002/08/14 16:30:53 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -31,10 +31,12 @@ typedef struct {
   long rem;
 } ldiv_t;
 
+#ifndef _MSC_VER
 typedef struct {
   long long quot;
   long long rem;
 } lldiv_t;
+#endif
 
 #include <sys/types.h>
 
@@ -42,7 +44,13 @@ typedef struct {
 #define _countof(a) (sizeof(a) / sizeof((a)[0]))
 #endif
 
-void    abort(void) __attribute__((noreturn));
+#ifdef _MSC_VER
+#define __noreturn
+#else
+#define __noreturn __attribute__((noreturn))
+#endif
+
+void    abort(void) __noreturn;
 int     abs(int _i);
 int     atexit(void (*_func)(void));
 double  atof(const char *_s);
@@ -52,7 +60,7 @@ void *  bsearch(const void *_key, const void *_base, size_t _nelem,
                 size_t _size, int (*_cmp)(const void *_ck, const void *_ce));
 void *  calloc(size_t _nelem, size_t _size);
 div_t   div(int _numer, int _denom);
-void    exit(int _status) __attribute__((noreturn));
+void    exit(int _status) __noreturn;
 void    free(void *_ptr);
 char *  getenv(const char *_name);
 long    labs(long _i);

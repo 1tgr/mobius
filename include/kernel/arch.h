@@ -1,9 +1,11 @@
-/* $Id: arch.h,v 1.8 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: arch.h,v 1.9 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_ARCH_H
 #define __KERNEL_ARCH_H
 
 #ifdef i386
 #include "i386.h"
+#elif defined(WIN32)
+#include "win32.h"
 #else
 #error Must specify architecture in makefile
 #endif
@@ -33,6 +35,7 @@ void    ArchReboot(void);
 void    ArchPowerOff(void);
 void    ArchMicroDelay(unsigned microseconds);
 unsigned ArchThisCpu(void);
+wchar_t ArchGetKey(void);
 
 /*! @} */
 

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.14 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.15 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -48,6 +48,7 @@
 
 #define SYS_ProcExitProcess     0x300
 #define SYS_ProcSpawnProcess    0x301
+#define SYS_ProcGetExitCode     0x302
 
 #define SYS_FsCreate            0x400
 #define SYS_FsOpen              0x401
@@ -62,6 +63,8 @@
 #define SYS_FsIoCtl             0x409
 #define SYS_FsReadDir           0x40a
 #define SYS_FsQueryHandle       0x40b
+#define SYS_FsCreateDir         0x40c
+#define SYS_FsChangeDir         0x40d
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
@@ -93,84 +96,87 @@ SYS_END_GROUP(0)
 
 /* 1 */
 SYS_BEGIN_GROUP(1)
-SYSCALL(int, DbgWrite, 8, const wchar_t*, size_t)
-SYSCALL(int, Hello, 8, int, int)
-SYSCALL(unsigned, SysUpTime, 0, void)
-SYSCALL(bool, SysGetInfo, 4, struct sysinfo_t *)
-SYSCALL(bool, SysGetTimes, 4, struct systimes_t *)
-SYSCALL(bool, SysShutdown, 4, unsigned)
-SYSCALL(void, KeLeakBegin, 0, void)
-SYSCALL(void, KeLeakEnd, 0, void)
-SYSCALL(void, SysYield, 0, void)
-SYSCALL(void, KeSetSingleStep, 4, bool)
+SYSCALL(int, DbgWrite, 8, (const wchar_t*, size_t))
+SYSCALL(int, Hello, 8, (int, int))
+SYSCALL(unsigned, SysUpTime, 0, (void))
+SYSCALL(bool, SysGetInfo, 4, (struct sysinfo_t *))
+SYSCALL(bool, SysGetTimes, 4, (struct systimes_t *))
+SYSCALL(bool, SysShutdown, 4, (unsigned))
+SYSCALL(void, KeLeakBegin, 0, (void))
+SYSCALL(void, KeLeakEnd, 0, (void))
+SYSCALL(void, SysYield, 0, (void))
+SYSCALL(void, KeSetSingleStep, 4, (bool))
 SYS_END_GROUP(1)
 
 /* 2 */
 SYS_BEGIN_GROUP(2)
-SYSCALL(void, ThrExitThread, 4, int)
-SYSCALL(bool, ThrWaitHandle, 4, handle_t)
-SYSCALL(void, ThrSleep, 4, unsigned)
-SYSCALL(handle_t, ThrCreateV86Thread, 16, uint32_t, uint32_t, unsigned, void (*)(void))
-SYSCALL(bool, ThrGetV86Context, 4, struct context_v86_t*)
-SYSCALL(bool, ThrSetV86Context, 4, const struct context_v86_t*)
-SYSCALL(bool, ThrContinueV86, 0, void)
-SYSCALL(handle_t, ThrCreateThread, 12, void (*)(void), void*, unsigned)
+SYSCALL(void, ThrExitThread, 4, (int))
+SYSCALL(bool, ThrWaitHandle, 4, (handle_t))
+SYSCALL(void, ThrSleep, 4, (unsigned))
+SYSCALL(handle_t, ThrCreateV86Thread, 16, (uint32_t, uint32_t, unsigned, void (*)(void)))
+SYSCALL(bool, ThrGetV86Context, 4, (struct context_v86_t*))
+SYSCALL(bool, ThrSetV86Context, 4, (const struct context_v86_t*))
+SYSCALL(bool, ThrContinueV86, 0, (void))
+SYSCALL(handle_t, ThrCreateThread, 12, (void (*)(void), void*, unsigned))
 SYS_END_GROUP(2)
 
 /* 3 */
 SYS_BEGIN_GROUP(3)
-SYSCALL(void, ProcExitProcess, 4, int)
-SYSCALL(handle_t, ProcSpawnProcess, 8, const wchar_t*, const struct process_info_t *)
+SYSCALL(void, ProcExitProcess, 4, (int))
+SYSCALL(handle_t, ProcSpawnProcess, 8, (const wchar_t*, const struct process_info_t *))
+SYSCALL(int, ProcGetExitCode, 4, (handle_t))
 SYS_END_GROUP(3)
 
 /* 4 */
 SYS_BEGIN_GROUP(4)
-SYSCALL(handle_t, FsCreate, 8, const wchar_t*, uint32_t)
-SYSCALL(handle_t, FsOpen, 8, const wchar_t*, uint32_t)
-SYSCALL(bool, FsClose, 4, handle_t)
-SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t *)
-SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t *)
-SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
+SYSCALL(handle_t, FsCreate, 8, (const wchar_t*, uint32_t))
+SYSCALL(handle_t, FsOpen, 8, (const wchar_t*, uint32_t))
+SYSCALL(bool, FsClose, 4, (handle_t))
+SYSCALL(bool, FsRead, 16, (handle_t, void*, size_t, struct fileop_t *))
+SYSCALL(bool, FsWrite, 16, (handle_t, const void*, size_t, struct fileop_t *))
+SYSCALL(off_t, FsSeek, 12, (handle_t, off_t, unsigned))
 /*SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)*/
-SYSCALL(handle_t, FsOpenDir, 4, const wchar_t*)
-SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void *, size_t)
-SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
-SYSCALL(bool, FsIoCtl, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
-SYSCALL(bool, FsReadDir, 12, handle_t, struct dirent_t *, size_t)
-SYSCALL(bool, FsQueryHandle, 16, handle_t, uint32_t, void *, size_t)
+SYSCALL(handle_t, FsOpenDir, 4, (const wchar_t*))
+SYSCALL(bool, FsQueryFile, 16, (const wchar_t*, uint32_t, void *, size_t))
+SYSCALL(bool, FsRequestSync, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
+SYSCALL(bool, FsIoCtl, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
+SYSCALL(bool, FsReadDir, 12, (handle_t, struct dirent_t *, size_t))
+SYSCALL(bool, FsQueryHandle, 16, (handle_t, uint32_t, void *, size_t))
+SYSCALL(bool, FsCreateDir, 4, (const wchar_t*))
+SYSCALL(bool, FsChangeDir, 4, (const wchar_t*))
 SYS_END_GROUP(4)
 
 /* 5 */
 SYS_BEGIN_GROUP(5)
-SYSCALL(void *, VmmAlloc, 12, size_t, addr_t, uint32_t)
-SYSCALL(bool, VmmFree, 4, void*)
-SYSCALL(void *, VmmMapShared, 12, const wchar_t *, addr_t, uint32_t)
-SYSCALL(void *, VmmMapFile, 16, handle_t, addr_t, size_t, uint32_t)
+SYSCALL(void *, VmmAlloc, 12, (size_t, addr_t, uint32_t))
+SYSCALL(bool, VmmFree, 4, (void*))
+SYSCALL(void *, VmmMapShared, 12, (const wchar_t *, addr_t, uint32_t))
+SYSCALL(void *, VmmMapFile, 16, (handle_t, addr_t, size_t, uint32_t))
 SYS_END_GROUP(5)
 
 /* 6 */
 SYS_BEGIN_GROUP(6)
-SYSCALL(handle_t, EvtAlloc, 0, void)
-SYSCALL(bool, HndClose, 4, handle_t)
-SYSCALL(void, EvtSignal, 4, handle_t)
-SYSCALL(bool, EvtIsSignalled, 4, handle_t)
+SYSCALL(handle_t, EvtAlloc, 0, (void))
+SYSCALL(bool, HndClose, 4, (handle_t))
+SYSCALL(void, EvtSignal, 4, (handle_t))
+SYSCALL(bool, EvtIsSignalled, 4, (handle_t))
 SYS_END_GROUP(6)
 
 /* 7 */
 SYS_BEGIN_GROUP(7)
-SYSCALL(handle_t, WndCreate, 12, handle_t, const struct wndattr_t *, unsigned)
-SYSCALL(bool, WndClose, 4, handle_t)
-SYSCALL(bool, WndPostMessage, 8, handle_t, const struct msg_t *)
-SYSCALL(bool, WndInvalidate, 8, handle_t, const struct MGLrect *)
-SYSCALL(bool, WndGetMessage, 4, struct msg_t*)
-SYSCALL(bool, WndGetAttribute, 20, handle_t, uint32_t, uint32_t, void *, size_t*)
-SYSCALL(bool, WndSetAttribute, 20, handle_t, uint32_t, uint32_t, const void *, size_t)
-SYSCALL(handle_t, WndOwnRoot, 0, void)
-SYSCALL(bool, WndQueueInput, 4, const struct wndinput_t*)
-SYSCALL(bool, WndSetFocus, 4, handle_t)
-SYSCALL(bool, WndHasFocus, 4, handle_t)
-SYSCALL(bool, WndSetCapture, 8, handle_t, bool)
-SYSCALL(bool, WndGetClip, 12, handle_t, struct MGLrect *, size_t*)
+SYSCALL(handle_t, WndCreate, 12, (handle_t, const struct wndattr_t *, unsigned))
+SYSCALL(bool, WndClose, 4, (handle_t))
+SYSCALL(bool, WndPostMessage, 8, (handle_t, const struct msg_t *))
+SYSCALL(bool, WndInvalidate, 8, (handle_t, const struct MGLrect *))
+SYSCALL(bool, WndGetMessage, 4, (struct msg_t*))
+SYSCALL(bool, WndGetAttribute, 20, (handle_t, uint32_t, uint32_t, void *, size_t*))
+SYSCALL(bool, WndSetAttribute, 20, (handle_t, uint32_t, uint32_t, const void *, size_t))
+SYSCALL(handle_t, WndOwnRoot, 0, (void))
+SYSCALL(bool, WndQueueInput, 4, (const struct wndinput_t*))
+SYSCALL(bool, WndSetFocus, 4, (handle_t))
+SYSCALL(bool, WndHasFocus, 4, (handle_t))
+SYSCALL(bool, WndSetCapture, 8, (handle_t, bool))
+SYSCALL(bool, WndGetClip, 12, (handle_t, struct MGLrect *, size_t*))
 SYS_END_GROUP(7)
 
 /*! @} */

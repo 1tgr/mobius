@@ -1,4 +1,4 @@
-/* $Id: signal.h,v 1.3 2002/05/05 13:46:33 pavlovskii Exp $ */
+/* $Id: signal.h,v 1.4 2002/08/14 16:30:53 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_signal_h_
@@ -41,6 +41,8 @@ void	(*signal(int _sig, void (*_func)(int)))(int);
 #define SIGUSR1	12
 #define SIGUSR2	13
 
+#define _SIGMAX 14
+
 #define SIG_BLOCK	1
 #define SIG_SETMASK	2
 #define SIG_UNBLOCK	3
@@ -69,23 +71,6 @@ int	sigpending(sigset_t *_set);
 int	sigprocmask(int _how, const sigset_t *_set, sigset_t *_oset);
 int	sigsuspend(const sigset_t *_set);
 
-#ifndef _POSIX_SOURCE
-
-#define SIGNOFP 301
-#define SIGTRAP 302
-#define SIGTIMR 303	/* Internal for setitimer (SIGALRM, SIGPROF) */
-#define SIGPROF 304
-#define SIGMAX 320
-
-void	__djgpp_traceback_exit(int _sig);
-
-#define NSIG SIGMAX
-
-extern char *sys_siglist[];
-
-void	psignal(int _sig, const char *_msg);
-
-#endif /* !_POSIX_SOURCE */
 #endif /* !__STRICT_ANSI__ */
 #endif /* !__dj_ENFORCE_ANSI_FREESTANDING */
 

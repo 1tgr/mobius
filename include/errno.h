@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.10 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.11 2002/08/14 16:30:53 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -37,8 +37,11 @@ int *_geterrno(void);
 #define EACCES      EACCESS
 #define EINVAL      EINVALID
 #define ENOENT      ENOTFOUND
+#define ENFILE      EMFILE
 
 #define ENMFILE     38
+#define EINTR       39
+#define EAGAIN      40
 
 extern char *       sys_errlist[];
 extern wchar_t *    sys_werrlist[];

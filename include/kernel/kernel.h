@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.7 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.8 2002/08/14 16:30:53 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -78,8 +78,6 @@ int     _cputws(const wchar_t *str, size_t count);
 #define FOREACH(item, list) \
     for (item = list##_first; item != NULL; item = item->next)
 
-#define KeYield() __asm__("int $0x30" : : "a" (0x108), "c" (0), "d" (0))
-
 typedef struct kernel_hooks_t kernel_hooks_t;
 struct kernel_hooks_t
 {
@@ -97,14 +95,23 @@ void KeAtomicDec(unsigned *n);
 void *KeGetSysCall(unsigned id);
 void *KeSetSysCall(unsigned id, void *ptr);
 
+void *sbrk_virtual(size_t diff);
+
 #ifdef __SMP__
 #define MAX_CPU     4
 #else
 #define MAX_CPU     1
 #endif
 
+#ifdef _MSC_VER
+#define __initcode
+#define __initdata
+#define KeYield()
+#else
 #define __initcode __attribute__((section (".dtext")))
 #define __initdata __attribute__((section (".ddata")))
+#define KeYield() __asm__("int $0x30" : : "a" (0x108), "c" (0), "d" (0))
+#endif
 
 /*! @} */
 
