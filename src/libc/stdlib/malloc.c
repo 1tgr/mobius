@@ -271,14 +271,15 @@ static int cpuinfo (int whole, unsigned long *kernel, unsigned long *user);
 
 #include <os/syscall.h>
 #include <os/defs.h>
+#include <malloc.h>
 
 /* Mobius doesn't supply or need the following headers */
 #define LACKS_UNISTD_H
 #define LACKS_SYS_PARAM_H
 #define LACKS_SYS_MMAN_H
 
-#define MORECORE __morecore
-#define MORECORE_CONTIGUOUS 1
+#define MORECORE av->__morecore
+#define MORECORE_CONTIGUOUS 0
 #define MORECORE_FAILURE    ((void*)(-1))
 
 /* Use the supplied emulation of mmap and munmap */
@@ -534,55 +535,55 @@ extern "C" {
 */
 
 #ifndef USE_PUBLIC_MALLOC_WRAPPERS
-#define cALLOc      public_cALLOc
-#define fREe        public_fREe
-#define cFREe       public_cFREe
-#define mALLOc      public_mALLOc
-#define mEMALIGn    public_mEMALIGn
-#define rEALLOc     public_rEALLOc
-#define vALLOc      public_vALLOc
-#define pVALLOc     public_pVALLOc
+#define acALLOc     public_acALLOc
+#define afREe       public_afREe
+#define acFREe      public_acFREe
+#define amALLOc     public_amALLOc
+#define amEMALIGn   public_amEMALIGn
+#define arEALLOc    public_arEALLOc
+#define avALLOc     public_avALLOc
+#define apVALLOc    public_apVALLOc
 #define mALLINFo    public_mALLINFo
 #define mALLOPt     public_mALLOPt
 #define mTRIm       public_mTRIm
 #define mSTATs      public_mSTATs
 #define mUSABLe     public_mUSABLe
-#define iCALLOc     public_iCALLOc
-#define iCOMALLOc   public_iCOMALLOc
+#define iaCALLOc    public_iaCALLOc
+#define iaCOMALLOc  public_iaCOMALLOc
 #endif
 
 #ifdef USE_DL_PREFIX
-#define public_cALLOc    dlcalloc
-#define public_fREe      dlfree
-#define public_cFREe     dlcfree
-#define public_mALLOc    dlmalloc
-#define public_mEMALIGn  dlmemalign
-#define public_rEALLOc   dlrealloc
-#define public_vALLOc    dlvalloc
-#define public_pVALLOc   dlpvalloc
+#define public_acALLOc   dlacalloc
+#define public_afREe     dlafree
+#define public_acFREe    dlacfree
+#define public_amALLOc   dlamalloc
+#define public_amEMALIGn dlamemalign
+#define public_arEALLOc  dlarealloc
+#define public_avALLOc   dlavalloc
+#define public_apVALLOc  dlapvalloc
 #define public_mALLINFo  dlmallinfo
 #define public_mALLOPt   dlmallopt
 #define public_mTRIm     dlmalloc_trim
 #define public_mSTATs    dlmalloc_stats
 #define public_mUSABLe   dlmalloc_usable_size
-#define public_iCALLOc   dlindependent_calloc
-#define public_iCOMALLOc dlindependent_comalloc
+#define public_iaCALLOc  dlindependent_acalloc
+#define public_iaCOMALLOc dlindependent_acomalloc
 #else /* USE_DL_PREFIX */
-#define public_cALLOc    calloc
-#define public_fREe      free
-#define public_cFREe     cfree
-#define public_mALLOc    malloc
-#define public_mEMALIGn  memalign
-#define public_rEALLOc   realloc
-#define public_vALLOc    valloc
-#define public_pVALLOc   pvalloc
+#define public_acALLOc   acalloc
+#define public_afREe     afree
+#define public_acFREe    acfree
+#define public_amALLOc   amalloc
+#define public_amEMALIGn amemalign
+#define public_arEALLOc  arealloc
+#define public_avALLOc   avalloc
+#define public_apVALLOc  apvalloc
 #define public_mALLINFo  mallinfo
 #define public_mALLOPt   mallopt
 #define public_mTRIm     malloc_trim
 #define public_mSTATs    malloc_stats
 #define public_mUSABLe   malloc_usable_size
-#define public_iCALLOc   independent_calloc
-#define public_iCOMALLOc independent_comalloc
+#define public_iaCALLOc  independent_acalloc
+#define public_iaCOMALLOc independent_acomalloc
 #endif /* USE_DL_PREFIX */
 
 
@@ -702,7 +703,7 @@ extern Void_t*     sbrk();
   a hand-crafted MORECORE function that cannot handle negative arguments.
 */
 
-/* #define MORECORE_CANNOT_TRIM */
+#define MORECORE_CANNOT_TRIM
 
 
 /*
@@ -1004,8 +1005,6 @@ Void_t*  public_vALLOc(size_t);
 Void_t*  public_vALLOc();
 #endif
 
-
-
 /*
   mallopt(int parameter_number, int parameter_value)
   Sets tunable parameters The format is to provide a
@@ -1028,7 +1027,7 @@ Void_t*  public_vALLOc();
   M_MMAP_MAX       -4         65536      any   (0 disables use of mmap)
 */
 #if __STD_C
-int      public_mALLOPt(int, int);
+int      public_mALLOPt(mstate, int, int);
 #else
 int      public_mALLOPt();
 #endif
@@ -1058,7 +1057,7 @@ int      public_mALLOPt();
   thus be inaccurate.
 */
 #if __STD_C
-struct mallinfo public_mALLINFo(void);
+struct mallinfo public_mALLINFo(mstate);
 #else
 struct mallinfo public_mALLINFo();
 #endif
@@ -1116,9 +1115,9 @@ struct mallinfo public_mALLINFo();
   }
 */
 #if __STD_C
-Void_t** public_iCALLOc(size_t, size_t, Void_t**);
+Void_t** public_aiCALLOc(mstate, size_t, size_t, Void_t**);
 #else
-Void_t** public_iCALLOc();
+Void_t** public_aiCALLOc();
 #endif
 
 /*
@@ -1181,9 +1180,9 @@ Void_t** public_iCALLOc();
   might be available for some of the elements.
 */
 #if __STD_C
-Void_t** public_iCOMALLOc(size_t, size_t*, Void_t**);
+Void_t** public_iaCOMALLOc(mstate av, size_t, size_t*, Void_t**);
 #else
-Void_t** public_iCOMALLOc();
+Void_t** public_iaCOMALLOc();
 #endif
 
 
@@ -1237,7 +1236,7 @@ void     public_cFREe();
   rreturn 0.
 */
 #if __STD_C
-int      public_mTRIm(size_t);
+int      public_mTRIm(mstate, size_t);
 #else
 int      public_mTRIm();
 #endif
@@ -1586,108 +1585,108 @@ static pthread_mutex_t mALLOC_MUTEx = PTHREAD_MUTEX_INITIALIZER;
 
 #endif
 
-Void_t* public_mALLOc(size_t bytes) {
+Void_t* public_amALLOc(mstate av, size_t bytes) {
   Void_t* m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = mALLOc(bytes);
+  m = amALLOc(av, bytes);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-void public_fREe(Void_t* m) {
+void public_afREe(mstate av, Void_t* m) {
   if (MALLOC_PREACTION != 0) {
     return;
   }
-  fREe(m);
+  afREe(av, m);
   if (MALLOC_POSTACTION != 0) {
   }
 }
 
-Void_t* public_rEALLOc(Void_t* m, size_t bytes) {
+Void_t* public_arEALLOc(mstate av, Void_t* m, size_t bytes) {
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = rEALLOc(m, bytes);
+  m = arEALLOc(m, bytes);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-Void_t* public_mEMALIGn(size_t alignment, size_t bytes) {
+Void_t* public_amEMALIGn(mstate av, size_t alignment, size_t bytes) {
   Void_t* m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = mEMALIGn(alignment, bytes);
+  m = amEMALIGn(av, alignment, bytes);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-Void_t* public_vALLOc(size_t bytes) {
+Void_t* public_vALLOc(mstate av, size_t bytes) {
   Void_t* m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = vALLOc(bytes);
+  m = avALLOc(av, bytes);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-Void_t* public_pVALLOc(size_t bytes) {
+Void_t* public_pVALLOc(mstate av, size_t bytes) {
   Void_t* m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = pVALLOc(bytes);
+  m = apVALLOc(av, bytes);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-Void_t* public_cALLOc(size_t n, size_t elem_size) {
+Void_t* public_acALLOc(mstate av, size_t n, size_t elem_size) {
   Void_t* m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = cALLOc(n, elem_size);
+  m = acALLOc(av, n, elem_size);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
 
-Void_t** public_iCALLOc(size_t n, size_t elem_size, Void_t** chunks) {
+Void_t** public_iaCALLOc(mstate av, size_t n, size_t elem_size, Void_t** chunks) {
   Void_t** m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = iCALLOc(n, elem_size, chunks);
+  m = iaCALLOc(av, n, elem_size, chunks);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-Void_t** public_iCOMALLOc(size_t n, size_t sizes[], Void_t** chunks) {
+Void_t** public_iaCOMALLOc(mstate av, size_t n, size_t sizes[], Void_t** chunks) {
   Void_t** m;
   if (MALLOC_PREACTION != 0) {
     return 0;
   }
-  m = iCOMALLOc(n, sizes, chunks);
+  m = iaCOMALLOc(n, sizes, chunks);
   if (MALLOC_POSTACTION != 0) {
   }
   return m;
 }
 
-void public_cFREe(Void_t* m) {
+void public_caFREe(mstate av, Void_t* m) {
   if (MALLOC_PREACTION != 0) {
     return;
   }
-  cFREe(m);
+  caFREe(av, m);
   if (MALLOC_POSTACTION != 0) {
   }
 }
@@ -2383,9 +2382,9 @@ struct malloc_state {
   INTERNAL_SIZE_T  max_sbrked_mem;
   INTERNAL_SIZE_T  max_mmapped_mem;
   INTERNAL_SIZE_T  max_total_mem;
-};
 
-typedef struct malloc_state *mstate;
+  void *(*__morecore)(size_t);
+};
 
 /* 
    There is exactly one instance of this struct in this malloc.
@@ -2395,7 +2394,8 @@ typedef struct malloc_state *mstate;
    all zeroes (as is true of C statics).
 */
 
-static struct malloc_state av_;  /* never directly referenced */
+/*static struct malloc_state av_;*/  /* never directly referenced */
+struct malloc_state __av_default;
 
 /*
    All uses of av_ are via get_malloc_state().
@@ -2405,7 +2405,7 @@ static struct malloc_state av_;  /* never directly referenced */
    Also, it is called in check* routines if DEBUG is set.
 */
 
-#define get_malloc_state() (&(av_))
+/*#define get_malloc_state() (&(av_))*/
 
 /*
   Initialize a malloc_state struct.
@@ -2445,6 +2445,9 @@ static void malloc_init_state(av) mstate av;
 
   av->top            = initial_top(av);
   av->pagesize       = malloc_getpagesize;
+
+  if (av->__morecore == NULL)
+      av->__morecore = __morecore;
 }
 
 /* 
@@ -2455,12 +2458,12 @@ static void malloc_init_state(av) mstate av;
 static Void_t*  sYSMALLOc(INTERNAL_SIZE_T, mstate);
 static int      sYSTRIm(size_t, mstate);
 static void     malloc_consolidate(mstate);
-static Void_t** iALLOc(size_t, size_t*, int, Void_t**);
+static Void_t** aiALLOc(mstate, size_t, size_t*, int, Void_t**);
 #else
 static Void_t*  sYSMALLOc();
 static int      sYSTRIm();
 static void     malloc_consolidate();
-static Void_t** iALLOc();
+static Void_t** aiALLOc();
 #endif
 
 /*
@@ -2545,12 +2548,12 @@ static void do_check_chunk(p) mchunkptr p;
 */
 
 #if __STD_C
-static void do_check_free_chunk(mchunkptr p)
+static void do_check_free_chunk(mstate av, mchunkptr p)
 #else
-static void do_check_free_chunk(p) mchunkptr p;
+static void do_check_free_chunk(av, p) mstate av; mchunkptr p;
 #endif
 {
-  mstate av = get_malloc_state();
+  /* mstate av = get_malloc_state(); */
 
   INTERNAL_SIZE_T sz = p->size & ~PREV_INUSE;
   mchunkptr next = chunk_at_offset(p, sz);
@@ -2585,12 +2588,12 @@ static void do_check_free_chunk(p) mchunkptr p;
 */
 
 #if __STD_C
-static void do_check_inuse_chunk(mchunkptr p)
+static void do_check_inuse_chunk(mstate av, mchunkptr p)
 #else
-static void do_check_inuse_chunk(p) mchunkptr p;
+static void do_check_inuse_chunk(av, p) mstate av; mchunkptr p;
 #endif
 {
-  mstate av = get_malloc_state();
+  /* mstate av = get_malloc_state(); */
   mchunkptr next;
   do_check_chunk(p);
 
@@ -2683,9 +2686,9 @@ static void do_check_malloced_chunk(p, s) mchunkptr p; INTERNAL_SIZE_T s;
   display chunk addresses, sizes, bins, and other instrumentation.
 */
 
-static void do_check_malloc_state()
+static void do_check_malloc_state(mstate av)
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   int i;
   mchunkptr p;
   mchunkptr q;
@@ -3136,7 +3139,7 @@ static Void_t* sYSMALLOc(nb, av) INTERNAL_SIZE_T nb; mstate av;
 
           /* If possible, release the rest. */
           if (old_size >= MINSIZE) {
-            fREe(chunk2mem(old_top));
+            afREe(av, chunk2mem(old_top));
           }
 
         }
@@ -3247,12 +3250,12 @@ static int sYSTRIm(pad, av) size_t pad; mstate av;
 */
 
 #if __STD_C
-Void_t* mALLOc(size_t bytes)
+Void_t* amALLOc(mstate av, size_t bytes)
 #else
-  Void_t* mALLOc(bytes) size_t bytes;
+  Void_t* amALLOc(av, bytes) mstate av; size_t bytes;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
 
   INTERNAL_SIZE_T nb;               /* normalized request size */
   unsigned int    idx;              /* associated bin index */
@@ -3619,12 +3622,12 @@ Void_t* mALLOc(size_t bytes)
 */
 
 #if __STD_C
-void fREe(Void_t* mem)
+void afREe(mstate av, Void_t* mem)
 #else
-void fREe(mem) Void_t* mem;
+void afREe(av, mem) mstate av; Void_t* mem;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
 
   mchunkptr       p;           /* chunk corresponding to mem */
   INTERNAL_SIZE_T size;        /* its size */
@@ -3889,12 +3892,12 @@ static void malloc_consolidate(av) mstate av;
 
 
 #if __STD_C
-Void_t* rEALLOc(Void_t* oldmem, size_t bytes)
+Void_t* arEALLOc(mstate av, Void_t* oldmem, size_t bytes)
 #else
-Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
+Void_t* arEALLOc(av, oldmem, bytes) mstate av; Void_t* oldmem; size_t bytes;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
 
   INTERNAL_SIZE_T  nb;              /* padded request size */
 
@@ -3921,13 +3924,13 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
 #ifdef REALLOC_ZERO_BYTES_FREES
   if (bytes == 0) {
-    fREe(oldmem);
+    afREe(av, oldmem);
     return 0;
   }
 #endif
 
   /* realloc of null is supposed to be same as malloc */
-  if (oldmem == 0) return mALLOc(bytes);
+  if (oldmem == 0) return amALLOc(av, bytes);
 
   checked_request2size(bytes, nb);
 
@@ -3968,7 +3971,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 
       /* allocate, copy, free */
       else {
-        newmem = mALLOc(nb - MALLOC_ALIGN_MASK);
+        newmem = amALLOc(av, nb - MALLOC_ALIGN_MASK);
         if (newmem == 0)
           return 0; /* propagate failure */
       
@@ -4016,7 +4019,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
             }
           }
           
-          fREe(oldmem);
+          afREe(av, oldmem);
           check_inuse_chunk(newp);
           return chunk2mem(newp);
         }
@@ -4039,7 +4042,7 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
       set_head(remainder, remainder_size | PREV_INUSE);
       /* Mark remainder as inuse so free() won't complain */
       set_inuse_bit_at_offset(remainder, remainder_size);
-      fREe(chunk2mem(remainder)); 
+      afREe(av, chunk2mem(remainder)); 
     }
 
     check_inuse_chunk(newp);
@@ -4093,10 +4096,10 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
       newmem = oldmem; /* do nothing */
     else {
       /* Must alloc, copy, free. */
-      newmem = mALLOc(nb - MALLOC_ALIGN_MASK);
+      newmem = amALLOc(av, nb - MALLOC_ALIGN_MASK);
       if (newmem != 0) {
         MALLOC_COPY(newmem, oldmem, oldsize - 2*SIZE_SZ);
-        fREe(oldmem);
+        afREe(av, oldmem);
       }
     }
     return newmem;
@@ -4115,9 +4118,9 @@ Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
 */
 
 #if __STD_C
-Void_t* mEMALIGn(size_t alignment, size_t bytes)
+Void_t* amEMALIGn(mstate av, size_t alignment, size_t bytes)
 #else
-Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
+Void_t* amEMALIGn(av, alignment, bytes) mstate av; size_t alignment; size_t bytes;
 #endif
 {
   INTERNAL_SIZE_T nb;             /* padded  request size */
@@ -4133,7 +4136,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
 
   /* If need less alignment than we give anyway, just relay to malloc */
 
-  if (alignment <= MALLOC_ALIGNMENT) return mALLOc(bytes);
+  if (alignment <= MALLOC_ALIGNMENT) return amALLOc(av, bytes);
 
   /* Otherwise, ensure that it is at least a minimum chunk size */
 
@@ -4156,7 +4159,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
 
   /* Call malloc with worst case padding to hit alignment. */
 
-  m  = (char*)(mALLOc(nb + alignment + MINSIZE));
+  m  = (char*)(amALLOc(av, nb + alignment + MINSIZE));
 
   if (m == 0) return 0; /* propagate failure */
 
@@ -4192,7 +4195,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
     set_head(newp, newsize | PREV_INUSE);
     set_inuse_bit_at_offset(newp, newsize);
     set_head_size(p, leadsize);
-    fREe(chunk2mem(p));
+    afREe(av, chunk2mem(p));
     p = newp;
 
     assert (newsize >= nb &&
@@ -4207,7 +4210,7 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
       remainder = chunk_at_offset(p, nb);
       set_head(remainder, remainder_size | PREV_INUSE);
       set_head_size(p, nb);
-      fREe(chunk2mem(remainder));
+      afREe(av, chunk2mem(remainder));
     }
   }
 
@@ -4220,9 +4223,9 @@ Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
 */
 
 #if __STD_C
-Void_t* cALLOc(size_t n_elements, size_t elem_size)
+Void_t* acALLOc(mstate av, size_t n_elements, size_t elem_size)
 #else
-Void_t* cALLOc(n_elements, elem_size) size_t n_elements; size_t elem_size;
+Void_t* acALLOc(av, n_elements, elem_size) mstate av; size_t n_elements; size_t elem_size;
 #endif
 {
   mchunkptr p;
@@ -4230,7 +4233,7 @@ Void_t* cALLOc(n_elements, elem_size) size_t n_elements; size_t elem_size;
   unsigned long nclears;
   INTERNAL_SIZE_T* d;
 
-  Void_t* mem = mALLOc(n_elements * elem_size);
+  Void_t* mem = amALLOc(av, n_elements * elem_size);
 
   if (mem != 0) {
     p = mem2chunk(mem);
@@ -4280,12 +4283,12 @@ Void_t* cALLOc(n_elements, elem_size) size_t n_elements; size_t elem_size;
 */
 
 #if __STD_C
-void cFREe(Void_t *mem)
+void acFREe(mstate av, Void_t *mem)
 #else
-void cFREe(mem) Void_t *mem;
+void acFREe(av, mem) mstate av; Void_t *mem;
 #endif
 {
-  fREe(mem);
+  afREe(av, mem);
 }
 
 /*
@@ -4293,14 +4296,14 @@ void cFREe(mem) Void_t *mem;
 */
 
 #if __STD_C
-Void_t** iCALLOc(size_t n_elements, size_t elem_size, Void_t* chunks[])
+Void_t** iaCALLOc(mstate av, size_t n_elements, size_t elem_size, Void_t* chunks[])
 #else
-Void_t** iCALLOc(n_elements, elem_size, chunks) size_t n_elements; size_t elem_size; Void_t* chunks[];
+Void_t** iaCALLOc(av, n_elements, elem_size, chunks) mstate av; size_t n_elements; size_t elem_size; Void_t* chunks[];
 #endif
 {
   size_t sz = elem_size; /* serves as 1-element array */
   /* opts arg of 3 means all elements are same size, and should be cleared */
-  return iALLOc(n_elements, &sz, 3, chunks);
+  return aiALLOc(av, n_elements, &sz, 3, chunks);
 }
 
 /*
@@ -4308,12 +4311,12 @@ Void_t** iCALLOc(n_elements, elem_size, chunks) size_t n_elements; size_t elem_s
 */
 
 #if __STD_C
-Void_t** iCOMALLOc(size_t n_elements, size_t sizes[], Void_t* chunks[])
+Void_t** iaCOMALLOc(mstate av, size_t n_elements, size_t sizes[], Void_t* chunks[])
 #else
-Void_t** iCOMALLOc(n_elements, sizes, chunks) size_t n_elements; size_t sizes[]; Void_t* chunks[];
+Void_t** iaCOMALLOc(av, n_elements, sizes, chunks) mstate av; size_t n_elements; size_t sizes[]; Void_t* chunks[];
 #endif
 {
-  return iALLOc(n_elements, sizes, 0, chunks);
+  return aiALLOc(av, n_elements, sizes, 0, chunks);
 }
 
 
@@ -4329,15 +4332,16 @@ Void_t** iCOMALLOc(n_elements, sizes, chunks) size_t n_elements; size_t sizes[];
 
 
 #if __STD_C
-static Void_t** iALLOc(size_t n_elements, 
+static Void_t** aiALLOc(mstate av,
+                       size_t n_elements, 
                        size_t* sizes,  
                        int opts,
                        Void_t* chunks[])
 #else
-static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_t* sizes; int opts; Void_t* chunks[];
+static Void_t** aiALLOc(av, n_elements, sizes, opts, chunks) mstate av; size_t n_elements; size_t* sizes; int opts; Void_t* chunks[];
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   INTERNAL_SIZE_T element_size;   /* chunksize of each element, if all same */
   INTERNAL_SIZE_T contents_size;  /* total size of elements */
   INTERNAL_SIZE_T array_size;     /* request size of pointer array */
@@ -4363,7 +4367,7 @@ static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_
   else {
     /* if empty req, must still return chunk representing empty array */
     if (n_elements == 0) 
-      return (Void_t**) mALLOc(0);
+      return (Void_t**) amALLOc(av, 0);
     marray = 0;
     array_size = request2size(n_elements * (sizeof(Void_t*)));
   }
@@ -4391,7 +4395,7 @@ static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_
  */
   mmx = av->n_mmaps_max;   /* disable mmap */
   av->n_mmaps_max = 0;
-  mem = mALLOc(size);
+  mem = amALLOc(av, size);
   av->n_mmaps_max = mmx;   /* reset mmap */
   if (mem == 0) 
     return 0;
@@ -4453,15 +4457,15 @@ static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_
 */
 
 #if __STD_C
-Void_t* vALLOc(size_t bytes)
+Void_t* avALLOc(mstate av, size_t bytes)
 #else
-Void_t* vALLOc(bytes) size_t bytes;
+Void_t* avALLOc(av, bytes) mstate av; size_t bytes;
 #endif
 {
   /* Ensure initialization/consolidation */
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   if (have_fastchunks(av)) malloc_consolidate(av);
-  return mEMALIGn(av->pagesize, bytes);
+  return amEMALIGn(av, av->pagesize, bytes);
 }
 
 /*
@@ -4470,32 +4474,65 @@ Void_t* vALLOc(bytes) size_t bytes;
 
 
 #if __STD_C
-Void_t* pVALLOc(size_t bytes)
+Void_t* apVALLOc(mstate av, size_t bytes)
 #else
-Void_t* pVALLOc(bytes) size_t bytes;
+Void_t* apVALLOc(av, bytes) mstate av; size_t bytes;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   size_t pagesz;
 
   /* Ensure initialization/consolidation */
   if (have_fastchunks(av)) malloc_consolidate(av);
   pagesz = av->pagesize;
-  return mEMALIGn(pagesz, (bytes + pagesz - 1) & ~(pagesz - 1));
+  return amEMALIGn(av, pagesz, (bytes + pagesz - 1) & ~(pagesz - 1));
 }
    
+/*
+  ------------------------------ malloc_create_heap -----------------------------
+*/
+
+#if __STD_C
+mstate malloc_create_heap(mstate av, void *(*allocator)(size_t))
+#else
+mstate malloc_create_heap(av, allocator) mstate av; void *(*allocator)();
+#endif
+{
+    mstate ret;
+
+    ret = amALLOc(av, sizeof(*ret));
+    if (ret == NULL)
+        return NULL;
+
+    memset(ret, 0, sizeof(*ret));
+    ret->__morecore = allocator;
+    return ret;
+}
+
+/*
+  ------------------------------ malloc_delete_heap ------------------------------
+*/
+
+#if __STD_C
+void malloc_delete_heap(mstate av)
+#else
+void malloc_delete_heap(av) mstate av;
+#endif
+{
+    /* xxx -- implement this */
+}
 
 /*
   ------------------------------ malloc_trim ------------------------------
 */
 
 #if __STD_C
-int mTRIm(size_t pad)
+int mTRIm(mstate av, size_t pad)
 #else
-int mTRIm(pad) size_t pad;
+int mTRIm(av, pad) mstate av; size_t pad;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   /* Ensure initialization/consolidation */
   malloc_consolidate(av);
 
@@ -4532,9 +4569,9 @@ size_t mUSABLe(mem) Void_t* mem;
   ------------------------------ mallinfo ------------------------------
 */
 
-struct mallinfo mALLINFo()
+struct mallinfo mALLINFo(mstate av)
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   struct mallinfo mi;
   int i;
   mbinptr b;
@@ -4592,9 +4629,9 @@ struct mallinfo mALLINFo()
   ------------------------------ malloc_stats ------------------------------
 */
 
-void mSTATs()
+void mSTATs(mstate av)
 {
-  struct mallinfo mi = mALLINFo();
+  struct mallinfo mi = mALLINFo(av);
 
 #ifdef WIN32
   {
@@ -4637,12 +4674,12 @@ void mSTATs()
 */
 
 #if __STD_C
-int mALLOPt(int param_number, int value)
+int mALLOPt(mstate av, int param_number, int value)
 #else
-int mALLOPt(param_number, value) int param_number; int value;
+int mALLOPt(av, param_number, value) mstate av; int param_number; int value;
 #endif
 {
-  mstate av = get_malloc_state();
+  /*mstate av = get_malloc_state();*/
   /* Ensure initialization/consolidation */
   malloc_consolidate(av);
 

@@ -23,8 +23,8 @@ CFG=libc - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "libc"
+# PROP Scc_LocalPath "..\.."
 
 !IF  "$(CFG)" == "libc - Win32 Release"
 
@@ -545,6 +545,10 @@ SOURCE=.\stdlib\malloc.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdlib\malwrap.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdlib\mbtowc.c
 # End Source File
 # Begin Source File
@@ -789,14 +793,6 @@ SOURCE=.\time\time.c
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\sys\access.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\sys\close.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\sys\cputs.c
 # End Source File
 # Begin Source File
@@ -821,31 +817,11 @@ SOURCE=.\sys\int64.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sys\isatty.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\sys\lseek.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\sys\main.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\sys\morecore.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\sys\open.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\sys\read.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\sys\sbrk.c
 # End Source File
 # Begin Source File
 
@@ -988,10 +964,6 @@ SOURCE=.\crt0\args.c
 SOURCE=.\crt0\crt0.c
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\libc.def
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -1082,6 +1054,10 @@ SOURCE=..\..\include\locale.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\malloc.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\math.h
 # End Source File
 # Begin Source File
@@ -1125,6 +1101,10 @@ SOURCE=..\..\include\wchar.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Source File
+
+SOURCE=.\libc.def
+# End Source File
 # Begin Source File
 
 SOURCE=.\Makefile

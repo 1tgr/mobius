@@ -1,4 +1,4 @@
-/* $Id: unicode.c,v 1.1 2002/05/12 00:30:34 pavlovskii Exp $ */
+/* $Id: unicode.c,v 1.2 2002/12/18 23:13:31 pavlovskii Exp $ */
 
 #include <wchar.h>
 #include <stdlib.h>
@@ -33,7 +33,7 @@ const __wchar_info_t *__lookup_unicode(wchar_t cp)
         uc_unicode = VmmMapFile(uc_file, 
             NULL, 
             PAGE_ALIGN_UP(uc_di.length) / PAGE_SIZE, 
-            3 | MEM_READ);
+            VM_MEM_USER | VM_MEM_READ);
     }
 
     return bsearch(&cp, 

@@ -4,9 +4,9 @@ EXPORTS
 	__builtin_new
 	__builtin_vec_delete
 	__builtin_vec_new
-	__dj_assert
 	__crt0_parseargs_char
 	__crt0_parseargs_wide
+	__dj_assert
 	__free
 	__get_eh_context
 	__get_stderr
@@ -14,8 +14,8 @@ EXPORTS
 	__get_stdout
 	__main
 	__malloc
-	__realloc
 	__pure_virtual
+	__realloc
 	__udivdi3
 	__umoddi3
 	_atold
@@ -24,9 +24,19 @@ EXPORTS
 	_doscan
 	_doscan_low
 	_filbuf
+	_finite
 	_flsbuf
+	_ftol
 	_fwalk
 	_geterrno
+	_hypot
+	_isinf
+	_isinfl
+	_isnan
+	_isnanl
+	_j0
+	_j1
+	_jn
 	_pwerror
 	_strdup
 	_stricmp
@@ -41,20 +51,44 @@ EXPORTS
 	_wcwidth
 	_wdprintf
 	_wfopen
+	_y0
+	_y1
+	_yn
 	abort
 	abs
+	acalloc
+	acfree
+	acos
+	acosh
+	afree
+	amalloc
+	amemalign
+	apvalloc
+	arealloc
+	asin
+	asinh
+	atan
+	atan2
+	atanh
 	atexit
 	atof
 	atoi
 	atol
+	avalloc
 	bsearch
 	calloc
+	ceil
+	cfree
 	cfree
 	clearerr
+	cos
+	cosh
 	div
 	doprintf
 	dowprintf
 	exit
+	exp
+	fabs
 	fclose
 	fdopen
 	feof
@@ -63,6 +97,8 @@ EXPORTS
 	fgetc
 	fgetpos
 	fgets
+	floor
+	fmod
 	fopen
 	fprintf
 	fputc
@@ -72,6 +108,7 @@ EXPORTS
 	fread
 	free
 	freopen
+	frexp
 	fscanf
 	fseek
 	fsetpos
@@ -84,6 +121,10 @@ EXPORTS
 	gets
 	getw
 	getwc
+	independent_acalloc
+	independent_acomalloc
+	independent_calloc
+	independent_comalloc
 	isalnum
 	isalpha
 	isascii
@@ -99,10 +140,15 @@ EXPORTS
 	iswupper
 	isxdigit
 	labs
+	ldexp
 	ldiv
 	llabs
 	localtime
+	log
+	log10
 	malloc
+	malloc_create_heap
+	malloc_delete_heap
 	mbstowcs
 	mbtowc
 	memalign
@@ -111,12 +157,15 @@ EXPORTS
 	memcpy
 	memmove
 	memset
+	modf
 	perror
+	pow
 	printf
 	putc
 	putchar
 	puts
 	putw
+	pvalloc
 	qsort
 	qsort
 	rand
@@ -129,7 +178,10 @@ EXPORTS
 	setbuffer
 	setlinebuf
 	setvbuf
+	sin
+	sinh
 	sprintf
+	sqrt
 	srand
 	sscanf
 	strcat
@@ -153,6 +205,8 @@ EXPORTS
 	strtoul
 	strxfrm
 	swprintf
+	tan
+	tanh
 	time
 	tmpfile
 	tmpnam

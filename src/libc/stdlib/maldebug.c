@@ -1,6 +1,6 @@
-/* $Id: maldebug.c,v 1.3 2002/08/29 13:59:38 pavlovskii Exp $ */
+/* $Id: maldebug.c,v 1.4 2002/12/18 23:13:31 pavlovskii Exp $ */
 
-#include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>

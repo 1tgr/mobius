@@ -26,8 +26,16 @@ LOCALE=
 	malloc-1.18/malloc.o malloc-1.18/memalign.o malloc-1.18/setopts.o \
 	malloc-1.18/stats.o malloc-1.18/strdup.o malloc-1.18/strsave.o malloc-1.18/verify.o \
 	malloc-1.18/sptree.o
-MALLOC=	stdlib/malloc.o stdlib/maldebug.o
-MATH=	
+MALLOC=	stdlib/malloc.o stdlib/maldebug.o stdlib/malwrap.o
+MATH=	math/acos.o math/acosh.o math/asin.o math/asinh.o \
+	math/atan.o math/atan2.o math/atanh.o \
+	math/ceil.o math/cos.o math/cosh.o math/exp.o \
+	math/fabs.o math/floor.o math/fmod.o math/frexp.o \
+	math/ftol.o math/hypot.o math/j0_y0.o \
+	math/j1_y1.o math/jn_yn.o math/ldexp.o math/log.o math/log10.o \
+	math/modf.o math/pow.o math/sin.o math/sinh.o \
+	math/sqrt.o math/tan.o math/tanh.o \
+	math/isnan.o
 STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/doscan.o \
 	stdio/fclose.o stdio/fdopen.o stdio/feof.o stdio/ferror.o stdio/fflush.o \
