@@ -96,18 +96,6 @@ SOURCE=.\util.c
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=.\fdc.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\mytypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\util.h
-# End Source File
 # End Group
 # Begin Group "Resource Files"
 

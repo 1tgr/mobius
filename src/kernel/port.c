@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: port.c,v 1.3 2002/01/05 21:37:46 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -29,7 +29,6 @@ static device_t port_dev =
 {
 	PortFsRequest,	/* request */
 	NULL,			/* isr */
-	NULL,			/* finishio */
 	&port_driver, 
 };
 

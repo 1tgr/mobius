@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
+/* $Id: device.h,v 1.5 2002/01/05 21:37:45 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -12,7 +12,12 @@ struct request_t
 	uint32_t code;
 	status_t result;
 	handle_t event;
+#ifdef KERNEL
 	request_t *original;
+	struct device_t *from;
+#else
+	void *reserved[2];
+#endif
 };
 
 typedef union params_dev_t params_dev_t;
@@ -21,7 +26,7 @@ union params_dev_t
 	struct
 	{
 		uint32_t length;
-		addr_t buffer;
+		void *buffer;
 		uint64_t offset;
 	} buffered;
 
@@ -58,7 +63,7 @@ union params_fs_t
 	struct
 	{
 		size_t length;
-		addr_t buffer;
+		void *buffer;
 		handle_t file;
 	} buffered;
 

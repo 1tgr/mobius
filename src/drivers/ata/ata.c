@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.6 2002/01/05 00:54:09 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -697,7 +697,7 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 			ctrl_req.params.atapi_packet.block = block;
 			memcpy(ctrl_req.params.atapi_packet.packet, Pkt, sizeof(Pkt));
 			ctrl_req.params.atapi_packet.buffer = 
-				(void*) req_dev->params.dev_read.buffer;
+				req_dev->params.dev_read.buffer;
 		}
 		else
 		{
@@ -712,10 +712,10 @@ bool AtaDriveRequest(device_t *dev, request_t *req)
 			ctrl_req.params.ata_command.drive = drive;
 			ctrl_req.params.ata_command.cmd = cmd;
 			ctrl_req.params.ata_command.buffer = 
-				(void*) req_dev->params.dev_read.buffer;
+				req_dev->params.dev_read.buffer;
 		}
 
-		if (DevRequest(&drive->ctrl->dev, &ctrl_req.header))
+		if (DevRequest(NULL, &drive->ctrl->dev, &ctrl_req.header))
 		{
 			req->event = ctrl_req.header.event;
 			return true;
@@ -980,7 +980,6 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 		ctrl = malloc(sizeof(ata_ctrl_t));
 		ctrl->dev.request = AtaCtrlRequest;
 		ctrl->dev.isr = AtaCtrlIsr;
-		ctrl->dev.finishio = NULL;
 		ctrl->dev.driver = drv;
 		ctrl->dev.cfg = cfg;
 		ctrl->base = 0x1F0;

@@ -31,49 +31,56 @@
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/memory.h>
-#include <wchar.h>
-#include "util.h"
+
+/* used to store hardware definition of DMA channels */
+typedef struct DmaChannel {
+   uint8_t page;     /* page register */
+   uint8_t offset;   /* offset register */
+   uint8_t length;   /* length register */
+   semaphore_t sem;
+} DmaChannel;
 
 /* definition of DMA channels */
-const static DmaChannel dmainfo[] = {
-   { 0x87, 0x00, 0x01 },
-   { 0x83, 0x02, 0x03 },
-   { 0x81, 0x04, 0x05 },
-   { 0x82, 0x06, 0x07 }
+static DmaChannel dmainfo[] =
+{
+	{ 0x87, 0x00, 0x01, { 0 } },
+	{ 0x83, 0x02, 0x03, { 0 } },
+	{ 0x81, 0x04, 0x05, { 0 } },
+	{ 0x82, 0x06, 0x07, { 0 } }
 };
 
 /* 
  * this allocates a 4KB buffer in the < 1M range, maps it and returns the 
  * linear address, also setting the physical in the integer pointed at
  */
-long alloc_dma_buffer()
+long alloc_dma_buffer(void)
 {
 	addr_t phys;
 	phys = MemAllocLow();
 	assert(phys + PAGE_SIZE < 0x100000);
 	assert(((phys + PAGE_SIZE) & 0xffff) >= ((phys + PAGE_SIZE) & 0xffff));
-	wprintf(L"DMA transfer buffer is at 0x%x\n", phys);
 	return phys;
 }
 
 /*
- * this sets up a DMA trasfer between a device and memory.  Pass the DMA
+ * this sets up a DMA transfer between a device and memory.  Pass the DMA
  * channel number (0..3), the physical address of the buffer and transfer
  * length.  If 'read' is TRUE, then transfer will be from memory to device,
  * else from the device to memory.
  */
-void dma_xfer(int channel,long physaddr,int length,BOOL read)
+void dma_xfer(unsigned channel, addr_t physaddr, int length, bool read)
 {
    long page,offset;
    
    assert(channel < 4);
    
+   SemAcquire(&dmainfo[channel].sem);
    /* calculate dma page and offset */
    page = physaddr >> 16;
    offset = physaddr & 0xffff;
    length -= 1;  /* with dma, if you want k bytes, you ask for k - 1 */
 
-   disable();  /* disable irq's */
+   /*disable();*/  /* disable irq's */
    
    /* set the mask bit for the channel */
    out(0x0a,channel | 4);
@@ -98,5 +105,6 @@ void dma_xfer(int channel,long physaddr,int length,BOOL read)
    /* clear DMA mask bit */
    out(0x0a,channel);
    
-   enable();  /* enable irq's */
+   /*enable();*/  /* enable irq's */
+   SemRelease(&dmainfo[channel].sem);
 }

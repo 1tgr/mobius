@@ -22,6 +22,9 @@ DEF=		$(EXP:.exp=.def)
 %.o:	%.asm
 	$(NASM) -f win32 -o $@ $<
 
+.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
+
 all:	$(TARGET) $(IMP)
 
 $(TARGET):	$(OBJS) $(EXP) $(LIBS) .base

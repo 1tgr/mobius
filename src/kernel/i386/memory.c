@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.5 2002/01/03 15:44:08 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.6 2002/01/05 21:37:46 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -158,6 +158,7 @@ uint32_t MemTranslate(const void *address)
 
 void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 {
+	unsigned i;
 	void *ptr;
 
 	if (num_pages == 1 &&
@@ -165,9 +166,9 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 		return PHYSICAL(*phys);
 
 	ptr = (void*) mem_temp_end;
-	for (; num_pages > 0; phys++, num_pages--)
+	for (i = 0; i < num_pages; i++)
 	{
-		if (!MemMap(mem_temp_end, *phys, mem_temp_end + PAGE_SIZE, priv))
+		if (!MemMap(mem_temp_end, phys[i], mem_temp_end + PAGE_SIZE, priv))
 			return NULL;
 
 		mem_temp_end += PAGE_SIZE;

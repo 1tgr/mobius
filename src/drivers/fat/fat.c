@@ -1,8 +1,10 @@
-/* $Id: fat.c,v 1.6 2002/01/05 01:30:56 pavlovskii Exp $ */
+/* $Id: fat.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/fs.h>
+#include <kernel/memory.h>
+#include <kernel/thread.h>
 #include <os/fs.h>
 
 #define DEBUG
@@ -53,7 +55,7 @@ CASSERT(sizeof(fat_bootsector_t) == SECTOR_SIZE);
 CASSERT(sizeof(fat_dirent_t) == 16);
 CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 
-#define FAT_MAX_NAME		256
+#define FAT_MAX_NAME				256
 
 #define FAT_CLUSTER_ROOT			0
 
@@ -64,8 +66,10 @@ CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 #define FAT_CLUSTER_EOC_START		0xfff8
 #define FAT_CLUSTER_EOC_END			0xffff
 
-#define IS_EOC_CLUSTER(c)		((c) >= FAT_CLUSTER_EOC_START && (c) <= FAT_CLUSTER_EOC_END)
-#define IS_RESERVED_CLUSTER(c)	((c) >= FAT_CLUSTER_RESERVED_START && (c) <= FAT_CLUSTER_RESERVED_END)
+#define IS_EOC_CLUSTER(c) \
+	((c) >= FAT_CLUSTER_EOC_START && (c) <= FAT_CLUSTER_EOC_END)
+#define IS_RESERVED_CLUSTER(c) \
+	((c) >= FAT_CLUSTER_RESERVED_START && (c) <= FAT_CLUSTER_RESERVED_END)
 
 fat_dir_t *FatAllocDir(fat_root_t *root, const fat_dirent_t *di)
 {
@@ -249,7 +253,7 @@ bool FatLookupFile(fat_root_t *root, fat_dir_t *dir,
 		}
 
 		count = FatAssembleName(entries + i, name);
-		/*TRACE2("%s %s", path, name);*/
+		TRACE1("%s ", name);
 
 		if (_wcsicmp(name, path) == 0)
 		{
@@ -381,13 +385,128 @@ bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 	return ret;
 }
 
+typedef struct fat_ioextra_t fat_ioextra_t;
+struct fat_ioextra_t
+{
+	enum { started, reading, finished } state;
+	fat_file_t *file;
+	uint32_t bytes_read;
+	unsigned cluster_index;
+	size_t user_length, mod;
+	uint32_t *clusters;
+	request_dev_t dev_request;
+};
+
+void FatStartIo(asyncio_t *io)
+{
+	fat_root_t *root;
+	fat_ioextra_t *extra;
+	unsigned bytes;
+	uint8_t *buf;
+	request_fs_t *req_fs;
+
+	root = (fat_root_t*) io->dev;
+	extra = io->extra;
+	req_fs = (request_fs_t*) io->req;
+	
+start:
+	wprintf(L"[%u]", extra->state);
+	switch (extra->state)
+	{
+	case started:
+		assert(extra->state != started);
+		return;
+
+	case reading:
+		if (extra->dev_request.header.code)
+		{
+			bytes = extra->dev_request.params.buffered.length;
+			if (bytes == 0)
+			{
+				/* device failure */
+				wprintf(L"fat: device failure\n");
+				req_fs->header.code = -1;
+				break;
+			}
+
+			extra->mod += bytes;
+			if (extra->mod >= root->bytes_per_cluster)
+			{
+				extra->mod -= root->bytes_per_cluster;
+
+				extra->cluster_index++;
+				if (extra->cluster_index >= extra->file->num_clusters)
+				{
+					/* last cluster reached: invalid chain? */
+					wprintf(L"fat: last cluster reached\n");
+					extra->state = finished;
+					req_fs->header.result = -1;
+					goto start;
+				}
+			}
+
+			extra->file->file.pos += bytes;
+			extra->bytes_read += bytes;
+		}
+
+		if (extra->bytes_read >= extra->user_length)
+		{
+			extra->state = finished;
+			req_fs->header.result = 0;
+			goto start;
+		}
+
+		bytes = extra->user_length - extra->bytes_read;
+		if (bytes > root->bytes_per_cluster)
+			bytes = root->bytes_per_cluster;
+		
+		TRACE4("FatStartIo: pos = %u cluster = %u = %x bytes = %u\n", 
+			(uint32_t) extra->file->file.pos, 
+			extra->cluster_index, 
+			extra->clusters[extra->cluster_index], 
+			bytes);
+
+		buf = DevMapBuffer(io);
+		extra->dev_request.header.code = req_fs->header.code == 
+			FS_READ ? DEV_READ : DEV_WRITE;
+		extra->dev_request.params.buffered.buffer = 
+			buf + io->mod_buffer_start + extra->bytes_read;
+		extra->dev_request.params.buffered.length = bytes;
+		extra->dev_request.params.buffered.offset = 
+			FatClusterToOffset(root, extra->clusters[extra->cluster_index]) + extra->mod;
+		if (!DevRequest(&root->dev, root->device, &extra->dev_request.header))
+		{
+			DevUnmapBuffer();
+			extra->state = finished;
+			req_fs->header.result = extra->dev_request.header.result;
+			goto start;
+		}
+
+		DevUnmapBuffer();
+		break;
+
+	case finished:
+		wprintf(L"FatStartIo: finished request\n");
+		req_fs->params.buffered.length = extra->bytes_read;
+		HndUnlock(io->owner->process,
+			req_fs->params.buffered.file, 
+			'file');
+		free(extra);
+		DevFinishIo(io->dev, io, req_fs->header.result);
+		break;
+	}
+}
+
 bool FatRequest(device_t *dev, request_t *req)
 {
 	request_fs_t *req_fs;
 	wchar_t *path;
 	fat_root_t *root;
 	fat_dirent_t di;
-	
+	asyncio_t *io;
+	fat_ioextra_t *extra;
+	fat_file_t *file;
+
 	req_fs = (request_fs_t*) req;
 	root = (fat_root_t*) dev;
 	switch (req->code)
@@ -408,7 +527,66 @@ bool FatRequest(device_t *dev, request_t *req)
 		return req_fs->params.fs_open.file == NULL ? false : true;
 
 	case FS_READ:
-		return FatRead(root, req_fs);
+	case FS_WRITE:
+		file = HndLock(NULL, req_fs->params.fs_read.file, 'file');
+		if (file == NULL)
+			return false;
+
+		if (file->file.pos >> root->cluster_shift >= file->num_clusters)
+		{
+			HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+			return false;
+		}
+		
+		io = DevQueueRequest(dev, req, sizeof(request_fs_t),
+			req_fs->params.buffered.buffer,
+			req_fs->params.buffered.length);
+		if (io == NULL)
+			return false;
+		
+		io->extra = extra = malloc(sizeof(fat_ioextra_t));
+		assert(io->extra != NULL);
+		extra->state = started;
+		extra->file = file;
+		extra->cluster_index = file->file.pos >> root->cluster_shift;
+		extra->bytes_read = 0;
+		extra->dev_request.header.code = 0;
+		
+		/* xxx - change this to 64-bit modulo */
+		extra->mod = (uint32_t) file->file.pos % root->bytes_per_cluster;
+
+		extra->clusters = (uint32_t*) (file + 1);
+		extra->user_length = req_fs->params.fs_read.length;
+		if (file->file.pos + extra->user_length >= file->di.file_length)
+			extra->user_length = file->di.file_length - file->file.pos;
+
+		if (extra->user_length == 0)
+		{
+			/* null read */
+			TRACE0("fat: null read\n");
+			free(extra);
+			DevFinishIo(dev, io, -1);
+			return false;
+		}
+
+		((request_fs_t*) io->req)->params.buffered.length = 0;
+		extra->state = reading;
+		
+		wprintf(L"FatRequest: starting IO, extra = %p\n", io->extra);
+		FatStartIo(io);
+		return true;
+
+	case IO_FINISH:
+		FOREACH (io, dev->io)
+		{
+			extra = io->extra;
+			if (req->original == &extra->dev_request.header)
+			{
+				FatStartIo(io);
+				break;
+			}
+		}
+		return true;
 	}
 
 	req->code = ENOTIMPL;
@@ -431,16 +609,25 @@ device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 	root->dev.request = FatRequest;
 	root->device = dev;
 
-	if (DevRead(dev, 0, &root->bpb, sizeof(root->bpb)) < sizeof(root->bpb))
+	TRACE0("\tReading boot sector\n");
+	length = DevRead(dev, 0, &root->bpb, sizeof(root->bpb));
+	if (length < sizeof(root->bpb))
 	{
+		TRACE1("Read failed: length = %u\n", length);
 		free(root);
 		return NULL;
 	}
+
+	TRACE1("\tDone: length = %u\n", length);
 
 	root->fat_bits = 12;
 	root->bytes_per_cluster = 
 		root->bpb.bytes_per_sector * root->bpb.sectors_per_cluster;
 	temp = root->bytes_per_cluster;
+	TRACE3("\tbytes_per_cluster = %u * %u = %u\n", 
+		root->bpb.bytes_per_sector,
+		root->bpb.sectors_per_cluster, 
+		temp);
 	for (root->cluster_shift = 0; (temp & 1) == 0; root->cluster_shift++)
 		temp >>= 1;
 	
@@ -450,10 +637,11 @@ device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 	root->fat = malloc(root->bpb.sectors_per_fat * root->bpb.bytes_per_sector);
 	assert(root->fat != NULL);
 
-	TRACE2("\tFAT starts at sector %d = 0x%x\n",
+	TRACE3("\tFAT starts at sector %d = 0x%x = %p\n",
 		root->bpb.reserved_sectors,
 		root->bpb.reserved_sectors * 
-			root->bpb.bytes_per_sector);
+			root->bpb.bytes_per_sector,
+		root->fat);
 
 	length = root->bpb.sectors_per_fat * 
 		root->bpb.bytes_per_sector;

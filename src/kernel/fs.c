@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.5 2002/01/05 00:54:10 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.6 2002/01/05 21:37:45 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -373,7 +373,6 @@ bool FsCreateVirtualDir(const wchar_t *path)
 bool FsInit(void)
 {
 	bool b;
-	device_t *dev;
 
 	FsCreateVirtualDir(L"/");
 	FsCreateVirtualDir(L"/system");
@@ -390,9 +389,5 @@ bool FsInit(void)
 	/*dev = DevOpen(L"ide0a");
 	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
 	FsMount(L"/hd", L"fat", dev);*/
-
-	dev = DevOpen(L"fdc0");
-	wprintf(L"FsInit: Mounting fdc0(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);
 	return true;
 }

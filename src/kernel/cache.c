@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.1 2002/01/05 00:58:35 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.2 2002/01/05 21:37:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/cache.h>
@@ -124,7 +124,6 @@ device_t* CcInstallBlockCache(device_t* dev, uint32_t block_size)
 	else
 		cache->dev.isr = NULL;
 
-	cache->dev.finishio = NULL;
 	cache->block_size = block_size;
 	cache->blockdev = dev;
 	cache->cache_size = cache_size;

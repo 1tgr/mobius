@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.7 2002/01/05 01:30:56 pavlovskii Exp $ */
+/* $Id: test.c,v 1.8 2002/01/05 21:37:46 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,15 +9,17 @@
 #include <os/defs.h>
 
 process_info_t *ProcGetProcessInfo(void);
+int _cputws(const wchar_t *str, size_t count);
 
 int main(void)
 {
+	static char key[123456];
+	static wchar_t str[_countof(key) + 1];
+	
 	/*uint32_t key;
 	process_info_t *info;*/
 	handle_t file;
 	wchar_t name[] = L"/hd/test.txt";
-	char key[20];
-	wchar_t str[_countof(key) + 1];
 	size_t len;
 	
 	wprintf(L"Hello from tty0!\n");
@@ -40,8 +42,11 @@ int main(void)
 				bytes, buf[0], buf[1], buf[2], buf[3]);*/
 			if (len < sizeof(key))
 				key[len] = '\0';
-			len = mbstowcs(str, key, _countof(key));
-			wprintf(L"%.*s", len, str);
+			len = mbstowcs(str, key, _countof(key) - 1);
+			if (len == -1)
+				wprintf(L"invalid multibyte sequence\n");
+			else
+				_cputws(str, len);
 		}
 
 		FsClose(file);

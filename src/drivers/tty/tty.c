@@ -592,7 +592,6 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	memset(tty, 0, sizeof(tty));
 	tty->dev.request = TtyRequest;
 	tty->dev.isr = TtyIsr;
-	tty->dev.finishio = NULL;
 	tty->dev.driver = drv;
 
 	SemAcquire(&sem_consoles);
@@ -616,7 +615,6 @@ bool DrvInit(driver_t *drv)
 
 	consoles[0].dev.request = TtyRequest;
 	consoles[0].dev.isr = TtyIsr;
-	consoles[0].dev.finishio = NULL;
 	consoles[0].dev.driver = drv;
 	consoles[0].buf_top = (uint16_t*) PHYSICAL(0xb8000);
 	consoles[0].attribs = 0x1700;

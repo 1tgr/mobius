@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.5 2002/01/05 00:54:09 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.6 2002/01/05 21:37:44 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -22,8 +22,12 @@ struct asyncio_t
 	struct thread_t *owner;
 	/** Copy of the original request structure */
 	request_t *req;
+	/** Size of the original request structure */
+	size_t req_size;
 	/** Device to which this request applies */
 	device_t *dev;
+	/** Spare pointer to device-specific information */
+	void *extra;
 	/** Size, in bytes, of the user buffer */
 	size_t length;
 	/** Size, in pages, of the user buffer */
@@ -86,7 +90,7 @@ struct device_t
 {
 	bool (*request)(device_t *dev, request_t *req);
 	bool (*isr)(device_t *dev, uint8_t irq);
-	void (*finishio)(device_t *dev, asyncio_t *io);
+	/*void (*finishio)(device_t *dev, asyncio_t *io);*/
 	driver_t *driver;
 	device_config_t *cfg;
 	asyncio_t *io_first, *io_last;
@@ -99,7 +103,8 @@ struct irq_t
 	device_t *dev;
 };
 
-bool	DevRequest(device_t *dev, request_t *req);
+/* Device interface routines */
+bool	DevRequest(device_t *from, device_t *dev, request_t *req);
 bool	DevRequestSync(device_t *dev, request_t *req);
 driver_t *	DevInstallNewDriver(const wchar_t *name);
 device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
@@ -109,6 +114,7 @@ device_t *	DevOpen(const wchar_t *name);
 void	DevClose(device_t *dev);
 size_t	DevRead(device_t *dev, uint64_t ofs, void *buf, size_t size);
 
+/* Kernel device driver helper routines */
 bool	DevRegisterIrq(uint8_t irq, device_t *dev);
 bool	DevAddDevice(device_t *dev, const wchar_t *name, 
 					 device_config_t *cfg);
@@ -117,6 +123,13 @@ asyncio_t*	DevQueueRequest(device_t *dev, request_t *req, size_t size,
 							size_t user_buffer_length);
 void	DevFinishIo(device_t *dev, asyncio_t *io, status_t result);
 uint8_t	DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
+void *	DevMapBuffer(asyncio_t *io);
+
+void	MemUnmapTemp(void);
+#define DevUnmapBuffer	MemUnmapTemp
+
+/* Some extra codes user apps aren't supposed to know about */
+#define	IO_FINISH		REQUEST_CODE(0, 0, 'i', 'f')
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: main.c,v 1.3 2002/01/05 21:37:46 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -52,6 +52,7 @@ void KernelThread(void *param)
 void KernelMain(void)
 {
 	process_t *proc;
+	device_t *dev;
 	
 	MemInit();
 	ArchInit();
@@ -74,6 +75,10 @@ void KernelMain(void)
 	DevInstallDevice(L"tty", L"tty0", NULL);
 	DevInstallDevice(L"keyboard", L"keyboard", NULL);
 	
+	dev = DevOpen(L"fdc0");
+	wprintf(L"KernelMain: Mounting fdc0(%p) on /hd using fat\n", dev);
+	FsMount(L"/hd", L"fat", dev);
+
 	proc = ProcCreateProcess(SYS_BOOT L"/test.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
 

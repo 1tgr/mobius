@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.6 2002/01/05 00:54:10 pavlovskii Exp $ */
+/* $Id: device.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -134,7 +134,6 @@ device_t dev_fsd =
 {
 	DevFsRequest,	/* request */
 	NULL,			/* isr */
-	NULL,			/* finishio */
 	&devfs_driver,
 	NULL,
 	NULL,
@@ -146,11 +145,31 @@ device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
 	return &dev_fsd;
 }
 
-bool DevRequest(device_t *dev, request_t *req)
+static void DevNotifyCompletion(device_t *dev, request_t *req)
 {
+	request_t temp;
+
+	if (req->from != NULL)
+	{
+		temp.code = IO_FINISH;
+		temp.result = 0;
+		temp.event = NULL;
+		temp.original = req;
+		temp.from = dev;
+		assert(req->from->request != NULL);
+		req->from->request(req->from, &temp);
+		req->from = NULL;
+	}
+}
+
+bool DevRequest(device_t *from, device_t *dev, request_t *req)
+{
+	bool ret;
+
 	TRACE1("\t\tDevRequest: dev = %p\n", dev);
 	req->event = NULL;
 	req->result = 0;
+	req->from = from;
 
 	if (dev == NULL)
 	{
@@ -164,13 +183,24 @@ bool DevRequest(device_t *dev, request_t *req)
 		return false;
 	}
 
-	return dev->request(dev, req);
+	ret = dev->request(dev, req);
+	if (ret && req->event == NULL)
+	{
+		/*
+		 * Operation completed synchronously. 
+		 * There might be some device expecting completion notification.
+		 */
+		/*assert(false && "Caller expected async io but device completed immediately");*/
+		DevNotifyCompletion(dev, req);
+	}
+
+	return ret;
 }
 
 bool DevRequestSync(device_t *dev, request_t *req)
 {
 	TRACE1("\tDevRequestSync: dev = %p\n", dev);
-	if (DevRequest(dev, req))
+	if (DevRequest(NULL, dev, req))
 	{
 		/*assert(req->event == NULL);*/
 		if (req->event)
@@ -183,7 +213,7 @@ bool DevRequestSync(device_t *dev, request_t *req)
 					SemInit(&temp);
 					SemAcquire(&temp);
 					enable();
-					wprintf(L"DevRequestSync: busy-waiting\n");
+					TRACE0("DevRequestSync: busy-waiting\n");
 					while (!EvtIsSignalled(NULL, req->event))
 						ArchProcessorIdle();
 					SemRelease(&temp);
@@ -192,11 +222,11 @@ bool DevRequestSync(device_t *dev, request_t *req)
 				{
 					wprintf(L"DevRequestSync: doing proper wait\n");
 					ThrWaitHandle(current, req->event, 'evnt');
-					assert(false || "Reached this bit");
+					assert(false && "Reached this bit");
 				}
 			}
 
-			/*EvtFree(NULL, req->event);*/
+			EvtFree(NULL, req->event);
 		}
 
 		return true;
@@ -245,7 +275,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 {
 	asyncio_t *io;
 	unsigned pages;
-	addr_t *ptr, user_addr;
+	addr_t *ptr, user_addr, phys;
 	
 	pages = PAGE_ALIGN_UP(user_buffer_length) / PAGE_SIZE;
 	io = malloc(sizeof(asyncio_t) + sizeof(addr_t) * pages);
@@ -269,21 +299,26 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	else
 		io->req = req;
 
+	io->req_size = size;
 	req->original = NULL;
 	io->dev = dev;
 	io->length = user_buffer_length;
 	io->length_pages = pages;
+	io->extra = NULL;
 	io->mod_buffer_start = (unsigned) user_buffer % PAGE_SIZE;
 	ptr = (addr_t*) (io + 1);
 	user_addr = PAGE_ALIGN((addr_t) user_buffer);
+	wprintf(L"DevQueueRequest: ");
 	for (; pages > 0; pages--, user_addr += PAGE_SIZE)
 	{
-		*ptr = MemTranslate((void*) user_addr) & -PAGE_SIZE;
-		assert(*ptr != NULL);
-		MemLockPages(*ptr, 1, true);
-		ptr++;
+		phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
+		wprintf(L"0x%x ", phys);
+		assert(phys != NULL);
+		MemLockPages(phys, 1, true);
+		*ptr++ = phys;
 	}
 
+	wprintf(L"\n");
 	req->event = io->req->event = EvtAlloc(NULL);
 	LIST_ADD(dev->io, io);
 	return io;
@@ -301,6 +336,11 @@ void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 	LIST_REMOVE(dev->io, io);
 	/*LIST_ADD(io->owner->fio, io);*/
 	/*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
+
+	if (io->req->original != NULL)
+		memcpy(io->req->original, io->req, io->req_size);
+	
+	DevNotifyCompletion(dev, io->req);
 	EvtSignal(io->owner->process, io->req->event);
 	
 	if (io->req->original != NULL)
@@ -445,18 +485,8 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 		return NULL;
 }
 
-/*void DevRunHandlers(void)
+void *DevMapBuffer(asyncio_t *io)
 {
-	asyncio_t *io, *ionext;
-	for (io = current->fio_first; io; io = ionext)
-	{
-		ionext = io->next;
-		assert(io->dev);
-		assert(io->dev->finishio);
-
-		LIST_REMOVE(io->owner->fio, io);
-		io->dev->finishio(io->dev, io);
-		free(io->req);
-		free(io);
-	}
-}*/
+	return MemMapTemp((addr_t*) (io + 1), io->length_pages, 
+		PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+}
