@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.25 2002/05/19 13:04:36 pavlovskii Exp $ */
+/* $Id: device.c,v 1.26 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -18,6 +18,128 @@
 
 #include <os/defs.h>
 
+typedef struct device_class_t device_class_t;
+struct device_class_t
+{
+    uint16_t device_class;
+    const wchar_t* name;
+    const wchar_t *base;
+    unsigned count;
+};
+
+static device_class_t classes[] =
+{
+    { 0x0000, L"Undefined",     L"device" },
+    { 0x0001, L"VGA",           L"video" },
+    { 0x0081, L"Disk Volume",   L"volume" },
+
+    { 0x0100, L"SCSI",          L"scsi" },
+    { 0x0101, L"IDE",           L"ide" },
+    { 0x0102, L"Floppy",        L"floppy" },
+    { 0x0103, L"IPI",           L"ipi" },
+    { 0x0104, L"RAID",          L"raid" },
+    { 0x0180, L"Other",         L"drive" },
+
+    { 0x0200, L"Ethernet",      L"ethernet" },
+    { 0x0201, L"Token Ring",    L"token" },
+    { 0x0202, L"FDDI",          L"fddi" },
+    { 0x0203, L"ATM",           L"atm" },
+    { 0x0204, L"ISDN",          L"isdn" },
+    { 0x0280, L"Other",         L"network" },
+
+    { 0x0300, L"VGA",           L"video" },
+    { 0x0300, L"VGA+8514",      L"video" },
+    { 0x0301, L"XGA",           L"video" },
+    { 0x0302, L"3D",            L"video" },
+    { 0x0380, L"Other",         L"video" },
+
+    { 0x0400, L"Video",         L"video" },
+    { 0x0401, L"Audio",         L"audio" },
+    { 0x0402, L"Telephony",     L"telephone" },
+    { 0x0480, L"Other",         L"media" },
+
+    { 0x0500, L"RAM",           L"ram" },
+    { 0x0501, L"Flash",         L"flash" },
+    { 0x0580, L"Other",         L"memory" },
+
+    { 0x0600, L"PCI to HOST",   L"bridge" },
+    { 0x0601, L"PCI to ISA",    L"bridge" },
+    { 0x0602, L"PCI to EISA",   L"bridge" },
+    { 0x0603, L"PCI to MCA",    L"bridge" },
+    { 0x0604, L"PCI to PCI",    L"bridge" },
+    { 0x0605, L"PCI to PCMCIA", L"bridge" },
+    { 0x0606, L"PCI to NuBUS",  L"bridge" },
+    { 0x0607, L"PCI to Cardbus", L"bridge" },
+    { 0x0608, L"PCI to RACEway", L"bridge" },
+    { 0x0609, L"PCI to PCI",    L"bridge" },
+    { 0x060A, L"PCI to InfiBand", L"bridge" },
+    { 0x0680, L"PCI to Other",  L"bridge"},
+
+    { 0x0700, L"Serial",        L"serial" },
+    { 0x0701, L"Parallel",      L"parallel" },
+    { 0x0702, L"Multiport Serial", L"serial" },
+    { 0x0703, L"Hayes Compatible Modem", L"modem" },
+    { 0x0780, L"Other",         L"comm" },
+
+    { 0x0800, L"PIC",           L"pic" },
+    { 0x0801, L"DMA",           L"dma" },
+    { 0x0802, L"Timer",         L"timer" },
+    { 0x0803, L"RTC",           L"rtc" },
+    { 0x0880, L"Other",         L"motherboard" },
+
+    { 0x0900, L"Keyboard",      L"keyboard" },
+    { 0x0901, L"Pen",           L"pen" },
+    { 0x0902, L"Mouse",         L"mouse" },
+    { 0x0903, L"Scanner",       L"scanner" },
+    { 0x0904, L"Game Port",     L"game" },
+    { 0x0980, L"Other",         L"input" },
+
+    { 0x0a00, L"Generic",       L"device" },
+    { 0x0a80, L"Other",         L"device" },
+
+    { 0x0b00, L"386",           L"cpu" },
+    { 0x0b01, L"486",           L"cpu" },
+    { 0x0b02, L"Pentium",       L"cpu" },
+    { 0x0b03, L"PentiumPro",    L"cpu" },
+    { 0x0b10, L"DEC Alpha",     L"cpu" },
+    { 0x0b20, L"PowerPC",       L"cpu" },
+    { 0x0b30, L"MIPS",          L"cpu" },
+    { 0x0b40, L"Coprocessor",   L"copro" },
+    { 0x0b80, L"Other",         L"processor" },
+
+    { 0x0c00, L"FireWire",      L"firewire" },
+    { 0x0c01, L"Access.bus",    L"access" },
+    { 0x0c02, L"SSA",           L"ssa" },
+    { 0x0c03, L"USB",           L"usb" },
+    { 0x0c04, L"Fiber",         L"fibre" },
+    { 0x0c05, L"SMBus Controller", L"smbus" },
+    { 0x0c06, L"InfiniBand",    L"infiniband" },
+    { 0x0c80, L"Other",         L"bus" },
+
+    { 0x0d00, L"iRDA",          L"irda" },
+    { 0x0d01, L"Consumer IR",   L"ir" },
+    { 0x0d10, L"RF",            L"rf" },
+    { 0x0d80, L"Other",         L"wireless" },
+
+    { 0x0e00, L"I2O",           L"i2o" },
+    { 0x0e80, L"Other",         L"bus" },
+
+    { 0x0f01, L"TV",            L"tv" },
+    { 0x0f02, L"Audio",         L"audio" },
+    { 0x0f03, L"Voice",         L"voice" },
+    { 0x0f04, L"Data",          L"data" },
+    { 0x0f80, L"Other",         L"media" },
+
+    { 0x1000, L"Network",       L"network" },
+    { 0x1010, L"Entertainment", L"entertainment" },
+    { 0x1080, L"Other",         L"" },
+
+    { 0x1100, L"DPIO Modules",  L"dpio" },
+    { 0x1101, L"Performance Counters", L"counter" },
+    { 0x1110, L"Comm Sync, Time+Frequency Measurement", L"meter" },
+    { 0x1180, L"Other",         L"acquire" },
+};
+
 extern module_t mod_kernel;
 extern thread_queue_t thr_finished;
 
@@ -26,31 +148,104 @@ struct device_info_t
 {
     device_info_t *next, *prev;
     const wchar_t *name;
-    device_t *dev;
-    device_config_t *cfg;
+    bool is_link;
+    unsigned refs;
+
+    union
+    {
+        struct
+        {
+            device_t *dev;
+            device_config_t *cfg;
+            device_info_t *child_first, *child_last;
+        } info;
+
+        struct
+        {
+            device_info_t *target;
+        } link;
+    } u;
 };
 
 irq_t *irq_first[16], *irq_last[16];
-device_info_t *info_first, *info_last;
 driver_t *drv_first, *drv_last;
+
+device_info_t dev_classes = 
+{
+    NULL, NULL,
+    L"Classes",
+    false,
+    0
+};
+
+device_info_t dev_root =
+{
+    NULL, NULL,
+    L"(root)",
+    false,
+    0,
+    { { NULL, NULL, &dev_classes, &dev_classes } }
+};
+
+device_info_t *DfsParsePath(const wchar_t *path)
+{
+    device_info_t *parent, *info;
+    const wchar_t *slash;
+
+    parent = &dev_root;
+    if (*path == '/')
+        path++;
+
+    wprintf(L"DfsParsePath(%s) => ", path);
+    while (*path != '\0')
+    {
+        slash = wcschr(path, '/');
+        if (slash == NULL)
+            slash = path + wcslen(path);
+
+        wprintf(L"file %.*s => ", slash - path, path);
+        for (info = parent->u.info.child_first; info != NULL; info = info->next)
+            if (wcslen(info->name) == slash - path &&
+                _wcsnicmp(path, info->name, slash - path) == 0)
+                break;
+
+        if (info == NULL)
+            return NULL;
+
+        parent = info;
+        if (*slash == '/')
+            path = slash + 1;
+        else
+            path = slash;
+
+        while (parent->is_link)
+        {
+            wprintf(L"link => %s ", parent->u.link.target->name);
+            assert(parent->u.link.target != parent);
+            parent = parent->u.link.target;
+        }
+    }
+
+    wprintf(L"%p = %s\n", parent, parent->name);
+    return parent;
+}
 
 status_t DfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
 {
     device_info_t *info;
 
-    assert(path[0] == '/');
-    path++;
-
-    for (info = info_first; info != NULL; info = info->next)
+    info = DfsParsePath(path);
+    if (info == NULL)
     {
-        if (_wcsicmp(path, info->name) == 0)
-        {
-            *cookie = info;
-            return 0;
-        }
+        wprintf(L"DfsLookupFile(%s): not found\n", path);
+        return ENOTFOUND;
     }
-
-    return ENOTFOUND;
+    else
+    {
+        assert(!info->is_link);
+        *cookie = info;
+        return 0;
+    }
 }
 
 status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
@@ -73,6 +268,9 @@ status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
     case FILE_QUERY_STANDARD:
         di->standard.length = 0;
 	di->standard.attributes = FILE_ATTR_DEVICE;
+        if (info->u.info.child_first != NULL)
+            di->standard.attributes |= FILE_ATTR_DIRECTORY;
+
         wcscpy(di->standard.mimetype, L"");
         return 0;
     }
@@ -97,7 +295,7 @@ bool DfsReadWrite(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length,
     }
 
     info = file->fsd_cookie;
-    dev = info->dev;
+    dev = info->u.info.dev;
     if (dev->flags & DEVICE_IO_DIRECT)
     {
         req_dev->header.code = is_reading ? DEV_READ_DIRECT : DEV_WRITE_DIRECT;
@@ -204,7 +402,7 @@ bool DfsIoCtl(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t length,
     req.params.dev_ioctl.unused = 0;
 
     info = file->fsd_cookie;
-    ret = IoRequestSync(info->dev, &req.header);
+    ret = IoRequestSync(info->u.info.dev, &req.header);
 
     FsNotifyCompletion(io, req.params.dev_ioctl.size, req.header.result);
     return ret;
@@ -229,7 +427,7 @@ bool DfsPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t l
     memcpy(&req_dev->params, buf, length);
 
     info = file->fsd_cookie;
-    ret = IoRequestSync(info->dev, &req_dev->header);
+    ret = IoRequestSync(info->u.info.dev, &req_dev->header);
     io->op.result = io->original->result = req_dev->header.result;
 
     memcpy(buf, &req_dev->params, length);
@@ -241,13 +439,19 @@ bool DfsPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t l
 
 status_t DfsOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
 {
-    device_info_t **ptr;
+    device_info_t **ptr, *info;
+
+    info = DfsParsePath(path);
+    if (info == NULL)
+        return ENOTFOUND;
+
+    assert(!info->is_link);
 
     ptr = malloc(sizeof(device_info_t*));
     if (ptr == NULL)
         return errno;
 
-    *ptr = info_first;
+    *ptr = info->u.info.child_first;
     *dir_cookie = ptr;
     return 0;
 }
@@ -318,12 +522,16 @@ static fsd_t dev_fsd =
 device_t *IoOpenDevice(const wchar_t *name)
 {
     device_info_t *info;
-
-    FOREACH (info, info)
-	if (_wcsicmp(info->name, name) == 0)
-	    return info->dev;
-
-    return NULL;
+    
+    info = DfsParsePath(name);
+    if (info == NULL)
+    {
+        wprintf(L"IoOpenDevice(%s): not found\n", name);
+        errno = ENOTFOUND;
+        return NULL;
+    }
+    else
+        return info->u.info.dev;
 }
 
 void IoCloseDevice(device_t *dev)
@@ -692,18 +900,73 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
  */
 bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
 {
-    device_info_t *info;
+    device_info_t *info, *parent, *link;
+    wchar_t link_name[20];
+    device_class_t *class;
+    unsigned i;
 
     /*wprintf(L"DevAddDevice: added %s\n", name);*/
     
+    if (cfg == NULL || cfg->parent == NULL)
+        parent = NULL;
+    else
+        parent = cfg->parent->info;
+
+    if (parent == NULL)
+        parent = &dev_root;
+
+    class = NULL;
+    if (cfg != NULL)
+    {
+        for (i = 0; i < _countof(classes); i++)
+            if (classes[i].device_class == cfg->device_class)
+            {
+                class = classes + i;
+                break;
+            }
+
+        if (class == NULL)
+            class = classes + 0;
+        else
+            for (i = 0; i < _countof(classes); i++)
+                if (classes + i == class ||
+                    _wcsicmp(classes[i].base, class->base) == 0)
+                {
+                    class = classes + i;
+                    break;
+                }
+    }
+
     info = malloc(sizeof(device_info_t));
     if (info == NULL)
 	return false;
 
+    wprintf(L"DevAddDevice: adding device %s to parent %p = %s\n",
+        name, parent, parent->name);
+
     info->name = _wcsdup(name);
-    info->dev = dev;
-    info->cfg = cfg;
-    LIST_ADD(info, info);
+    info->is_link = false;
+    info->u.info.dev = dev;
+    info->u.info.cfg = cfg;
+    info->u.info.child_first = info->u.info.child_last = NULL;
+    dev->info = info;
+    LIST_ADD(parent->u.info.child, info);
+
+    if (class != NULL)
+    {
+        swprintf(link_name, L"%s%u", class->base, class->count);
+        class->count++;
+
+        link = malloc(sizeof(device_info_t));
+        if (link != NULL)
+        {
+            link->name = _wcsdup(link_name);
+            link->is_link = true;
+            link->u.link.target = info;
+            LIST_ADD(dev_classes.u.info.child, link);
+        }
+    }
+
     return true;
 }
 
@@ -730,8 +993,8 @@ void DevUnloadDriver(driver_t *driver)
  *    \param	cfg    Configuration list to assign to the new device
  *    \return	 A pointer to the new device object
  */
-device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
-			   device_config_t *cfg)
+bool DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
+                      device_config_t *cfg)
 {
     device_t *dev;
     driver_t *drv;
@@ -741,29 +1004,20 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 
     dev = IoOpenDevice(name);
     if (dev != NULL)
-	return dev;
+	return true;
 
     drv = DevInstallNewDriver(driver);
     if (drv != NULL)
     {
         if (drv->add_device != NULL)
-        {
-	    dev = drv->add_device(drv, name, cfg);
-	    if (dev != NULL)
-	    {
-	        assert(dev->vtbl != NULL);
-	        DevAddDevice(dev, name, cfg);
-	    }
-            else
-                wprintf(L"%s.%s: failed to initialise\n", driver, name);
-        }
+	    drv->add_device(drv, name, cfg);
 
-	return dev;
+	return true;
     }
     else
     {
         wprintf(L"%s.%s: driver not loaded\n", driver, name);
-	return NULL;
+	return false;
     }
 }
 

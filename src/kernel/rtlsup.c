@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.15 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.16 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -155,8 +155,8 @@ int name(const ct *str, size_t count) \
     return 0; \
 }
 
-DEFINE_PUTS(_cputws, wchar_t);
-DEFINE_PUTS(_cputs, char);
+DEFINE_PUTS(kernel_cputws, wchar_t);
+DEFINE_PUTS(kernel_cputs, char);
 
 wchar_t *ProcGetCwd()
 {
@@ -265,4 +265,35 @@ ssize_t _write(int fd, const void *buf, size_t nbyte)
 const __wchar_info_t *__lookup_unicode(wchar_t cp)
 {
     return NULL;
+}
+
+kernel_hooks_t ke_hooks =
+{
+    KERNEL_HOOK_CPUTS | KERNEL_HOOK_CPUTWS,
+    kernel_cputs,
+    kernel_cputws
+};
+
+void KeInstallHooks(const kernel_hooks_t *hooks)
+{
+    if (hooks->mask & KERNEL_HOOK_CPUTS)
+        ke_hooks.cputs = hooks->cputs;
+    if (hooks->mask & KERNEL_HOOK_CPUTWS)
+        ke_hooks.cputws = hooks->cputws;
+}
+
+int _cputs(const char *s, size_t count)
+{
+    if (ke_hooks.cputs != NULL)
+        return ke_hooks.cputs(s, count);
+    else
+        return kernel_cputs(s, count);
+}
+
+int _cputws(const wchar_t *s, size_t count)
+{
+    if (ke_hooks.cputws != NULL)
+        return ke_hooks.cputws(s, count);
+    else
+        return kernel_cputws(s, count);
 }

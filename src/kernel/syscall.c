@@ -1,4 +1,5 @@
-/* $Id: syscall.c,v 1.15 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.16 2002/06/09 18:43:05 pavlovskii Exp $ */
+#include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -23,7 +24,6 @@ int Hello(int a, int b)
 }
 
 extern uint16_t con_attribs;
-int _cputws(const wchar_t *str, size_t count);
 
 int DbgWrite(const wchar_t *str, size_t count)
 {

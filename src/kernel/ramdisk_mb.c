@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.10 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.11 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -30,7 +30,8 @@ status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **
     char *ch;
     unsigned i;
 
-    assert(path[0] == '/');
+    if (path[0] == '/')
+        path++;
 
     /*wprintf(L"RdLookupFile(%s)\n", path);*/
     mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
@@ -44,7 +45,7 @@ status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **
 
         len = mbstowcs(wc_name, ch, _countof(wc_name));
         wc_name[len] = '\0';
-        if (_wcsicmp(wc_name, path + 1) == 0)
+        if (_wcsicmp(wc_name, path) == 0)
         {
             *cookie = mods + i;
             return 0;
@@ -256,3 +257,30 @@ driver_t rd_driver =
     NULL,
     RdMountFs
 };
+
+addr_t RdGetFilePhysicalAddress(const wchar_t *name)
+{
+    multiboot_module_t *mods;
+    wchar_t wc_name[16];
+    size_t len;
+    char *ch;
+    unsigned i;
+
+    /*wprintf(L"RdLookupFile(%s)\n", path);*/
+    mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+    for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
+    {
+        ch = strrchr(PHYSICAL(mods[i].string), '/');
+        if (ch == NULL)
+            ch = PHYSICAL(mods[i].string);
+        else
+            ch++;
+
+        len = mbstowcs(wc_name, ch, _countof(wc_name));
+        wc_name[len] = '\0';
+        if (_wcsicmp(wc_name, name) == 0)
+            return mods[i].mod_start;
+    }
+
+    return NULL;
+}

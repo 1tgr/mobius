@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.25 2002/05/19 13:04:36 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.26 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -76,6 +76,7 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
     if (file == NULL)
         return NULL;
 
+    info.flags = FS_INFO_CACHE_BLOCK_SIZE;
     info.cache_block_size = 0;
     if (fsd->vtbl->get_fs_info != NULL)
         fsd->vtbl->get_fs_info(fsd, &info);

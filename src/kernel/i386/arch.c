@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.18 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.19 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -413,9 +413,9 @@ void ArchReboot(void)
     /* flush the keyboard controller */
     do
     {
-	temp = in(0x64);
-	if (temp & 1)
-	    in(0x60);
+	    temp = in(0x64);
+	    if (temp & 1)
+	        in(0x60);
     } while(temp & 2);
 
     /* pulse the CPU reset line */

@@ -75,6 +75,7 @@ EXPORTS
 	IoReadSync
 	IoRequest
 	IoRequestSync
+	KeInstallHooks
 	MemAlloc
 	MemAllocLow
 	MemAllocLowSpan
@@ -107,6 +108,7 @@ EXPORTS
 	ProGetBoolean
 	ProGetString
 	ProLoadProfile
+        RdGetFilePhysicalAddress
 	QueueAppend
 	QueueClear
 	QueueInit
@@ -161,6 +163,7 @@ EXPORTS
 	__morecore
 	__realloc
 	__wcsdup
+	_cputs
 	_cputws
 	__divdi3
 	_geterrno

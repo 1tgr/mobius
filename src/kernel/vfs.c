@@ -1,4 +1,4 @@
-/* $Id: vfs.c,v 1.2 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: vfs.c,v 1.3 2002/06/09 18:43:05 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 
@@ -65,7 +65,8 @@ void VfsDismount(fsd_t *fsd)
 
 void VfsGetFsInfo(fsd_t *fsd, fs_info_t *info)
 {
-    info->cache_block_size = 0;
+    if (info->flags & FS_INFO_CACHE_BLOCK_SIZE)
+        info->cache_block_size = 0;
 }
 
 status_t VfsCreateFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
