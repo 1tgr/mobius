@@ -1,4 +1,4 @@
-/* $Id: maldebug.c,v 1.1 2002/05/12 00:30:34 pavlovskii Exp $ */
+/* $Id: maldebug.c,v 1.2 2002/08/21 10:44:32 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -9,32 +9,25 @@
 #undef free
 #undef realloc
 
-typedef struct maldbg_header_t maldbg_header_t;
-struct maldbg_header_t
-{
-    int line;
-    const char *file;
-    maldbg_header_t *prev, *next;
-    int tag;
-    unsigned int magic[2];
-};
-
-static maldbg_header_t *maldbg_first, *maldbg_last;
+static __maldbg_header_t *maldbg_first, *maldbg_last;
 static int maldbg_tag;
+
+#define MAL_MAGIC   0xdeadbeef
 
 void *__malloc(size_t size, const char *file, int line)
 {
-    maldbg_header_t *header;
+    __maldbg_header_t *header;
 
-    header = malloc(sizeof(maldbg_header_t) + size);
+    header = malloc(sizeof(__maldbg_header_t) + size);
     if (header == NULL)
         return NULL;
 
     header->line = line;
     header->file = file;
     header->prev = maldbg_last;
+    header->size = sizeof(__maldbg_header_t) + size;
     header->tag = maldbg_tag;
-    header->magic[0] = 0xdeadbeef;
+    header->magic[0] = MAL_MAGIC;
     header->magic[1] = line ^ header->magic[0];
     header->next = NULL;
 
@@ -51,11 +44,11 @@ void *__malloc(size_t size, const char *file, int line)
 
 void __free(void *ptr, const char *file, int line)
 {
-    maldbg_header_t *header;
+    __maldbg_header_t *header;
 
     if (ptr != NULL)
     {
-        header = (maldbg_header_t*) ptr - 1;
+        header = (__maldbg_header_t*) ptr - 1;
 
         if (header->prev != NULL)
             header->prev->next = header->next;
@@ -72,14 +65,14 @@ void __free(void *ptr, const char *file, int line)
 
 void *__realloc(void *ptr, size_t size, const char *file, int line)
 {
-    maldbg_header_t *header;
+    __maldbg_header_t *header;
 
     if (ptr == NULL)
         return __malloc(size, file, line);
     else
     {
-        header = (maldbg_header_t*) ptr - 1;
-        header = realloc(header, sizeof(maldbg_header_t) + size);
+        header = (__maldbg_header_t*) ptr - 1;
+        header = realloc(header, sizeof(__maldbg_header_t) + size);
 
         if (header->next == NULL)
             maldbg_last = header;
@@ -91,6 +84,7 @@ void *__realloc(void *ptr, size_t size, const char *file, int line)
         else
             header->prev->next = header;
 
+        header->size = sizeof(__maldbg_header_t) + size;
         return header + 1;
     }
 }
@@ -116,22 +110,45 @@ void __malloc_leak(int tag)
     maldbg_tag = tag;
 }
 
+bool __malloc_check_header(__maldbg_header_t *header)
+{
+    if (header->magic[0] != 0xdeadbeef)
+    {
+        wprintf(L"%p: memory check error (1): got 0x%x, should be 0xdeadbeef\n",
+            header + 1, header->magic[0]);
+        return false;
+    }
+
+    if (header->magic[1] != (header->magic[0] ^ header->line))
+    {
+        wprintf(L"%p: memory check error (2): got 0x%x, should be 0x%x\n",
+            header + 1, header->magic[1], header->magic[0] ^ header->line);
+        return false;
+    }
+
+    return true;
+}
+
 void __malloc_leak_dump(void)
 {
-    maldbg_header_t *header;
+    __maldbg_header_t *header;
 
     for (header = maldbg_first; header != NULL; header = header->next)
-    {
-        if (header->magic[0] != 0xdeadbeef)
-            wprintf(L"%p: memory check error (1): got 0x%x, should be 0xdeadbeef\n",
-                header + 1, header->magic[0]);
-
-        if (header->magic[1] != (header->magic[0] ^ header->line))
-            wprintf(L"%p: memory check error (2): got 0x%x, should be 0x%x\n",
-                header + 1, header->magic[1], header->magic[0] ^ header->line);
-
-        if (header->tag == maldbg_tag)
+        if (__malloc_check_header(header) &&
+            header->tag == maldbg_tag)
             wprintf(L"%S(%d): memory leaked: %p\n", 
                 header->file, header->line, header + 1);
-    }
+}
+
+__maldbg_header_t *__malloc_find_block(void *addr)
+{
+    __maldbg_header_t *header;
+
+    for (header = maldbg_first; header != NULL; header = header->next)
+        if ((__maldbg_header_t*) addr >= header &&
+            __malloc_check_header(header) &&
+            (uint8_t*) addr < (uint8_t*) header + header->size)
+            return header;
+
+    return NULL;
 }
