@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.10 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: video.c,v 1.11 2002/03/27 23:19:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -828,7 +828,7 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 
     FT_Init_FreeType(&ft_library);
 
-    font = L"/System/Boot/rezn000.ttf";
+    font = L"/System/Boot/amrtypen.ttf";
 
     if (FsQueryFile(font, FILE_QUERY_STANDARD, &di, sizeof(di)))
     {

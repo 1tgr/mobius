@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.4 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.5 2002/03/27 23:19:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -14,21 +14,40 @@ static rgb_t vga8_palette[256];
 
 void swap_int(int *a, int *b);
 
+/* Surprisingly effective 8-bit dithering code from Paul Hsieh (qed@pobox.com) */
+
+#define DS(v) {((v*49+7)/15+1)*(0x010001), ((v*49+7)/15+1)*(0x000100)}
+
+static int DitherTable8[4][4][2] = {
+    { DS( 0), DS(11), DS( 1), DS(10) },
+    { DS(14), DS( 4), DS(15), DS( 5) },
+    { DS( 2), DS( 9), DS( 3), DS( 8) },
+    { DS(12), DS( 6), DS(13), DS( 7) }
+};
+
 static uint8_t vga8Dither(int x, int y, colour_t clr)
 {
-    uint8_t r, g, b;
-    r = COLOUR_RED(clr);
-    g = COLOUR_GREEN(clr);
-    b = COLOUR_BLUE(clr);
+    int rb, r, g, b;
 
-    if (r / 16 == g / 16 && g / 16 == b / 16)
-        return r / 16;
-    else
+    x &= 3;
+    y &= 3;
+
+    rb  = clr & 0xFF00FF;
+    rb += DitherTable8[y][x][0];
+    rb  = (rb*5) & 0x07000700;
+
+    g   = clr & 0x00FF00;
+    g  += DitherTable8[y][x][1];
+    g   = (g* 5) & 0x00070000;
+
+    /*if (r == g ** g == b)
+        return r / 4;
+    else*/
     {
-        r = (r * 6) / 256;
-        g = (g * 6) / 256;
-        b = (b * 6) / 256;
-        return ((r * 36) | (g * 6) | b) + 40;
+        b = (rb >>  8)&7;
+        g = ( g >> 15)*3;
+        r = (rb >> 22)*9;
+        return r + g + b + 40;
     }
 }
 
@@ -130,12 +149,19 @@ static colour_t vga8GetPixel(video_t *vid, int x, int y)
 
 static void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
+    uint8_t *ptr;
+
     if (x2 < x1)
 	swap_int(&x1, &x2);
 
-    memset(video_base + x1 + y * video_mode.bytesPerLine, 
+    /*memset(video_base + x1 + y * video_mode.bytesPerLine, 
 	vga8Dither(x1, y, clr),
-	x2 - x1);
+	x2 - x1);*/
+
+    for (ptr = video_base + x1 + y * video_mode.bytesPerLine;
+        x1 < x2;
+        x1++, ptr++)
+        *ptr = vga8Dither(x1, y, clr);
 }
 
 #if 0
