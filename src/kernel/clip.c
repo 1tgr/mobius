@@ -1,4 +1,4 @@
-/* $Id: clip.c,v 1.2 2002/04/10 12:32:38 pavlovskii Exp $ */
+/* $Id: clip.c,v 1.3 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/winmgr.h>
@@ -114,7 +114,8 @@ static bool clipNew(MGLclip *clip, const MGLrect *OldClip, int DeltaX, int Delta
 static void clipDoClip(window_t* wnd, window_t* Next)
 {
     MGLclip new_rects;
-    int i, j, DeltaX, DeltaY, num_rects;
+    unsigned i, j, num_rects;
+    int DeltaX, DeltaY;
     MGLrect *OldClip;
     MGLrect *rects, temp2;
     MGLrect temp;

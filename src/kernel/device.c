@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.29 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: device.c,v 1.30 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <errno.h>
+#include <string.h>
 
 #include <os/defs.h>
 
@@ -146,7 +147,7 @@ extern thread_queue_t thr_finished;
 typedef struct device_info_t device_info_t;
 struct device_info_t
 {
-    device_info_t *next, *prev;
+    device_info_t *next, *prev, *parent;
     const wchar_t *name;
     bool is_link;
     unsigned refs;
@@ -170,20 +171,24 @@ struct device_info_t
 irq_t *irq_first[16], *irq_last[16];
 driver_t *drv_first, *drv_last;
 
+extern device_info_t dev_root;
+
 device_info_t dev_classes = 
 {
     NULL, NULL,
-        L"Classes",
-        false,
-        0
+    &dev_root,
+    L"Classes",
+    false,
+    0
 };
 
 device_info_t dev_root =
 {
     NULL, NULL,
-        L"(root)",
-        false,
-        0,
+    NULL,
+    L"(root)",
+    false,
+    0,
     { { NULL, NULL, &dev_classes, &dev_classes } }
 };
 
@@ -203,7 +208,7 @@ device_info_t *DfsParsePath(const wchar_t *path)
             slash = path + wcslen(path);
 
         for (info = parent->u.info.child_first; info != NULL; info = info->next)
-            if (wcslen(info->name) == slash - path &&
+            if (wcslen(info->name) == (size_t) (slash - path) &&
                 _wcsnicmp(path, info->name, slash - path) == 0)
                 break;
 
@@ -226,9 +231,82 @@ device_info_t *DfsParsePath(const wchar_t *path)
     return parent;
 }
 
-status_t DfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+status_t DfsParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vnode_t *node)
 {
-    device_info_t *info;
+    device_info_t *info, *parent;
+    unsigned num_levels;
+    size_t len, len2;
+    wchar_t *link_to;
+
+    if (node->id == VNODE_ROOT)
+        info = &dev_root;
+    else
+        info = (device_info_t*) node->id;
+
+    assert(!info->is_link);
+
+    if (wcscmp(name, L"..") == 0)
+    {
+        if (info->parent == NULL)
+            node->id = VNODE_ROOT;
+        else
+            node->id = (vnode_id_t) info->parent;
+
+        return 0;
+    }
+    else
+        for (info = info->u.info.child_first; info != NULL; info = info->next)
+            if (_wcsicmp(info->name, name) == 0)
+            {
+                if (info->is_link)
+                {
+                    num_levels = 0;
+                    len = wcslen(SYS_DEVICES) + 2;
+                    for (parent = info->u.link.target; 
+                        parent != &dev_root; 
+                        parent = parent->parent)
+                    {
+                        wprintf(L"%s/", parent->name);
+                        len += wcslen(parent->name) + 1;
+                    }
+
+                    //len *= 2;
+                    wprintf(L" len = %u ", len);
+
+                    *new_path = link_to = malloc(sizeof(wchar_t) * len);
+                    wcscpy(link_to, SYS_DEVICES);
+                    link_to += wcslen(SYS_DEVICES);
+                    len = 1;
+                    for (parent = info->u.link.target; 
+                        parent != &dev_root; 
+                        parent = parent->parent)
+                    {
+                        len2 = wcslen(parent->name) + 1;
+                        memmove(link_to + len2, link_to, len * sizeof(wchar_t));
+
+                        *link_to = '/';
+                        //link_to++;
+                        memcpy(link_to + 1, parent->name, sizeof(wchar_t) * (len2 - 1));
+
+                        len += len2;
+                        //link_to += len2;
+                    }
+
+                    len += wcslen(SYS_DEVICES) + 1;
+                    wprintf(L" len = %u, new_path = %s\n", len, *new_path);
+                    info = info->u.link.target;
+                }
+
+                node->id = (vnode_id_t) info;
+                return 0;
+            }
+
+    return ENOTFOUND;
+}
+
+status_t DfsLookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
+{
+    /*device_info_t *info;
 
     info = DfsParsePath(path);
     if (info == NULL)
@@ -241,7 +319,14 @@ status_t DfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
         assert(!info->is_link);
         *cookie = info;
         return 0;
-    }
+    }*/
+
+    if (id == VNODE_ROOT)
+        *cookie = &dev_root;
+    else
+        *cookie = (device_info_t*) id;
+
+    return 0;
 }
 
 status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
@@ -433,13 +518,18 @@ bool DfsPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf, size_t l
     return ret;
 }
 
-status_t DfsOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+status_t DfsOpenDir(fsd_t *fsd, vnode_id_t node, void **dir_cookie)
 {
     device_info_t **ptr, *info;
 
-    info = DfsParsePath(path);
-    if (info == NULL)
-        return ENOTFOUND;
+    //info = DfsParsePath(path);
+    //if (info == NULL)
+        //return ENOTFOUND;
+
+    if (node == VNODE_ROOT)
+        info = &dev_root;
+    else
+        info = (device_info_t*) node;
 
     assert(!info->is_link);
 
@@ -475,39 +565,46 @@ void DfsFreeDirCookie(fsd_t *fsd, void *dir_cookie)
     free(dir_cookie);
 }
 
-static driver_t devfs_driver =
-{
-    &mod_kernel,
-        NULL,
-        NULL,
-        NULL,
-        DevMountFs,
-};
-
 static const fsd_vtbl_t devfs_vtbl =
 {
     NULL,           /* dismount */
-        NULL,           /* get_fs_info */
-        NULL,           /* create_file */
-        DfsLookupFile,
-        DfsGetFileInfo,
-        NULL,           /* set_file_info */
-        NULL,           /* free_cookie */
-        DfsRead,
-        DfsWrite,
-        DfsIoCtl,
-        DfsPassthrough,
-        DfsOpenDir,
-        DfsReadDir,
-        DfsFreeDirCookie,
-        NULL,           /* mount */
-        DfsFinishIo,
-        NULL,           /* flush_cache */
+    NULL,           /* get_fs_info */
+    DfsParseElement,
+    NULL,           /* create_file */
+    DfsLookupFile,
+    DfsGetFileInfo,
+    NULL,           /* set_file_info */
+    NULL,           /* free_cookie */
+    DfsRead,
+    DfsWrite,
+    DfsIoCtl,
+    DfsPassthrough,
+    NULL,           /* mkdir */
+    DfsOpenDir,
+    DfsReadDir,
+    DfsFreeDirCookie,
+    //NULL,           /* mount */
+    DfsFinishIo,
+    NULL,           /* flush_cache */
 };
 
 static fsd_t dev_fsd =
 {
     &devfs_vtbl,
+};
+
+fsd_t *DfsMountFs(driver_t *drv, const wchar_t *dest)
+{
+    return &dev_fsd;
+}
+
+static driver_t devfs_driver =
+{
+    &mod_kernel,
+    NULL,
+    NULL,
+    NULL,
+    DfsMountFs,
 };
 
 /*
@@ -532,11 +629,6 @@ device_t *IoOpenDevice(const wchar_t *name)
 
 void IoCloseDevice(device_t *dev)
 {
-}
-
-fsd_t *DevMountFs(driver_t *drv, const wchar_t *dest)
-{
-    return &dev_fsd;
 }
 
 /*!
@@ -774,7 +866,10 @@ device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n)
         return NULL;
 }
 
-extern driver_t rd_driver, port_driver;
+extern driver_t rd_driver, port_driver, vfs_driver;
+#ifdef WIN32
+extern driver_t win32fs_driver;
+#endif
 
 /*!
 *    \brief	Installs a new device driver
@@ -795,12 +890,18 @@ extern driver_t rd_driver, port_driver;
 */
 driver_t *DevInstallNewDriver(const wchar_t *name)
 {
-    if (_wcsicmp(name, L"ram") == 0)
+    if (_wcsicmp(name, L"ramfs") == 0)
         return &rd_driver;
-    else if (_wcsicmp(name, L"portfs") == 0)
-        return &port_driver;
+    //else if (_wcsicmp(name, L"portfs") == 0)
+        //return &port_driver;
     else if (_wcsicmp(name, L"devfs") == 0)
         return &devfs_driver;
+    else if (_wcsicmp(name, L"vfs") == 0)
+        return &vfs_driver;
+#ifdef WIN32
+    else if (_wcsicmp(name, L"win32fs") == 0)
+        return &win32fs_driver;
+#endif
     else
     {
         wchar_t temp[50];
@@ -810,7 +911,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 
         /*swprintf(temp, SYS_BOOT L"/%s.drv", name);*/
         swprintf(temp, L"%s.drv", name);
-        /*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
+        //wprintf(L"DevInstallNewDriver: loading %s\n", temp);
 
         mod = PeLoad(&proc_idle, temp, 0);
         if (mod == NULL)
@@ -820,7 +921,6 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
             if (drv->mod == mod)
                 return drv;
 
-        /*wprintf(L"DevInstallNewDriver: performing first-time init\n");*/
         drv = malloc(sizeof(driver_t));
         if (drv == NULL)
         {
@@ -833,13 +933,15 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
         drv->mount_fs = NULL;
 
         DrvInit = (void*) mod->entry;
-        if (!DrvInit(drv))
+        //wprintf(L"DevInstallNewDriver: DrvInit = %p\n", DrvInit);
+        if (DrvInit == NULL || !DrvInit(drv))
         {
             PeUnload(&proc_idle, mod);
             free(drv);
             return NULL;
         }
 
+        //wprintf(L"DevInstallNewDriver: done\n");
         LIST_ADD(drv, drv);
         return drv;
     }
@@ -907,6 +1009,7 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
 
     info->name = _wcsdup(name);
     info->is_link = false;
+    info->parent = parent;
     info->u.info.dev = dev;
     info->u.info.cfg = cfg;
     info->u.info.child_first = info->u.info.child_last = NULL;
@@ -923,12 +1026,24 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
         {
             link->name = _wcsdup(link_name);
             link->is_link = true;
+            link->parent = parent;
             link->u.link.target = info;
             LIST_ADD(dev_classes.u.info.child, link);
         }
     }
 
     return true;
+}
+
+void DevInitDevice(device_t *dev, const device_vtbl_t *vtbl, driver_t *drv, 
+                   uint32_t flags)
+{
+    dev->driver = drv;
+    dev->cfg = NULL;    /* gets set by DevAddDevice */
+    dev->io_first = dev->io_last = NULL;
+    dev->info = NULL;   /* gets set by DevAddDevice */
+    dev->flags = flags;
+    dev->vtbl = vtbl;
 }
 
 /*!

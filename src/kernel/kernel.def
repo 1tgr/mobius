@@ -15,10 +15,7 @@ EXPORTS
 	CcRequestBlock
 	CcReleaseBlock
 	DbgDumpBuffer
-	DbgDumpModules
 	DbgDumpStack
-	DbgDumpThreads
-	DbgDumpVmm
 	DbgFormatAddress
 	DbgGetStringsTable
 	DbgGetSymbolName
@@ -31,6 +28,7 @@ EXPORTS
 	DevCfgFindIrq
 	DevCfgFindMemory
 	DevFinishIo
+	DevInitDevice
 	DevInstallDevice
 	DevInstallNewDriver
 	DevMapBuffer
@@ -40,10 +38,11 @@ EXPORTS
 	EvtAlloc
 	EvtIsSignalled
 	EvtSignal
+	FsChangeDir
 	FsClose
 	FsCreate
+	FsCreateDir
 	FsCreateFileHandle
-	FsCreateVirtualDir
 	FsFullPath
 	FsGuessMimeType
 	FsMount
@@ -101,12 +100,12 @@ EXPORTS
 	MtxRelease
 	PeGetExport
 	PeLoad
-	PePageFault
 	PeUnload
 	ProcCreateProcess
 	ProcExitProcess
 	ProcFirstTimeInit
 	ProcGetCwd
+	ProcGetExitCode
 	ProcPageFault
 	ProcSpawnProcess
 	ProEnumValues

@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.14 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.15 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -65,7 +65,7 @@ handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag)
 	{
 		wprintf(L"HndGetPtr(%s, %lx): invalid handle (> %lx)\n", 
 			proc->exe, hnd, proc->handle_count);
-                __asm__("int3");
+        assert(hnd < proc->handle_count);
 		return NULL;
 	}
 

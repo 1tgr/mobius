@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.17 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.18 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -17,7 +17,7 @@
 #include <wchar.h>
 #include <os/defs.h>
 
-extern char kernel_stack_end[], scode[];
+//extern char kernel_stack_end[], scode[];
 extern addr_t kernel_pagedir[];
 
 process_t *proc_first, *proc_last;
@@ -98,11 +98,12 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     proc->creator = current()->process;
     proc->info = malloc(sizeof(*proc->info));
     if (defaults == NULL)
-            defaults = proc->creator->info;
+        defaults = proc->creator->info;
     memcpy(proc->info, defaults, sizeof(*defaults));
 
     thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
     ScNeedSchedule(true);
+    wprintf(L"ProcSpawnProcess(%s): proc = %p\n", exe, proc);
     return HndDuplicate(current()->process, &proc->hdr);
 }
 
@@ -110,11 +111,9 @@ static void ProcCleanupProcess(void *p)
 {
     process_t *proc;
 
-    //proc = current()->process;
     proc = p;
-    wprintf(L"ProcCleanupProcess: proc = %s, current()->process = %s\n",
+    wprintf(L"ProcCleanupProcess: proc = %s, current()->process = %s...",
         proc->exe, current()->process->exe);
-    //wprintf(L"Process %u exited with code %d: ", proc->id, code);
 
     SemAcquire(&proc->sem_lock);
 
@@ -122,12 +121,7 @@ static void ProcCleanupProcess(void *p)
     free((wchar_t*) proc->exe);
     SemRelease(&proc->sem_lock);
     free(proc);
-    wprintf(L"all handles freed\n");
-    /*else
-    {
-        SemRelease(&proc->sem_lock);
-        wprintf(L"still has %u refs\n", proc->hdr.copies);
-    }*/
+    wprintf(L"done\n");
 }
 
 process_t *ProcCreateProcess(const wchar_t *exe)
@@ -164,12 +158,13 @@ process_t *ProcCreateProcess(const wchar_t *exe)
     proc->info = NULL;
     KeAtomicInc(&proc_last_id);
     proc->id = proc_last_id;
+    proc->exit_code = 0;
 
     /* Create a VM area spanning the whole address space */
     memset(area, 0, sizeof(vm_area_t));
     area->owner = proc;
     area->start = PAGE_SIZE;
-    area->num_pages = 0x100000000ULL / PAGE_SIZE - 1025; /* 4GB - 4MB - 4096 */
+    area->num_pages = 0x100000 - 1025; /* 4GB - 4MB - 4096 -- trust me on this */
     area->type = VM_AREA_EMPTY;
     proc->area_first = proc->area_last = area;
 
@@ -186,11 +181,11 @@ bool ProcFirstTimeInit(process_t *proc)
     wchar_t *ch;
     module_t *mod, *kmod;
     thread_t *thr;
-    uint32_t cr3;
+    //uint32_t cr3;
     addr_t stack;
 
     /*SemAcquire(&proc->sem_lock);*/
-    __asm__("mov %%cr3,%0" : "=r" (cr3));
+    //__asm__("mov %%cr3,%0" : "=r" (cr3));
     TRACE3("Creating process from %s: page dir = %x = %x\n", 
         proc->exe, proc->page_dir_phys, cr3);
 
@@ -198,11 +193,12 @@ bool ProcFirstTimeInit(process_t *proc)
         3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
     if (info == NULL)
     {
-        SemRelease(&proc->sem_lock);
+        //SemRelease(&proc->sem_lock);
         return false;
     }
 
     for (thr = thr_first; thr; thr = thr->all_next)
+    {
         if (thr->process == proc)
         {
             if (thr->info == NULL)
@@ -223,6 +219,7 @@ bool ProcFirstTimeInit(process_t *proc)
             ctx = ThrGetUserContext(thr);
             ctx->esp = stack;
         }
+    }
 
     if (proc->info != NULL)
     {
@@ -258,8 +255,14 @@ bool ProcFirstTimeInit(process_t *proc)
     if (info->std_out == NULL)
         info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
 
-    if (proc->creator)
+    if (proc->creator == NULL)
+        proc->root = proc->cur_dir = proc_idle.root;
+    else
+    {
         KeAtomicDec((unsigned*) &proc->creator->hdr.copies);
+        proc->root = proc->creator->root;
+        proc->cur_dir = proc->creator->cur_dir;
+    }
 
     proc->info = info;
     info->id = proc->id;
@@ -285,11 +288,12 @@ bool ProcFirstTimeInit(process_t *proc)
     if (mod == NULL)
     {
         wprintf(L"ProcCreateProcess: failed to load %s\n", proc->exe);
-        SemRelease(&proc->sem_lock);
+        //SemRelease(&proc->sem_lock);
         ProcExitProcess(0);
         return true;
     }
 
+    //FsChangeDir(proc->info->cwd);
     info->base = mod->base;
     /*ctx = ThrGetContext(current);*/
     ctx = ThrGetUserContext(current());
@@ -303,15 +307,15 @@ bool ProcFirstTimeInit(process_t *proc)
 void ProcExitProcess(int code)
 {
     thread_t *thr, *tnext;
-    vm_area_t *area, *anext;
+    //vm_area_t *area, *anext;
     process_t *proc;
-    unsigned i;
-    void **handles;
+    //unsigned i;
+    //void **handles;
 
     proc = current()->process;
 
     SemAcquire(&proc->sem_lock);
-    /*proc->exit_code = code;*/ /* xxx */
+    proc->exit_code = code;
 
     for (thr = thr_first; thr; thr = tnext)
     {
@@ -320,7 +324,7 @@ void ProcExitProcess(int code)
             ThrDeleteThread(thr);
     }
 
-    for (area = proc->area_first; area != NULL; area = anext)
+    /*for (area = proc->area_first; area != NULL; area = anext)
     {
         anext = area->next;
         if (area->type != VM_AREA_EMPTY)
@@ -343,8 +347,8 @@ void ProcExitProcess(int code)
             hdr = proc->handles[i];
             //wprintf(L"ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
                 //i, hdr->file, hdr->line);
-            /*HndClose(proc, i, 0);*/
-        }
+            HndClose(proc, i, 0);
+        }*/
 
     /*for (area = proc->area_first; area != NULL; area = anext)
     {
@@ -354,14 +358,81 @@ void ProcExitProcess(int code)
     }*/
 
     HndSignalPtr(&proc->hdr, true);
-    handles = proc->handles;
+    /*handles = proc->handles;
     wprintf(L"ProcExitProcess: closing handle...");
     HndClose(proc, HANDLE_PROCESS, 'proc');
     wprintf(L"done\n");
-    free(handles);
+    free(handles);*/
     SemRelease(&proc->sem_lock);
 
-    wprintf(L"ProcExitProcess: finished\n");
+    wprintf(L"ProcExitProcess(%p): finished, copies = %u, sem_lock = %u\n", 
+        proc, proc->hdr.copies, proc->sem_lock.locks);
+}
+
+int ProcGetExitCode(handle_t hnd)
+{
+    handle_hdr_t *hdr, *h;
+    process_t *proc, *cur;
+    int ret;
+    unsigned i;
+
+    hdr = HndLock(NULL, hnd, 'proc');
+    if (hdr == NULL)
+        return 0;
+
+    proc = (process_t*) (hdr - 1);
+    wprintf(L"ProcGetExitCode(%p): exe = %p, sem_lock = %u/%p\n", 
+        proc, proc->exe, proc->sem_lock.locks, proc->sem_lock.owner);
+    cur = current()->process;
+    wprintf(L"%s: %u handles, handles = %p\n", cur->exe, cur->handle_count, cur->handles);
+    for (i = 0; i < cur->handle_count; i++)
+    {
+        h = cur->handles[i];
+        wprintf(L"handle %u: %p: ", i, cur->handles[i]);
+        if (cur->handles[i] != NULL)
+        {
+            wprintf(L"%S(%d) %.4S ", h->file, h->line, &h->tag);
+
+            switch (h->tag)
+            {
+            case 'proc':
+                wprintf(L"ID = %u, exe = %s ", 
+                    ((process_t*) h)->id,
+                    ((process_t*) h)->exe);
+                break;
+            case 'thrd':
+                wprintf(L"ID = %u ", ((thread_t*) ((void**) h - 1))->id);
+                break;
+            case 'file':
+                wprintf(L"cookie = %p ", ((file_t*) (h + 1))->fsd_cookie);
+                break;
+            }
+        }
+        else
+            wprintf(L"NULL handle ");
+
+        if (i == cur->info->std_in)
+        {
+            const wchar_t **cookie = ((file_t*) (h + 1))->fsd_cookie;
+            device_t **cookie2 = ((file_t*) (h + 1))->fsd_cookie;
+            wprintf(L"(stdin) %s %p", cookie[2], cookie2[5]->vtbl);
+        }
+
+        if (i == cur->info->std_out)
+        {
+            const wchar_t **cookie = ((file_t*) (h + 1))->fsd_cookie;
+            device_t **cookie2 = ((file_t*) (h + 1))->fsd_cookie;
+            wprintf(L"(stdout) %s %p", cookie[2], cookie2[5]->vtbl);
+        }
+
+        wprintf(L"\n");
+    }
+    SemAcquire(&proc->sem_lock);
+    ret = proc->exit_code;
+    SemRelease(&proc->sem_lock);
+
+    HndUnlock(NULL, hnd, 'proc');
+    return ret;
 }
 
 bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
@@ -483,5 +554,6 @@ bool ProcInit(void)
         + kernel_startup.kernel_phys;
     proc_idle.area_first = proc_idle.area_last = area;
 
+    proc_first = proc_last = &proc_idle;
     return true;
 }

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.27 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.28 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -161,8 +161,6 @@ uint32_t i386Isr(context_t ctx)
             old_current->cputime += SCHED_QUANTUM;
             ScNeedSchedule(true);
         }
-        else
-            wprintf(L"[%u]", ctx.intr);
         
         irq = irq_first[ctx.intr];
         i = 0;
@@ -256,14 +254,15 @@ uint32_t i386Isr(context_t ctx)
                 ArchDbgDumpContext(&ctx);
                 /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-                if (old_current->process == &proc_idle)
+                //if (old_current->process == &proc_idle)
+                DbgStartShell();
                     halt(ctx.eip);
-                else
-                        ProcExitProcess(-ctx.intr);
+                //else
+                    //ProcExitProcess(-ctx.intr);
             }
         }
     }
-    
+
     old_current->ctx_last = ctx.ctx_prev;
     while (true)
     {

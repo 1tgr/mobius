@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.20 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.21 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -28,7 +28,7 @@ thread_queue_t thr_priority[32];
 /*! Sleeping threads */
 thread_queue_t thr_sleeping;
 
-/*! Threads that have APCs queues */
+/*! Threads that have APCs queued */
 thread_queue_t thr_apc;
 
 #ifdef __SMP__
@@ -325,7 +325,7 @@ bool ThrAllocateThreadInfo(thread_t *thr)
             NULL,
             3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
 
-    TRACE1("ThrAllocateThreadInfo: %p\n", thr->info);
+    wprintf(L"ThrAllocateThreadInfo(%s/%u): %p\n", thr->process->exe, thr->id, thr->info);
     if (thr->info == NULL)
         return false;
 
@@ -563,6 +563,7 @@ bool ThrRun(thread_t *thr)
     ThrInsertQueue(thr, thr_priority + thr->priority, NULL);
     thr_queue_ready |= 1 << thr->priority;
     SemRelease(&sc_sem);
+    //ScNeedSchedule(true);
     return true;
 }
 
@@ -659,10 +660,11 @@ void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
 
 bool ThrInit(void)
 {
-    unsigned i;
     cpu_t *c;
 
 #ifdef __SMP__
+    unsigned i;
+
     for (c = thr_cpu, i = 0; i < kernel_startup.num_cpus; c++, i++)
 #else
     c = &thr_cpu_single;
@@ -673,10 +675,16 @@ bool ThrInit(void)
         c->thr_idle.info = &c->thr_idle_info;
         c->thr_idle.process = &proc_idle;
 
+#ifdef __SMP__
         if (i == 0)
+#endif
             thr_first = &c->thr_idle;
+
+#ifdef __SMP__
         if (i == kernel_startup.num_cpus - 1)
+#endif
             thr_last = &c->thr_idle;
+
 #ifdef __SMP__
         if (i > 0)
             c->thr_idle.all_prev = &thr_cpu[i - 1].thr_idle;

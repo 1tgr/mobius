@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.11 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: io.c,v 1.12 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -73,7 +73,7 @@ bool IoRequest(const io_callback_t *cb, device_t *dev, request_t *req)
 
     req->original = NULL;
 
-    if (dev == NULL)
+    /*if (dev == NULL)
     {
         wprintf(L"IoRequest fails on NULL device\n");
         return false;
@@ -89,7 +89,11 @@ bool IoRequest(const io_callback_t *cb, device_t *dev, request_t *req)
     {
         wprintf(L"IoRequest fails on NULL request function\n");
         return false;
-    }
+    }*/
+
+    assert(dev != NULL);
+    assert(dev->vtbl != NULL);
+    assert(dev->vtbl->request != NULL);
 
     ret = dev->vtbl->request(dev, req);
     if (ret && /*req->event == NULL*/
@@ -219,15 +223,35 @@ size_t IoReadPhysicalSync(device_t *dev, uint64_t ofs, page_array_t *array, size
 
 size_t IoReadSync(device_t *dev, uint64_t ofs, void *buf, size_t size)
 {
-    page_array_t *array;
     size_t ret;
 
-    array = MemCreatePageArray(buf, size);
-    if (array == NULL)
-        return (size_t) -1;
+    if (dev->flags & DEVICE_IO_DIRECT)
+    {
+        request_dev_t req;
 
-    ret = IoReadPhysicalSync(dev, ofs, array, size);
+        req.header.code = DEV_READ_DIRECT;
+        req.params.dev_read_direct.offset = ofs;
+        req.params.dev_read_direct.buffer = buf;
+        req.params.dev_read_direct.length = size;
 
-    MemDeletePageArray(array);
+        /*TRACE1("IoReadSync: dev = %p\n", dev);*/
+        if (IoRequestSync(dev, &req.header))
+            ret = req.params.dev_read_direct.length;
+        else
+            ret = (size_t) -1;
+    }
+    else
+    {
+        page_array_t *array;
+
+        array = MemCreatePageArray(buf, size);
+        if (array == NULL)
+            return (size_t) -1;
+
+        ret = IoReadPhysicalSync(dev, ofs, array, size);
+
+        MemDeletePageArray(array);
+    }
+
     return ret;
 }

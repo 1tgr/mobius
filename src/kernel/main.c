@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.21 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: main.c,v 1.22 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -20,6 +20,7 @@
 #include <kernel/init.h>
 #include <stdio.h>
 #include <wchar.h>
+#include <string.h>
 
 extern process_t proc_idle;
 
@@ -32,7 +33,7 @@ void SemInit(semaphore_t *sem)
 void TextUpdateProgress(int min, int progress, int max);
 extern unsigned sc_uptime;
 
-static void KernelCpuMeter(void)
+/*static void KernelCpuMeter(void)
 {
     unsigned up_last, up_cur, up_own;
 
@@ -48,7 +49,7 @@ static void KernelCpuMeter(void)
         ThrSleep(current(), 100);
         KeYield();
     }
-}
+}*/
 
 static void __initcode KeInstallDevices(void)
 {
@@ -132,6 +133,8 @@ static void __initcode KeInstallDevices(void)
         else if (is_mount)
         {
             wprintf(L"Mounting %s on %s as %s\n", device_path, dest, driver);
+            if (!FsCreateDir(device_path))
+                wprintf(L"warning: failed to create mount point %s\n", device_path);
             FsMount(device_path, driver, dest);
         }
         else
@@ -154,15 +157,22 @@ static void __initcode KeInstallDevices(void)
         swprintf(value, L"%u", i + 1);
     }
 
-    wcscpy(proc_idle.info->cwd, L"/");
-    ProcSpawnProcess(ProGetString(L"", L"Shell", SYS_BOOT L"/shell.exe"), 
-        proc_idle.info);
-
     TextUpdateProgress(0, 0, 0);
-    ThrCreateThread(&proc_idle, true, KernelCpuMeter, false, NULL, 20);
+    wcscpy(proc_idle.info->cwd, L"/");
+    ptr = ProGetString(L"", L"Shell", NULL);
+    if (ptr == NULL)
+        DbgStartShell();
+    else
+        ProcSpawnProcess(ptr, proc_idle.info);
+
+#ifndef WIN32
+    //ThrCreateThread(&proc_idle, true, KernelCpuMeter, false, NULL, 20);
+#endif
     ThrExitThread(0);
     KeYield();
 }
+
+extern vnode_t fs_root;
 
 void KernelMain(void)
 {
@@ -177,6 +187,11 @@ void KernelMain(void)
     TRACE0("FsInit\n");
     FsInit();
 
+    proc_idle.root = fs_root;
+    /* xxx - need to have something here or FsChangeDir will get confused */
+    wcscpy(proc_idle.info->cwd, L"/");
+    FsChangeDir(L"/");
+
     if (!ProLoadProfile(SYS_BOOT L"/system.pro", L"/"))
         wprintf(L"KernelMain: unable to load " SYS_BOOT L"/system.pro\n");
 
@@ -184,6 +199,7 @@ void KernelMain(void)
 
     ScEnableSwitch(true);
     ThrCreateThread(&proc_idle, true, KeInstallDevices, false, NULL, 16);
+    //KeInstallDevices();
     TRACE0("Idle\n");
 
     for (;;)

@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.18 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.19 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -400,7 +400,7 @@ static void TextSetFont(const uint8_t *bitmaps, unsigned char first,
 	for(Char=first; Char < last; Char++)
     {
         /*movedata(_DS, (unsigned)Src, 0xB800, Dst, Font->Height);*/
-        memcpy(PHYSICAL(0xb8000) + Dst, Src, height);
+        memcpy((char*) PHYSICAL(0xb8000) + Dst, Src, height);
 		Src += height;
 		Dst += 32;
     }
@@ -472,7 +472,11 @@ void __dj_assert(const char *test, const char *file, int line)
         L"%S\n",
         file, line, test);
     ScEnableSwitch(false);
+#ifdef _MSC_VER
+    __asm int 3;
+#else
     __asm__("int3");
+#endif
     enable();
     for (;;);
     /*__asm__("cli;hlt");*/
@@ -591,6 +595,7 @@ void *sbrk_virtual(size_t diff)
 
 int *_geterrno()
 {
+    assert(current()->info != NULL);
     return &current()->info->status;
 }
 
@@ -637,13 +642,15 @@ void __setup_file_rec_list(void)
 {
 }
 
+#ifndef WIN32
 ssize_t _write(int fd, const void *buf, size_t nbyte)
 {
-    if (fd == 0)
+    if (fd == 1)
         _cputs(buf, nbyte);
 
     return nbyte;
 }
+#endif
 
 const __wchar_info_t *__lookup_unicode(wchar_t cp)
 {

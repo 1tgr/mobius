@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.17 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.18 2002/08/14 16:24:00 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <wchar.h>
 #include <stdio.h>
-#include <malloc.h>
+//#include <malloc.h>
 
 int Hello(int a, int b)
 {

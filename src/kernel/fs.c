@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.27 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.28 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -20,9 +20,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-fsd_t *root;
+//fsd_t *root;
+vnode_t fs_root;
 
 #include <kernel/proc.h>
+
+typedef struct fs_mount_t fs_mount_t;
+struct fs_mount_t
+{
+    fs_mount_t *prev, *next;
+    vnode_t node;
+    vnode_t root;
+};
+
+static semaphore_t sem_mounts;
+fs_mount_t *fs_mount_first, *fs_mount_last;
 
 static void FsCompletionApc(void *param)
 {
@@ -100,6 +112,135 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
     return fd;
 }
 
+bool FsLookupMountPoint(vnode_t *out, const vnode_t *in)
+{
+    fs_mount_t *mount;
+
+    SemAcquire(&sem_mounts);
+
+    for (mount = fs_mount_first; mount != NULL; mount = mount->next)
+    {
+        //wprintf(L"\tmount: (%p:%x) ", mount->node.fsd, mount->node.id);
+        if (mount->node.fsd == in->fsd &&
+            mount->node.id == in->id)
+        {
+            //wprintf(L"=> (%p:%x)\n", mount->root.fsd, mount->root.id);
+            *out = mount->root;
+            SemRelease(&sem_mounts);
+            return true;
+        }
+        //else
+            //wprintf(L"\n");
+    }
+
+    SemRelease(&sem_mounts);
+
+    if (out != in)
+        *out = *in;
+    return false;
+}
+
+status_t FsPathToVnode(const wchar_t *path, vnode_t *vn, bool do_create, const wchar_t **out)
+{
+    wchar_t *name, *ch, *slash, *newname;
+    status_t ret;
+    vnode_t node, mount_point, old_node;
+
+    //wprintf(L"FsPathToVnode: %s, ", path);
+    ch = name = _wcsdup(path);
+
+    if (do_create)
+        *out = NULL;
+
+    if (*ch == '/' || *ch == '\0')
+    {
+        while (*ch == '/')
+            ch++;
+
+        //node = current()->process->root;
+        //if (node.fsd == NULL)
+            node = fs_root;
+        //wprintf(L"starting at root (%p:%x)\n", node.fsd, node.id);
+    }
+    else
+        node = current()->process->cur_dir;
+
+    assert(node.fsd != NULL);
+    while (*ch != '\0')
+    {
+        slash = wcschr(ch, '/');
+        if (slash == NULL)
+        {
+            if (do_create)
+            {
+                /*
+                 * xxx - what do we do here if some FSD followed a link?
+                 *  path no longer points to the full name.
+                 */
+                *out = path + (ch - name);
+                break;
+            }
+        }
+        else
+            *slash = '\0';
+
+        old_node = node;
+
+        /*
+         * If this is the root of a mounted FD, switch over to the mounted FS 
+         *  unless the file name is "..".
+         * If the file name is "..", give it to the FSD which handles the 
+         *  directory under the mount point.
+         */
+        if (FsLookupMountPoint(&mount_point, &node) &&
+            wcscmp(ch, L"..") != 0)
+            node = mount_point;
+
+        newname = NULL;
+        //wprintf(L"element: %s", ch);
+        assert(node.fsd != NULL);
+        if (node.fsd->vtbl->parse_element == NULL)
+            ret = ENOTIMPL;
+        else
+            ret = node.fsd->vtbl->parse_element(node.fsd, ch, &newname, &node);
+
+        if (ret != 0)
+        {
+            //wprintf(L"error %d\n", ret);
+            free(name);
+            return ret;
+        }
+
+        if (newname != NULL)
+        {
+            free(name);
+            ch = name = newname;
+            node = old_node;
+
+            if (*ch == '/' || *ch == '\0')
+            {
+                while (*ch == '/')
+                    ch++;
+
+                //node = current()->process->root;
+                //if (node.fsd == NULL)
+                    node = fs_root;
+            }
+        }
+        else if (slash == NULL)
+            ch = L"";
+        else
+            ch = slash + 1;
+
+        //wprintf(L" => (%p:%x)\n", node.fsd, node.id);
+    }
+
+    free(name);
+    *vn = node;
+    //wprintf(L"FsPathToVnode(%s): (%p:%x)\n", path, node.fsd, node.id);
+    return 0;
+}
+
 /*!
  *    \brief    Creates a file
  *
@@ -110,21 +251,21 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
  */
 handle_t FsCreateOpen(const wchar_t *path, uint32_t flags, bool do_create)
 {
-    fsd_t *fsd;
-    wchar_t fullname[256];
-    status_t ret;
     void *cookie;
+    vnode_t node;
+    status_t ret;
+    const wchar_t *nodename;
 
-    if (!FsFullPath(path, fullname))
-        return NULL;
-
-    fsd = root;
-    if (do_create && root->vtbl->create_file != NULL)
-        ret = root->vtbl->create_file(root, fullname, &fsd, &cookie);
-    else if (!do_create && root->vtbl->lookup_file != NULL)
-        ret = root->vtbl->lookup_file(root, fullname, &fsd, &cookie);
-    else
-        ret = ENOTIMPL;
+    ret = FsPathToVnode(path, &node, do_create, &nodename);
+    if (ret == 0)
+    {
+        if (do_create && node.fsd->vtbl->create_file != NULL)
+            ret = node.fsd->vtbl->create_file(node.fsd, node.id, nodename, &cookie);
+        else if (!do_create && node.fsd->vtbl->lookup_file != NULL)
+            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, &cookie);
+        else
+            ret = ENOTIMPL;
+    }
 
     if (ret != 0)
     {
@@ -132,7 +273,7 @@ handle_t FsCreateOpen(const wchar_t *path, uint32_t flags, bool do_create)
         return NULL;
     }
 
-    return FsCreateFileHandle(NULL, fsd, cookie, fullname, flags);
+    return FsCreateFileHandle(NULL, node.fsd, cookie, L"", flags);
 }
 
 handle_t FsCreate(const wchar_t *path, uint32_t flags)
@@ -145,6 +286,37 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
     return FsCreateOpen(path, flags, false);
 }
 
+bool FsCreateDir(const wchar_t *path)
+{
+    status_t ret;
+    void *dir_cookie;
+    vnode_t node;
+    const wchar_t *name;
+
+    ret = FsPathToVnode(path, &node, true, &name);
+    if (ret == 0)
+    {
+        if (name == NULL)
+            ret = EINVALID;
+        else if (node.fsd->vtbl->mkdir == NULL)
+            ret = ENOTIMPL;
+        else
+            ret = node.fsd->vtbl->mkdir(node.fsd, node.id, name, &dir_cookie);
+    }
+
+    if (ret != 0)
+    {
+        errno = ret;
+        return false;
+    }
+
+    if (node.fsd->vtbl->free_dir_cookie != NULL)
+        node.fsd->vtbl->free_dir_cookie(node.fsd, dir_cookie);
+
+    wprintf(L"FsCreateDir(%s): (%p:%x)\n", path, node.fsd, node.id);
+    return true;
+}
+
 /*!
  *    \brief    Opens a directory search
  *
@@ -153,24 +325,39 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
  */
 handle_t FsOpenDir(const wchar_t *path)
 {
-    wchar_t fullname[256];
+    //wchar_t fullname[256];
     status_t ret;
-    fsd_t *fsd;
+    //fsd_t *fsd;
     void *dir_cookie;
     handle_t fd;
     file_t *file;
+    vnode_t node;
 
-    if (!FsFullPath(path, fullname))
-        return NULL;
+    //if (!FsFullPath(path, fullname))
+        //return NULL;
 
     fd = HndAlloc(NULL, sizeof(file_t), 'file');
     file = HndLock(NULL, fd, 'file');
 
-    fsd = root;
+    /*fsd = root;
     if (fsd->vtbl->opendir == NULL)
         ret = ENOTIMPL;
     else
-        ret = root->vtbl->opendir(root, fullname, &fsd, &dir_cookie);
+        ret = root->vtbl->opendir(root, fullname, &fsd, &dir_cookie);*/
+
+    ret = FsPathToVnode(path, &node, false, NULL);
+    if (ret == 0)
+    {
+        /*
+         * node could contain the fsd:id of a mount point. We want to open 
+         *  the root of the mounted FS, not the location where it is mounted.
+         */
+        FsLookupMountPoint(&node, &node);
+        if (node.fsd->vtbl->opendir == NULL)
+            ret = ENOTIMPL;
+        else
+            ret = node.fsd->vtbl->opendir(node.fsd, node.id, &dir_cookie);
+    }
 
     if (ret != 0)
     {
@@ -180,7 +367,8 @@ handle_t FsOpenDir(const wchar_t *path)
         return NULL;
     }
 
-    file->fsd = fsd;
+    wprintf(L"FsOpenDir(%s): (%p:%x)\n", path, node.fsd, node.id);
+    file->fsd = node.fsd;
     file->fsd_cookie = dir_cookie;
     file->cache = NULL;
     file->flags = FILE_READ | FILE_IS_DIRECTORY;
@@ -242,6 +430,9 @@ bool FsReadDir(handle_t dir, dirent_t *di, size_t size)
         ret = errno = ENOTIMPL;
     else
         ret = fsd->vtbl->readdir(fsd, fd->fsd_cookie, di);
+
+    //if (ret == 0)
+        //wprintf(L"FsReadDir: %s\n", di->name);
 
     HndUnlock(NULL, dir, 'file');
     return ret > 0 ? false : true;
@@ -752,10 +943,9 @@ bool FsIoCtl(handle_t file, uint32_t code, void *buffer, size_t length, fileop_t
 
 bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t buffer_size)
 {
-    wchar_t fullname[256];
-    fsd_t *fsd;
     void *cookie;
     status_t ret;
+    vnode_t node;
 
     if (!MemVerifyBuffer(buffer, buffer_size))
     {
@@ -763,19 +953,20 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
         return false;
     }
 
-    if (!FsFullPath(name, fullname))
-        return false;
+    //if (!FsFullPath(name, fullname))
+        //return false;
 
-    fsd = root;
-    if (root->vtbl->lookup_file == NULL)
-        ret = ENOTIMPL;
-    else
-        /*
-         * xxx -- this is a very weird bug!
-         *  'name' here should be 'fullname', yet using 'fullname' corrupts 
-         *  the stack when used with ext2.
-         */
-        ret = root->vtbl->lookup_file(root, name, &fsd, &cookie);
+    //wprintf(L"FsQueryFile(%s)\n", name);
+    ret = FsPathToVnode(name, &node, false, NULL);
+    if (ret == 0)
+    {
+        if (node.fsd->vtbl->lookup_file == NULL)
+            ret = ENOTIMPL;
+        else
+        {
+            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, &cookie);
+        }
+    }
 
     if (ret != 0)
     {
@@ -783,13 +974,14 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
         return false;
     }
 
-    if (fsd->vtbl->get_file_info == NULL)
+    //wprintf(L"\tFsQueryFile(%s): (%p:%x)\n", name, node.fsd, node.id);
+    if (node.fsd->vtbl->get_file_info == NULL)
         ret = ENOTIMPL;
     else
-        ret = fsd->vtbl->get_file_info(fsd, cookie, query_class, buffer);
+        ret = node.fsd->vtbl->get_file_info(node.fsd, cookie, query_class, buffer);
 
-    if (fsd->vtbl->free_cookie != NULL)
-        fsd->vtbl->free_cookie(fsd, cookie);
+    if (node.fsd->vtbl->free_cookie != NULL)
+        node.fsd->vtbl->free_cookie(node.fsd, cookie);
 
     if (ret != 0)
     {
@@ -929,20 +1121,27 @@ bool FsMountDevice(const wchar_t *path, fsd_t *newfsd)
 {
     //request_fs_t req;
     status_t ret;
-    
+    vnode_t node;
+    //const wchar_t *name;
+    fs_mount_t *mount;
+
     if (wcscmp(path, L"/") == 0)
     {
         /*IoCloseDevice(root);*/
-        if (root != NULL &&
-            root->vtbl->dismount != NULL)
-            root->vtbl->dismount(root);
+        if (fs_root.fsd != NULL &&
+            fs_root.fsd->vtbl->dismount != NULL)
+            fs_root.fsd->vtbl->dismount(fs_root.fsd);
 
-        root = newfsd;
+        fs_root.fsd = newfsd;
+        fs_root.id = VNODE_ROOT;
+        wprintf(L"FsMountDevice(%s): mounting root = (%p:%x)\n", path, fs_root.fsd, fs_root.id);
         return true;
     }
-    else if (root->vtbl->mount != NULL)
+    /*else if (fs_root.fsd->vtbl->mount != NULL)
     {
-        ret = root->vtbl->mount(root, path, newfsd);
+        ret = FsPathToVnode(path, &node, true, &name);
+        if (ret == 0)
+            ret = node.fsd->vtbl->mount(node.fsd, node.id, name, newfsd);
         if (ret != 0)
         {
             errno = ret;
@@ -955,6 +1154,32 @@ bool FsMountDevice(const wchar_t *path, fsd_t *newfsd)
     {
         errno = ENOTIMPL;
         return false;
+    }*/
+    else
+    {
+        ret = FsPathToVnode(path, &node, false, NULL);
+        if (ret != 0)
+        {
+            errno = ret;
+            return false;
+        }
+
+        mount = malloc(sizeof(fs_mount_t));
+        if (mount == NULL)
+            return false;
+
+        memset(mount, 0, sizeof(fs_mount_t));
+        mount->node = node;
+        mount->root.fsd = newfsd;
+        mount->root.id = VNODE_ROOT;
+        SemAcquire(&sem_mounts);
+        LIST_ADD(fs_mount, mount);
+        SemRelease(&sem_mounts);
+        wprintf(L"FsMountDevice(%s): mounting (%p:%x) = (%p:%x)\n", 
+            path,
+            mount->node.fsd, mount->node.id,
+            mount->root.fsd, mount->root.id);
+        return true;
     }
 
     /*{
@@ -1019,6 +1244,29 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, const wchar_t *dest)
         return true;
 }
 
+bool FsChangeDir(const wchar_t *path)
+{
+    status_t ret;
+    vnode_t node;
+    process_t *proc;
+
+    proc = current()->process;
+    if (!FsFullPath(path, proc->info->cwd))
+        return false;
+
+    wprintf(L"FsChangeDir: changing to %s = %s\n", path, proc->info->cwd);
+    ret = FsPathToVnode(proc->info->cwd, &node, false, NULL);
+    if (ret != 0)
+    {
+        errno = ret;
+        return false;
+    }
+
+    FsLookupMountPoint(&node, &node);
+    proc->cur_dir = node;
+    return true;
+}
+
 /*!
  *    \brief    Initializes the filing system
  *
@@ -1036,12 +1284,15 @@ bool FsInit(void)
 {
     bool b;
 
-    FsCreateVirtualDir(L"/");
-    FsCreateVirtualDir(L"/System");
-    b = FsMount(SYS_BOOT, L"ram", NULL);
+    b = FsMount(L"/", L"vfs", NULL);
+    assert(b || "Failed to mount VFS root");
+    FsCreateDir(L"/System");
+    FsCreateDir(SYS_BOOT);
+    FsCreateDir(SYS_DEVICES);
+    b = FsMount(SYS_BOOT, L"ramfs", NULL);
     assert(b || "Failed to mount ramdisk");
-    b = FsMount(SYS_PORTS, L"portfs", NULL);
-    assert(b || "Failed to mount ports");
+    //b = FsMount(SYS_PORTS, L"portfs", NULL);
+    //assert(b || "Failed to mount ports");
     FsMount(SYS_DEVICES, L"devfs", NULL);
     assert(b || "Failed to mount devices");
 

@@ -16,7 +16,7 @@ endif
 OBJS=	start.o main.o thread.o \
 	proc.o handle.o fs.o vfs.o \
 	device.o io.o vmm.o \
-	mod_pe.o syscall.o port.o \
+	mod_pe.o syscall.o \
 	ramdisk_mb.o cache.o cppsup.o \
 	rtlsup.o debug.o profile.o winmgr.o \
 	queue.o clip.o kernel.res.o \

@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.14 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: port.c,v 1.15 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -328,15 +328,19 @@ void PortDismount(fsd_t *fsd)
     free(dir);
 }
 
-status_t PortCreateFile(fsd_t *fsd, const wchar_t *path, 
-                        fsd_t **redirect, void **cookie)
+status_t PortParseElement(fsd_t *fsd, const wchar_t *name, vnode_t *node)
+{
+}
+
+status_t PortCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **cookie)
 {
     port_t *port;
 
     if (*path == '/')
         path++;
-            
-    port = PortCreate(path);
+
+    assert(dir == VNODE_ROOT);
+    port = PortCreate(name);
     if (port == NULL)
         return errno;
 
@@ -345,8 +349,7 @@ status_t PortCreateFile(fsd_t *fsd, const wchar_t *path,
     return 0;
 }
 
-status_t PortLookupFile(fsd_t *fsd, const wchar_t *path, 
-                        fsd_t **redirect, void **cookie)
+status_t PortLookupFile(fsd_t *fsd, vnode_id_t node, void **cookie)
 {
     wchar_t client_name[20];
     status_t ret;
@@ -612,6 +615,7 @@ static const fsd_vtbl_t portfs_vtbl =
 {
     PortDismount,       /* dismount */
     NULL,               /* get_fs_info */
+    PortParseElement,
     PortCreateFile,
     PortLookupFile,
     PortGetFileInfo,

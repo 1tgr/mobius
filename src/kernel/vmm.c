@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.13 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.14 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -48,7 +48,8 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
                 pages * PAGE_SIZE, start);
             free(area);
             errno = ENOMEM;
-            __asm__("int3");
+            //__asm__("int3");
+            assert(collide != NULL);
             return NULL;
         }
 
@@ -498,9 +499,10 @@ tryagain:
         SemRelease(&area->owner->sem_vmm);
 
         if (area->type == VM_AREA_IMAGE &&
-            MemGetPageState((const void*) start) != PAGE_READINPROG &&
-            !area->dest.mod->imported)
-            PeInitImage(area->dest.mod);
+            MemGetPageState((const void*) start) != PAGE_READINPROG /*&&
+            !area->dest.mod->imported*/)
+            /*PeInitImage(area->dest.mod);*/
+            PeProcessSection(area->dest.mod, start);
         return true;
 
     case PAGE_WRITEINPROG:

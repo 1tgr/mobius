@@ -1,3 +1,5 @@
+/* $Id: cppsup.cpp,v 1.4 2002/08/14 16:23:59 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 

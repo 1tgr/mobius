@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.8 2002/08/06 11:02:57 pavlovskii Exp $
+; $Id: isr.asm,v 1.9 2002/08/14 16:24:00 pavlovskii Exp $
 
 [bits           32]
 
@@ -50,8 +50,8 @@ _SemAcquire:
     ret
 
 .2:
-    ;mov     eax, [esp+4]
     mov     eax, [ebp+4]
+    mov     ebx, [esp+4]
     cli
     hlt
 

@@ -1,32 +1,44 @@
-/* $Id: vfs.c,v 1.3 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: vfs.c,v 1.4 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 
 #include <errno.h>
 #include <wchar.h>
 
-typedef struct vfs_mount_t vfs_mount_t;
+/*typedef struct vfs_mount_t vfs_mount_t;
 struct vfs_mount_t
 {
     vfs_mount_t *prev, *next;
     wchar_t *name;
     fsd_t *fsd;
-};
+};*/
 
 typedef struct vfs_dir_t vfs_dir_t;
 struct vfs_dir_t
 {
+    //vfs_mount_t *vfs_mount_first, *vfs_mount_last;
+    vfs_dir_t *prev, *next, *parent;
+    const wchar_t *name;
+    vfs_dir_t *child_first, *child_last;
+};
+
+typedef struct vfs_t vfs_t;
+struct vfs_t
+{
     fsd_t fsd;
-    vfs_mount_t *vfs_mount_first, *vfs_mount_last;
+    vfs_dir_t root;
 };
 
 typedef struct vfs_search_t vfs_search_t;
 struct vfs_search_t
 {
-    vfs_mount_t *mount;
+    //vfs_mount_t *mount;
+    vfs_dir_t *dir;
 };
 
-vfs_mount_t *VfsLookupMount(vfs_dir_t *dir, const wchar_t **path, bool *do_redirect)
+extern struct module_t mod_kernel;
+
+/*static vfs_mount_t *VfsLookupMount(vfs_dir_t *dir, const wchar_t **path, bool *do_redirect)
 {
     vfs_mount_t *mount;
     wchar_t *ch;
@@ -57,10 +69,11 @@ vfs_mount_t *VfsLookupMount(vfs_dir_t *dir, const wchar_t **path, bool *do_redir
         }
 
     return NULL;
-}
+}*/
 
 void VfsDismount(fsd_t *fsd)
 {
+    free(fsd);
 }
 
 void VfsGetFsInfo(fsd_t *fsd, fs_info_t *info)
@@ -69,9 +82,36 @@ void VfsGetFsInfo(fsd_t *fsd, fs_info_t *info)
         info->cache_block_size = 0;
 }
 
-status_t VfsCreateFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+status_t VfsParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vnode_t *node)
 {
-    vfs_mount_t *mount;
+    vfs_t *vfs;
+    vfs_dir_t *dir;
+
+    vfs = (vfs_t*) fsd;
+    if (node->id == VNODE_ROOT)
+        dir = &vfs->root;
+    else
+        dir = (vfs_dir_t*) node->id;
+
+    if (wcscmp(name, L"..") == 0)
+    {
+        node->id = (vnode_id_t) dir->parent;
+        return 0;
+    }
+    else
+        for (dir = dir->child_first; dir != NULL; dir = dir->next)
+            if (_wcsicmp(dir->name, name) == 0)
+            {
+                node->id = (vnode_id_t) dir;
+                return 0;
+            }
+
+    return ENOTFOUND;
+}
+
+status_t VfsCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **cookie)
+{
+    /*vfs_mount_t *mount;
     bool do_redirect;
 
     mount = VfsLookupMount((vfs_dir_t*) fsd, &path, &do_redirect);
@@ -89,12 +129,14 @@ status_t VfsCreateFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
         }
         else
             return EACCESS;
-    }
+    }*/
+
+    return EACCESS;
 }
 
-status_t VfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+status_t VfsLookupFile(fsd_t *fsd, vnode_id_t node, void **cookie)
 {
-    vfs_mount_t *mount;
+    /*vfs_mount_t *mount;
     bool do_redirect;
 
     //wprintf(L"VfsLookupFile(%s): ", path);
@@ -107,8 +149,8 @@ status_t VfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
         if (do_redirect)
         {
             *redirect = mount->fsd;
-            /*wprintf(L"VfsLookupFile(%s): fsd = %p vtbl = %p\n", 
-                path, mount->fsd, mount->fsd->vtbl);*/
+            //wprintf(L"VfsLookupFile(%s): fsd = %p vtbl = %p\n", 
+                //path, mount->fsd, mount->fsd->vtbl);
             if (mount->fsd->vtbl->lookup_file == NULL)
                 return ENOTIMPL;
             else
@@ -120,16 +162,28 @@ status_t VfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
             *redirect = fsd;
             return 0;
         }
-    }
+    }*/
+
+    vfs_t *vfs;
+
+    vfs = (vfs_t*) fsd;
+    if (node == VNODE_ROOT)
+        *cookie = &vfs->root;
+    else
+        *cookie = (vfs_dir_t*) node;
+
+    return 0;
 }
 
 status_t VfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
 {
-    vfs_mount_t *mount;
+    //vfs_mount_t *mount;
+    vfs_dir_t *dir;
     dirent_all_t *di;
 
     di = buf;
-    mount = cookie;
+    //mount = cookie;
+    dir = cookie;
     /*wprintf(L"VfsGetFileInfo(%p) = %s\n", cookie, mount->name);*/
     di = buf;
     switch (type)
@@ -138,7 +192,7 @@ status_t VfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
         return 0;
 
     case FILE_QUERY_DIRENT:
-        wcsncpy(di->dirent.name, mount->name, _countof(di->dirent.name) - 1);
+        wcsncpy(di->dirent.name, dir->name, _countof(di->dirent.name) - 1);
         di->dirent.vnode = 0;
         return 0;
 
@@ -189,9 +243,50 @@ bool VfsPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf,
     return false;
 }*/
 
-status_t VfsOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+status_t VfsMkDir(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **dir_cookie)
 {
-    vfs_mount_t *mount;
+    vfs_t *vfs;
+    vfs_dir_t *parent, *new;
+
+    vfs = (vfs_t*) fsd;
+    if (dir == VNODE_ROOT)
+        parent = &vfs->root;
+    else
+        parent = (vfs_dir_t*) dir;
+
+    new = malloc(sizeof(vfs_dir_t));
+    if (new == NULL)
+        return errno;
+
+    new->child_first = new->child_last = NULL;
+    new->name = _wcsdup(name);
+    new->parent = parent;
+    LIST_ADD(parent->child, new);
+    *dir_cookie = NULL;
+    return 0;
+}
+
+status_t VfsOpenDir(fsd_t *fsd, vnode_id_t node, void **dir_cookie)
+{
+    vfs_t *vfs;
+    vfs_dir_t *dir;
+    vfs_search_t *search;
+
+    vfs = (vfs_t*) fsd;
+    if (node == VNODE_ROOT)
+        dir = &vfs->root;
+    else
+        dir = (vfs_dir_t*) node;
+
+    search = malloc(sizeof(vfs_search_t));
+    if (search == NULL)
+        return errno;
+
+    search->dir = dir->child_first;
+    *dir_cookie = search;
+    return 0;
+
+    /*vfs_mount_t *mount;
     vfs_dir_t *dir;
     wchar_t *ch;
     size_t len;
@@ -237,23 +332,27 @@ status_t VfsOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **di
                 return mount->fsd->vtbl->opendir(mount->fsd, path, redirect, dir_cookie);
         }
 
-    return ENOTFOUND;
+    return ENOTFOUND;*/
 }
 
 status_t VfsReadDir(fsd_t *fsd, void *dir_cookie, dirent_t *buf)
 {
     vfs_search_t *search;
-    vfs_mount_t *mount;
+    //vfs_mount_t *mount;
+    vfs_dir_t *dir;
 
     search = dir_cookie;
-    mount = search->mount;
-    if (mount == NULL)
+    if (search == NULL)
+        return EEOF;
+
+    dir = search->dir;
+    if (dir == NULL)
         return EEOF;
     else
     {
-        wcsncpy(buf->name, mount->name, _countof(buf->name) - 1);
+        wcsncpy(buf->name, dir->name, _countof(buf->name) - 1);
         buf->vnode = 0;
-        search->mount = mount->next;
+        search->dir = dir->next;
         return 0;
     }
 }
@@ -265,8 +364,22 @@ void VfsFreeDirCookie(fsd_t *fsd, void *dir_cookie)
     free(search);
 }
 
-status_t VfsMount(fsd_t *fsd, const wchar_t *path, fsd_t *newfsd)
+#if 0
+status_t VfsMount(fsd_t *fsd, vnode_id_t node, const wchar_t *name, fsd_t *newfsd)
 {
+    vfs_dir_t *dir;
+    vfs_mount_t *mount;
+
+    assert(node == VNODE_ROOT);
+    dir = (vfs_dir_t*) fsd;
+
+    mount = malloc(sizeof(vfs_mount_t));
+    mount->name = _wcsdup(name);
+    mount->fsd = newfsd;
+    LIST_ADD(dir->vfs_mount, mount);
+    return 0;
+
+#if 0
     const wchar_t *ch;
     size_t len;
     vfs_mount_t *mount;
@@ -319,12 +432,15 @@ status_t VfsMount(fsd_t *fsd, const wchar_t *path, fsd_t *newfsd)
 
         return ENOTFOUND;
     }
+#endif
 }
+#endif
 
 static const fsd_vtbl_t vfs_vtbl =
 {
     VfsDismount,
     VfsGetFsInfo,
+    VfsParseElement,
     VfsCreateFile,
     VfsLookupFile,
     VfsGetFileInfo,
@@ -334,15 +450,16 @@ static const fsd_vtbl_t vfs_vtbl =
     NULL,           /* write */
     NULL,           /* ioctl */
     NULL,           /* passthrough */
+    VfsMkDir,
     VfsOpenDir,
     VfsReadDir,
     VfsFreeDirCookie,
-    VfsMount,
+    //VfsMount,
     NULL,           /* finishio */
     NULL,           /* flush_cache */
 };
 
-bool FsMountDevice(const wchar_t *path, fsd_t *newfsd);
+//bool FsMountDevice(const wchar_t *path, fsd_t *newfsd);
 
 /*!
  *    \brief    Creates a new virtual directory
@@ -352,7 +469,7 @@ bool FsMountDevice(const wchar_t *path, fsd_t *newfsd);
  *    \param    path    Full path specification for the new directory
  *    \return    \p true if the directory was created
  */
-bool FsCreateVirtualDir(const wchar_t *path)
+/*bool FsCreateVirtualDir(const wchar_t *path)
 {
     vfs_dir_t *dir;
 
@@ -370,4 +487,29 @@ bool FsCreateVirtualDir(const wchar_t *path)
     }
 
     return true;
+}*/
+
+fsd_t *VfsMountFs(driver_t *drv, const wchar_t *dest)
+{
+    vfs_t *vfs;
+
+    vfs = malloc(sizeof(vfs_t));
+    if (vfs == NULL)
+        return NULL;
+
+    memset(vfs, 0, sizeof(vfs_t));
+    vfs->fsd.vtbl = &vfs_vtbl;
+    vfs->root.name = _wcsdup(L"/");
+    vfs->root.parent = &vfs->root;
+
+    return &vfs->fsd;
 }
+
+driver_t vfs_driver = 
+{
+    &mod_kernel,
+    NULL,
+    NULL,
+    NULL,
+    VfsMountFs,
+};

@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.21 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.22 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -451,6 +451,38 @@ void ArchPowerOff(void)
     KeYield();
     /* xxx -- usual HndClose problem with exited threads */
     /*HndClose(current()->process, hnd, 0);*/
+}
+
+typedef struct keydef_t keydef_t;
+struct keydef_t
+{
+    uint32_t normal;
+    uint32_t shift;
+    uint32_t control;
+    uint32_t control_shift;
+    uint32_t altgr;
+    uint32_t altgr_shift;
+};
+
+#include <os/keyboard.h>
+#include "../../drivers/keyboard/british.h"
+
+wchar_t ArchGetKey(void)
+{
+    uint8_t scan;
+
+    while (true)
+    {
+        while ((in(0x64) & 1) == 0)
+            ;
+
+        scan = in(0x60);
+        if (scan & 0x80)
+            continue;
+
+        if (scan > 0 && scan < _countof(keys))
+            return keys[scan].normal;
+    }
 }
 
 static unsigned short ctc(void)

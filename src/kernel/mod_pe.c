@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.13 2002/06/22 17:20:06 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.14 2002/08/14 16:23:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -67,7 +67,7 @@ bool PeFindFile(const wchar_t *relative, wchar_t *full, const wchar_t *search)
     return false;
 }
 
-void PeInitImage(module_t *mod);
+//void PeInitImage(module_t *mod);
 
 module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 {
@@ -91,7 +91,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     temp = ProGetString(L"", L"LibrarySearchPath", L"/hd/boot,/System/Boot,.");
     search_path = malloc(sizeof(wchar_t) * (wcslen(temp) + 2));
     if (search_path == NULL)
-        return false;
+        return NULL;
 
     wcscpy(search_path, temp);
     wcscat(search_path, L",");
@@ -174,6 +174,11 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     if (base == NULL)
         base = pe.OptionalHeader.ImageBase;
 
+#ifdef WIN32
+    if (base >= 0x80000000)
+        base -= 0x60000000;
+#endif
+
     mod->refs = 1;
     mod->base = base;
     mod->length = pe.OptionalHeader.SizeOfImage;
@@ -188,7 +193,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         VM_AREA_IMAGE,
         0);
 
-    assert(new_base == base);
+    assert(new_base == mod->base);
 
     /*wprintf(L"%s: %x..%x (pbase = %x)\n",
         file, mod->base, mod->base + mod->length, 
@@ -198,8 +203,8 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 
     PeGetHeaders(mod->base);
 
-    if (proc == current()->process)
-        PeInitImage(mod);
+    //if (proc == current()->process)
+        //PeInitImage(mod);
 
     KeAtomicDec(&nesting);
     return mod;
@@ -245,10 +250,12 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
             wprintf(L"PeGetExport(%s, %S): invalid hint %u (NumberOfNames = %u)\n",
                 mod->name, name, hint, exp->NumberOfNames);
         else
+        {
             export_name = (const char*) (mod->base + name_table[hint]);
             if (name_table[hint] == 0 ||
                 _stricmp(export_name, name) == 0)
                 return mod->base + function_table[ordinal_table[hint]];
+        }
 
         /*wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
             mod->name, hint, name, export_name);*/
@@ -333,22 +340,143 @@ static bool PeDoImports(process_t* proc,
     return true;
 }
 
-void PeInitImage(module_t *mod)
+void PeRelocateSection(module_t *mod, 
+                       addr_t section_start_virtual, 
+                       addr_t section_length)
 {
     IMAGE_PE_HEADERS *pe;
+    IMAGE_DATA_DIRECTORY* directories;
+	const IMAGE_BASE_RELOCATION* rel;
+	bool valid, found = false;
+	uint32_t* addr;
+	int adjust;
+
+    pe = PeGetHeaders(mod->base);
+    directories = pe->OptionalHeader.DataDirectory;
+    adjust = mod->base - pe->OptionalHeader.ImageBase;
+	if (directories[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress == 0 ||
+		adjust == 0)
+		return;
+
+	//wprintf(L"peRelocateSection: adjust = %d (%x)\n", adjust, adjust);
+	rel = (const IMAGE_BASE_RELOCATION*) (mod->base + 
+		directories[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
+	
+	while (rel->VirtualAddress)
+	{
+		const unsigned long reloc_num = (rel->SizeOfBlock - sizeof(*rel)) / sizeof(uint16_t);
+		unsigned i;
+		uint16_t *ad = (void *)(rel + 1);
+
+		valid = rel->VirtualAddress >= section_start_virtual &&
+			rel->VirtualAddress < section_start_virtual + section_length;
+
+		if (valid)
+		{
+			wprintf(L"\t%lu relocations starting at 0x%04lx\n", reloc_num, rel->VirtualAddress);
+			found = true;
+        }
+
+		for (i = 0; i < reloc_num; i++, ad++)
+			if (valid)
+			{
+				const wchar_t *type;
+				switch (*ad >> 12)
+				{
+				case IMAGE_REL_BASED_ABSOLUTE:
+					type = L"nop";
+					break;
+				case IMAGE_REL_BASED_HIGH:
+					type = L"fix high";
+					break;
+				case IMAGE_REL_BASED_LOW:
+					type = L"fix low";
+					break;
+				case IMAGE_REL_BASED_HIGHLOW:
+					addr = (uint32_t*) ((*ad & 0xfffU) + rel->VirtualAddress + mod->base);
+					//wprintf(L"hl(%p) %x = %x + %x\n", 
+						//addr, *addr + adjust, *addr, adjust);
+					*addr += adjust;
+					type = L"fix hilo";
+					break;
+				case IMAGE_REL_BASED_HIGHADJ:
+					type = L"fix highadj";
+					break;
+				case IMAGE_REL_BASED_MIPS_JMPADDR:
+					type = L"jmpaddr";
+					break;
+				case IMAGE_REL_BASED_SECTION:
+					type = L"section";
+					break;
+				case IMAGE_REL_BASED_REL32:
+					type = L"fix rel32";
+					break;
+				default:
+					type = L"???";
+					break;
+				}
+				
+				if (*ad >> 12 != IMAGE_REL_BASED_ABSOLUTE &&
+					*ad >> 12 != IMAGE_REL_BASED_HIGHLOW)
+					wprintf(L"Relocation not implemented: offset 0x%03x (%s)\n", *ad & 0xfffU, type);
+
+                *ad = 0;
+			}
+
+		rel = (void *)ad;
+	}
+}
+
+static IMAGE_SECTION_HEADER *PeFindSection(module_t *mod, IMAGE_PE_HEADERS *pe, addr_t addr)
+{
+    IMAGE_SECTION_HEADER *first_scn, *scn;
+    unsigned i;
+
+    first_scn = IMAGE_FIRST_SECTION(pe);
+    scn = NULL;
+    for (i = 0; i < pe->FileHeader.NumberOfSections; i++)
+    {
+        if ((first_scn[i].Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) &&
+            scn == NULL)
+            scn = first_scn + i;
+        else if (addr >= mod->base + first_scn[i].VirtualAddress &&
+            addr < mod->base + first_scn[i].VirtualAddress + first_scn[i].Misc.VirtualSize)
+        {
+            scn = first_scn + i;
+            break;
+        }
+    }
+
+    return scn;
+}
+
+void PeProcessSection(module_t *mod, addr_t addr)
+{
+    IMAGE_PE_HEADERS *pe;
+    IMAGE_SECTION_HEADER *scn;
 
     pe = PeGetHeaders(mod->base);
     if (!mod->imported &&
         !PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory))
         ;
         //wprintf(L"%s: imports failed\n", mod->name);
+
+    if (addr > mod->base + mod->sizeof_headers)
+    {
+        scn = PeFindSection(mod, pe, addr);
+
+        if (scn != NULL)
+            PeRelocateSection(mod, 
+                scn->VirtualAddress, 
+                scn->Misc.VirtualSize);
+    }
 }
 
 bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
                         size_t *bytes, uint32_t *flags)
 {
     if (addr >= mod->base && 
-        addr <= mod->base + mod->sizeof_headers)
+        addr < mod->base + mod->sizeof_headers)
     {
         /* Map headers as a special case */
         *off = 0;
@@ -358,26 +486,11 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
     else
     {
         IMAGE_PE_HEADERS *pe;
-        IMAGE_SECTION_HEADER *first_scn, *scn;
-        int i;
+        IMAGE_SECTION_HEADER *scn;
         addr_t scn_base;
 
         pe = PeGetHeaders(mod->base);
-        first_scn = IMAGE_FIRST_SECTION(pe);
-
-        scn = NULL;
-        for (i = 0; i < pe->FileHeader.NumberOfSections; i++)
-        {
-            if ((first_scn[i].Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) &&
-                scn == NULL)
-                scn = first_scn + i;
-            else if (addr >= mod->base + first_scn[i].VirtualAddress &&
-                addr < mod->base + first_scn[i].VirtualAddress + first_scn[i].Misc.VirtualSize)
-            {
-                scn = first_scn + i;
-                break;
-            }
-        }
+        scn = PeFindSection(mod, pe, addr);
 
         if (scn == NULL)
         {
@@ -415,6 +528,7 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
     return true;
 }
 
+#if 0
 bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
 {
     IMAGE_PE_HEADERS *pe;
@@ -488,6 +602,8 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
             raw_offset = -1;
 
         raw_size = scn->SizeOfRawData;
+
+        PeRelocateSection(mod, (addr_t) scn_base, (addr_t) scn_base + scn->Misc.VirtualSize);
     }
 
     if (VmmArea(proc, scn_base))
@@ -523,6 +639,7 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
 
     return true;
 }
+#endif
 
 void PeUnload(process_t* proc, module_t* mod)
 {

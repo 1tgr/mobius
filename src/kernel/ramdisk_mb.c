@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.14 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.15 2002/08/14 16:24:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -22,7 +22,7 @@ struct ramfd_t
     multiboot_module_t *mod;
 };
 
-status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+status_t RdParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vnode_t *node)
 {
     multiboot_module_t *mods;
     wchar_t wc_name[16];
@@ -30,10 +30,7 @@ status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **
     char *ch;
     unsigned i;
 
-    if (path[0] == '/')
-        path++;
-
-    /*wprintf(L"RdLookupFile(%s)\n", path);*/
+    assert(node->id == VNODE_ROOT);
     mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
     for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
     {
@@ -45,14 +42,23 @@ status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **
 
         len = mbstowcs(wc_name, ch, _countof(wc_name));
         wc_name[len] = '\0';
-        if (_wcsicmp(wc_name, path) == 0)
+        if (_wcsicmp(wc_name, name) == 0)
         {
-            *cookie = mods + i;
+            node->id = i;
             return 0;
         }
     }
 
     return ENOTFOUND;
+}
+
+status_t RdLookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
+{
+    if (id >= kernel_startup.multiboot_info->mods_count)
+        return ENOTFOUND;
+
+    *cookie = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr + id;
+    return 0;
 }
 
 status_t RdGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
@@ -115,7 +121,7 @@ status_t RdGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
 bool RdRead(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
 {
     multiboot_module_t *mod;
-    void *ptr;
+    void *ptr, *dest;
 
     io->op.bytes = 0;
     mod = file->fsd_cookie;
@@ -136,17 +142,17 @@ bool RdRead(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length, fs_asy
         (addr_t) ptr,
         *(uint32_t*) ptr);*/
 
-    memcpy(MemMapPageArray(pages, PRIV_PRES | PRIV_KERN | PRIV_WR), 
-        ptr,
-        length);
+    dest = MemMapPageArray(pages, PRIV_PRES | PRIV_KERN | PRIV_WR);
+    memcpy(dest, ptr, length);
     MemUnmapTemp();
     FsNotifyCompletion(io, length, 0);
     return true;
 }
 
-status_t RdOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **cookie)
+status_t RdOpenDir(fsd_t *fsd, vnode_id_t node, void **cookie)
 {
     unsigned *index;
+    assert(node == VNODE_ROOT);
     index = malloc(sizeof(unsigned));
     if (index == NULL)
         return errno;
@@ -243,6 +249,7 @@ static const fsd_vtbl_t ramdisk_vtbl =
 {
     NULL,           /* dismount */
     NULL,           /* get_fs_info */
+    RdParseElement,
     NULL,           /* create_file */
     RdLookupFile,
     RdGetFileInfo,
@@ -252,10 +259,11 @@ static const fsd_vtbl_t ramdisk_vtbl =
     NULL,           /* write */
     NULL,           /* ioctl */
     NULL,           /* passthrough */
+    NULL,           /* mkdir */
     RdOpenDir,
     RdReadDir,
     RdFreeDirCookie,
-    NULL,           /* mount */
+    //NULL,           /* mount */
     NULL,           /* flush_cache */
 };
 
