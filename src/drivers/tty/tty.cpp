@@ -231,7 +231,7 @@ void tty::doEscape(char code, unsigned num, const unsigned *esc)
         break;
     
     case 'D':    /* ESC[PnD - cursor backward */
-        if (num > 0 && y >= esc[0])
+        if (num > 0 && x >= esc[0])
         {
             x -= esc[0];
             updateCursor();
@@ -450,8 +450,8 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 
     if (tty > consoles)
 	tty->clear();
-    if (tty == consoles + 1)
-        tty->switchTo();
+    /*if (tty == consoles + 1)
+        tty->switchTo();*/
 
     SemAcquire(&sem_consoles);
     num_consoles++;
