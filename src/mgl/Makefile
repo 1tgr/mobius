@@ -1,6 +1,6 @@
 TARGET_D=	$(BIN)/mgl.dll
 TARGET_S=	$(LIB)/mgl_s.lib
-OBJS=	rc.o render.o rect.o mgl.res.o
+OBJS=	rc.o render.o rect.o wmf.o mgl.res.o
 EXP=	mgl.exp
 IMP=	$(LIB)/mgl.lib
 CFLAGS=	-g

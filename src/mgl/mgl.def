@@ -1,9 +1,12 @@
 EXPORTS
 	glClear
+	glDrawText
+	glFillPolygon
 	glFillRect
 	glFlush
 	glLineTo
 	glMoveTo
+	glPolygon
 	glPutPixel
 	glRectangle
 	glSetClearColour
@@ -12,11 +15,14 @@ EXPORTS
 	mglDeleteRc
 	mglGetDimensions
 	mglUseRc
-	rectIncludesPoint
-	rectInflate
-	rectIntersects
-	rectIsEmpty
-	rectOffset
-	rectSet
-	rectSetEmpty
-	rectUnion
+	RectIncludesPoint
+	RectInflate
+	RectIntersects
+	RectIsEmpty
+	RectOffset
+	RectSet
+	RectSetEmpty
+	RectUnion
+	WmfClose
+	WmfDraw
+	WmfOpen

@@ -1,7 +1,7 @@
 include ../../make.actions
 
 TARGET=	$(BIN)/mgltest.exe
-OBJS=	mgltest.o ../../crt0.o
+OBJS=	mgltest.o ../../wcrt0.o
 LIBS=	$(LIB)/mgl.lib $(LIB)/libc.lib $(LIB)/libsys.lib
 
 all: $(TARGET)

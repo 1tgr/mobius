@@ -1,10 +1,13 @@
-/* $Id: render.c,v 1.2 2002/03/06 01:39:43 pavlovskii Exp $ */
+/* $Id: render.c,v 1.3 2002/03/06 19:31:41 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
+
 #include <os/syscall.h>
 
 #undef __FTERRORS_H__
@@ -22,7 +25,7 @@ const struct
 
 #define vidAddToQueue(q, s)    QueueAppend(q, s, sizeof(*s))
 
-bool vidFlushQueue(queue_t *queue, addr_t video)
+bool vidFlushQueue(queue_t *queue, handle_t video)
 {
     if (queue->length > 0)
     {
@@ -244,4 +247,107 @@ void glPutPixel(MGLreal x, MGLreal y)
 
     mgliMapToSurface(x, y, &pt);
     vidPutPixel(&current->render_queue, pt.x, pt.y, current->colour);
+}
+
+wchar_t *wmemchr(const wchar_t *s, wchar_t c, size_t n)
+{
+    for (; n > 0; s++, n--)
+    	if (*s == c)
+	    return (wchar_t*) s;
+    return NULL;
+}
+
+void glDrawText(const MGLrect *rc, const wchar_t *str, size_t len)
+{
+    size_t chunk;
+    params_vid_t params;
+    point_t topLeft, bottomRight;
+    fileop_t op;
+    const wchar_t *nl;
+
+    CCV;
+
+    glFlush();
+    
+    if (len == (size_t) -1)
+	len = wcslen(str);
+
+    mgliMapToSurface(rc->left, rc->top, &topLeft);
+    mgliMapToSurface(rc->right, rc->bottom, &bottomRight);
+    while (len > 0)
+    {
+	while (*str == '\n' && len > 0)
+	{
+	    str++;
+	    len--;
+	}
+	
+	nl = wmemchr(str, '\n', len);
+	if (nl == NULL)
+	{
+	    chunk = (bottomRight.x - topLeft.x) / 8;
+	    if (chunk > len)
+		chunk = len;
+	}
+	else
+	    chunk = nl - str;
+	
+	if (chunk > 0)
+	{
+	    params.vid_textout.x = topLeft.x;
+	    params.vid_textout.y = topLeft.y;
+	    params.vid_textout.buffer = str;
+	    params.vid_textout.length = chunk * sizeof(wchar_t);
+	    params.vid_textout.foreColour = current->colour;
+	    params.vid_textout.backColour = -1;
+	    FsRequestSync(current->video, VID_TEXTOUT, &params, sizeof(params), &op);
+	}
+
+	topLeft.y += 8;
+	len -= chunk;
+	str += chunk;
+    }
+}
+
+void glFillPolygon(const MGLpoint *points, unsigned num_points)
+{
+    point_t *pts;
+    unsigned i;
+    params_vid_t params;
+    fileop_t op;
+
+    pts = malloc(sizeof(point_t) * num_points);
+    if (pts == NULL)
+	return;
+
+    for (i = 0; i < num_points; i++)
+    	mgliMapToSurface(points[i].x, points[i].y, pts + i);
+    
+    glFlush();
+    params.vid_fillpolygon.points = pts;
+    params.vid_fillpolygon.length = num_points * sizeof(point_t);
+    params.vid_fillpolygon.colour = current->colour;
+    FsRequestSync(current->video, VID_FILLPOLYGON, &params, sizeof(params), &op);
+
+    free(pts);
+}
+
+void glPolygon(const MGLpoint *points, unsigned num_points)
+{
+    MGLpoint firstPoint;
+    unsigned i;
+    
+    for (i = 0; i < num_points; i++)
+    {
+    	if (i == 0)
+	{
+	    glMoveTo(points[i].x, points[i].y);
+	    firstPoint = points[i];
+	}
+	else
+	    glLineTo(points[i].x, points[i].y);
+    }
+
+    if (num_points > 0)
+	glLineTo(firstPoint.x, firstPoint.y);
 }

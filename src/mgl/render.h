@@ -1,9 +1,9 @@
-/* $Id: render.h,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: render.h,v 1.2 2002/03/06 19:31:41 pavlovskii Exp $ */
 
 #ifndef __INTERNAL_RENDER_H
 #define __INTERNAL_RENDER_H
 
-bool	vidFlushQueue(queue_t *queue, addr_t video);
+bool	vidFlushQueue(queue_t *queue, handle_t video);
 
 bool	vidFillRect(queue_t *queue, point_t topLeft, point_t bottomRight, 
 					colour_t colour);

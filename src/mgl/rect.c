@@ -1,9 +1,9 @@
-/* $Id: rect.c,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: rect.c,v 1.2 2002/03/06 19:31:41 pavlovskii Exp $ */
 
 #include <gl/mgl.h>
 #include <stddef.h>
 
-void rectSet(MGLrect* r, MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
+void RectSet(MGLrect* r, MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 {
 	r->left = left;
 	r->top = top;
@@ -11,7 +11,7 @@ void rectSet(MGLrect* r, MGLreal left, MGLreal top, MGLreal right, MGLreal botto
 	r->bottom = bottom;
 }
 
-void rectSetEmpty(MGLrect* r)
+void RectSetEmpty(MGLrect* r)
 {
 	r->left = 0;
 	r->top = 0;
@@ -19,7 +19,7 @@ void rectSetEmpty(MGLrect* r)
 	r->bottom = 0;
 }
 
-bool rectIsEmpty(const MGLrect* r)
+bool RectIsEmpty(const MGLrect* r)
 {
 	return r->left == 0 && 
 		r->top == 0 &&
@@ -27,11 +27,11 @@ bool rectIsEmpty(const MGLrect* r)
 		r->bottom == 0;
 }
 
-void rectUnion(MGLrect* a, const MGLrect* b)
+void RectUnion(MGLrect* a, const MGLrect* b)
 {
-	if (!rectIsEmpty(b))
+	if (!RectIsEmpty(b))
 	{
-		if (rectIsEmpty(a))
+		if (RectIsEmpty(a))
 			*a = *b;
 		else
 		{
@@ -43,7 +43,7 @@ void rectUnion(MGLrect* a, const MGLrect* b)
 	}
 }
 
-bool rectIncludesPoint(const MGLrect* r, MGLreal x, MGLreal y)
+bool RectIncludesPoint(const MGLrect* r, MGLreal x, MGLreal y)
 {
 	return x >= r->left &&
 		y >= r->top &&
@@ -51,7 +51,7 @@ bool rectIncludesPoint(const MGLrect* r, MGLreal x, MGLreal y)
 		y < r->bottom;
 }
 
-void rectOffset(MGLrect* r, MGLreal dx, MGLreal dy)
+void RectOffset(MGLrect* r, MGLreal dx, MGLreal dy)
 {
 	r->left += dx;
 	r->top += dy;
@@ -59,9 +59,9 @@ void rectOffset(MGLrect* r, MGLreal dx, MGLreal dy)
 	r->bottom += dy;
 }
 
-bool rectIntersects(const MGLrect* r1, const MGLrect* r2)
+bool RectIntersects(const MGLrect* r1, const MGLrect* r2)
 {
-	if (rectIsEmpty(r1) || rectIsEmpty(r2)
+	if (RectIsEmpty(r1) || RectIsEmpty(r2)
 		|| (r1->left >= r2->right)
 		|| (r1->right <= r2->left)
 		|| (r1->top >= r2->bottom)
@@ -71,7 +71,7 @@ bool rectIntersects(const MGLrect* r1, const MGLrect* r2)
 		return true;
 }
 
-void rectInflate(MGLrect* r, MGLreal dx, MGLreal dy)
+void RectInflate(MGLrect* r, MGLreal dx, MGLreal dy)
 {
 	r->left -= dx;
 	r->top -= dy;

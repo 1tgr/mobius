@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.2 2002/03/06 01:39:43 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.3 2002/03/06 19:31:41 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -14,7 +14,7 @@ static bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first,
 {
     params_vid_t params;
     fileop_t op;
-    params.vid_storepalette.entries = (addr_t) rgb;
+    params.vid_storepalette.entries = rgb;
     params.vid_storepalette.length = count * sizeof(*rgb);
     params.vid_storepalette.first_index = first;
     return FsRequestSync(video, VID_STOREPALETTE, &params, sizeof(params), &op);
@@ -111,7 +111,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     }*/
 
     memset(&params, 0, sizeof(params));
-    params.vid_setmode.bitsPerPixel = 4;
+    params.vid_setmode.bitsPerPixel = 8;
     if (!FsRequestSync(rc->video, VID_SETMODE, &params, sizeof(params), &op) ||
 	op.result != 0)
     {
