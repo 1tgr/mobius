@@ -7,3 +7,4 @@ pci:0:7:1 Vendor8086Device7111 => Intel 82371AB/EB/MB PIIX4 EIDE Controller
 pci:0:7:2 Vendor8086Device7112 => Intel 82371AB/EB/MB PIIX4 USB Controller
 pci:0:7:3 Vendor8086Device7113 => Intel 82371AB/EB/MB PIIX4 Power Management Controller
 pci:0:20:0 Vendor5333Device8811 => S3 86C732 Trio32, 86C764 Trio64, 86C765 Trio64V+ Rev 01
+pci:0:16:0 Vendor1274Device1371 => Ensoniq ES1371, ES1373 AudioPCI
