@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.15 2002/04/20 12:47:27 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.16 2002/05/05 13:35:10 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -10,20 +10,21 @@
 
 #include <kernel/device>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <errno.h>
 #include <wchar.h>
 #include <ctype.h>
 #include <string.h>
-#include <unistd.h>
+
+extern "C" void *__morecore(size_t nbytes);
 
 #include "fat.h"
 
 using namespace kernel;
 
-struct FatDirectory : public file_t
+struct FatDirectory
 {
     fat_dirent_t di;
     bool is_dir;
@@ -32,36 +33,73 @@ struct FatDirectory : public file_t
     FatDirectory **subdirs;
 };
 
-struct FatFile : public file_t
+struct FatFile
 {
     fat_dirent_t di;
     bool is_dir;
     unsigned num_clusters;
-    /* uint32_t clusters[]; */
+    wchar_t *name;
+    uint32_t *clusters;
 };
 
-class Fat : public device
+typedef struct fat_ioextra_t fat_ioextra_t;
+struct fat_ioextra_t
+{
+    enum { started, reading, finished } state;
+    uint32_t bytes_read;
+    unsigned cluster_index;
+    size_t mod;
+    uint32_t *clusters;
+    request_dev_t dev_request;
+
+    file_t *file;
+    page_array_t *pages;
+    size_t length;
+    fs_asyncio_t *io;
+    bool is_reading;
+};
+
+class Fat : public fsd_t
 {
 public:
-    bool request(request_t *req);
-    bool isr(uint8_t irq);
-    void finishio(request_t *req);
+    void dismount();
+    void get_fs_info(fs_info_t *info);
 
-    device_t *Init(driver_t *drv, const wchar_t *path, device_t *dev);
+    status_t create_file(const wchar_t *path, fsd_t **redirect, void **cookie);
+    status_t lookup_file(const wchar_t *path, fsd_t **redirect, void **cookie);
+    status_t get_file_info(void *cookie, uint32_t type, void *buf);
+    status_t set_file_info(void *cookie, uint32_t type, const void *buf);
+    void free_cookie(void *cookie);
+
+    bool read_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io);
+    bool write_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io);
+    bool ioctl_file(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io);
+    bool passthrough(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io);
+
+    status_t opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie);
+    status_t readdir(void *dir_cookie, uint32_t type, void *buf);
+    void free_dir_cookie(void *dir_cookie);
+
+    status_t mount(const wchar_t *path, fsd_t *newfsd);
+
+    void finishio(request_t *req);
+    void flush_cache(file_t *fd);
+
+    fsd_t *Init(driver_t *drv, const wchar_t *dest);
 
 protected:
     bool ConstructDir(FatDirectory *dir, const fat_dirent_t *di);
     void DestructDir(FatDirectory *dir);
     uint32_t GetNextCluster(uint32_t cluster);
-    handle_t AllocFile(const fat_dirent_t *di, uint32_t flags);
-    bool FreeFile(handle_t fd);
+    /*handle_t AllocFile(const fat_dirent_t *di, uint32_t flags);
+    bool FreeFile(handle_t fd);*/
     bool LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di);
     uint32_t ClusterToOffset(uint32_t cluster);
-    void StartIo(asyncio_t *io);
-    bool FlushBlock(FatFile *file, uint64_t block);
-    bool ReadDir(FatDirectory *dir, request_fs_t *req_fs);
-    bool ReadWriteFile(FatFile *file, request_fs_t *req_fs);
-    bool QueryFile(request_fs_t *req_fs);
+    void StartIo(fat_ioextra_t *extra);
+    //bool FlushBlock(FatFile *file, uint64_t block);
+    /*bool ReadDir(FatDirectory *dir, request_fs_t *req_fs);*/
+    bool ReadWriteFile(file_t *file, page_array_t *pages, size_t length, 
+        fs_asyncio_t *io, bool is_reading);
 
     static unsigned AssembleName(fat_dirent_t *entries, wchar_t *name);
     size_t SizeOfDir(const fat_dirent_t *di);
@@ -105,10 +143,10 @@ bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
     size_t bytes, size;
     
     size = SizeOfDir(di);
-    dir->fsd = this;
+    /*dir->fsd = this;
     dir->pos = 0;
     dir->flags = FILE_READ;
-    dir->cache = NULL;
+    dir->cache = NULL;*/
     dir->is_dir = true;
     dir->di = *di;
     dir->num_entries = size / sizeof(fat_dirent_t);
@@ -239,83 +277,6 @@ uint32_t Fat::GetNextCluster(uint32_t cluster)
     }
     
     return w;
-}
-
-handle_t Fat::AllocFile(const fat_dirent_t *di, uint32_t flags)
-{
-    FatFile *file;
-    handle_t fd;
-    unsigned num_clusters, i, cluster;
-    uint32_t *ptr;
-
-    num_clusters = 
-	(di->file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
-    num_clusters /= m_bytes_per_cluster;
-    fd = HndAlloc(NULL, sizeof(FatFile) + num_clusters * sizeof(uint32_t), 'file');
-    file = (FatFile*) HndLock(NULL, fd, 'file');
-    if (file == NULL)
-    {
-	HndClose(NULL, fd, 'file');
-	return NULL;
-    }
-
-    file->fsd = this;
-    file->pos = 0;
-    file->flags = flags;
-    file->di = *di;
-    file->is_dir = false;
-    file->num_clusters = num_clusters;
-    file->cache = CcCreateFileCache(m_bytes_per_cluster);
-
-    ptr = (uint32_t*) (file + 1);
-    cluster = di->first_cluster;
-    for (i = 0; i < num_clusters; i++)
-    {
-	*ptr++ = cluster;
-	if (!IS_EOC_CLUSTER(cluster))
-	    cluster = GetNextCluster(cluster);
-    }
-
-    assert(IS_EOC_CLUSTER(cluster));
-    HndUnlock(NULL, fd, 'file');
-    return fd;
-}
-
-bool Fat::FreeFile(handle_t fd)
-{
-    FatFile *file;
-    unsigned i;
-    
-    file = (FatFile*) HndLock(NULL, fd, 'file');
-    if (file == NULL)
-	return false;
-
-    if (file->is_dir)
-    {
-        FatDirectory *dir;
-        unsigned i;
-
-        dir = (FatDirectory*) file;
-        for (i = 0; i < dir->num_entries; i++)
-            if (dir->subdirs[i] != NULL)
-            {
-                DestructDir(dir->subdirs[i]);
-                delete dir->subdirs[i];
-            }
-
-        delete[] dir->entries;
-        delete[] dir->subdirs;
-    }
-    else
-    {
-        for (i = 0; i < file->cache->num_blocks; i++)
-            FlushBlock(file, i << file->cache->block_shift);
-
-	CcDeleteFileCache(file->cache);
-    }
-
-    HndUnlock(NULL, fd, 'file');
-    return HndClose(NULL, fd, 'file');
 }
 
 unsigned Fat::AssembleName(fat_dirent_t *entries, wchar_t *name)
@@ -461,29 +422,16 @@ uint32_t Fat::ClusterToOffset(uint32_t cluster)
 	+ (cluster - 2) * m_bytes_per_cluster;
 }
 
-typedef struct fat_ioextra_t fat_ioextra_t;
-struct fat_ioextra_t
+void Fat::StartIo(fat_ioextra_t *extra)
 {
-    enum { started, reading, finished } state;
-    FatFile *file;
-    uint32_t bytes_read;
-    unsigned cluster_index;
-    size_t user_length, mod;
-    uint32_t *clusters;
-    request_dev_t dev_request;
-};
-
-void Fat::StartIo(asyncio_t *io)
-{
-    fat_ioextra_t *extra;
     unsigned bytes;
     uint8_t *buf, *page;
-    request_fs_t *req_fs;
     page_array_t *array;
+    io_callback_t cb;
+    FatFile *fatfile;
 
-    extra = (fat_ioextra_t*) io->extra;
-    req_fs = (request_fs_t*) io->req;
-    
+    fatfile = (FatFile*) extra->file->fsd_cookie;
+
 start:
     //wprintf(L"[%u]", extra->state);
     switch (extra->state)
@@ -505,32 +453,47 @@ start:
 	    {
 		/* device failure */
 		wprintf(L"fat: device failure\n");
-		req_fs->header.code = extra->dev_request.header.code;
-		break;
+		extra->io->op.result = extra->dev_request.header.code;
+                extra->state = fat_ioextra_t::finished;
+		goto start;
 	    }
 
-	    wprintf(L"Fat::StartIo: io finished\n");
+	    TRACE0("Fat::StartIo: io finished\n");
 	    /* The block is now valid */
-	    CcReleaseBlock(extra->file->cache, extra->file->pos, true, false);
+	    CcReleaseBlock(extra->file->cache, 
+                extra->file->pos + extra->bytes_read, 
+                true, 
+                false);
 	}
 
-	bytes = extra->user_length - extra->bytes_read;
+	bytes = extra->length - extra->bytes_read;
 	if (bytes > m_bytes_per_cluster)
 	    bytes = m_bytes_per_cluster;
+        if (extra->mod + bytes > m_bytes_per_cluster)
+            bytes -= m_bytes_per_cluster - extra->mod;
 
-	if (CcIsBlockValid(extra->file->cache, extra->file->pos))
+        if (!extra->is_reading)
+        {
+            wprintf(L"FatStartIo: pos = %u cluster = %u = %x bytes = %u: %s", 
+	        (uint32_t) (extra->file->pos + extra->bytes_read), 
+	        extra->cluster_index, 
+	        fatfile->clusters[extra->cluster_index], 
+	        bytes,
+                CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read) ? L"cached" : L"not cached");
+        }
+
+	if (CcIsBlockValid(extra->file->cache, extra->file->pos + extra->bytes_read))
 	{
+            TRACE0("cached\n");
 	    /* The cluster is already in the file's cache, so just memcpy() it */
 
-	    buf = (uint8_t*) DevMapBuffer(io);
-	    array = CcRequestBlock(extra->file->cache, extra->file->pos);
-	    /*memcpy(buf + io->mod_buffer_start + extra->bytes_read,
-		page + extra->mod,
-		bytes);*/
+            buf = (uint8_t*) MemMapPageArray(extra->pages, 
+                PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
+	    array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
             page = (uint8_t*) MemMapPageArray(array, 
                 PRIV_RD | PRIV_WR | PRIV_KERN | PRIV_PRES);
 
-            if (req_fs->header.code == FS_READ)
+            if (extra->is_reading)
                 memcpy(buf + extra->bytes_read,
 		    page + extra->mod,
 		    bytes);
@@ -539,9 +502,10 @@ start:
                     buf + extra->bytes_read,
 		    bytes);
 
-	    DevUnmapBuffer();
-	    CcReleaseBlock(extra->file->cache, extra->file->pos, true, 
-                req_fs->header.code == FS_WRITE);
+	    MemUnmapTemp();
+	    CcReleaseBlock(extra->file->cache, extra->file->pos + extra->bytes_read, 
+                true, 
+                !extra->is_reading);
             MemDeletePageArray(array);
 
 	    extra->mod += bytes;
@@ -550,27 +514,27 @@ start:
 		extra->mod -= m_bytes_per_cluster;
 
 		extra->cluster_index++;
-		if (extra->cluster_index >= extra->file->num_clusters)
+		if (extra->cluster_index >= fatfile->num_clusters)
 		{
 		    /* last cluster reached: invalid chain? */
-		    wprintf(L"fat: last cluster reached\n");
+		    TRACE0("fat: last cluster reached\n");
 		    extra->state = fat_ioextra_t::finished;
-		    req_fs->header.result = EEOF;
+                    extra->io->op.result = EEOF;
 		    goto start;
 		}
 	    }
 
-	    extra->file->pos += bytes;
+	    /*extra->file->pos += bytes;*/
 	    extra->bytes_read += bytes;
 
-	    if (extra->bytes_read >= extra->user_length)
+	    if (extra->bytes_read >= extra->length)
 	    {
 		/*
 		 * We've finished, so we'll switch to the 'finished' state 
 		 *    for cleanup.
 		 */
 		extra->state = fat_ioextra_t::finished;
-		req_fs->header.result = 0;
+                extra->io->op.result = 0;
 	    }
 	    else
 		/*
@@ -584,36 +548,32 @@ start:
 	}
 	else
 	{
-            TRACE4("FatStartIo: pos = %u cluster = %u = %x bytes = %u: ", 
-	        (uint32_t) extra->file->pos, 
-	        extra->cluster_index, 
-	        extra->clusters[extra->cluster_index], 
-	        bytes);
-
 	    /*
 	     * The cluster is not cached, so we need to lock the relevant
 	     *	  cache block and read the entire cluster into there.
 	     * When the read has finished we'll try the cache again.
 	     */
 
-	    wprintf(L"not cached\n");
+	    TRACE0("not cached\n");
 
-	    array = CcRequestBlock(extra->file->cache, extra->file->pos);
+	    array = CcRequestBlock(extra->file->cache, extra->file->pos + extra->bytes_read);
 
 	    extra->dev_request.header.code = DEV_READ;
 	    extra->dev_request.params.buffered.pages = array;
 	    extra->dev_request.params.buffered.length = m_bytes_per_cluster;
 	    extra->dev_request.params.buffered.offset = 
-		ClusterToOffset(extra->clusters[extra->cluster_index]);
-	    extra->dev_request.header.param = io;
+		ClusterToOffset(fatfile->clusters[extra->cluster_index]);
+	    extra->dev_request.header.param = extra;
 
-	    if (!IoRequest(this, m_device, &extra->dev_request.header))
+            cb.type = IO_CALLBACK_FSD;
+            cb.u.fsd = this;
+	    if (!IoRequest(&cb, m_device, &extra->dev_request.header))
 	    {
 		wprintf(L"Fat::StartIo: request failed straight away\n");
 		DevUnmapBuffer();
                 MemDeletePageArray(array);
 		extra->state = fat_ioextra_t::finished;
-		req_fs->header.result = extra->dev_request.header.result;
+		extra->io->op.result = extra->dev_request.header.result;
 		goto start;
 	    }
             else
@@ -622,27 +582,14 @@ start:
 	break;
 
     case fat_ioextra_t::finished:
-	req_fs->params.buffered.length = extra->bytes_read;
-	HndUnlock(io->owner->process,
-	    req_fs->params.buffered.file, 
-	    'file');
+        MemDeletePageArray(extra->pages);
+        FsNotifyCompletion(extra->io, extra->bytes_read, extra->io->op.result);
 	free(extra);
-	DevFinishIo(io->dev, io, req_fs->header.result);
 	break;
     }
 }
 
-bool Fat::FlushBlock(FatFile *file, uint64_t block)
-{
-    if (CcIsBlockDirty(file->cache, block))
-        wprintf(L"FlushBlock: writing valid block %lu\n", (uint32_t) block);
-    else
-        wprintf(L"FlushBlock: ignoring invalid block %lu\n", (uint32_t) block);
-
-    return true;
-}
-
-bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
+/*bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 {
     fat_dirent_t *di;
     size_t len;
@@ -713,261 +660,347 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
     MemUnmapTemp();
     HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
     return true;
-}
+}*/
 
-bool Fat::ReadWriteFile(FatFile *file, request_fs_t *req_fs)
+bool Fat::ReadWriteFile(file_t *file, page_array_t *pages, size_t length, 
+                        fs_asyncio_t *io, bool is_reading)
 {
-    asyncio_t *io;
     fat_ioextra_t *extra;
-    size_t user_length;
-    
-    if (file->pos >> m_cluster_shift >= file->num_clusters)
+    FatFile *fatfile;
+
+    fatfile = (FatFile*) file->fsd_cookie;
+    if (file->pos >> m_cluster_shift >= fatfile->num_clusters)
     {
-	req_fs->header.result = EEOF;
-	req_fs->params.buffered.length = 0;
-	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-	return false;
+        TRACE3("fat: position %u beyond end of clusters (%u > %u)\n",
+            (uint32_t) file->pos, 
+            file->pos >> m_cluster_shift,
+            fatfile->num_clusters);
+        io->op.bytes = 0;
+        io->op.result = EEOF;
+        return false;
     }
 
-    user_length = req_fs->params.fs_read.length;
-    if (file->pos + user_length >= file->di.file_length &&
-	req_fs->header.code == FS_READ)
-	user_length = file->di.file_length - file->pos;
-    if (user_length == 0)
+    if (file->pos + length >= fatfile->di.file_length && is_reading)
+	length = fatfile->di.file_length - file->pos;
+    if (length == 0)
     {
 	TRACE0("fat: null read\n");
-	req_fs->header.result = EEOF;
-	req_fs->params.buffered.length = 0;
-	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+        io->op.bytes = 0;
+        io->op.result = EEOF;
 	return false;
     }
 
-    /*array = MemCreatePageArray(req_fs->params.buffered.buffer, 
-        req_fs->params.buffered.length);
-    if (array == NULL)
-    {
-        req_fs->header.result = errno;
-        req_fs->params.buffered.length = 0;
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-	return false;
-    }*/
+    io->original->result = io->op.result = SIOPENDING;
 
-    io = DevQueueRequest(this, 
-        &req_fs->header, sizeof(request_fs_t),
-	req_fs->params.buffered.pages,
-	req_fs->params.buffered.length);
-
-    /*MemDeletePageArray(array);*/
-    if (io == NULL)
-	return false;
-    
-    io->extra = malloc(sizeof(fat_ioextra_t));
-    assert(io->extra != NULL);
-    extra = (fat_ioextra_t*) io->extra;
-    extra->state = fat_ioextra_t::started;
+    extra = new fat_ioextra_t;
+    extra->state = fat_ioextra_t::reading;
     extra->file = file;
     extra->cluster_index = file->pos >> m_cluster_shift;
     extra->bytes_read = 0;
     extra->dev_request.header.code = 0;
-    
-    /* xxx - change this to 64-bit modulo */
-    extra->mod = (uint32_t) file->pos % m_bytes_per_cluster;
 
-    extra->clusters = (uint32_t*) (file + 1);
-    extra->user_length = user_length;
-    
-    ((request_fs_t*) io->req)->params.buffered.length = 0;
-    extra->state = fat_ioextra_t::reading;
-    
-    //wprintf(L"Request: starting IO, extra = %p\n", io->extra);
-    StartIo(io);
+    /* xxx - change this to 64-bit modulo */
+    /*extra->mod = (uint32_t) file->pos % m_bytes_per_cluster;*/
+    extra->mod = file->pos & ((1 << m_cluster_shift) - 1);
+
+    extra->pages = MemCopyPageArray(pages->num_pages, pages->mod_first_page, 
+        pages->pages);
+    extra->length = length;
+    extra->io = io;
+    extra->is_reading = is_reading;
+
+    TRACE2("Fat::ReadWriteFile: %s: %u bytes\n", 
+        is_reading ? L"reading" : L"writing",
+        length);
+    StartIo(extra);
     return true;
 }
 
-bool Fat::QueryFile(request_fs_t *req_fs)
+void Fat::dismount()
 {
-    wchar_t *path;
-    dirent_t *buf;
-    fat_dirent_t di;
+}
 
-    path = _wcsdup(req_fs->params.fs_queryfile.name);
-    if (!LookupFile(m_root, path + 1, &di))
+void Fat::get_fs_info(fs_info_t *info)
+{
+    info->cache_block_size = m_bytes_per_cluster;
+}
+
+status_t Fat::create_file(const wchar_t *path, fsd_t **redirect, void **cookie)
+{
+    return ENOTIMPL;
+}
+
+status_t Fat::lookup_file(const wchar_t *path, fsd_t **redirect, void **cookie)
+{
+    fat_dirent_t di;
+    FatFile *fatfile;
+    unsigned num_clusters, i;
+    uint32_t *ptr, cluster;
+    wchar_t *copy;
+    const wchar_t *ch;
+
+    TRACE1("Fat::lookup_file(%s): ", path);
+    copy = _wcsdup(path);
+    if (!LookupFile(m_root, copy + 1, &di))
     {
-	req_fs->header.code = ENOTFOUND;
-	return false;
+        free(copy);
+        return ENOTFOUND;
     }
 
-    free(path);
+    TRACE1("cluster = %lx\n", di.first_cluster);
+    free(copy);
+    num_clusters = 
+	(di.file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
+    num_clusters /= m_bytes_per_cluster;
 
-    switch (req_fs->params.fs_queryfile.query_class)
+    /*fatfile = (FatFile*) malloc(sizeof(FatFile) 
+        + num_clusters * sizeof(uint32_t));*/
+    fatfile = new FatFile;
+    if (fatfile == NULL)
+        return errno;
+
+    ch = wcsrchr(path, '/');
+    if (ch == NULL)
+        ch = path;
+    else
+        ch++;
+
+    fatfile->di = di;
+    fatfile->is_dir = false;
+    fatfile->num_clusters = num_clusters;
+    fatfile->name = _wcsdup(ch);
+    ptr = fatfile->clusters = new uint32_t[num_clusters];
+
+    /*ptr = (uint32_t*) (fatfile + 1);*/
+    cluster = di.first_cluster;
+    for (i = 0; i < num_clusters; i++)
+    {
+	*ptr++ = cluster;
+	if (!IS_EOC_CLUSTER(cluster))
+	    cluster = GetNextCluster(cluster);
+    }
+
+    *cookie = fatfile;
+    return 0;
+}
+
+status_t Fat::get_file_info(void *cookie, uint32_t type, void *buf)
+{
+    FatFile *fatfile;
+    dirent_standard_t *di;
+
+    fatfile = (FatFile*) cookie;
+    di = (dirent_standard_t*) buf;
+    switch (type)
     {
     case FILE_QUERY_NONE:
-	return true;
+        return 0;
 
     case FILE_QUERY_STANDARD:
-	if (req_fs->params.fs_queryfile.buffer_size < sizeof(dirent_t))
-	{
-	    req_fs->header.code = EBUFFER;
-	    return false;
-	}
-
-	buf = (dirent_t*) req_fs->params.fs_queryfile.buffer;
-	/* xxx - need to do something about this */
-	AssembleName(&di, buf->name);
-	buf->length = di.file_length;
-	buf->standard_attributes = di.attribs;
-	return true;
+        wcsncpy(di->di.name, fatfile->name, _countof(di->di.name) - 1);
+        di->length = fatfile->di.file_length;
+        di->attributes = fatfile->di.attribs;
+        return 0;
     }
-    
-    req_fs->header.code = ENOTIMPL;
+
+    return ENOTIMPL;
+}
+
+status_t Fat::set_file_info(void *cookie, uint32_t type, const void *buf)
+{
+    return EACCESS;
+}
+
+void Fat::free_cookie(void *cookie)
+{
+    FatFile *fatfile;
+    fatfile = (FatFile*) cookie;
+    delete[] fatfile->clusters;
+    free(fatfile->name);
+    free(fatfile);
+}
+
+bool Fat::read_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
+{
+    return ReadWriteFile(file, pages, length, io, true);
+}
+
+bool Fat::write_file(file_t *file, page_array_t *pages, size_t length, fs_asyncio_t *io)
+{
+    return ReadWriteFile(file, pages, length, io, false);
+}
+
+bool Fat::ioctl_file(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io)
+{
+    io->op.result = ENOTIMPL;
     return false;
 }
 
-bool Fat::request(request_t *req)
+bool Fat::passthrough(file_t *file, uint32_t code, void *buf, size_t length, fs_asyncio_t *io)
 {
-    request_fs_t *req_fs;
-    wchar_t *path, *wildcard;
-    fat_dirent_t di;
-    FatFile *file;
-    FatDirectory *dir;
-
-    req_fs = (request_fs_t*) req;
-    switch (req->code)
-    {
-    case FS_OPEN:
-	path = _wcsdup(req_fs->params.fs_open.name);
-	if (!LookupFile(m_root, path + 1, &di))
-	{
-	    req->code = ENOTFOUND;
-	    return false;
-	}
-
-	TRACE2("fat: opening %s at cluster %u\n", path, di.first_cluster);
-	free(path);
-
-	req_fs->params.fs_open.file = AllocFile(
-            &di, req_fs->params.fs_open.flags);
-	return req_fs->params.fs_open.file == NULL ? false : true;
-
-    case FS_QUERYFILE:
-	return QueryFile(req_fs);
-
-    case FS_OPENSEARCH:
-	path = _wcsdup(req_fs->params.fs_opensearch.name);
-	wildcard = wcsrchr(path + 1, '/');
-	if (wildcard)
-	{
-	    *wildcard = '\0';
-	    wildcard++;
-	    TRACE2("fat: open search: path = %s, wildcard = %s\n",
-		path + 1, wildcard);
-	    if (!LookupFile(m_root, path + 1, &di))
-	    {
-		req->code = ENOTFOUND;
-		free(path);
-		return false;
-	    }
-	}
-	else
-	{
-	    wildcard = path + 1;
-	    memset(&di, 0, sizeof(di));
-	    /*root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);*/
-	    di.file_length = m_root->num_entries * sizeof(fat_dirent_t);
-	    di.first_cluster = FAT_CLUSTER_ROOT;
-	    TRACE0("fat: opening search for root directory\n");
-	}
-
-	TRACE2("fat: opening search %s at cluster %u\n", path, di.first_cluster);
-	free(path);
-
-	req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(FatDirectory), 'file');
-	dir = (FatDirectory*) HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
-	if (dir == NULL)
-	{
-	    req->code = EHANDLE;
-	    return false;
-	}
-
-	if (!ConstructDir(dir, &di))
-	{
-	    req->code = 1;
-	    return false;
-	}
-
-	HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
-	return true;
-
-    case FS_CLOSE:
-	return FreeFile(req_fs->params.fs_close.file);
-
-    case FS_READ:
-    case FS_WRITE:
-	file = (FatFile*) HndLock(NULL, req_fs->params.fs_read.file, 'file');
-	if (file == NULL)
-	    return false;
-
-	if (file->is_dir)
-	{
-	    if (req->code == FS_READ)
-		return ReadDir((FatDirectory*) file, req_fs);
-	    else
-	    {
-		HndUnlock(NULL, req_fs->params.fs_write.file, 'file');
-		req->code = EACCESS;
-		return false;
-	    }
-	}
-	else
-	    return ReadWriteFile(file, req_fs);
-    }
-
-    req->code = ENOTIMPL;
+    io->op.result = ENOTIMPL;
     return false;
 }
 
-bool Fat::isr(uint8_t irq)
+status_t Fat::opendir(const wchar_t *path, fsd_t **redirect, void **dir_cookie)
 {
-    return false;
+    return ENOTIMPL;
+}
+
+status_t Fat::readdir(void *dir_cookie, uint32_t type, void *buf)
+{
+    return ENOTIMPL;
+}
+
+void Fat::free_dir_cookie(void *dir_cookie)
+{
+}
+
+status_t Fat::mount(const wchar_t *path, fsd_t *newfsd)
+{
+    return ENOTIMPL;
 }
 
 void Fat::finishio(request_t *req)
 {
-    asyncio_t *io;
     fat_ioextra_t *extra;
-    
-    wprintf(L"fat: finishio: req = %p\n", req);
-    /*FOREACH (io, io)
-    {*/
+
+    TRACE1("fat: finishio: req = %p\n", req);
     assert(req != NULL);
     assert(req->param != NULL);
 
-    io = (asyncio_t*) req->param;
-    assert(io != NULL);
-
-    extra = (fat_ioextra_t*) io->extra;
-    assert(extra != NULL);
-
+    extra = (fat_ioextra_t*) req->param;
     assert(req == &extra->dev_request.header);
-    StartIo(io);
-    /*}*/
-
-    /*assert(false && "Request not found");
-    return false;*/
+    StartIo(extra);
 }
 
-device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
+void Fat::flush_cache(file_t *fd)
+{
+    uint64_t block;
+    unsigned i, cluster_index;
+    page_array_t *array;
+    uint32_t *clusters;
+    request_dev_t dev_request;
+
+    for (i = 0; i < fd->cache->num_blocks; i++)
+    {
+        block = i << fd->cache->block_shift;
+        if (CcIsBlockDirty(fd->cache, block))
+        {
+            array = CcRequestBlock(fd->cache, block);
+
+            clusters = ((FatFile*) fd->fsd_cookie)->clusters;
+            cluster_index = block >> m_cluster_shift;
+	    dev_request.header.code = DEV_WRITE;
+	    dev_request.params.buffered.pages = array;
+	    dev_request.params.buffered.length = m_bytes_per_cluster;
+	    dev_request.params.buffered.offset = 
+		ClusterToOffset(clusters[cluster_index]);
+
+            wprintf(L"Fat::flush_cache: writing dirty block %lu = sector 0x%x\n", 
+                (uint32_t) block, (uint32_t) dev_request.params.buffered.offset / 512);
+            if (!IoRequestSync(m_device, &dev_request.header))
+                wprintf(L"Fat::flush_cache: IoRequestSync failed\n");
+
+            MemDeletePageArray(array);
+            CcReleaseBlock(fd->cache, block, true, false);
+        }
+        else
+            wprintf(L"Fat::flush_cache: ignoring clean block %lu\n", (uint32_t) block);
+    }
+}
+
+int next;
+
+int
+rand(void)
+{
+  /* This multiplier was obtained from Knuth, D.E., "The Art of
+     Computer Programming," Vol 2, Seminumerical Algorithms, Third
+     Edition, Addison-Wesley, 1998, p. 106 (line 26) & p. 108 */
+  next = next * 6364136223846793005LL + 1;
+  /* was: next = next * 0x5deece66dLL + 11; */
+  return (int)((next >> 21) & RAND_MAX);
+}
+
+void FatThread1(void)
+{
+    char var;
+    uint32_t start, end;
+    wprintf(L"FatThread1: starting\n");
+    var = (rand() % 26) + 'A';
+    while (true)
+    {
+        start = SysUpTime();
+        end = start + 1000;
+        while (SysUpTime() < end)
+            ;
+
+        end = SysUpTime();
+        wprintf(L"[%u]%c%u%%", 
+            ThrGetCurrent()->id, var, (ThrGetCurrent()->cputime * 100) / (end - start));
+        ThrGetCurrent()->cputime = 0;
+
+        var++;
+        if (var > 'Z')
+            var = 'A';
+        /*ThrSleep(ThrGetCurrent(), (var - 'A') * 100);
+        KeYield();*/
+    }
+}
+
+void FatThread2(void)
+{
+    char var;
+    uint32_t start, end;
+    wprintf(L"FatThread2: starting\n");
+    var = (rand() % 26) + 'a';
+    while (true)
+    {
+        start = SysUpTime();
+        end = start + 2000;
+        while (SysUpTime() < end)
+            ;
+
+        end = SysUpTime();
+        wprintf(L"[%u]%c%u%%", 
+            ThrGetCurrent()->id, var, (ThrGetCurrent()->cputime * 100) / (end - start));
+        ThrGetCurrent()->cputime = 0;
+
+        var--;
+        if (var < 'a')
+            var = 'z';
+        /*ThrSleep(ThrGetCurrent(), (var - 'a') * 100);
+        KeYield();*/
+    }
+}
+
+fsd_t *Fat::Init(driver_t *drv, const wchar_t *path)
 {
     fat_dirent_t root_entry;
     unsigned length, temp;
     uint32_t RootDirSectors, FatSectors;
     //wchar_t name[FAT_MAX_NAME];
+    const wchar_t *ch;
 
-    driver = drv;
-    m_device = dev;
+    /*driver = drv;*/
+
+    /*next = SysUpTime();
+    ThrCreateThread(NULL, true, FatThread1, false, NULL, 16);
+    ThrCreateThread(NULL, true, FatThread2, false, NULL, 16);*/
+
+    ch = wcsrchr(path, '/');
+    if (ch == NULL)
+        ch = path;
+    else
+        ch++;
+
+    m_device = IoOpenDevice(ch);
+    if (m_device == NULL)
+        return false;
 
     TRACE0("\tReading boot sector\n");
-    length = IoReadSync(dev, 0, &m_bpb, sizeof(m_bpb));
+    length = IoReadSync(m_device, 0, &m_bpb, sizeof(m_bpb));
     if (length < sizeof(m_bpb))
     {
 	TRACE1("Read failed: length = %u\n", length);
@@ -996,7 +1029,7 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
     
     TRACE1("\tAllocating %u bytes for FAT\n", 
         m_bpb.sectors_per_fat * m_bpb.bytes_per_sector);
-    m_fat = (uint8_t*) sbrk(m_bpb.sectors_per_fat * m_bpb.bytes_per_sector);
+    m_fat = (uint8_t*) __morecore(m_bpb.sectors_per_fat * m_bpb.bytes_per_sector);
     assert(m_fat != (uint8_t*) -1);
 
     TRACE3("\tFAT starts at sector %d = 0x%x = %p\n",
@@ -1052,17 +1085,15 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
     return this;
 }
 
-Fat theFat;
-
-device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
+fsd_t *FatMountFs(driver_t *drv, const wchar_t *dest)
 {
     Fat *root;
     
-    root = &theFat;
+    root = new Fat;
     if (root == NULL)
 	return NULL;
 
-    return root->Init(drv, path, dev);
+    return root->Init(drv, dest);
 }
 
 extern "C" void (*__CTOR_LIST__[])();
