@@ -1,12 +1,18 @@
-# $Id: system.pro,v 1.2 2002/03/14 01:26:52 pavlovskii Exp $
+# $Id: system.pro,v 1.3 2002/03/14 01:40:20 pavlovskii Exp $
 
 key KernelDebug
+    # Serial port to use for the kernel debugger
     Port=0x3f8
+
+    # Set to true to sync with gdb on startup and attempt to connect on 
+    #	each exception.
+    # Set to false to restrict kernel debugging to outputting of kernel console
+    #	text on the serial port.
     SyncGdb=false
 end
 
 key Devices
-    # This is a list of device=driver pairs which get loaded at startup
+    # This is a list of device=driver pairs which get loaded at startup.
     fdc0=fdc
     keyboard=keyboard
     tty0=tty
@@ -22,6 +28,15 @@ key Devices
 end
 
 key PCI
+    #
+    # Each key here has the form:
+    #	VendorXXXXDeviceYYYYSubsystemZZZZZZZZ
+    # Under each key can be several values:
+    #	Description=Textual description of device
+    #	Driver=Driver to use for such devices
+    #	Device=Special name to assign to devices found
+    #
+
     key Vendor8086Device7190Subsystem00000000
 	Description=Intel 82443BX/ZX 440BX/ZX CPU to PCI Bridge (AGP Implemented)
     end
@@ -54,4 +69,5 @@ key PCI
     end
 end
 
+# Program to use as the OS shell
 Shell=/System/Boot/shell.exe
