@@ -1,4 +1,4 @@
-/* $Id: memory.h,v 1.7 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: memory.h,v 1.8 2002/09/13 23:13:03 pavlovskii Exp $ */
 #ifndef __KERNEL_MEMORY_H
 #define __KERNEL_MEMORY_H
 
@@ -17,6 +17,7 @@ extern "C"
  *	@{
  */
 
+#if 0
 typedef struct page_pool_t page_pool_t;
 /*!	Describes a stack of physical pages */
 struct page_pool_t
@@ -31,6 +32,7 @@ struct page_pool_t
 };
 
 extern page_pool_t pool_all, pool_low;
+#endif
 
 #define LOW_MEMORY		0x100000
 /* pool_low contains all the pages below 1MB */
@@ -48,11 +50,57 @@ struct page_array_t
     addr_t pages[1];
 };
 
+typedef unsigned pfn_t;
+#define PHYS_TO_PFN(p)          ((p) >> PAGE_BITS)
+#define PFN_TO_PHYS(p)          ((p) << PAGE_BITS)
+#define PFN_NULL                ((pfn_t) -1)
+
+typedef struct page_phys_t page_phys_t;
+struct page_phys_t
+{
+    uint8_t flags;
+
+    union
+    {
+        struct
+        {
+            pfn_t prev, next;
+        } list;
+
+        struct
+        {
+            struct vm_desc_t *desc;
+            addr_t offset;
+        } alloc_vm;
+    } u;
+};
+
+#define PAGE_STATE_MASK         0x03
+#define PAGE_STATE_FREE         0x00
+#define PAGE_STATE_ZERO         0x01
+#define PAGE_STATE_ALLOCATED    0x02
+#define PAGE_STATE_RESERVED     0x03
+
+#define PAGE_FLAG_MASK          0x0C
+#define PAGE_FLAG_LOW           0x04
+#define PAGE_FLAG_LARGE         0x08
+
+typedef struct pfn_list_t pfn_list_t;
+struct pfn_list_t
+{
+    spinlock_t spin;
+    pfn_t first, last;
+    unsigned num_pages;
+};
+
+extern pfn_list_t mem_free, mem_free_low, mem_zero;
+
 addr_t	MemAlloc(void);
 void	MemFree(addr_t block);
 addr_t	MemAllocLow(void);
 void	MemFreeLow(addr_t block);
 addr_t	MemAllocLowSpan(size_t pages);
+addr_t  MemAllocFromList(pfn_list_t *list);
 bool	MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv);
 bool    MemSetPageState(const void *virt, uint16_t state);
 uint32_t MemTranslate(const void *address);
@@ -71,6 +119,8 @@ page_array_t *MemDupPageArray(unsigned num_pages, size_t mod_first_page,
 page_array_t *MemCreatePageArray(const void *buf, size_t bytes);
 void    MemDeletePageArray(page_array_t *array);
 void *  MemMapPageArray(page_array_t *array, uint16_t state);
+page_phys_t *MemLookupAllocatedPage(struct vm_desc_t *desc, addr_t offset);
+void    MemZeroPageThread(void);
 
 /*! @} */
 

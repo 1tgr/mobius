@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.9 2002/09/08 20:47:03 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.10 2002/09/13 23:13:03 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -16,73 +16,64 @@ extern "C"
  *	@{
  */
 
-/*efine VM_AREA_EMPTY           0*/
 #define VM_AREA_NORMAL	        1
 #define VM_AREA_MAP		2
-/*efine VM_AREA_SHARED	        3*/
-#define VM_AREA_FILE	        4
-#define VM_AREA_IMAGE           5
-#define VM_AREA_CALLBACK        6
+#define VM_AREA_FILE	        3
+#define VM_AREA_IMAGE           4
+#define VM_AREA_CALLBACK        5
 
-#define MEM_READ		1
-#define MEM_WRITE		2
-#define MEM_ZERO		4
-#define MEM_COMMIT		8
-#define MEM_LITERAL		16
+/*! \brief Allow access only from kernel mode */
+#define VM_MEM_KERNEL           0x00000000
+/*! \brief Allow access from user mode and kernel mode */
+#define VM_MEM_USER             0x00000003
+/*! \brief Mask for privilege level bits */
+#define VM_MEM_PL_MASK          0x00000003
+/*! \brief Allow memory to be read */
+#define VM_MEM_READ		0x00000004
+/*! \brief Allow memory to be written */
+#define VM_MEM_WRITE		0x00000008
+/*! \brief Zero memory before it is used */
+#define VM_MEM_ZERO		0x00000010
+/*! \brief Disable write caching on memory */
+#define VM_MEM_CACHE_WT         0x00000020
+/*! \brief Disable all caching on memory */
+#define VM_MEM_CACHE_NONE       0x00000040
+/*! \brief Allow mapping of VM_AREA_MAP areas to address 0 */
+#define VM_MEM_LITERAL		0x00000080
+/*! \brief Reserve a region of address space (nodes only) */
+#define VM_MEM_RESERVED         0x00000100
+
+/*! \brief Flags that are valid for nodes (as opposed to areas) */
+#define VM_MEM_NODE_MASK       (VM_MEM_PL_MASK | \
+                                VM_MEM_READ | \
+                                VM_MEM_WRITE | \
+                                VM_MEM_CACHE_WT | \
+                                VM_MEM_CACHE_NONE | \
+                                VM_MEM_RESERVED)
 
 struct page_array_t;
-
-/*! \brief Describes an area of memory allocated within the address space of a 
- *	particular process. */
-/*struct vm_area_t
-{
-    handle_hdr_t hdr;
-
-    vm_area_t *prev, *next;
-    vm_area_t *shared_prev, *shared_next;
-    process_t *owner;
-
-    addr_t start;
-    unsigned num_pages;
-    uint32_t flags;
-    spinlock_t mtx_allocate;
-    fileop_t pagingop;
-    struct page_array_t *pages, *read_pages;
-    wchar_t *name;
-
-    unsigned type;
-
-    union
-    {
-        addr_t phys_map;
-        vm_area_t* shared_from;
-        handle_t file;
-        module_t *mod;
-
-        struct
-        {
-            bool (*handler)(void *, addr_t, bool);
-            void *cookie;
-        } callback;
-    } dest;
-};*/
 
 typedef struct vm_node_t vm_node_t;
 typedef bool (*VMM_CALLBACK)(void *cookie, vm_node_t *node, addr_t start, 
                              bool is_writing);
 
 typedef struct vm_desc_t vm_desc_t;
+/*!
+ *  \brief  Represents an area of memory, possibly shared between more than 
+ *      one process
+ */
 struct vm_desc_t
 {
     handle_hdr_t hdr;
 
-    unsigned num_pages;
+    unsigned num_pages, num_copies;
     vm_desc_t *shared_prev, *shared_next;
     spinlock_t mtx_allocate;
     spinlock_t spin;
     fileop_t pagingop;
     struct page_array_t *pages, *read_pages;
     wchar_t *name;
+    uint32_t flags;
 
     unsigned type;
 
@@ -101,6 +92,9 @@ struct vm_desc_t
     } dest;
 };
 
+/*!
+ *  \brief  Represents an area of memory in one process
+ */
 struct vm_node_t
 {
     vm_node_t *left, *right;
@@ -126,7 +120,8 @@ void*       VmmAllocCallback(size_t pages, addr_t start, uint32_t flags,
                              VMM_CALLBACK handler,
                              void *cookie);
 
-void        VmmFree(const void *ptr);
+bool        VmmFree(void *ptr);
+void        VmmFreeNode(vm_node_t *node);
 bool        VmmPageFault(process_t *proc, addr_t start, bool is_writing);
 vm_node_t*  VmmLookupNode(vm_node_t *parent, const void* ptr);
 

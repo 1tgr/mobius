@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: types.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
 
 #ifndef __GL_TYPES_H
 #define __GL_TYPES_H
@@ -62,7 +62,7 @@ struct MGLrect
         return bottom - top;
     }
 
-    void Inflate(int dx, int dy)
+    void Inflate(MGLreal dx, MGLreal dy)
     {
         left -= dx;
         top -= dy;
@@ -70,12 +70,18 @@ struct MGLrect
         bottom += dy;
     }
 
-    void Offset(int dx, int dy)
+    void Offset(MGLreal dx, MGLreal dy)
     {
         left += dx;
         top += dy;
         right += dx;
         bottom += dy;
+    }
+
+    bool IncludesPoint(MGLreal x, MGLreal y) const
+    {
+        return x >= left && y >= top &&
+            x < right && y < bottom;
     }
 #endif
 };

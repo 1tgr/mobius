@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.11 2002/09/08 20:47:03 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.12 2002/09/13 23:13:03 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -33,11 +33,24 @@
 #endif
 
 #ifndef __KERNEL_VMM_H
-#define MEM_READ                1
-#define MEM_WRITE               2
-#define MEM_ZERO                4
-#define MEM_COMMIT              8
-#define MEM_LITERAL             16
+/*! \brief Allow access only from kernel mode */
+#define VM_MEM_KERNEL           0x00000000
+/*! \brief Allow access from user mode and kernel mode */
+#define VM_MEM_USER             0x00000003
+/*! \brief Mask for privilege level bits */
+#define VM_MEM_PL_MASK          0x00000003
+/*! \brief Allow memory to be read */
+#define VM_MEM_READ		0x00000004
+/*! \brief Allow memory to be written */
+#define VM_MEM_WRITE		0x00000008
+/*! \brief Zero memory before it is used */
+#define VM_MEM_ZERO		0x00000010
+/*! \brief Disable write caching on memory */
+#define VM_MEM_CACHE_WT         0x00000020
+/*! \brief Disable all caching on memory */
+#define VM_MEM_CACHE_NONE       0x00000040
+/*! \brief Reserve a region of address space (nodes only) */
+#define VM_MEM_RESERVED         0x00000100
 #endif
 
 /* Flags for FsCreate() and FsOpen() */

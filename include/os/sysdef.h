@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.20 2002/09/08 20:47:03 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.21 2002/09/13 23:13:03 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -8,7 +8,12 @@
 #define EvtSignal       SysEvtSignal
 #define EvtIsSignalled  SysEvtIsSignalled
 #define HndClose        SysHndClose
-#define VmmFree         SysVmmFree
+#else
+/*!
+ *    \ingroup    libsys
+ *    \defgroup    sys    Syscall Interface
+ *    @{
+ */
 #endif
 
 #ifndef SYS_BEGIN_GROUP
@@ -18,12 +23,6 @@
 #ifndef SYS_END_GROUP
 #define SYS_END_GROUP(n)
 #endif
-
-/*!
- *    \ingroup    libsys
- *    \defgroup    sys    Syscall Interface
- *    @{
- */
 
 #define SYS_DbgWrite            0x100
 #define SYS_Hello               0x101
@@ -72,6 +71,7 @@
 #define SYS_VmmMapSharedArea    0x502
 #define SYS_VmmMapFile          0x503
 #define SYS_VmmOpenSharedArea   0x504
+#define SYS_VmmReserveArea      0x505
 
 #define SYS_EvtCreate           0x600
 #define SYS_HndClose            0x601
@@ -141,13 +141,23 @@ SYSCALL(bool, FsCreatePipe, 4, (handle_t *))
 SYS_END_GROUP(4)
 
 /* 5 */
+#ifdef KERNEL
+/*!
+ *  \ingroup vmm
+ *  @{
+ */
+#endif
 SYS_BEGIN_GROUP(5)
 SYSCALL(void *, VmmAlloc, 12, (size_t, addr_t, uint32_t))
 SYSCALL(bool, VmmFree, 4, (void*))
 SYSCALL(void *, VmmMapSharedArea, 12, (handle_t, addr_t, uint32_t))
 SYSCALL(void *, VmmMapFile, 16, (handle_t, addr_t, size_t, uint32_t))
-SYSCALL(handle_t, VmmOpenSharedArea, 4, (const wchar_t *name))
+SYSCALL(handle_t, VmmOpenSharedArea, 4, (const wchar_t *))
+SYSCALL(void *, VmmReserveArea, 8, (size_t, addr_t))
 SYS_END_GROUP(5)
+#ifdef KERNEL
+/*! @} */
+#endif
 
 /* 6 */
 SYS_BEGIN_GROUP(6)
@@ -180,8 +190,6 @@ SYSCALL(bool, WndGetClip, 12, (handle_t, struct MGLrect *, size_t*))
 SYS_END_GROUP(7)
 #endif
 
-/*! @} */
-
 #ifdef KERNEL
 #undef ThrWaitHandle
 #undef ThrSleep
@@ -190,5 +198,6 @@ SYS_END_GROUP(7)
 #undef EvtSignal
 #undef EvtIsSignalled
 #undef HndClose
-#undef VmmFree
+#else
+/*! @} */
 #endif

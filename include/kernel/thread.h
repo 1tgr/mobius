@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.15 2002/08/19 20:00:56 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.16 2002/09/13 23:13:03 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -14,9 +14,9 @@ struct context_t;
 struct process_t;
 
 /*!
- *    \ingroup    kernel
- *    \defgroup    thr    Threads
- *    @{
+ *  \ingroup    kernel
+ *  \defgroup   thr Threads
+ *  @{
  */
 
 typedef struct thread_t thread_t;
@@ -47,8 +47,6 @@ struct thread_t
     struct process_t *process;
     bool is_kernel;
     unsigned priority;
-    /*thread_queue_t *queue;
-    thread_t *queue_prev, *queue_next;*/
     unsigned queued;
     unsigned span;
     unsigned id;
@@ -78,7 +76,7 @@ struct cpu_t
     void *arch;
 };
 
-extern thread_t *thr_first, *thr_last;//, *current;
+extern thread_t *thr_first, *thr_last;
 
 #ifdef __SMP__
 extern cpu_t thr_cpu[];
@@ -100,17 +98,13 @@ extern cpu_t thr_cpu_single;
 
 #define current()       (cpu()->current_thread)
 
-thread_t * 
-    ThrGetCurrent(void);
-thread_t * 
-    ThrCreateThread(struct process_t *proc, bool isKernel, 
-        void (*entry)(void), bool useParam, void *param, 
-        unsigned priority);
+thread_t *ThrGetCurrent(void);
+thread_t *ThrCreateThread(struct process_t *proc, bool isKernel, 
+                          void (*entry)(void), bool useParam, void *param, 
+                          unsigned priority);
 void    ThrDeleteThread(thread_t *thr);
-struct context_t * 
-    ThrGetContext(thread_t* thr);
-struct context_t * 
-    ThrGetUserContext(thread_t *thr);
+struct context_t *ThrGetContext(thread_t* thr);
+struct context_t *ThrGetUserContext(thread_t *thr);
 bool    ThrRun(thread_t *thr);
 void    ThrPause(thread_t *thr);
 void    ThrSleep(thread_t *thr, unsigned ms);
