@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.11 2002/03/04 23:50:17 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.12 2002/03/06 19:39:31 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -10,7 +10,7 @@
 
 #include <kernel/device>
 
-/*#define DEBUG*/
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <errno.h>
@@ -337,6 +337,7 @@ size_t Fat::SizeOfDir(const fat_dirent_t *di)
 	size = 0;
 	while (!IS_EOC_CLUSTER(cluster))
 	{
+	    TRACE1("[%x]", cluster);
 	    size += m_bytes_per_cluster;
 	    cluster = GetNextCluster(cluster);
 	}
@@ -382,7 +383,7 @@ bool Fat::LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di)
 
 	    if (find_dir)
 	    {
-		dir = (FatDirectory*) malloc(SizeOfDir(di));
+		dir = (FatDirectory*) malloc(SizeOfDir(entries + i));
 		if (dir &&
 		    ConstructDir(dir, entries + i) &&
 		    LookupFile(dir, slash + 1, di))
@@ -473,7 +474,7 @@ start:
 	if (bytes > m_bytes_per_cluster)
 	    bytes = m_bytes_per_cluster;
 	
-	TRACE4("FatStartIo: pos = %u cluster = %u = %x bytes = %u\n", 
+	TRACE4("FatStartIo: pos = %u cluster = %u = %x bytes = %u: ", 
 	    (uint32_t) extra->file->pos, 
 	    extra->cluster_index, 
 	    extra->clusters[extra->cluster_index], 
@@ -483,12 +484,12 @@ start:
 	{
 	    /* The cluster is already in the file's cache, so just memcpy() it */
 
-	    wprintf(L"Fat::StartIo: found cluster in cache\n");
+	    wprintf(L"cached\n");
 	    buf = (uint8_t*) DevMapBuffer(io);
 	    page = (uint8_t*) CcRequestBlock(extra->file->cache, 
 		extra->file->pos);
 	    memcpy(buf + io->mod_buffer_start + extra->bytes_read,
-		page,
+		page + extra->mod,
 		bytes);
 	    DevUnmapBuffer();
 	    CcReleaseBlock(extra->file->cache, extra->file->pos, true);
@@ -539,26 +540,18 @@ start:
 	     * When the read has finished we'll try the cache again.
 	     */
 
-	    wprintf(L"Fat::StartIo: cluster is not cached\n");
+	    wprintf(L"not cached\n");
 
 	    buf = (uint8_t*) CcRequestBlock(extra->file->cache, extra->file->pos);
 
-	    /*buf = (uint8_t*) DevMapBuffer(io);*/
 	    extra->dev_request.header.code = 
 		(req_fs->header.code == FS_READ) ? DEV_READ : DEV_WRITE;
-	    /*extra->dev_request.params.buffered.buffer = 
-		buf + io->mod_buffer_start + extra->bytes_read;
-	    extra->dev_request.params.buffered.length = bytes;
-	    extra->dev_request.params.buffered.offset = 
-		ClusterToOffset(extra->clusters[extra->cluster_index]) + extra->mod;*/
-
 	    extra->dev_request.params.buffered.buffer = buf;
 	    extra->dev_request.params.buffered.length = m_bytes_per_cluster;
 	    extra->dev_request.params.buffered.offset = 
 		ClusterToOffset(extra->clusters[extra->cluster_index]);
 	    extra->dev_request.header.param = io;
 
-	    //wprintf(L"FatStartIo: req = %p\n", &extra->dev_request.header);
 	    if (!IoRequest(this, m_device, &extra->dev_request.header))
 	    {
 		wprintf(L"Fat::StartIo: request failed straight away\n");
@@ -567,8 +560,6 @@ start:
 		req_fs->header.result = extra->dev_request.header.result;
 		goto start;
 	    }
-
-	    /*DevUnmapBuffer();*/
 	}
 	break;
 
