@@ -37,6 +37,13 @@ bool vgatRequest(device_t* dev, request_t* req)
 		hndSignal(req->event, true);
 		return true;
 
+	case DEV_READ:
+		memcpy((void*) req->params.read.buffer,
+			base + (dword) req->params.read.pos,
+			req->params.read.length);
+		hndSignal(req->event, true);
+		return true;
+
 	case DEV_IOCTL:
 		params = (dword*) req->params.ioctl.buffer;
 		if (params[0] == 0)

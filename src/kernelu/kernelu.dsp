@@ -197,6 +197,10 @@ SOURCE=..\..\include\os\pe.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\os\port.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\serial.h
 # End Source File
 # Begin Source File
@@ -204,10 +208,6 @@ SOURCE=..\..\include\os\serial.h
 SOURCE=..\..\include\os\stream.h
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=..\..\include\os\port.h
-# End Source File
 # End Group
 # Begin Source File
 

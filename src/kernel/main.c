@@ -14,7 +14,7 @@
 #include <kernel/fs.h>
 
 //! Frequency of the timer interrupt
-#define HZ					1
+#define HZ					100
 //! Number of milliseconds between timer interrupts
 #define MS					(1000 / HZ)
 

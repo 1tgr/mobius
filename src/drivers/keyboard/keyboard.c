@@ -314,6 +314,11 @@ bool kbdRequest(device_t* dev, request_t* req)
 	case DEV_ISR:
 		kbdKey(ctx, kbdHwRead(ctx));
 		return true;
+
+	case CHR_GETSIZE:
+		*((size_t*) req->params.buffered.buffer) = ctx->write - ctx->read;
+		hndSignal(req->event, true);
+		return true;
 	}
 
 	req->result = ENOTIMPL;
@@ -368,6 +373,7 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 	devRegisterIrq(kdebug, 1, false);
 	devClose(kdebug);
 
+#if 0
 	/* Reset keyboard and disable scanning until further down */
 	TRACE0("Disable...");
 	kbdHwWriteRead(ctx, ctx->port, KEYB_RESET_DISABLE, KEYB_ACK);
@@ -417,6 +423,7 @@ Keyboard* INIT_CODE kbdInit(driver_t* drv, device_config_t *cfg)
 	/* Enable keyboard, expect 0xFA (ACK) */
 	TRACE0("done\nEnable...");
 	kbdHwWriteRead(ctx, ctx->port, KEYB_ENABLE, KEYB_ACK);
+#endif
 
 	TRACE0("done\nIRQ...");
 	devRegisterIrq(&ctx->dev, 1, true);

@@ -1,8 +1,11 @@
 EXPORTS
 	devClose
 	devOpen
+	devReadSync
 	devUserFinishRequest
 	devUserRequest
+	devUserRequestSync
+	devWriteSync
 	dputws
 	fsClose
 	fsFullPath

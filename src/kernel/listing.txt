@@ -1604,53 +1604,53 @@ c0001fbc:	83 7d 40 ff    	cmpl   $0xffffffff,0x40(%ebp)
 c0001fc0:	0f 85 96 00 00 	jne    c000205c <_isr+0xb4>
 c0001fc5:	00 
 c0001fc6:	83 7d 3c 00    	cmpl   $0x0,0x3c(%ebp)
-c0001fca:	75 1a          	jne    c0001fe6 <_isr+0x3e>
+c0001fca:	75 18          	jne    c0001fe4 <_isr+0x3c>
 c0001fcc:	a1 30 73 02 c0 	mov    0xc0027330,%eax
-c0001fd1:	05 e8 03 00 00 	add    $0x3e8,%eax
-c0001fd6:	a3 30 73 02 c0 	mov    %eax,0xc0027330
-c0001fdb:	83 7e 1c 00    	cmpl   $0x0,0x1c(%esi)
-c0001fdf:	75 05          	jne    c0001fe6 <_isr+0x3e>
-c0001fe1:	e8 f2 19 00 00 	call   c00039d8 <_thrSchedule>
-c0001fe6:	ba 20 00 00 00 	mov    $0x20,%edx
-c0001feb:	b8 20 00 00 00 	mov    $0x20,%eax
-c0001ff0:	ee             	out    %al,(%dx)
-c0001ff1:	8b 4d 3c       	mov    0x3c(%ebp),%ecx
-c0001ff4:	83 f9 07       	cmp    $0x7,%ecx
-c0001ff7:	76 0b          	jbe    c0002004 <_isr+0x5c>
-c0001ff9:	ba a0 00 00 00 	mov    $0xa0,%edx
-c0001ffe:	b8 20 00 00 00 	mov    $0x20,%eax
-c0002003:	ee             	out    %al,(%dx)
-c0002004:	8b 1c 8d a0 75 	mov    0xc00275a0(,%ecx,4),%ebx
-c0002009:	02 c0 
-c000200b:	85 db          	test   %ebx,%ebx
-c000200d:	0f 84 d7 00 00 	je     c00020ea <_isr+0x142>
-c0002012:	00 
-c0002013:	83 7b 08 00    	cmpl   $0x0,0x8(%ebx)
-c0002017:	74 36          	je     c000204f <_isr+0xa7>
-c0002019:	c7 45 c0 71 64 	movl   $0x6471,0xffffffc0(%ebp)
-c000201e:	00 00 
-c0002020:	c7 45 c4 00 00 	movl   $0x0,0xffffffc4(%ebp)
-c0002025:	00 00 
-c0002027:	8a 45 3c       	mov    0x3c(%ebp),%al
-c000202a:	88 45 e0       	mov    %al,0xffffffe0(%ebp)
-c000202d:	c7 45 c8 00 00 	movl   $0x0,0xffffffc8(%ebp)
-c0002032:	00 00 
-c0002034:	8b 53 08       	mov    0x8(%ebx),%edx
-c0002037:	8d 45 c0       	lea    0xffffffc0(%ebp),%eax
-c000203a:	50             	push   %eax
-c000203b:	8b 43 08       	mov    0x8(%ebx),%eax
-c000203e:	50             	push   %eax
-c000203f:	8b 42 04       	mov    0x4(%edx),%eax
-c0002042:	ff d0          	call   *%eax
-c0002044:	83 c4 08       	add    $0x8,%esp
-c0002047:	84 c0          	test   %al,%al
-c0002049:	0f 85 9b 00 00 	jne    c00020ea <_isr+0x142>
-c000204e:	00 
-c000204f:	8b 5b 04       	mov    0x4(%ebx),%ebx
-c0002052:	85 db          	test   %ebx,%ebx
-c0002054:	75 bd          	jne    c0002013 <_isr+0x6b>
-c0002056:	e9 8f 00 00 00 	jmp    c00020ea <_isr+0x142>
-c000205b:	90             	nop    
+c0001fd1:	83 c0 0a       	add    $0xa,%eax
+c0001fd4:	a3 30 73 02 c0 	mov    %eax,0xc0027330
+c0001fd9:	83 7e 1c 00    	cmpl   $0x0,0x1c(%esi)
+c0001fdd:	75 05          	jne    c0001fe4 <_isr+0x3c>
+c0001fdf:	e8 f4 19 00 00 	call   c00039d8 <_thrSchedule>
+c0001fe4:	ba 20 00 00 00 	mov    $0x20,%edx
+c0001fe9:	b8 20 00 00 00 	mov    $0x20,%eax
+c0001fee:	ee             	out    %al,(%dx)
+c0001fef:	8b 4d 3c       	mov    0x3c(%ebp),%ecx
+c0001ff2:	83 f9 07       	cmp    $0x7,%ecx
+c0001ff5:	76 0b          	jbe    c0002002 <_isr+0x5a>
+c0001ff7:	ba a0 00 00 00 	mov    $0xa0,%edx
+c0001ffc:	b8 20 00 00 00 	mov    $0x20,%eax
+c0002001:	ee             	out    %al,(%dx)
+c0002002:	8b 1c 8d a0 75 	mov    0xc00275a0(,%ecx,4),%ebx
+c0002007:	02 c0 
+c0002009:	85 db          	test   %ebx,%ebx
+c000200b:	0f 84 d9 00 00 	je     c00020ea <_isr+0x142>
+c0002010:	00 
+c0002011:	83 7b 08 00    	cmpl   $0x0,0x8(%ebx)
+c0002015:	74 36          	je     c000204d <_isr+0xa5>
+c0002017:	c7 45 c0 71 64 	movl   $0x6471,0xffffffc0(%ebp)
+c000201c:	00 00 
+c000201e:	c7 45 c4 00 00 	movl   $0x0,0xffffffc4(%ebp)
+c0002023:	00 00 
+c0002025:	8a 45 3c       	mov    0x3c(%ebp),%al
+c0002028:	88 45 e0       	mov    %al,0xffffffe0(%ebp)
+c000202b:	c7 45 c8 00 00 	movl   $0x0,0xffffffc8(%ebp)
+c0002030:	00 00 
+c0002032:	8b 53 08       	mov    0x8(%ebx),%edx
+c0002035:	8d 45 c0       	lea    0xffffffc0(%ebp),%eax
+c0002038:	50             	push   %eax
+c0002039:	8b 43 08       	mov    0x8(%ebx),%eax
+c000203c:	50             	push   %eax
+c000203d:	8b 42 04       	mov    0x4(%edx),%eax
+c0002040:	ff d0          	call   *%eax
+c0002042:	83 c4 08       	add    $0x8,%esp
+c0002045:	84 c0          	test   %al,%al
+c0002047:	0f 85 9d 00 00 	jne    c00020ea <_isr+0x142>
+c000204c:	00 
+c000204d:	8b 5b 04       	mov    0x4(%ebx),%ebx
+c0002050:	85 db          	test   %ebx,%ebx
+c0002052:	75 bd          	jne    c0002011 <_isr+0x69>
+c0002054:	e9 91 00 00 00 	jmp    c00020ea <_isr+0x142>
+c0002059:	8d 76 00       	lea    0x0(%esi),%esi
 c000205c:	0f 20 d3       	mov    %cr2,%ebx
 c000205f:	8b 45 3c       	mov    0x3c(%ebp),%eax
 c0002062:	89 45 bc       	mov    %eax,0xffffffbc(%ebp)
@@ -2454,7 +2454,7 @@ c00027e5:	89 3d 64 52 02 	mov    %edi,0xc0025264
 c00027ea:	c0 
 c00027eb:	b8 38 00 00 00 	mov    $0x38,%eax
 c00027f0:	0f 00 d8       	ltr    %ax
-c00027f3:	6a 01          	push   $0x1
+c00027f3:	6a 64          	push   $0x64
 c00027f5:	e8 42 f9 ff ff 	call   c000213c <_pitInit>
 c00027fa:	6a 28          	push   $0x28
 c00027fc:	6a 20          	push   $0x20

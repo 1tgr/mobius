@@ -3,6 +3,10 @@
 #include <conio.h> /* KEY_nnn, getch() */
 #include <os/keyboard.h>
 #include <os/os.h>
+#include <os/device.h>
+
+addr_t vga;
+word old_buf[80*25];
 
 /* dimensions of playing area */
 #define	SCN_WID		15
@@ -73,22 +77,33 @@ char Dirty[SCN_HT], Screen[SCN_WID][SCN_HT];
 		marked Dirty[]
 *****************************************************************************/
 void refresh(void)
-{	unsigned XPos, YPos;
+{
+	unsigned XPos, YPos;
+	qword fpos;
+	word ch[2];
 
 	for(YPos=0; YPos < SCN_HT; YPos++)
-	{	if(!Dirty[YPos])
+	{
+		if(!Dirty[YPos])
 			continue;
 /* gotoxy(0, YPos) */
-		wprintf(L"\x1B[%d;1H", YPos + 1);
+		//wprintf(L"\x1B[%d;1H", YPos + 1);
+		fpos = YPos * 80;
 		for(XPos=0; XPos < SCN_WID; XPos++)
+		{
 /* 0xDB is a solid rectangular block in the PC character set */
 			//wprintf(L"\x1B[%dm\xDB\xDB", 30 + Screen[XPos][YPos]);
 
 			/* U+2588 is the Unicode Full Block character */
-			wprintf(L"\x1B[%dm\x2588\x2588", 30 + Screen[XPos][YPos]);
-		Dirty[YPos]=0; }
+			//wprintf(L"\x1B[%dm\x2588\x2588", 30 + Screen[XPos][YPos]);
+
+			ch[0] = ch[1] = (Screen[XPos][YPos] << 8) | 0xDB;
+			devWriteSync(vga, (fpos + XPos * 2) * 2, ch, sizeof(ch));
+		}
+		Dirty[YPos]=0;
+	}
 /* reset foreground color to gray */
-	wprintf(L"\x1B[37m");
+	//wprintf(L"\x1B[37m");
 	//fflush(stdout);
 }
 //////////////////////////////////////////////////////////////////////////////
@@ -231,9 +246,25 @@ wint_t getKey(void)
 	name:	main
 *****************************************************************************/
 int main(void)
-{	char Fell, NewShape, NewX, NewY;
-	unsigned Shape, X, Y;
+{
+	char Fell, NewShape, NewX, NewY;
+	unsigned Shape, X, Y, i;
 	wint_t Key;
+	static word temp[80*25];
+
+	vga = devOpen(L"vgatext", NULL);
+	if (!vga)
+	{
+		_pwerror(L"vgatext");
+		return 1;
+	}
+
+	devReadSync(vga, 0, old_buf, sizeof(old_buf));
+
+	for (i = 0; i < sizeof(temp); i++)
+		temp[i] = 0x0720;
+	
+	devWriteSync(vga, 0, temp, sizeof(temp));
 
 /* re-seed the random number generator */
 	srand(sysUpTime());
@@ -338,5 +369,7 @@ FOO:			Y=3;
 	}
 	
 	wprintf(L"\x1B[2J");
+	devWriteSync(vga, 0, old_buf, sizeof(old_buf));
+	devClose(vga);
 	return 0;
 }
