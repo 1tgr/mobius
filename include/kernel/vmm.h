@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.7 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.8 2002/08/21 12:09:38 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -36,6 +36,8 @@ struct page_array_t;
  *	particular process. */
 struct vm_area_t
 {
+    handle_hdr_t hdr;
+
     vm_area_t *prev, *next;
     vm_area_t *shared_prev, *shared_next;
     process_t *owner;

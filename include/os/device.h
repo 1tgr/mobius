@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.15 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: device.h,v 1.16 2002/08/21 12:09:38 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -70,9 +70,10 @@ union params_port_t
 #define PORT_LISTEN         REQUEST_CODE(0, 0, 'p', 'l')
 #define PORT_ACCEPT         REQUEST_CODE(0, 0, 'p', 'a')
 
+#define NET_GET_HW_INFO     REQUEST_CODE(0, 0, 'n', 'h')
+
 #define ETH_SEND            REQUEST_CODE(1, 0, 'e', 's')
 #define ETH_RECEIVE         REQUEST_CODE(1, 0, 'e', 'r')
-#define ETH_ADAPTOR_INFO    REQUEST_CODE(0, 0, 'e', 'a')
 
 /*! @} */
 

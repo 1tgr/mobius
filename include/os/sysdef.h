@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.16 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.17 2002/08/21 12:09:38 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -69,8 +69,9 @@
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
-#define SYS_VmmMapShared        0x502
+#define SYS_VmmMapSharedArea    0x502
 #define SYS_VmmMapFile          0x503
+#define SYS_VmmOpenSharedArea   0x504
 
 #define SYS_EvtAlloc            0x600
 #define SYS_HndClose            0x601
@@ -152,8 +153,9 @@ SYS_END_GROUP(4)
 SYS_BEGIN_GROUP(5)
 SYSCALL(void *, VmmAlloc, 12, (size_t, addr_t, uint32_t))
 SYSCALL(bool, VmmFree, 4, (void*))
-SYSCALL(void *, VmmMapShared, 12, (const wchar_t *, addr_t, uint32_t))
+SYSCALL(void *, VmmMapSharedArea, 12, (handle_t, addr_t, uint32_t))
 SYSCALL(void *, VmmMapFile, 16, (handle_t, addr_t, size_t, uint32_t))
+SYSCALL(handle_t, VmmOpenSharedArea, 4, (const wchar_t *name))
 SYS_END_GROUP(5)
 
 /* 6 */

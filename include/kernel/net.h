@@ -1,4 +1,4 @@
-/* $Id: net.h,v 1.1 2002/08/14 16:30:53 pavlovskii Exp $
+/* $Id: net.h,v 1.2 2002/08/21 12:09:38 pavlovskii Exp $
 **
 ** Copyright 1998 Brian J. Swetland
 ** All rights reserved.
@@ -37,6 +37,34 @@ extern "C"
 #include <kernel/memory.h>
 #include <kernel/driver.h>
 
+#define NET_HW_NONE         0
+#define NET_HW_ETHERNET     1
+#define NET_HW_SERIAL       2
+
+typedef struct net_hwaddr_t net_hwaddr_t;
+struct net_hwaddr_t
+{
+    unsigned type;
+    size_t data_size;
+    union
+    {
+        uint8_t ethernet[6];
+        uint8_t serial;
+        uint8_t raw[1];
+    } u;
+};
+
+typedef union params_net_t params_net_t;
+union params_net_t
+{
+    struct
+    {
+        net_hwaddr_t *addr;         /* out [optional] */
+        size_t addr_data_size;      /* in/out */
+        size_t mtu;                 /* out */
+    } net_hw_info;
+};
+
 typedef union params_eth_t params_eth_t;
 union params_eth_t
 {
@@ -63,12 +91,13 @@ union params_eth_t
         page_array_t *pages;        /* buffer: in */
         size_t length;              /* in */
     } eth_send;
+};
 
-    struct
-    {
-        uint8_t station_address[6]; /* out */
-        size_t mtu;                 /* out */
-    } eth_adaptor_info;
+typedef struct request_net_t request_net_t;
+struct request_net_t
+{
+    request_t header;
+    params_net_t params;
 };
 
 typedef struct request_eth_t request_eth_t;
@@ -165,10 +194,10 @@ typedef struct
 #define IP_FLAG_MF          0x2000
 #define IP_FLAG_MASK        0x1FFF
 
-#define ARP_OP_REQUEST  1
-#define ARP_OP_REPLY    2
-#define RARP_OP_REQUEST 3
-#define RARP_OP_REPLY   4
+#define ARP_OP_REQUEST      1
+#define ARP_OP_REPLY        2
+#define RARP_OP_REQUEST     3
+#define RARP_OP_REPLY       4
 
 /* yeah, ugly as shit */
 #define ntohs(n) ( (((n) & 0xFF00) >> 8) | (((n) & 0x00FF) << 8) )
@@ -191,7 +220,7 @@ struct net_protocol_vtbl_t
     void (*bind)(net_protocol_t *proto, net_binding_t *bind, void **cookie);
     void (*unbind)(net_protocol_t *proto, net_binding_t *bind, void *cookie);
     void (*receive_packet)(net_protocol_t *proto, net_binding_t *bind, 
-        const char *from, const char *to, 
+        const net_hwaddr_t *from, const net_hwaddr_t *to, 
         void *data, size_t length);
 };
 
@@ -204,17 +233,22 @@ struct net_binding_t
 {
     device_t *dev;
     struct thread_t *thr;
-    uint16_t type;
+    uint16_t proto_id;
     net_protocol_t *proto;
     void *hw_cookie;
     void *proto_cookie;
 };
 
-net_binding_t *EthBindProtocol(net_protocol_t *proto, device_t *dev, uint16_t type);
-void    EthUnbindProtocol(net_binding_t *bind);
+net_binding_t  *EthBindProtocol(net_protocol_t *proto, device_t *dev, 
+                                uint16_t proto_id);
+void            EthUnbindProtocol(net_binding_t *bind);
 
-bool    ArpLookupIpAddress(uint32_t ip, uint8_t *eth);
-void    ArpAddIpAddress(uint32_t ip, const uint8_t *eth);
+const net_hwaddr_t *ArpLookupIpAddress(uint32_t ip);
+void            ArpAddIpAddress(uint32_t ip, const net_hwaddr_t *addr);
+int             NetCompareHwAddr(const net_hwaddr_t *addr1, 
+                                 const net_hwaddr_t *addr2);
+net_hwaddr_t   *NetCopyHwAddr(const net_hwaddr_t *addr);
+const wchar_t  *NetFormatHwAddr(const net_hwaddr_t *addr);
 
 #ifdef __cplusplus
 }
