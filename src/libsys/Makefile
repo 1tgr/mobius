@@ -8,7 +8,7 @@ include ../make.conf
 TARGET_D=       $(BIN)/libsys.dll
 TARGET_S=       $(LIB)/libsys_s.lib
 IMP=            $(LIB)/libsys.lib
-LIBS=           $(LIB)/libc_s.lib
+LIBS=           $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 
 #include ../make.actions
 

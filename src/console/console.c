@@ -1,48 +1,98 @@
-/* $Id: console.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: console.c,v 1.3 2002/03/27 22:06:32 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <wchar.h>
+#include <errno.h>
+#include <stdio.h>
 
 #include <os/port.h>
 #include <os/syscall.h>
 #include <os/defs.h>
+#include <os/rtl.h>
+#include <os/ioctl.h>
 
-int _putws(const wchar_t *str)
+handle_t hnd;
+
+bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
 {
-	return DbgWrite(str, wcslen(str));
+    fileop_t op;
+
+    op.event = hnd;
+    if (!FsRead(file, buf, bytes, &op))
+    {
+        errno = op.result;
+        return false;
+    }
+
+    if (op.result == SIOPENDING)
+        ThrWaitHandle(op.event);
+
+    if (op.result != 0)
+    {
+        errno = op.result;
+        return false;
+    }
+
+    if (bytes_read != NULL)
+        *bytes_read = op.bytes;
+
+    return true;
+}
+
+void ConClientThread(void)
+{
+    char buf[16];
+    size_t size;
+    handle_t client;
+    fileop_t op;
+
+    client = (handle_t) ThrGetThreadInfo()->param;
+    if (client != NULL)
+    {
+        fprintf(stderr, "console: got client\n");
+        while (FsIoCtl(client, IOCTL_BYTES_AVAILABLE, &size, sizeof(size), &op))
+            if (size > 0)
+            {
+                fprintf(stderr, "console: got %u bytes\n", size);
+                if (size > sizeof(buf) - 1)
+                    size = sizeof(buf) - 1;
+
+                /*if (!FsReadSync(client, buf, size, &size))
+                    break;
+
+                buf[size] = '\0';
+                fprintf(stderr, "console: got string: %u bytes: %s", size, buf);*/
+            }
+
+        perror("console");
+        FsClose(client);
+    }
+    else
+        fprintf(stderr, "console: NULL client\n");
+
+    ThrExitThread(0);
 }
 
 int main(void)
 {
-	handle_t server, client;
-	wchar_t buf[50];
-	size_t size;
+    handle_t server;
 
-	_putws(L"Hello from the console!\n");
-	server = FsCreate(SYS_PORTS L"/console", 0);
-	PortListen(server);
+    fprintf(stderr, "Hello from the console!\n");
+    server = FsCreate(SYS_PORTS L"/console", 0);
+    PortListen(server);
+    hnd = EvtAlloc();
 
-	while (true)
-	{
-		if (!ThrWaitHandle(server))
-			break;
+    while (true)
+    {
+        if (!ThrWaitHandle(server))
+            break;
 
-		client = PortAccept(server, FILE_READ | FILE_WRITE);
-		
-		if (client != NULL)
-		{
-			wprintf(L"console: got client %u\n", client);
-			while ((size = FsRead(client, buf, sizeof(buf) - 1)) > 0)
-			{
-				buf[size] = '\0';
-				wprintf(L"%s", buf);
-			}
+        ThrCreateThread(ConClientThread, 
+            (void*) PortAccept(server, FILE_READ | FILE_WRITE), 16);
+    }
 
-			FsClose(client);
-		}
-	}
-
-	wprintf(L"console: finished\n");
-	FsClose(server);
-	return EXIT_SUCCESS;
+    fprintf(stderr, "console: finished\n");
+    FsClose(server);
+    HndClose(hnd);
+    return EXIT_SUCCESS;
 }

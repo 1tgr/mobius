@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.11 2002/03/14 01:27:07 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.12 2002/03/27 22:06:32 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -70,10 +70,13 @@ void __dj_assert(const char *test, const char *file, int line)
 		L"%S\n",
 		file, line, test);
 	ScEnableSwitch(false);
+#if 0
 	__asm__("int3");
-	/*enable();
-	for (;;);*/
+#else
+	enable();
+	for (;;);
 	/*__asm__("cli;hlt");*/
+#endif
 }
 
 #define DEFINE_PUTS(name, ct) \

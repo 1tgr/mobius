@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.4 2002/03/14 01:27:07 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.5 2002/03/27 22:06:32 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include <kernel/profile.h>
@@ -26,11 +26,13 @@ void i386InitSerialDebug(void)
 	out(dbg_combase+1, 0);
 	/*out(dbg_combase + 3, in(dbg_combase + 3) & 0x7f);*/
 	out(dbg_combase + 3, 3);    /* no parity, 8 bits per character */
-	set_debug_traps();
 	wprintf(L"i386InitSerialDebug: kernel debugger running on port %x\n", dbg_combase);
 	
 	if (dbg_hasgdb)
+        {
+            set_debug_traps();
 	    __asm__("int3");
+        }
     }
     else
 	wprintf(L"i386InitSerialDebug: kernel debugger not running\n");

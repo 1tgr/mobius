@@ -137,6 +137,10 @@ SOURCE=..\..\include\os\device.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\os\ioctl.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\keyboard.h
 # End Source File
 # Begin Source File

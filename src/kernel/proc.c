@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.10 2002/03/13 14:26:24 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.11 2002/03/27 22:06:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -98,7 +98,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
 		defaults = proc->creator->info;
 	memcpy(proc->info, defaults, sizeof(*defaults));
 
-	thr = ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
+	thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
 	ScNeedSchedule(true);
 	return HndDuplicate(current->process, &proc->hdr);
 }
@@ -150,7 +150,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	__asm__("mov %%cr3,%0" : "=r" (cr3));
 	TRACE3("Creating process from %s: page dir = %x = %x\n", 
 		proc->exe, proc->page_dir_phys, cr3);
-	
+
 	info = VmmAlloc(1, NULL, 
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
 	if (info == NULL)
@@ -158,6 +158,18 @@ bool ProcFirstTimeInit(process_t *proc)
 		SemRelease(&proc->sem_lock);
 		return false;
 	}
+
+        for (thr = thr_first; thr; thr = thr->all_next)
+	    if (thr->process == proc)
+	    {
+		    if (thr->info == NULL)
+		    {
+			    ThrAllocateThreadInfo(thr);
+			    assert(thr->info != NULL);
+		    }
+
+		    thr->info->process = info;
+	    }
 
 	if (proc->info != NULL)
 	{
@@ -198,18 +210,6 @@ bool ProcFirstTimeInit(process_t *proc)
 
 	proc->info = info;
 	info->id = proc->id;
-
-	for (thr = thr_first; thr; thr = thr->all_next)
-		if (thr->process == proc)
-		{
-			if (thr->info == NULL)
-			{
-				ThrAllocateThreadInfo(thr);
-				assert(thr->info != NULL);
-			}
-
-			thr->info->process = info;
-		}
 
 	mod = PeLoad(proc, proc->exe, NULL);
 	if (mod == NULL)

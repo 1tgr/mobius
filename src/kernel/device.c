@@ -1,13 +1,15 @@
-/* $Id: device.c,v 1.20 2002/03/13 14:25:52 pavlovskii Exp $ */
+/* $Id: device.c,v 1.21 2002/03/27 22:05:59 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
-#include <kernel/debug.h>
 #include <kernel/fs.h>
 #include <kernel/memory.h>
 #include <kernel/io.h>
+
+/*#define DEBUG*/
+#include <kernel/debug.h>
 
 #include <stdio.h>
 #include <wchar.h>
@@ -419,33 +421,40 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
     asyncio_t *io;
     unsigned pages;
     addr_t *ptr, user_addr, phys;
-    
-    req->result = SIOPENDING;
+
+    if (req != NULL)
+    {
+        /*
+         * It should be possible to pass a NULL request here, as long as the caller set 
+         *  req->result.
+         */
+        req->result = SIOPENDING;
+        req->original = NULL;
+    }
 
     pages = PAGE_ALIGN_UP(user_buffer_length) / PAGE_SIZE;
     io = malloc(sizeof(asyncio_t) + sizeof(addr_t) * pages);
     if (io == NULL)
-	return NULL;
+        return NULL;
 
     io->owner = current;
 
     if (true || (addr_t) req < 0x80000000)
     {
-	io->req = malloc(size);
-	if (io->req == NULL)
-	{
-	    free(io);
-	    return NULL;
-	}
+        io->req = malloc(size);
+        if (io->req == NULL)
+        {
+            free(io);
+            return NULL;
+        }
 
-	memcpy(io->req, req, size);
-	io->req->original = req;
+        memcpy(io->req, req, size);
+        io->req->original = req;
     }
     else
-	io->req = req;
+        io->req = req;
 
     io->req_size = size;
-    req->original = NULL;
     io->dev = dev;
     io->length = user_buffer_length;
     io->length_pages = pages;
@@ -455,10 +464,10 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
     user_addr = PAGE_ALIGN((addr_t) user_buffer);
     for (; pages > 0; pages--, user_addr += PAGE_SIZE)
     {
-	phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
-	assert(phys != NULL);
-	MemLockPages(phys, 1, true);
-	*ptr++ = phys;
+        phys = MemTranslate((void*) user_addr) & -PAGE_SIZE;
+        assert(phys != NULL);
+        MemLockPages(phys, 1, true);
+        *ptr++ = phys;
     }
 
     /*req->event = io->req->event = EvtAlloc(NULL);*/
@@ -476,16 +485,16 @@ static void DevFinishIoApc(void *ptr)
     TRACE1("io->req->original = %p\n", io->req->original);
     if (io->req->original != NULL)
     {
-	assert(io->owner == current);
-	memcpy(io->req->original, io->req, io->req_size);
+        assert(io->owner == current);
+        memcpy(io->req->original, io->req, io->req_size);
     }
 
     if (io->req->original != NULL)
     {
-	request_t *req;
-	req = io->req;
-	io->req = io->req->original;
-	free(req);
+        request_t *req;
+        req = io->req;
+        io->req = io->req->original;
+        free(req);
     }
 
     IoNotifyCompletion(io->req);

@@ -138,11 +138,10 @@ EXPORTS
 	__builtin_new
 	__dj_assert
 	__get_eh_context
-	__free
-	__malloc
-	__realloc
-	__strdup
-	__wcsdup
+	free
+	malloc
+	realloc
+	_wcsdup
 	_cputws
 	_geterrno
 	_stricmp
@@ -175,6 +174,7 @@ EXPORTS
 	sbrk_virtual
 	sprintf
 	strcat
+	strcmp
 	strcpy
 	strlen
 	strncmp

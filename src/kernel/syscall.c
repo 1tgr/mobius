@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.11 2002/03/05 16:22:25 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.12 2002/03/27 22:06:32 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -179,14 +179,14 @@ handle_t ThrCreateV86Thread(uint32_t entry, uint32_t stack_top, unsigned priorit
 }
 #endif
 
-handle_t SysThrCreateThread(void (*entry)(void*), void *param, unsigned priority)
+handle_t SysThrCreateThread(void (*entry)(void), void *param, unsigned priority)
 {
     thread_t *thr;
     thr = ThrCreateThread(current->process, false, entry, true, param, priority);
     if (thr == NULL)
-	return NULL;
+        return NULL;
     else
-	return HndDuplicate(current->process, &thr->hdr);
+        return HndDuplicate(current->process, &thr->hdr);
 }
 
 bool SysVmmFree(void *base)

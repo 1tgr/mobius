@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.20 2002/03/13 14:25:52 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.21 2002/03/27 22:06:00 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -313,7 +313,17 @@ handle_t FsCreate(const wchar_t *path, uint32_t flags)
     req.params.fs_create.file = NULL;
     req.params.fs_create.flags = flags;
     if (IoRequestSync(root, (request_t*) &req))
+    {
+        file_t *file;
+
+        file = HndLock(NULL, req.params.fs_create.file, 'file');
+        if (file == NULL)
+            return NULL;
+
+        file->name = _wcsdup(fullname);
+        HndUnlock(NULL, req.params.fs_create.file, 'file');
         return req.params.fs_create.file;
+    }
     else
     {
         errno = req.header.result;
@@ -344,7 +354,17 @@ handle_t FsOpen(const wchar_t *path, uint32_t flags)
     req.params.fs_open.file = NULL;
     req.params.fs_open.flags = flags;
     if (IoRequestSync(root, (request_t*) &req))
+    {
+        file_t *file;
+
+        file = HndLock(NULL, req.params.fs_open.file, 'file');
+        if (file == NULL)
+            return NULL;
+
+        file->name = _wcsdup(fullname);
+        HndUnlock(NULL, req.params.fs_open.file, 'file');
         return req.params.fs_open.file;
+    }
     else
     {
         errno = req.header.result;
@@ -396,6 +416,8 @@ bool FsClose(handle_t file)
     if (fd == NULL)
         return false;
 
+    free(fd->name);
+    fd->name = NULL;
     fsd = fd->fsd;
     HndUnlock(NULL, file, 'file');
 
@@ -639,9 +661,17 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
         break;
 
     case FILE_SEEK_END:
-        /* xxx - need to implement this */
-        assert(origin != FILE_SEEK_END);
-        break;
+        {
+            dirent_t di;
+            if (!FsQueryFile(fd->name, FILE_QUERY_STANDARD, &di, sizeof(di)))
+            {
+                HndUnlock(NULL, file, 'file');
+                return false;
+            }
+
+            ofs = di.length - ofs;
+            break;
+        }
     }
 
     fd->pos = ofs;
@@ -681,6 +711,42 @@ bool FsRequestSync(handle_t file, uint32_t code, void *params, size_t size, file
         file, fd, fd->fsd, ptr->file, ptr->line);*/
     ret = IoRequestSync(fsd, &req_fs.header);
     op->result = req_fs.header.result;
+    op->bytes = 0;
+    return ret;
+}
+
+bool FsIoCtl(handle_t file, uint32_t code, void *buffer, size_t length, fileop_t *op)
+{
+    file_t *fd;
+    device_t *fsd;
+    request_fs_t req_fs;
+    /*handle_hdr_t *ptr;*/
+    bool ret;
+
+    if (!MemVerifyBuffer(buffer, length))
+    {
+	op->result = EBUFFER;
+	return false;
+    }
+
+    fd = HndLock(NULL, file, 'file');
+    if (fd == NULL)
+        return false;
+
+    fsd = fd->fsd;
+    HndUnlock(NULL, file, 'file');
+
+    req_fs.header.code = FS_IOCTL;
+    req_fs.params.fs_ioctl.length = length;
+    req_fs.params.fs_ioctl.buffer = buffer;
+    req_fs.params.fs_ioctl.file = file;
+    req_fs.params.fs_ioctl.code = code;
+    /*ptr = HndGetPtr(NULL, file, 'file');
+    wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
+        file, fd, fd->fsd, ptr->file, ptr->line);*/
+    ret = IoRequestSync(fsd, &req_fs.header);
+    op->result = req_fs.header.result;
+    op->bytes = req_fs.params.fs_ioctl.length;
     return ret;
 }
 
@@ -710,6 +776,20 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
         errno = req.header.result;
         return false;
     }
+}
+
+bool FsQueryHandle(handle_t file, uint32_t query_class, void *buffer, size_t buffer_size)
+{
+    file_t *fd;
+    bool ret;
+    
+    fd = HndLock(NULL, file, 'file');
+    if (fd == NULL)
+        return false;
+    
+    ret = FsQueryFile(fd->name, query_class, buffer, buffer_size);
+    HndUnlock(NULL, file, 'file');
+    return ret;
 }
 
 static bool FsMountDevice(const wchar_t *path, device_t *dev)

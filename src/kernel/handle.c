@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.9 2002/03/04 23:50:18 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.10 2002/03/27 22:06:00 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -80,8 +80,10 @@ handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag)
 	if (tag != 0 &&
 		ptr->tag != tag)
 	{
-		wprintf(L"HndGetPtr(%s, %ld): tag mismatch (%.4S/%.4S)\n", 
-			proc->exe, hnd, &ptr->tag, &tag);
+		wprintf(L"HndGetPtr(%s, %ld, %p:%d): tag mismatch (%c%c%c%c/%c%c%c%c)\n", 
+			proc->exe, hnd, ptr->file, ptr->line,
+			((char*) &ptr->tag)[0], ((char*) &ptr->tag)[1], ((char*) &ptr->tag)[2], ((char*) &ptr->tag)[3],
+			((char*) &tag)[0], ((char*) &tag)[1], ((char*) &tag)[2], ((char*) &tag)[3]);
 		return NULL;
 	}
 
