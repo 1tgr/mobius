@@ -470,9 +470,9 @@ bool devRegisterIrq(device_t* dev, byte irq, bool install)
  *  The device manager keeps an internal list of devices. This function
  *	adds entries to that list.
  *  This function is used under two circumstances:
- *  1.	to add a device for which a device_t structure has already been 
+ *  \li	Case 1: to add a device for which a device_t structure has already been 
  *	allocated,
- *  2.	to install a device from an unknown driver given a set of 
+ *  \li	Case 2: to install a device from an unknown driver given a set of 
  *	configuration information.
  *
  *  To use case 1, allocate a device_t structure and (optionally) a 

@@ -75,18 +75,6 @@ Package=<4>
 
 ###############################################################################
 
-Project: "kdll"=.\kdll\kdll.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
 Project: "keyboard"=.\keyboard\keyboard.dsp - Package Owner=<4>
 
 Package=<5>
@@ -124,18 +112,6 @@ Package=<4>
 ###############################################################################
 
 Project: "sermouse"=.\sermouse\sermouse.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "textcons"=.\textcons\textcons.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
