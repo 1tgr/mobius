@@ -1,4 +1,4 @@
-/* $Id: sbrk.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: sbrk.c,v 1.3 2002/02/25 01:28:14 pavlovskii Exp $ */
 
 #include <sys/types.h>
 #include <stddef.h>
@@ -19,7 +19,7 @@ size_t getpagesize(void)
 char *sbrk(size_t diff)
 {
 	void *ptr;
-	ptr = VmmAlloc(PAGE_ALIGN_UP(diff), NULL, 3 | MEM_READ | MEM_WRITE);
+	ptr = VmmAlloc(PAGE_ALIGN_UP(diff) / PAGE_SIZE, NULL, 3 | MEM_READ | MEM_WRITE);
 
 	if (ptr)
 		return ptr;

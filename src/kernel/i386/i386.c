@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.14 2002/02/22 16:51:35 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.15 2002/02/25 01:28:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -254,6 +254,7 @@ void i386DoubleFault(uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags)
 	 * The context of the faulting thread is saved in the general-purpose TSS.
 	 * (Double faults usually mean we've messed up one of the kernel stacks.)
 	 */
+	TextSwitchToKernel();
 	_cputws(L"Double fault ", 13);
 	wprintf(L"at %x: ", arch_tss.eip);
 	wprintf(L"esp0 = %x\n", arch_tss.esp0);

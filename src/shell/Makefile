@@ -8,3 +8,5 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS) $(LIBS)
 	ld -o $(TARGET) $(OBJS) $(LIBS)
+
+include $(OBJS:.o=.d)

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.9 2002/02/24 19:13:28 pavlovskii Exp $ */
+/* $Id: main.c,v 1.10 2002/02/25 01:28:14 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -64,7 +64,7 @@ void KernelMain(void)
 
 	/*proc = ProcCreateProcess(SYS_BOOT L"/shell.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
-	ProcSpawnProcess(SYS_BOOT L"/shell.exe");
+	ProcSpawnProcess(SYS_BOOT L"/shell.exe", proc_idle.info);
 	/*proc_idle.info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
 	proc_idle.info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
 	ProcSpawnProcess(SYS_BOOT L"/shell.exe");*/

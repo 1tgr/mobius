@@ -39,6 +39,9 @@ RC=		windres
 %.res.o: %.rc
 	$(RC) -i $< -o $@
 
+%.res.d: %.rc
+	echo $(@:.d=.o): $< > $@
+
 .base:	$(BIN)/coffbase.txt Makefile
 	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base
 

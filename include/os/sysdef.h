@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.5 2002/02/25 01:28:12 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -72,7 +72,7 @@ SYS_END_GROUP(2)
 /* 3 */
 SYS_BEGIN_GROUP(3)
 SYSCALL(void, ProcExitProcess, 4, int)
-SYSCALL(handle_t, ProcSpawnProcess, 4, const wchar_t*)
+SYSCALL(handle_t, ProcSpawnProcess, 8, const wchar_t*, const struct process_info_t *)
 SYS_END_GROUP(3)
 
 /* 4 */

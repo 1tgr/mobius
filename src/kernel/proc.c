@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.7 2002/02/24 19:13:28 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.8 2002/02/25 01:28:14 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -11,6 +11,7 @@
 /*#define DEBUG*/
 #include <kernel/debug.h>
 #include <os/rtl.h>
+#include <os/syscall.h>
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -77,11 +78,10 @@ process_t proc_idle =
 	&proc_idle_info,			/* info */
 };
 
-handle_t ProcSpawnProcess(const wchar_t *exe)
+handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
 {
 	process_t *proc;
 	thread_t *thr;
-	context_t *ctx;
 	wchar_t temp[MAX_PATH];
 	
 	FsFullPath(exe, temp);
@@ -92,11 +92,11 @@ handle_t ProcSpawnProcess(const wchar_t *exe)
 
 	proc->creator = current->process;
 	proc->info = malloc(sizeof(*proc->info));
-	memcpy(proc->info, proc->creator->info, sizeof(*proc->info));
+	if (defaults == NULL)
+		defaults = proc->creator->info;
+	memcpy(proc->info, defaults, sizeof(*defaults));
 
 	thr = ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
-	ctx = ThrGetContext(thr);
-	/*ctx->eflags |= EFLAG_TF;*/
 	ScNeedSchedule(true);
 	return HndDuplicate(current->process, &proc->hdr);
 }
@@ -104,13 +104,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe)
 process_t *ProcCreateProcess(const wchar_t *exe)
 {
 	process_t *proc;
-	handle_t file;
 	
-	/*file = FsOpen(exe, 0);
-	if (file == NULL)
-		return NULL;
-	FsClose(file);*/
-
 	proc = malloc(sizeof(process_t));
 	if (proc == NULL)
 		return NULL;
@@ -135,7 +129,7 @@ process_t *ProcCreateProcess(const wchar_t *exe)
 	proc->info = NULL;
 	proc->id = ++proc_last_id;
 
-	wprintf(L"ProcCreateProcess(%s): page dir = %x\n", 
+	TRACE2("ProcCreateProcess(%s): page dir = %x\n", 
 		exe, proc->page_dir_phys);
 	LIST_ADD(proc, proc);
 	return proc;

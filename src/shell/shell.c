@@ -1,13 +1,16 @@
-/* $Id: shell.c,v 1.5 2002/02/24 19:13:30 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.6 2002/02/25 01:28:14 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <wchar.h>
 #include <iconv.h>
+#include <string.h>
 
 #include <os/syscall.h>
 #include <os/rtl.h>
+
+#define PARAMSEP	'+'
 
 int _cputws(const wchar_t *str, size_t count);
 
@@ -19,7 +22,7 @@ typedef struct shell_command_t shell_command_t;
 struct shell_command_t
 {
 	const wchar_t *name;
-	void (*func)(const wchar_t*, const wchar_t*);
+	void (*func)(const wchar_t*, wchar_t*);
 	unsigned help_id;
 };
 
@@ -100,7 +103,7 @@ size_t ShReadLine(wchar_t *buf, size_t max)
 	return -1;
 }
 
-const wchar_t *ShPrompt(const wchar_t *prompt, const wchar_t *params)
+wchar_t *ShPrompt(const wchar_t *prompt, wchar_t *params)
 {
 	static wchar_t buf[256];
 	if (*params != '\0')
@@ -113,9 +116,138 @@ const wchar_t *ShPrompt(const wchar_t *prompt, const wchar_t *params)
 	}
 }
 
-void ShCmdHelp(const wchar_t *command, const wchar_t *params)
+unsigned ShParseParams(wchar_t *params, wchar_t ***names, wchar_t ***values, 
+					   wchar_t ** unnamed)
 {
-	wchar_t text[256];
+	unsigned num_names;
+	wchar_t *ch;
+	int state;
+
+	num_names = 0;
+	state = 0;
+	if (unnamed)
+		*unnamed = L"";
+	for (ch = params; *ch;)
+	{
+		switch (state)
+		{
+		case 0:	/* normal character */
+			if (*ch == PARAMSEP ||
+				ch == params ||
+				(iswspace(*ch) &&
+				ch[1] != '\0' &&
+				!iswspace(ch[1]) &&
+				ch[1] != PARAMSEP))
+			{
+				state = 1;
+				num_names++;
+			}
+			break;
+
+		case 1:	/* part of name */
+			if (iswspace(*ch) ||
+				*ch == PARAMSEP)
+			{
+				state = 0;
+				continue;
+			}
+			break;
+		}
+
+		ch++;
+	}
+
+	*names = malloc(sizeof(wchar_t*) * (num_names + 1));
+	*values = malloc(sizeof(wchar_t*) * (num_names + 1));
+	(*names)[num_names] = NULL;
+	(*values)[num_names] = NULL;
+
+	num_names = 0;
+	state = 0;
+	for (ch = params; *ch;)
+	{
+		switch (state)
+		{
+		case 0:	/* normal character */
+			if (*ch == PARAMSEP)
+			{
+				/* option with name */
+				state = 1;
+				*ch = '\0';
+				(*names)[num_names] = ch + 1;
+				(*values)[num_names] = L"";
+				num_names++;
+			}
+			else if (iswspace(*ch))
+			{
+				/* unnamed option */
+				*ch = '\0';
+				if (ch[1] != '\0' &&
+					!iswspace(ch[1]) &&
+					ch[1] != PARAMSEP)
+				{
+					state = 1;
+					(*names)[num_names] = L"";
+					(*values)[num_names] = ch + 1;
+					num_names++;
+					if (unnamed && **unnamed == '\0')
+						*unnamed = ch + 1;
+				}
+			}
+			else if (ch == params)
+			{
+				/* unnamed option at start of string */
+				state = 1;
+				(*names)[num_names] = L"";
+				(*values)[num_names] = ch;
+				num_names++;
+				if (unnamed && **unnamed == '\0')
+					*unnamed = ch;
+			}
+			break;
+
+		case 1:	/* part of name */
+			if (iswspace(*ch) ||
+				*ch == PARAMSEP)
+			{
+				state = 0;
+				continue;
+			}
+			else if (*ch == '=')
+			{
+				*ch = '\0';
+				(*values)[num_names - 1] = ch + 1;
+			}
+			break;
+		}
+
+		 ch++;
+	}
+
+	return num_names;
+}
+
+bool ShHasParam(wchar_t **names, const wchar_t *look)
+{
+	unsigned i;
+	for (i = 0; names[i]; i++)
+		if (_wcsicmp(names[i], look) == 0)
+			return true;
+	return false;
+}
+
+wchar_t *ShFindParam(wchar_t **names, wchar_t **values, const wchar_t *look)
+{
+	unsigned i;
+	for (i = 0; names[i]; i++)
+		if (_wcsicmp(names[i], look) == 0)
+			return values[i];
+	return L"";
+}
+
+void ShCmdHelp(const wchar_t *command, wchar_t *params)
+{
+	wchar_t text[1024];
 	unsigned i;
 	bool onlyOnce;
 
@@ -141,7 +273,8 @@ void ShCmdHelp(const wchar_t *command, const wchar_t *params)
 			{
 				if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)))
 					swprintf(text, L"no string for ID %u", sh_commands[i].help_id);
-				wprintf(L"%s: %s", sh_commands[i].name, text);
+				wprintf(L"%s: ", sh_commands[i].name);
+				_cputws(text, wcslen(text));
 				break;
 			}
 		}
@@ -159,12 +292,12 @@ void ShCmdHelp(const wchar_t *command, const wchar_t *params)
 	}
 }
 
-void ShCmdExit(const wchar_t *command, const wchar_t *params)
+void ShCmdExit(const wchar_t *command, wchar_t *params)
 {
 	sh_exit = true;
 }
 
-void ShCmdCd(const wchar_t *command, const wchar_t *params)
+void ShCmdCd(const wchar_t *command, wchar_t *params)
 {
 	params = ShPrompt(L" Directory? ", params);
 	if (*params == '\0')
@@ -176,7 +309,7 @@ void ShCmdCd(const wchar_t *command, const wchar_t *params)
 		wprintf(L"%s: invalid path\n", params);
 }
 
-void ShCmdDir(const wchar_t *command, const wchar_t *params)
+void ShCmdDir(const wchar_t *command, wchar_t *params)
 {
 	handle_t search;
 	dirent_t dir;
@@ -268,7 +401,7 @@ static void ShTypeOutput(const void *buf, size_t len)
 	_cputws(str, len);*/
 }
 
-void ShCmdType(const wchar_t *command, const wchar_t *params)
+void ShCmdType(const wchar_t *command, wchar_t *params)
 {
 	params = ShPrompt(L" File? ", params);
 	if (*params == '\0')
@@ -297,7 +430,7 @@ static void ShDumpOutput(const void *buf, size_t size)
 	}
 }
 
-void ShCmdDump(const wchar_t *command, const wchar_t *params)
+void ShCmdDump(const wchar_t *command, wchar_t *params)
 {
 	params = ShPrompt(L" File? ", params);
 	if (*params == '\0')
@@ -306,12 +439,12 @@ void ShCmdDump(const wchar_t *command, const wchar_t *params)
 	ShDumpFile(params, ShDumpOutput);
 }
 
-void ShCmdCls(const wchar_t *command, const wchar_t *params)
+void ShCmdCls(const wchar_t *command, wchar_t *params)
 {
 	_cputws(L"\x1b[2J", 4);
 }
 
-void ShCmdPoke(const wchar_t *command, const wchar_t *params)
+void ShCmdPoke(const wchar_t *command, wchar_t *params)
 {
 	handle_t file;
 	wchar_t str[] = L"Hello, world!\n";
@@ -340,20 +473,109 @@ void ShCmdPoke(const wchar_t *command, const wchar_t *params)
 	FsClose(file);
 }
 
+void ShCmdRun(const wchar_t *command, wchar_t *params)
+{
+	wchar_t buf[MAX_PATH];
+	handle_t spawned;
+
+	params = ShPrompt(L" Program? ", params);
+	if (*params == '\0')
+		return;
+
+	wcscpy(buf, params);
+	wcscat(buf, L".exe");
+
+	spawned = FsOpen(buf, 0);
+	if (spawned)
+	{
+		FsClose(spawned);
+		spawned = ProcSpawnProcess(buf, ProcGetProcessInfo());
+		ThrWaitHandle(spawned);
+		HndClose(spawned);
+	}
+	else
+		wprintf(L"%s: program not found\n", buf);
+}
+
+void ShCmdDetach(const wchar_t *command, wchar_t *params)
+{
+	wchar_t buf[MAX_PATH], *out, *in;
+	handle_t spawned;
+	process_info_t proc;
+	wchar_t **names, **values;
+	bool doWait;
+
+	ShParseParams(params, &names, &values, &params);
+	params = ShPrompt(L" Program? ", params);
+	if (*params == '\0')
+		return;
+
+	doWait = ShHasParam(names, L"wait");
+	
+	out = ShFindParam(names, values, L"out");
+	if (*out == '\0')
+		out = SYS_DEVICES L"/tty1";
+	
+	in = ShFindParam(names, values, L"in");
+	if (*in == '\0')
+		in = SYS_DEVICES L"/tty1";
+	
+	free(names);
+	free(values);
+
+	wcscpy(buf, params);
+	wcscat(buf, L".exe");
+	
+	spawned = FsOpen(buf, 0);
+	if (spawned)
+	{
+		FsClose(spawned);
+		proc = *ProcGetProcessInfo();
+		proc.std_in = FsOpen(in, FILE_READ);
+		proc.std_out = FsOpen(out, FILE_WRITE);
+		spawned = ProcSpawnProcess(buf, &proc);
+		FsClose(proc.std_in);
+		FsClose(proc.std_out);
+		if (doWait)
+			ThrWaitHandle(spawned);
+		HndClose(spawned);
+	}
+	else
+		wprintf(L"%s: program not found\n", buf);
+}
+
+void ShCmdParse(const wchar_t *command, wchar_t *params)
+{
+	wchar_t **names, **values;
+	unsigned num_names, i;
+
+	wprintf(L"Raw params: \"%s\"\n", params);
+	num_names = ShParseParams(params, &names, &values, NULL);
+	for (i = 0; i < num_names; i++)
+		wprintf(L"\"%s\" => \"%s\"\n", names[i], values[i]);
+	
+	free(names);
+	free(values);
+}
+
 shell_command_t sh_commands[] =
 {
-	{ L"help",	ShCmdHelp,	1 },
-	{ L"exit",	ShCmdExit,	2 },
-	{ L"cd",	ShCmdCd,	3 },
-	{ L"dir",	ShCmdDir,	4 },
-	{ L"type",	ShCmdType,	5 },
-	{ L"cls",	ShCmdCls,	6 },
-	{ L"poke",	ShCmdPoke,	7 },
-	{ L"dump",	ShCmdDump,	8 },
-	{ NULL,		NULL,		0 },
+	{ L"help",		ShCmdHelp,		1 },
+	{ L"exit",		ShCmdExit,		2 },
+	{ L"cd",		ShCmdCd,		3 },
+	{ L"dir",		ShCmdDir,		4 },
+	{ L"type",		ShCmdType,		5 },
+	{ L"cls",		ShCmdCls,		6 },
+	{ L"poke",		ShCmdPoke,		7 },
+	{ L"dump",		ShCmdDump,		8 },
+	{ L"run",		ShCmdRun,		9 },
+	{ L"r",			ShCmdRun,		9 },
+	{ L"detach",	ShCmdDetach,	10 },
+	{ L"parse",		ShCmdParse,		11 },
+	{ NULL,			NULL,			0 },
 };
 
-bool ShInternalCommand(const wchar_t *command, const wchar_t *params)
+bool ShInternalCommand(const wchar_t *command, wchar_t *params)
 {
 	unsigned i;
 
@@ -373,12 +595,30 @@ int main(void)
 {
 	wchar_t buf[256], *space;
 	process_info_t *proc;
-	handle_t spawned;
-
+	char inbuf[256], *outptr;
+	const char *inptr;
+	size_t inbytes, outbytes, len;
+	
 	proc = ProcGetProcessInfo();
 	if (ResLoadString(proc->base, 4096, buf, _countof(buf)))
 		_cputws(buf, wcslen(buf));
-	/*sh_iconv = iconv_open("UCS-2", "ISO-8859-1");*/
+	sh_iconv = iconv_open("UCS-2LE", "ISO-8859-7");
+
+	strcpy(inbuf, "Hello, world: £€\n");
+	inbytes = strlen(inbuf);
+	outbytes = sizeof(buf);
+	inptr = inbuf;
+	outptr = (char*) buf;
+	len = iconv(sh_iconv, &inptr, &inbytes, &outptr, &outbytes);
+	if (len != -1)
+	{
+		*((wchar_t*) outptr) = '\0';
+		ShDumpOutput(buf, wcslen(buf) * sizeof(wchar_t));
+		_cputws(buf, wcslen(buf));
+	}
+	else
+		wprintf(L"invalid input sequence: inbytes = %u, outbytes = %u\n", 
+			inbytes, outbytes);
 
 	while (!sh_exit)
 	{
@@ -386,6 +626,13 @@ int main(void)
 		if (ShReadLine(buf, _countof(buf)) == -1)
 			break;
 		
+		space = wcschr(buf, PARAMSEP);
+		if (space)
+		{
+			memmove(space + 1, space, (wcslen(space) + 1) * sizeof(wchar_t));
+			*space = ' ';
+		}
+
 		space = wcschr(buf, ' ');
 		if (space)
 		{
@@ -396,24 +643,9 @@ int main(void)
 			space = buf + wcslen(buf);
 
 		if (!ShInternalCommand(buf, space))
-		{
-			wcscat(buf, L".exe");
-
-			spawned = FsOpen(buf, 0);
-			if (spawned)
-			{
-				FsClose(spawned);
-				wprintf(L"Starting %s...\n", buf);
-				spawned = ProcSpawnProcess(buf);
-				wprintf(L"Handle is %d\n", spawned);
-				ThrSleep(2000);
-				HndClose(spawned);
-			}
-			else
-				wprintf(L"%s: program not found\n", buf);
-		}
+			wprintf(L"%s: invalid command\n", buf);
 	}
 
-	/*iconv_close(sh_iconv);*/
+	iconv_close(sh_iconv);
 	return EXIT_SUCCESS;
 }

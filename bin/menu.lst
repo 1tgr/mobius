@@ -1,3 +1,5 @@
+# $Id: menu.lst,v 1.2 2002/02/25 01:28:12 pavlovskii Exp $
+
 title	The M”bius
 root	(hd0,0)
 kernel	/boot/kernel.exe
@@ -12,3 +14,10 @@ module	/boot/test.txt
 module	/boot/ata.drv
 module	/boot/cmos.drv
 module	/boot/libiconv.dll
+module	/boot/hello.exe
+
+title	Reinstall loader to hard disk
+install	(hd0,0)/boot/grub/stage1 (hd0,0) (hd0,0)/boot/grub/stage2 (hd0,0)/menu.lst
+
+title	Reinstall loader to floppy disk
+install	(hd0,0)/boot/grub/stage1 (fd0) (fd0)/stage2 (fd0)/menu.lst

@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.6 2002/02/24 19:13:12 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.7 2002/02/25 01:28:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -129,6 +129,8 @@ bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
 		uint32_t cluster;
 		uint8_t *ptr;
 		size_t bytes_read;
+		unsigned i;
+		fat_dirent_t *entries;
 
 		cluster = di->first_cluster;
 		ptr = (uint8_t*) (dir + 1);
@@ -156,8 +158,14 @@ bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
 			cluster = GetNextCluster(cluster);
 		}
 
-		((fat_dirent_t*) (dir + 1))[0].name[0] = 0xe5;
-		((fat_dirent_t*) (dir + 1))[1].name[0] = 0xe5;
+		entries = (fat_dirent_t*) (dir + 1);
+		for (i = 0; i < dir->num_entries; i++)
+			if ((entries[i].name[0] == '.' && 
+				entries[i].name[1] == ' ') ||
+				(entries[i].name[0] == '.' && 
+				entries[i].name[1] == '.' && 
+				entries[i].name[2] == ' '))
+			entries[i].name[0] = 0xe5;
 	}
 
 	return true;
