@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.11 2002/03/27 23:19:44 pavlovskii Exp $ */
+/* $Id: video.c,v 1.12 2002/03/28 15:35:17 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -43,19 +43,21 @@ FT_Library ft_library;
 FT_Face ft_face;
 void *font_data;
 
-video_t *vga4Init(void);
-video_t *vga8Init(void);
+video_t *vga4Init(device_config_t *cfg);
+video_t *vga8Init(device_config_t *cfg);
+video_t *s3Init(device_config_t *cfg);
 
 struct
 {
     const wchar_t *name;
-    video_t *(*init)(void);
+    video_t *(*init)(device_config_t *);
     video_t *vid;
 } drivers[] =
 {
-    { L"vga4",        vga4Init,   NULL },
-    { L"vga8",        vga8Init,   NULL },
-    { NULL,        NULL,            NULL },
+    { L"vga4",     vga4Init, NULL },
+    { L"vga8",     vga8Init, NULL },
+    { L"s3",       s3Init,   NULL },
+    { NULL,        NULL,     NULL },
 };
 
 typedef struct modemap_t modemap_t;
@@ -804,7 +806,7 @@ device_t* vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 
     for (i = 0; drivers[i].name; i++)
     {
-        vid = drivers[i].vid = drivers[i].init();
+        vid = drivers[i].vid = drivers[i].init(cfg);
 
         j = 0;
         do

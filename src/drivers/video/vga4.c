@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.9 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.10 2002/03/28 15:35:17 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -364,7 +364,7 @@ video_t vga4 =
     vgaStorePalette
 };
 
-video_t *vga4Init(void)
+video_t *vga4Init(device_config_t *cfg)
 {
     return &vga4;
 }

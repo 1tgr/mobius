@@ -86,6 +86,10 @@ CFG=video - Win32 Debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\bpp8.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\cupertino.c
 # End Source File
 # Begin Source File
@@ -95,6 +99,10 @@ SOURCE=.\font1.c
 # Begin Source File
 
 SOURCE=.\font8x8.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\s3.c
 # End Source File
 # Begin Source File
 
@@ -122,7 +130,15 @@ SOURCE=.\video.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\vgamodes.h
+SOURCE=.\include\bpp8.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\s3.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\vgamodes.h
 # End Source File
 # Begin Source File
 
@@ -130,7 +146,7 @@ SOURCE=..\..\..\include\os\video.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\video.h
+SOURCE=.\include\video.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

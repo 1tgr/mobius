@@ -1,4 +1,4 @@
-/* $Id: vgamodes.h,v 1.3 2002/03/05 14:23:24 pavlovskii Exp $ */
+/* $Id: vgamodes.h,v 1.1 2002/03/28 15:35:17 pavlovskii Exp $ */
 
 extern const uint8_t mode00h[62];
 extern const uint8_t mode03h[62];

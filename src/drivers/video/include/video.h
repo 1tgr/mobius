@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.6 2002/03/27 22:08:39 pavlovskii Exp $ */
+/* $Id: video.h,v 1.1 2002/03/28 15:35:17 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -29,6 +29,20 @@ extern "C"
 #define VGA_CRTC_DATA		0x3D5
 #define VGA_INSTAT_READ		0x3DA
 
+/* Write to indexed VGA register using outw. */
+void __svgalib_outGR(int index, unsigned char value);
+void __svgalib_outSR(int index, unsigned char value);
+void __svgalib_outCR(int index, unsigned char value);
+
+/* Write to indexed VGA register using outb. */
+void __svgalib_outbGR(int index, unsigned char value);
+void __svgalib_outbSR(int index, unsigned char value);
+void __svgalib_outbCR(int index, unsigned char value);
+
+unsigned char __svgalib_inGR(int index);
+unsigned char __svgalib_inSR(int index);
+unsigned char __svgalib_inCR(int index);
+
 /* number of registers in each VGA unit */
 #define NUM_CRTC_REGS		25
 #define NUM_AC_REGS		21
@@ -37,6 +51,14 @@ extern "C"
 #define NUM_OTHER_REGS		1
 #define NUM_REGS		\
     (NUM_CRTC_REGS + NUM_AC_REGS + NUM_GC_REGS + NUM_SEQ_REGS + NUM_OTHER_REGS)
+
+/* VGA registers saving indexes */
+#define CRT     0		/* CRT Controller Registers start */
+#define ATT     (CRT+NUM_CRTC_REGS)	/* Attribute Controller Registers start */
+#define GRA     (ATT+NUM_AC_REGS)	/* Graphics Controller Registers start */
+#define SEQ     (GRA+NUM_GC_REGS)	/* Sequencer Registers */
+#define MIS     (SEQ+NUM_SEQ_REGS)	/* General Registers */
+#define EXT     (MIS+NUM_OTHER_REGS)	/* SVGA Extended Registers */
 
 #define _CRTCBaseAdr		0x3c0
 
