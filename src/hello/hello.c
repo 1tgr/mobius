@@ -10,7 +10,7 @@ int main()
 	if (*whom == '\0')
 		whom = L"world";
 
-	if (resLoadString(_info.base, 1, str, countof(str)))
+	if (resLoadString(0x40000000, 1, str, countof(str)))
 		wprintf(str, whom);
 	
 	return 0;
