@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.8 2002/03/05 01:59:07 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.9 2002/03/05 16:13:58 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -9,6 +9,7 @@
 #define EvtSignal	SysEvtSignal
 #define EvtIsSignalled	SysEvtIsSignalled
 #define HndClose	SysHndClose
+#define VmmFree		SysVmmFree
 #endif
 
 #ifndef SYS_BEGIN_GROUP
@@ -54,6 +55,7 @@
 #define SYS_FsRequestSync	0x408
 
 #define SYS_VmmAlloc		0x500
+#define SYS_VmmFree		0x501
 
 #define SYS_EvtAlloc		0x600
 #define SYS_HndClose		0x601
@@ -107,6 +109,7 @@ SYS_END_GROUP(4)
 /* 5 */
 SYS_BEGIN_GROUP(5)
 SYSCALL(void *, VmmAlloc, 12, size_t, addr_t, uint32_t)
+SYSCALL(bool, VmmFree, 4, void*)
 SYS_END_GROUP(5)
 
 /* 6 */
@@ -127,4 +130,5 @@ SYS_END_GROUP(6)
 #undef EvtSignal
 #undef EvtIsSignalled
 #undef HndClose
+#undef VmmFree
 #endif
