@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.9 2002/03/05 16:13:58 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.10 2002/03/27 22:12:59 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -53,6 +53,7 @@
 #define SYS_FsOpenSearch	0x406
 #define SYS_FsQueryFile 	0x407
 #define SYS_FsRequestSync	0x408
+#define SYS_FsIoCtl             0x409
 
 #define SYS_VmmAlloc		0x500
 #define SYS_VmmFree		0x501
@@ -84,7 +85,7 @@ SYSCALL(handle_t, ThrCreateV86Thread, 16, uint32_t, uint32_t, unsigned, void (*)
 SYSCALL(bool, ThrGetV86Context, 4, struct context_v86_t*)
 SYSCALL(bool, ThrSetV86Context, 4, const struct context_v86_t*)
 SYSCALL(bool, ThrContinueV86, 0, void)
-SYSCALL(handle_t, ThrCreateThread, 12, void (*)(void*), void*, unsigned)
+SYSCALL(handle_t, ThrCreateThread, 12, void (*)(void), void*, unsigned)
 SYS_END_GROUP(2)
 
 /* 3 */
@@ -104,6 +105,7 @@ SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
 SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
 SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)
 SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void*, size_t, struct fileop_t*)
+SYSCALL(bool, FsIoCtl, 20, handle_t, uint32_t, void *, size_t, struct fileop_t*)
 SYS_END_GROUP(4)
 
 /* 5 */

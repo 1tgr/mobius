@@ -1,22 +1,11 @@
-/* $Id: pwerror.c,v 1.1 2002/03/05 02:10:21 pavlovskii Exp $ */
-
-#include <os/rtl.h>
-
-#include <stdlib.h>
+/* Copyright (C) 1994 DJ Delorie, see COPYING.DJ for details */
+#include <stdio.h>
+#include <string.h>
 #include <wchar.h>
 #include <errno.h>
 
-void _pwerror(const wchar_t *text)
+void
+_pwerror(const wchar_t *s)
 {
-    wchar_t str[1024];
-    int en;
-
-    en = errno;
-    if (en < 0)
-	en = 0;
-
-    if (!ResLoadString(NULL, en + 1024, str, _countof(str)))
-	swprintf(str, L"errno = %d", en);
-
-    wprintf(L"%s: %s\n", text, str);	    
+  fprintf(stderr, "%S: %s\n", s, strerror(errno));
 }

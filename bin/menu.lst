@@ -1,4 +1,4 @@
-# $Id: menu.lst,v 1.9 2002/03/19 23:56:59 pavlovskii Exp $
+# $Id: menu.lst,v 1.10 2002/03/27 22:12:59 pavlovskii Exp $
 
 title	The M”bius
 kernel	/boot/kernel.exe
@@ -10,7 +10,7 @@ module	/boot/libc.dll
 #module	/boot/fat.drv
 module	/boot/fdc.drv
 module	/boot/test.txt
-module	/boot/ata.drv
+#module	/boot/ata.drv
 module	/boot/cmos.drv
 module	/boot/video.drv
 module	/boot/pci.drv

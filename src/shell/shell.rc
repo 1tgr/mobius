@@ -1,4 +1,4 @@
-/* $Id: shell.rc,v 1.7 2002/03/19 23:57:10 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.8 2002/03/27 22:13:01 pavlovskii Exp $ */
 
 1 256 "poweroff.com"
 
@@ -18,24 +18,6 @@ BEGIN
     12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
     13                      "Loads and runs a .COM file under the DOS emulator"
     14                      "Turns the computer's power off"
-
-    1024                    "No error"
-    1025                    "Domain error"
-    1026                    "Invalid multibyte sequence"
-    1027                    "Range error"
-    1028                    "Command not implemented"
-    1029                    "Invalid buffer"
-    1030                    "File not found"
-    1031                    "Invalid operation"
-    1032                    "Too many open files"
-    1033                    "Out of memory"
-    1034                    "Invalid handle"
-    1035                    "Hardware fault"
-    1036                    "Access denied"
-    1037                    "End of file"
-    1038                    "Argument list too long"
-    1039                    "Not a directory"
-    1040                    "Fault"
 
     4096                    "The Möbius: command-line shell\n"
 END

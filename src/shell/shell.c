@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.17 2002/03/19 23:57:10 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.18 2002/03/27 22:13:01 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,17 +28,17 @@ void ShCtrlCThread(void *param)
     op.event = keyboard;
     while (FsRead(keyboard, &key, sizeof(key), &op))
     {
-	if (op.result == SIOPENDING)
-	    ThrWaitHandle(op.event);
+        if (op.result == SIOPENDING)
+            ThrWaitHandle(op.event);
 
-	if (op.result != 0)
-	    break;
+        if (op.result != 0)
+            break;
 
-	if (key == (KBD_BUCKY_CTRL | 'c'))
-	{
-	    printf("ShCtrlCThread: exiting\n");
-	    ProcExitProcess(0);
-	}
+        if (key == (KBD_BUCKY_CTRL | 'c'))
+        {
+            printf("ShCtrlCThread: exiting\n");
+            ProcExitProcess(0);
+        }
     }
 
     _pwerror(L"ShCtrlCThread");
@@ -51,12 +51,12 @@ void ShCtrlCThread(void *param)
     char ch;
     for (;;)
     {
-	do
-	{
-	    ch = ShReadKey();
-	} while (ch == 0);
-	_cputs(&ch, 1);
-	fflush(stdout);
+        do
+        {
+            ch = ShReadKey();
+        } while (ch == 0);
+        _cputs(&ch, 1);
+        fflush(stdout);
     }
 }*/
 
@@ -68,50 +68,50 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
 
     if (*params == '\0')
     {
-	onlyOnce = false;
-	wprintf(L"Valid commands are:\n");
-	for (i = 0; sh_commands[i].name != NULL; i++)
-	{
-	    for (j = wcslen(sh_commands[i].name); j < 8; j++)
-		wprintf(L" ", 1);
-	    wprintf(L"%s", sh_commands[i].name);
-	    if (i > 0 && i % 8 == 0)
-		wprintf(L"\n");
-	}
+        onlyOnce = false;
+        wprintf(L"Valid commands are:\n");
+        for (i = 0; sh_commands[i].name != NULL; i++)
+        {
+            for (j = wcslen(sh_commands[i].name); j < 8; j++)
+                wprintf(L" ", 1);
+            wprintf(L"%s", sh_commands[i].name);
+            if (i > 0 && i % 8 == 0)
+                wprintf(L"\n");
+        }
     }
     else
-	onlyOnce = true;
+        onlyOnce = true;
 
     while (1)
     {
-	params = ShPrompt(L"\n Command? ", params);
-	if (*params == '\0')
-	    break;
+        params = ShPrompt(L"\n Command? ", params);
+        if (*params == '\0')
+            break;
 
-	for (i = 0; sh_commands[i].name != NULL; i++)
-	{
-	    if (_wcsicmp(params, sh_commands[i].name) == 0)
-	    {
-		if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)) ||
-		    text[0] == '\0')
-		    swprintf(text, L"no string for ID %u", sh_commands[i].help_id);
-		_cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
-		_cputs(": ", 2);
-		_cputws(text, wcslen(text));
-		break;
-	    }
-	}
+        for (i = 0; sh_commands[i].name != NULL; i++)
+        {
+            if (_wcsicmp(params, sh_commands[i].name) == 0)
+            {
+                if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)) ||
+                    text[0] == '\0')
+                    swprintf(text, L"no string for ID %u", sh_commands[i].help_id);
+                _cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
+                _cputs(": ", 2);
+                _cputws(text, wcslen(text));
+                break;
+            }
+        }
 
-	if (sh_commands[i].name == NULL)
-	    wprintf(L"%s: unrecognized command\n", params);
-	
-	if (onlyOnce)
-	{
-	    wprintf(L"\n");
-	    break;
-	}
+        if (sh_commands[i].name == NULL)
+            wprintf(L"%s: unrecognized command\n", params);
+        
+        if (onlyOnce)
+        {
+            wprintf(L"\n");
+            break;
+        }
 
-	params = L"";
+        params = L"";
     }
 }
 
@@ -128,38 +128,38 @@ static bool ShNormalizePath(wchar_t *path)
 
     if (*path == '/')
     {
-	ch = path;
-	prev = path + 1;
+        ch = path;
+        prev = path + 1;
     }
     else
     {
-	ch = path - 1;
-	prev = path;
+        ch = path - 1;
+        prev = path;
     }
 
     isEnd = false;
     while (!isEnd)
     {
-	ch = wcschr(ch + 1, '/');
-	if (ch == NULL)
-	{
-	    ch = path + wcslen(path);
-	    isEnd = true;
-	}
+        ch = wcschr(ch + 1, '/');
+        if (ch == NULL)
+        {
+            ch = path + wcslen(path);
+            isEnd = true;
+        }
 
-	*ch = '\0';
-	if (!FsQueryFile(path, FILE_QUERY_STANDARD, &di, sizeof(di)))
-	    return false;
+        *ch = '\0';
+        if (!FsQueryFile(path, FILE_QUERY_STANDARD, &di, sizeof(di)))
+            return false;
 
-	if ((di.standard_attributes & FILE_ATTR_DIRECTORY) == 0)
-	{
-	    errno = ENOTADIR;
-	    return false;
-	}
+        if ((di.standard_attributes & FILE_ATTR_DIRECTORY) == 0)
+        {
+            errno = ENOTADIR;
+            return false;
+        }
 
-	wcscpy(prev, di.name);
-	prev = ch + 1;
-	*ch = '/';
+        wcscpy(prev, di.name);
+        prev = ch + 1;
+        *ch = '/';
     }
 
     *ch = '\0';
@@ -170,77 +170,77 @@ void ShCmdCd(const wchar_t *command, wchar_t *params)
 {
     params = ShPrompt(L" Directory? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     if (FsFullPath(params, sh_path))
     {
-	if (ShNormalizePath(sh_path))
-	    wcscpy(ProcGetProcessInfo()->cwd, sh_path);
-	else
-	    _pwerror(sh_path);
+        if (ShNormalizePath(sh_path))
+            wcscpy(ProcGetProcessInfo()->cwd, sh_path);
+        else
+            _pwerror(sh_path);
     }
     else
-	_pwerror(params);
+        _pwerror(params);
 }
 
 void ShCmdDir(const wchar_t *command, wchar_t *params)
 {
     handle_t search;
     dirent_t dir;
-    dirent_device_t dev;
+    /*dirent_device_t dev;*/
     fileop_t op;
     wchar_t *star;
     
     if (*params == '\0')
-	params = L"*";
+        params = L"*";
 
     if (!FsFullPath(params, sh_path))
     {
-	_pwerror(params);
-	return;
+        _pwerror(params);
+        return;
     }
 
     star = wcsrchr(sh_path, '*');
     if (star == NULL)
-	star = sh_path + wcslen(sh_path);
+        star = sh_path + wcslen(sh_path);
 
     search = FsOpenSearch(sh_path);
     if (search != NULL)
     {
-	op.event = NULL;
-	while (FsRead(search, &dir, sizeof(dir), &op))
-	{
-	    if (op.result == SIOPENDING)
-		ThrWaitHandle(op.event);
+        op.event = NULL;
+        while (FsRead(search, &dir, sizeof(dir), &op))
+        {
+            if (op.result == SIOPENDING)
+                ThrWaitHandle(op.event);
 
-	    if (dir.standard_attributes & FILE_ATTR_DIRECTORY)
-		wprintf(L"[Directory]\t");
-	    else if (dir.standard_attributes & FILE_ATTR_DEVICE)
-		wprintf(L"   [Device]\t");
-	    else
-		wprintf(L"%10lu\t", (uint32_t) dir.length);
+            if (dir.standard_attributes & FILE_ATTR_DIRECTORY)
+                wprintf(L"[Directory]\t");
+            else if (dir.standard_attributes & FILE_ATTR_DEVICE)
+                wprintf(L"   [Device]\t");
+            else
+                wprintf(L"%10lu\t", (uint32_t) dir.length);
 
-	    wprintf(L"\t%s", dir.name);
-	    /*if (dir.standard_attributes & FILE_ATTR_DEVICE)
-	    {
-		wcscpy(star, dir.name);
-		if (FsQueryFile(sh_path, FILE_QUERY_DEVICE, &dev, sizeof(dev)))
-		{
-		    printf("%*s", 20 - wcslen(dir.name) + 1, "");
-		    _cputws(dev.description, wcslen(dev.description));
-		}
-	    }*/
+            wprintf(L"\t%s", dir.name);
+            /*if (dir.standard_attributes & FILE_ATTR_DEVICE)
+            {
+                wcscpy(star, dir.name);
+                if (FsQueryFile(sh_path, FILE_QUERY_DEVICE, &dev, sizeof(dev)))
+                {
+                    printf("%*s", 20 - wcslen(dir.name) + 1, "");
+                    _cputws(dev.description, wcslen(dev.description));
+                }
+            }*/
 
-	    _cputs("\n", 1);
-	}
+            _cputs("\n", 1);
+        }
 
-	FsClose(search);
+        FsClose(search);
     }
 }
 
 static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
 {
-    static char buf[16];
+    static char buf[512];
 
     handle_t file;
     size_t len;
@@ -250,42 +250,42 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
     file = FsOpen(name, FILE_READ);
     if (file == NULL)
     {
-	_pwerror(name);
-	return;
+        _pwerror(name);
+        return;
     }
 
     op.event = EvtAlloc();
     origin = 0;
     do
     {
-	if (!FsRead(file, buf, sizeof(buf), &op))
-	{
-	    /* Some catastrophic error */
-	    errno = op.result;
-	    _pwerror(name);
-	    break;
-	}
+        if (!FsRead(file, buf, sizeof(buf), &op))
+        {
+            /* Some catastrophic error */
+            errno = op.result;
+            _pwerror(name);
+            break;
+        }
 
-	if (op.result == SIOPENDING)
-	    ThrWaitHandle(op.event);
+        if (op.result == SIOPENDING)
+            ThrWaitHandle(op.event);
 
-	len = op.bytes;
-	if (len == 0)
-	{
-	    printf("FSD read zero bytes but didn't report an error\n");
-	    break;
-	}
-	
-	if (len < _countof(buf))
-	    buf[len] = '\0';
-	fn(buf, origin, len);
+        len = op.bytes;
+        if (len == 0)
+        {
+            printf("FSD read zero bytes but didn't report an error\n");
+            break;
+        }
+        
+        if (len < _countof(buf))
+            buf[len] = '\0';
+        fn(buf, origin, len);
 
-	origin += len;
-	if (len < sizeof(buf))
-	{
-	    printf("FSD hit the end of the file: successful but only %u bytes read\n", len);
-	    break;
-	}
+        origin += len;
+        if (len < sizeof(buf))
+        {
+            printf("FSD hit the end of the file: successful but only %u bytes read\n", len);
+            break;
+        }
     } while (true);
     
     HndClose(op.event);
@@ -299,18 +299,11 @@ static void ShTypeOutput(const void *buf, addr_t origin, size_t len)
 
 void ShCmdType(const wchar_t *command, wchar_t *params)
 {
-    FILE *f;
-
     params = ShPrompt(L" File? ", params);
     if (*params == '\0')
-	return;
+        return;
 
-    /*ShDumpFile(params, ShTypeOutput);*/
-    f = _wfopen(params, L"rt");
-    if (f == NULL)
-    	_pwerror(params);
-    else
-        fclose(f);
+    ShDumpFile(params, ShTypeOutput);
 }
 
 static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
@@ -321,15 +314,15 @@ static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
     ptr = (const uint8_t*) buf;
     for (j = 0; j < size; j += i, ptr += i)
     {
-	wprintf(L"%8x ", origin + j);
-	for (i = 0; i < 16; i++)
-	{
-	    wprintf(L"%02x ", ptr[i]);
-	    if (i + j >= size)
-		break;
-	}
+        printf("%8lx ", origin + j);
+        for (i = 0; i < 16; i++)
+        {
+            printf("%02x ", ptr[i]);
+            if (i + j >= size)
+                break;
+        }
 
-	wprintf(L"\n");
+        printf("\n");
     }
 }
 
@@ -337,7 +330,7 @@ void ShCmdDump(const wchar_t *command, wchar_t *params)
 {
     params = ShPrompt(L" File? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     ShDumpFile(params, ShDumpOutput);
 }
@@ -350,32 +343,36 @@ void ShCmdCls(const wchar_t *command, wchar_t *params)
 void ShCmdPoke(const wchar_t *command, wchar_t *params)
 {
     handle_t file;
-    wchar_t str[] = L"Hello, world!\n";
+    char str[] = "Hello, world!\n";
     fileop_t op;
 
     params = ShPrompt(L" Device? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     file = FsOpen(params, FILE_WRITE);
     if (file == NULL)
     {
-	_pwerror(params);
-	return;
+        _pwerror(params);
+        return;
     }
 
     op.event = file;
     if (FsWrite(file, str, sizeof(str), &op))
     {
-	if (op.result == SIOPENDING)
-	    ThrWaitHandle(op.event);
+        if (op.result == SIOPENDING)
+        {
+            printf("poke: pending\n");
+            ThrWaitHandle(op.event);
+        }
     }
     else
     {
-	errno = op.result;
-	_pwerror(params);
+        errno = op.result;
+        _pwerror(params);
     }
 
+    printf("poke: finished\n");
     FsClose(file);
 }
 
@@ -387,33 +384,33 @@ void ShCmdRun(const wchar_t *command, wchar_t *params)
 
     params = ShPrompt(L" Program? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     space = wcschr(params, ' ');
     if (space)
     {
-	wcsncpy(buf, params, space - params);
-	wcscpy(buf + (space - params), L".exe");
+        wcsncpy(buf, params, space - params);
+        wcscpy(buf + (space - params), L".exe");
     }
     else
     {
-	wcscpy(buf, params);
-	wcscat(buf, L".exe");
+        wcscpy(buf, params);
+        wcscat(buf, L".exe");
     }
 
     spawned = FsOpen(buf, 0);
     if (spawned)
     {
-	FsClose(spawned);
-	info = *ProcGetProcessInfo();
-	memset(info.cmdline, 0, sizeof(info.cmdline));
-	wcsncpy(info.cmdline, params, _countof(info.cmdline));
-	spawned = ProcSpawnProcess(buf, &info);
-	ThrWaitHandle(spawned);
-	HndClose(spawned);
+        FsClose(spawned);
+        info = *ProcGetProcessInfo();
+        memset(info.cmdline, 0, sizeof(info.cmdline));
+        wcsncpy(info.cmdline, params, _countof(info.cmdline));
+        spawned = ProcSpawnProcess(buf, &info);
+        ThrWaitHandle(spawned);
+        HndClose(spawned);
     }
     else
-	_pwerror(buf);
+        _pwerror(buf);
 }
 
 void ShCmdDetach(const wchar_t *command, wchar_t *params)
@@ -427,19 +424,19 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
     ShParseParams(params, &names, &values, &params);
     params = ShPrompt(L" Program? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     doWait = false;
     if (ShHasParam(names, L"wait"))
-	doWait = true;
+        doWait = true;
     
     out = ShFindParam(names, values, L"out");
     if (*out == '\0')
-	out = NULL;
+        out = NULL;
     
     in = ShFindParam(names, values, L"in");
     if (*in == '\0')
-	in = NULL;
+        in = NULL;
     
     free(names);
     free(values);
@@ -450,23 +447,23 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
     spawned = FsOpen(buf, 0);
     if (spawned)
     {
-	FsClose(spawned);
-	proc = *ProcGetProcessInfo();
-	if (in)
-	    proc.std_in = FsOpen(in, FILE_READ);
-	if (out)
-	    proc.std_out = FsOpen(out, FILE_WRITE);
-	spawned = ProcSpawnProcess(buf, &proc);
-	if (in)
-	    FsClose(proc.std_in);
-	if (out)
-	    FsClose(proc.std_out);
-	if (doWait)
-	    ThrWaitHandle(spawned);
-	HndClose(spawned);
+        FsClose(spawned);
+        proc = *ProcGetProcessInfo();
+        if (in)
+            proc.std_in = FsOpen(in, FILE_READ);
+        if (out)
+            proc.std_out = FsOpen(out, FILE_WRITE);
+        spawned = ProcSpawnProcess(buf, &proc);
+        if (in)
+            FsClose(proc.std_in);
+        if (out)
+            FsClose(proc.std_out);
+        if (doWait)
+            ThrWaitHandle(spawned);
+        HndClose(spawned);
     }
     else
-	_pwerror(buf);
+        _pwerror(buf);
 }
 
 void ShCmdParse(const wchar_t *command, wchar_t *params)
@@ -477,7 +474,7 @@ void ShCmdParse(const wchar_t *command, wchar_t *params)
     wprintf(L"Raw params: \"%s\"\n", params);
     num_names = ShParseParams(params, &names, &values, NULL);
     for (i = 0; i < num_names; i++)
-	wprintf(L"\"%s\" => \"%s\"\n", names[i], values[i]);
+        wprintf(L"\"%s\" => \"%s\"\n", names[i], values[i]);
     
     free(names);
     free(values);
@@ -503,49 +500,49 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
 
     if (ShHasParam(names, L"system"))
     {
-	if (SysGetInfo(&info))
-	{
-	    size_t reserved_pages;
-	    reserved_pages = info.pages_physical - info.pages_total;
-	    wprintf(L"         System page size: %uKB\n", 
-		info.page_size / 1024);
-	    wprintf(L"    Total physical memory: %uMB\n", 
-		(info.pages_physical * info.page_size) / 0x100000);
-	    wprintf(L"Available physical memory: %uMB (%u%%)\n", 
-		(info.pages_total * info.page_size) / 0x100000,
-		(info.pages_total * 100) / info.pages_physical);
-	    wprintf(L" Reserved physical memory: %uMB (%u%%)\n", 
-		(reserved_pages * info.page_size) / 0x100000,
-		100 - (info.pages_total * 100) / info.pages_physical);
-	    wprintf(L"     Free physical memory: %uMB (%u%% of total, %u%% of available)\n", 
-		(info.pages_free * info.page_size) / 0x100000,
-		(info.pages_free * 100) / info.pages_physical,
-		(info.pages_free * 100) / info.pages_total);
-	    wprintf(L"   Kernel reserved memory: %uKB (%u%% of total, %u%% of reserved)\n",
-		(info.pages_kernel * info.page_size) / 1024,
-		(info.pages_kernel * 100) / info.pages_physical,
-		(info.pages_kernel * 100) / reserved_pages);
-	}
-	else
-	    _pwerror(L"SysGetInfo");
+        if (SysGetInfo(&info))
+        {
+            size_t reserved_pages;
+            reserved_pages = info.pages_physical - info.pages_total;
+            wprintf(L"         System page size: %uKB\n", 
+                info.page_size / 1024);
+            wprintf(L"    Total physical memory: %uMB\n", 
+                (info.pages_physical * info.page_size) / 0x100000);
+            wprintf(L"Available physical memory: %uMB (%u%%)\n", 
+                (info.pages_total * info.page_size) / 0x100000,
+                (info.pages_total * 100) / info.pages_physical);
+            wprintf(L" Reserved physical memory: %uMB (%u%%)\n", 
+                (reserved_pages * info.page_size) / 0x100000,
+                100 - (info.pages_total * 100) / info.pages_physical);
+            wprintf(L"     Free physical memory: %uMB (%u%% of total, %u%% of available)\n", 
+                (info.pages_free * info.page_size) / 0x100000,
+                (info.pages_free * 100) / info.pages_physical,
+                (info.pages_free * 100) / info.pages_total);
+            wprintf(L"   Kernel reserved memory: %uKB (%u%% of total, %u%% of reserved)\n",
+                (info.pages_kernel * info.page_size) / 1024,
+                (info.pages_kernel * 100) / info.pages_physical,
+                (info.pages_kernel * 100) / reserved_pages);
+        }
+        else
+            _pwerror(L"SysGetInfo");
     }
 
     if (ShHasParam(names, L"times"))
     {
-	if (SysGetTimes(&times))
-	{
-	    unsigned ms, s, m, h;
-	    wprintf(L"   System quantum: %u ms\n",
-		times.quantum);
-	    ShSplitTime(times.uptime, &h, &m, &s, &ms);
-	    wprintf(L"    System uptime: %02u:%02u:%02u.%03u\n",
-		h, m, s, ms);
-	    ShSplitTime(times.current_cputime, &h, &m, &s, &ms);
-	    wprintf(L"CPU time (thread): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
-		h, m, s, ms, (times.current_cputime * 100) / times.uptime);
-	}
-	else
-	    _pwerror(L"SysGetTimes");
+        if (SysGetTimes(&times))
+        {
+            unsigned ms, s, m, h;
+            wprintf(L"   System quantum: %u ms\n",
+                times.quantum);
+            ShSplitTime(times.uptime, &h, &m, &s, &ms);
+            wprintf(L"    System uptime: %02u:%02u:%02u.%03u\n",
+                h, m, s, ms);
+            ShSplitTime(times.current_cputime, &h, &m, &s, &ms);
+            wprintf(L"CPU time (thread): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
+                h, m, s, ms, (times.current_cputime * 100) / times.uptime);
+        }
+        else
+            _pwerror(L"SysGetTimes");
     }
 
     free(names);
@@ -568,28 +565,28 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
     ShParseParams(params, &names, &values, &params);
     params = ShPrompt(L" .COM file? ", params);
     if (*params == '\0')
-	return;
+        return;
 
     doWait = true;
     if (ShHasParam(names, L"nowait"))
-	doWait = false;
+        doWait = false;
     
     free(names);
     free(values);
 
     /*if (!FsQueryFile(params, FILE_QUERY_STANDARD, &di, sizeof(di)))
     {
-	_pwerror(params);
-	return;
+        _pwerror(params);
+        return;
     }*/
     di.length = 0x10000;
 
     file = FsOpen(params, FILE_READ);
     if (file == NULL)
     {
-	wprintf(L"FsOpen: ");
-	_pwerror(params);
-	return;
+        wprintf(L"FsOpen: ");
+        _pwerror(params);
+        return;
     }
 
     code = sbrk(di.length + 0x100);
@@ -600,37 +597,37 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
     op.event = file;
     if (!FsRead(file, code + 0x100, di.length, &op))
     {
-	wprintf(L"FsRead: ");
-	errno = op.result;
-	_pwerror(params);
-	FsClose(file);
-	return;
+        wprintf(L"FsRead: ");
+        errno = op.result;
+        _pwerror(params);
+        FsClose(file);
+        return;
     }
 
     if (op.result == SIOPENDING)
-	ThrWaitHandle(op.event);
+        ThrWaitHandle(op.event);
 
     FsClose(file);
     if (op.result > 0)
     {
-	wprintf(L"FsRead(finished): ");
-	errno = op.result;
-	_pwerror(params);
-	return;
+        wprintf(L"FsRead(finished): ");
+        errno = op.result;
+        _pwerror(params);
+        return;
     }
 
     fp_code = i386LinearToFp(code);
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
-	
+        
     if (sh_v86stack == NULL)
-	sh_v86stack = sbrk(65536);
+        sh_v86stack = sbrk(65536);
 
     fp_stackend = i386LinearToFp(sh_v86stack);
     memset(sh_v86stack, 0, 65536);
     
     thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
     if (doWait)
-	ThrWaitHandle(thr);
+        ThrWaitHandle(thr);
 
     /* xxx - need to clean up HndClose() implementation before we can use this */
     /*HndClose(thr);*/
@@ -657,9 +654,9 @@ void ShCmdOff(const wchar_t *cmd, wchar_t *params)
     
     fp_code = i386LinearToFp(code);
     fp_code = MK_FP(FP_SEG(fp_code), FP_OFF(fp_code) + 0x100);
-	
+        
     if (sh_v86stack == NULL)
-	sh_v86stack = sbrk(65536);
+        sh_v86stack = sbrk(65536);
 
     fp_stackend = i386LinearToFp(sh_v86stack);
     memset(sh_v86stack, 0, 65536);
@@ -671,24 +668,34 @@ void ShCmdOff(const wchar_t *cmd, wchar_t *params)
     /*HndClose(thr);*/
 }
 
+void ShCmdSleep(const wchar_t *cmd, wchar_t *params)
+{
+    params = ShPrompt(L" Delay? ", params);
+    if (*params == '\0')
+        return;
+
+    ThrSleep(wcstol(params, NULL, 0));
+}
+
 shell_command_t sh_commands[] =
 {
-    { L"cd",	    ShCmdCd,	    3 },
-    { L"cls",	    ShCmdCls,	    6 },
+    { L"cd",        ShCmdCd,        3 },
+    { L"cls",       ShCmdCls,       6 },
     { L"detach",    ShCmdDetach,    10 },
-    { L"dir",	    ShCmdDir,	    4 },
-    { L"dump",	    ShCmdDump,	    8 },
-    { L"exit",	    ShCmdExit,	    2 },
-    { L"help",	    ShCmdHelp,	    1 },
-    { L"info",	    ShCmdInfo,	    12 },
+    { L"dir",       ShCmdDir,       4 },
+    { L"dump",      ShCmdDump,      8 },
+    { L"exit",      ShCmdExit,      2 },
+    { L"help",      ShCmdHelp,      1 },
+    { L"info",      ShCmdInfo,      12 },
     { L"off",       ShCmdOff,       14 },
-    { L"parse",     ShCmdParse,	    11 },
-    { L"poke",	    ShCmdPoke,	    7 },
-    { L"r",	    ShCmdRun,	    9 },
-    { L"run",	    ShCmdRun,	    9 },
-    { L"type",	    ShCmdType,	    5 },
-    { L"v86",	    ShCmdV86,	    13 },
-    { NULL,	    NULL,	    0 },
+    { L"parse",     ShCmdParse,     11 },
+    { L"poke",      ShCmdPoke,      7 },
+    { L"r",         ShCmdRun,       9 },
+    { L"run",       ShCmdRun,       9 },
+    { L"sleep",     ShCmdSleep,     15 },
+    { L"type",      ShCmdType,      5 },
+    { L"v86",       ShCmdV86,       13 },
+    { NULL,         NULL,           0 },
 };
 
 bool ShInternalCommand(const wchar_t *command, wchar_t *params)
@@ -696,20 +703,28 @@ bool ShInternalCommand(const wchar_t *command, wchar_t *params)
     unsigned i;
 
     if (*command == '\0')
-	return true;
+        return true;
     else for (i = 0; sh_commands[i].name; i++)
-	if (_wcsicmp(command, sh_commands[i].name) == 0)
-	{
-	    sh_commands[i].func(command, params);
-	    return true;
-	}
+        if (_wcsicmp(command, sh_commands[i].name) == 0)
+        {
+            sh_commands[i].func(command, params);
+            return true;
+        }
 
     return false;
 }
 
+wchar_t *sh_startup[] =
+{
+    /*L"detach console",
+    L"sleep 100",
+    L"poke ../ports/console",*/
+    NULL,
+};
+
 int main(void)
 {
-    wchar_t str[256], *buf, *space;
+    wchar_t str[256], *buf, *space, **startup_ptr;
     process_info_t *proc;
     shell_line_t *line;
     /*char inbuf[256], *outptr;
@@ -720,7 +735,7 @@ int main(void)
 
     proc = ProcGetProcessInfo();
     if (ResLoadString(proc->base, 4096, str, _countof(str)))
-    	_cputws(str, wcslen(str));
+        _cputws(str, wcslen(str));
     
     /*sh_iconv = iconv_open("UCS-2LE", "ISO-8859-7");
 
@@ -732,45 +747,55 @@ int main(void)
     len = iconv(sh_iconv, &inptr, &inbytes, &outptr, &outbytes);
     if (len != -1)
     {
-	*((wchar_t*) outptr) = '\0';
-	ShDumpOutput(buf, wcslen(buf) * sizeof(wchar_t));
-	_cputws(buf, wcslen(buf));
+        *((wchar_t*) outptr) = '\0';
+        ShDumpOutput(buf, wcslen(buf) * sizeof(wchar_t));
+        _cputws(buf, wcslen(buf));
     }
     else
-	wprintf(L"invalid input sequence: inbytes = %u, outbytes = %u\n", 
-	    inbytes, outbytes);*/
+        wprintf(L"invalid input sequence: inbytes = %u, outbytes = %u\n", 
+            inbytes, outbytes);*/
 
+    startup_ptr = sh_startup;
     while (!sh_exit)
     {
-	wprintf(L"[%s] ", proc->cwd);
-	fflush(stdout);
+        if (*startup_ptr == NULL)
+        {
+            wprintf(L"[%s] ", proc->cwd);
+            fflush(stdout);
+        
+            line = ShReadLine();
+            if (line == NULL)
+            {
+                 _pwerror(L"ShReadLine");
+                break;
+            }
 
-	line = ShReadLine();
-	if (line == NULL)
-	{
-	    _pwerror(L"ShReadLine");
-	    break;
-	}
-	
-	buf = _wcsdup(line->text);
-	space = wcschr(buf, PARAMSEP);
-	if (space)
-	{
-	    memmove(space + 1, space, (wcslen(space) + 1) * sizeof(wchar_t));
-	    *space = ' ';
-	}
+            buf = _wcsdup(line->text);
+        }
+        else
+        {
+            buf = *startup_ptr++;
+            wprintf(L">%s\n", buf);
+        }
 
-	space = wcschr(buf, ' ');
-	if (space)
-	{
-	    *space = '\0';
-	    space++;
-	}
-	else
-	    space = buf + wcslen(buf);
+        space = wcschr(buf, PARAMSEP);
+        if (space)
+        {
+            memmove(space + 1, space, (wcslen(space) + 1) * sizeof(wchar_t));
+            *space = ' ';
+        }
 
-	if (!ShInternalCommand(buf, space))
-	    wprintf(L"%s: invalid command\n", buf);
+        space = wcschr(buf, ' ');
+        if (space)
+        {
+            *space = '\0';
+            space++;
+        }
+        else
+            space = buf + wcslen(buf);
+
+        if (!ShInternalCommand(buf, space))
+            wprintf(L"%s: invalid command\n", buf);
     }
 
     /*iconv_close(sh_iconv);*/

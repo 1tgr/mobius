@@ -29,6 +29,7 @@ EXPORTS
 	_strtold
 	_towc
 	_wcsdup
+	_wcserror
 	_wcsicmp
 	_wcsmatch
 	_wcsnicmp
@@ -68,6 +69,7 @@ EXPORTS
 	fseek
 	fsetpos
 	ftell
+	fwprintf
 	fwrite
 	getc
 	getchar

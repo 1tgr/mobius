@@ -33,9 +33,9 @@ STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/flsbuf.o stdio/fopen.o stdio/fprintf.o stdio/fputc.o \
 	stdio/fputs.o stdio/fread.o stdio/freopen.o stdio/frlist.o \
 	stdio/fscanf.o stdio/fseek.o stdio/fsetpos.o stdio/ftell.o \
-	stdio/fwalk.o stdio/fwrite.o stdio/getc.o stdio/getchar.o \
-	stdio/gets.o stdio/getw.o stdio/perror.o stdio/pwerror.o \
-	stdio/printf.o \
+	stdio/fwalk.o stdio/fwprintf.o stdio/fwrite.o stdio/getc.o \
+	stdio/getchar.o stdio/gets.o stdio/getw.o stdio/perror.o \
+	stdio/pwerror.o stdio/printf.o \
 	stdio/putc.o stdio/putchar.o stdio/puts.o stdio/putw.o \
 	stdio/remove.o stdio/rename.o stdio/rewind.o stdio/scanf.o \
 	stdio/setbuf.o stdio/setbuffe.o stdio/setlineb.o stdio/setvbuf.o \
@@ -57,11 +57,12 @@ STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/strerror.o string/stricmp.o string/strlen.o string/strncat.o \
 	string/strncmp.o string/strncpy.o string/strpbrk.o string/strrchr.o \
 	string/strspn.o string/strstr.o string/strtok.o string/strxfrm.o \
-	string/syserr1.o string/syserr2.o string/syserr3.o string/wcscat.o \
+	string/syserr1.o string/syserr2.o string/syserr3.o  string/syswerr1.o \
+	string/syswerr2.o string/syswerr3.o string/wcscat.o \
 	string/wcschr.o string/wcscmp.o string/wcscpy.o string/wcsdup.o \
-	string/wcsicmp.o string/wcsmatch.o string/wcsncmp.o string/wcsnicmp.o \
-	string/wcsncpy.o string/wcspbrk.o string/wcsrchr.o string/wcslen.o \
-	string/wcstombs.o  
+	string/wcserror.o string/wcsicmp.o string/wcsmatch.o string/wcsncmp.o \
+	string/wcsnicmp.o string/wcsncpy.o string/wcspbrk.o string/wcsrchr.o \
+	string/wcslen.o string/wcstombs.o
 TIME=	time/localtime.o time/time.o
 
 RTL=	string/djmd.o string/djmdr.o

@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.6 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.7 2002/03/27 22:12:59 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -90,6 +90,8 @@ struct thread_info_t
     process_info_t *process;
     /*! \brief	  Result code from the last syscall */
     int status;
+    /*! \brief    Parameter passed to \p ThrCreateThread */
+    void *param;
 };
 
 typedef struct fileop_t fileop_t;

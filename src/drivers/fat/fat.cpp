@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.13 2002/03/07 15:51:52 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.14 2002/03/27 22:13:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -369,15 +369,15 @@ bool Fat::LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di)
     entries = ((fat_dirent_t*) (dir + 1));
     while (i < dir->num_entries && entries[i].name[0] != '\0')
     {
-	if (entries[i].name[0] == 0xe5 ||
+        if (entries[i].name[0] == 0xe5 ||
 	    entries[i].attribs & ATTR_LONG_NAME)
 	{
 	    i++;
 	    continue;
 	}
 
-	count = AssembleName(entries + i, name);
-	
+        count = AssembleName(entries + i, name);
+	TRACE2("%s %s\n", path, name);
 	if (_wcsicmp(name, path) == 0)
 	{
 	    TRACE2("%s found at %u\n", name, entries[i].first_cluster);
@@ -585,24 +585,24 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 
     di = (fat_dirent_t*) (dir + 1) + dir->pos;
     while ((di->name[0] == 0xe5 ||
-	di->attribs & ATTR_LONG_NAME) &&
-	dir->pos < dir->num_entries)
+        di->attribs & ATTR_LONG_NAME) &&
+        dir->pos < dir->num_entries)
     {
-	dir->pos++;
-	di++;
+        dir->pos++;
+        di++;
     }
 
     if (dir->pos >= dir->num_entries ||
-	di->name[0] == '\0')
+        di->name[0] == '\0')
     {
-	if (di->name[0] == '\0')
-	    TRACE0("fat: directory is empty\n");
-	else
-	    TRACE0("fat: end of file\n");
+        if (di->name[0] == '\0')
+            TRACE0("fat: directory is empty\n");
+        else
+            TRACE0("fat: end of file\n");
 
-	req_fs->header.result = EEOF;
-	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-	return false;
+        req_fs->header.result = EEOF;
+        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
+        return false;
     }
     
     len = req_fs->params.fs_read.length;
@@ -611,36 +611,36 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
     buf = (dirent_t*) req_fs->params.fs_read.buffer;
     while (req_fs->params.fs_read.length < len)
     {
-	if (di->name[0] == 0xe5 ||
-	    di->attribs & ATTR_LONG_NAME)
-	{
-	    TRACE1("%u: long file name or deleted\n", (unsigned) dir->pos);
-	    di++;
-	    dir->pos++;
-	}
-	else
-	{
-	    count = AssembleName(di, buf->name);
-	    buf->length = di->file_length;
-	    buf->standard_attributes = di->attribs;
-	    TRACE2("%u: \"%s\"\n", (unsigned) dir->pos, buf->name);
+        if (di->name[0] == 0xe5 ||
+            di->attribs & ATTR_LONG_NAME)
+        {
+            TRACE1("%u: long file name or deleted\n", (unsigned) dir->pos);
+            di++;
+            dir->pos++;
+        }
+        else
+        {
+            count = AssembleName(di, buf->name);
+            buf->length = di->file_length;
+            buf->standard_attributes = di->attribs;
+            TRACE2("%u: \"%s\"\n", (unsigned) dir->pos, buf->name);
 
-	    di += count;
-	    buf++;
-	    req_fs->params.fs_read.length += sizeof(dirent_t);
-	    dir->pos += count;
-	}
+            di += count;
+            buf++;
+            req_fs->params.fs_read.length += sizeof(dirent_t);
+            dir->pos += count;
+        }
 
-	if (dir->pos >= dir->num_entries || 
-	    di->name[0] == '\0')
-	{
-	    if (di->name[0] == '\0')
-		TRACE0("fat: finished because of directory\n");
-	    else
-		TRACE0("fat: finished because of end of request\n");
+        if (dir->pos >= dir->num_entries || 
+            di->name[0] == '\0')
+        {
+            if (di->name[0] == '\0')
+                TRACE0("fat: finished because of directory\n");
+            else
+                TRACE0("fat: finished because of end of request\n");
 
-	    break;
-	}
+            break;
+        }
     }
 
     HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
@@ -674,7 +674,10 @@ bool Fat::ReadWriteFile(FatFile *file, request_fs_t *req_fs)
 	return false;
     }
 
-    io = queueRequest(&req_fs->header, sizeof(request_fs_t),
+    wprintf(L"Fat::ReadWriteFile: io_first = %p io_last = %p\n",
+        io_first, io_last);
+    io = DevQueueRequest(this, 
+        &req_fs->header, sizeof(request_fs_t),
 	req_fs->params.buffered.buffer,
 	req_fs->params.buffered.length);
     if (io == NULL)
@@ -764,8 +767,8 @@ bool Fat::request(request_t *req)
 	TRACE2("fat: opening %s at cluster %u\n", path, di.first_cluster);
 	free(path);
 
-	req_fs->params.fs_open.file = AllocFile(&di, 
-	    req_fs->params.fs_open.flags);
+	req_fs->params.fs_open.file = AllocFile(
+            &di, req_fs->params.fs_open.flags);
 	return req_fs->params.fs_open.file == NULL ? false : true;
 
     case FS_QUERYFILE:
@@ -967,19 +970,32 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
     return this;
 }
 
+Fat theFat;
+
 device_t *FatMountFs(driver_t *drv, const wchar_t *path, device_t *dev)
 {
     Fat *root;
     
-    root = new Fat;
+    root = &theFat;
     if (root == NULL)
 	return NULL;
 
     return root->Init(drv, path, dev);
 }
 
+extern "C" void (*__CTOR_LIST__[])();
+extern "C" void (*__DTOR_LIST__[])();
+
 extern "C" bool DrvInit(driver_t *drv)
 {
+    void (**pfunc)() = __CTOR_LIST__;
+
+    /* Cygwin dcrt0.cc sources do this backwards */
+    while (*++pfunc)
+        ;
+    while (--pfunc > __CTOR_LIST__)
+        (*pfunc) ();
+
     drv->add_device = NULL;
     drv->mount_fs = FatMountFs;
     return true;

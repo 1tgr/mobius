@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.7 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.8 2002/03/27 22:12:59 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -7,6 +7,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <sys/types.h>
 
 /*extern int errno;*/
 int *_geterrno(void);
@@ -29,6 +31,7 @@ int *_geterrno(void);
 #define E2BIG		14
 #define ENOTADIR	15
 #define EFAULT		16
+#define ENOCLIENT   17
 
 #define EACCES		EACCESS
 #define EINVAL		EINVALID
@@ -39,10 +42,11 @@ int *_geterrno(void);
 #define ENMFILE		38
 
 extern char *		sys_errlist[];
+extern wchar_t *	sys_werrlist[];
 extern int		sys_nerr;
 extern const char *	__sys_errlist[];
+extern const wchar_t *	__sys_werrlist[];
 extern int		__sys_nerr;
-extern int		_doserrno;
 
 #endif /* !__dj_ENFORCE_ANSI_FREESTANDING */
 

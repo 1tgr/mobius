@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.8 2002/03/14 01:26:52 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.9 2002/03/27 22:12:59 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -136,6 +136,7 @@ wchar_t *_wcsdup(const wchar_t *s);
 #endif
 int		_wcsmatch(const wchar_t *mask, const wchar_t *name);
 void	_pwerror(const wchar_t *text);
+wchar_t *_wcserror(int _errcode);
 /*FILE	*_wfopen( const wchar_t *filename, const wchar_t *mode );*/
 
 #define iswupper(c)		((c) >= 'A' && (c) <= 'Z')
@@ -145,6 +146,11 @@ void	_pwerror(const wchar_t *text);
 #define iswdigit(c)		((c) >= '0' && (c) <= '9')
 #define iswspace(c)		((c) == '\r' || (c) == '\n' || (c) == '\t' || (c) == ' ')
 #define iswalpha(c)		(iswupper(c) || iswlower(c))
+
+extern wchar_t *	sys_werrlist[];
+extern int		sys_nerr;
+extern const wchar_t *	__sys_werrlist[];
+extern int		__sys_nerr;
 
 #ifdef __cplusplus
 }

@@ -1,40 +1,19 @@
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
-extern char __syserr00[];
-extern char __syserr01[];
-extern char __syserr02[];
-extern char __syserr03[];
-extern char __syserr04[];
-extern char __syserr05[];
-extern char __syserr06[];
-extern char __syserr07[];
-extern char __syserr08[];
-extern char __syserr09[];
-extern char __syserr10[];
-extern char __syserr11[];
-extern char __syserr12[];
-extern char __syserr13[];
-extern char __syserr14[];
-extern char __syserr15[];
-extern char __syserr16[];
-extern char __syserr17[];
-extern char __syserr18[];
-extern char __syserr19[];
-extern char __syserr20[];
-extern char __syserr21[];
-extern char __syserr22[];
-extern char __syserr23[];
-extern char __syserr24[];
-extern char __syserr25[];
-extern char __syserr26[];
-extern char __syserr27[];
-extern char __syserr28[];
-extern char __syserr29[];
-extern char __syserr30[];
-extern char __syserr31[];
-extern char __syserr32[];
-extern char __syserr33[];
-extern char __syserr34[];
-extern char __syserr35[];
-extern char __syserr36[];
-extern char __syserr37[];
-extern char __syserr38[];
+ERRNO(00, "No Error")
+ERRNO(01, "Input to function out of range (EDOM)")
+ERRNO(02, "Invalid multibyte sequence (EILSEQ)")
+ERRNO(03, "Output of function out of range (ERANGE)")
+ERRNO(04, "Command not implemented (ENOTIMPL)")
+ERRNO(05, "Invalid buffer (EBUFFER)")
+ERRNO(06, "File not found (ENOTFOUND)")
+ERRNO(07, "Invalid argument (EINVALID)")
+ERRNO(08, "Too many open files (EMFILE)")
+ERRNO(09, "Out of memory (ENOMEM)")
+ERRNO(10, "Invalid handle (EHANDLE)")
+ERRNO(11, "Hardware fault (EHARDWARE)")
+ERRNO(12, "Access denied (EACCESS)")
+ERRNO(13, "End of file reached (EEOF)")
+ERRNO(14, "Argument list too long (E2BIG)")
+ERRNO(15, "Not a directory (ENOTADIR)")
+ERRNO(16, "Software fault (EFAULT)")
+ERRNO(17, "No client connected (ENOCLIENT)")

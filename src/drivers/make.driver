@@ -1,13 +1,13 @@
 ROOT=		/mn
 BIN=		$(ROOT)/bin
 LIB=		$(ROOT)/lib
-CFLAGS+=	-g -O2 -ansi -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -I$(ROOT)/include -I.
+CFLAGS+=	-g -O2 -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -I$(ROOT)/include -I.
 CPPFLAGS+=	$(CFLAGS) -fno-rtti -fvtable-thunks -fno-exceptions
 CC=		gcc
 NASM=		nasm
 LDFLAGS+=	-g --subsystem native --entry _DrvInit \
 	--image-base `cat .base`
-LIBS+=		$(LIB)/kernel.lib
+LIBS:=		$(LIBS) $(LIB)/kernel.lib
 DEF=		$(EXP:.exp=.def)
 
 %.d:	%.c
@@ -34,6 +34,7 @@ $(TARGET):	$(OBJS) $(EXP) $(LIBS) .base
 			$(EXP) \
 			$(LIBS)
 	objdump -ld $(TARGET) > listing.txt
+	strip $(TARGET)
 
 %.exp: %.def
 	dlltool -e $@ -m i386 --input-def $< -D $(@:.exp=.drv)

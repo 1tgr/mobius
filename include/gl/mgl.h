@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.3 2002/03/06 19:35:44 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.4 2002/03/27 22:12:59 pavlovskii Exp $ */
 
 #ifndef __GL_MGL_H
 #define __GL_MGL_H
@@ -53,15 +53,15 @@ void	    glDrawText(const MGLrect *rc, const wchar_t *str, size_t len);
 void	    glFillPolygon(const MGLpoint *points, unsigned num_points);
 void	    glPolygon(const MGLpoint *points, unsigned num_points);
 
-#define MGL_ALPHA(c)	((byte) (((c) & 0xff000000) >> 24))
-#define MGL_RED(c)	  ((byte) (((c) & 0xff000000) >> 16))
-#define MGL_GREEN(c)	((byte) (((c) & 0x00ff0000) >> 8))
-#define MGL_BLUE(c)	   ((byte) (((c) & 0x000000ff)))
+#define MGL_ALPHA(c)	((uint8_t) (((c) & 0xff000000) >> 24))
+#define MGL_RED(c)	((uint8_t) (((c) & 0x00ff0000) >> 16))
+#define MGL_GREEN(c)	((uint8_t) (((c) & 0x0000ff00) >> 8))
+#define MGL_BLUE(c)	((uint8_t) (((c) & 0x000000ff)))
 #define MGL_COLOUR4(r,g,b,a)	\
-    ((byte) (b) | \
-    (byte) (g) << 8 | \
-    (byte) (r) << 16 | \
-    (byte) (a) << 24)
+    ((uint8_t) (b) | \
+     (uint8_t) (g) << 8 | \
+     (uint8_t) (r) << 16 | \
+     (uint8_t) (a) << 24)
 #define MGL_COLOR4(r,g,b,a)    MGL_COLOUR4(r,g,b,a)
 #define MGL_COLOUR(r,g,b)    MGL_COLOUR4(r,g,b,0xff)
 #define MGL_COLOR(r,g,b)    MGL_COLOR4(r,g,b,0xff)

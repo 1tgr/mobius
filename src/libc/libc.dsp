@@ -539,6 +539,10 @@ SOURCE=.\stdlib\strtoul.c
 
 SOURCE=.\stdlib\strtoull.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\wcstol.c
+# End Source File
 # End Group
 # Begin Group "string"
 

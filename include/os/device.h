@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.12 2002/03/05 01:59:07 pavlovskii Exp $ */
+/* $Id: device.h,v 1.13 2002/03/27 22:12:59 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -128,10 +128,10 @@ union params_fs_t
 
     struct
     {
-	size_t params_size;
-	void *params;
-	handle_t file;
-	uint32_t code;
+        size_t params_size;
+        void *params;
+        handle_t file;
+        uint32_t code;
     } fs_passthrough;
 };
 
@@ -141,23 +141,23 @@ union params_port_t
 {
     struct
     {
-	uint32_t name_size;
-	const wchar_t *remote;
-	handle_t port;
+        uint32_t name_size;
+        const wchar_t *remote;
+        handle_t port;
     } port_connect;
 
     struct
     {
-	uint32_t unused[2];
-	handle_t port;
+        uint32_t unused[2];
+        handle_t port;
     } port_listen;
 
     struct
     {
-	uint32_t unused[2];
-	handle_t port;
-	handle_t client;
-	uint32_t flags;
+        uint32_t unused[2];
+        handle_t port;
+        handle_t client;
+        uint32_t flags;
     } port_accept;
 };
 

@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.5 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.6 2002/03/27 22:12:59 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -35,6 +35,7 @@ struct file_t
 	uint64_t pos;
 	/*! Flags used to open this file */
 	uint32_t flags;
+        wchar_t *name;
 };
 
 handle_t	FsCreate (const wchar_t*, uint32_t);

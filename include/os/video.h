@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.2 2002/03/07 15:51:51 pavlovskii Exp $ */
+/* $Id: video.h,v 1.3 2002/03/27 22:12:59 pavlovskii Exp $ */
 
 #ifndef __OS_VIDEO_H
 #define __OS_VIDEO_H
@@ -13,6 +13,11 @@ extern "C"
 
 typedef uint32_t colour_t;
 #define color_t colour_t;
+
+#define COLOUR_RED(c)           (((c) >> 16) & 0xff)
+#define COLOUR_GREEN(c)         (((c) >> 8) & 0xff)
+#define COLOUR_BLUE(c)          ((c) & 0xff)
+#define MAKE_COLOUR(r, g, b)    (((b) & 0xff) | (((g) & 0xff) << 8) | (((r) & 0xff) << 16))
 
 typedef struct rect_t rect_t;
 struct rect_t
@@ -52,7 +57,7 @@ struct vid_text_t
 {
     const void *buffer;
     size_t length;
-    int x, y;
+    rect_t rect;
     colour_t foreColour, backColour;
 };
 
@@ -68,11 +73,15 @@ struct vid_palette_t
 typedef struct videomode_t videomode_t;
 struct videomode_t
 {
+    addr_t cookie;
     uint32_t width, height;
     uint8_t bitsPerPixel;
     uint32_t bytesPerLine;
-    addr_t cookie;
+    uint32_t flags;
 };
+
+#define VIDEO_MODE_GRAPHICS 0
+#define VIDEO_MODE_TEXT     1
 
 typedef struct
 {
@@ -120,9 +129,9 @@ struct vid_shape_t
     uint32_t shape;
     union
     {
-	vid_rect_t rect;
-	vid_line_t line;
-	vid_pixel_t pix;
+        vid_rect_t rect;
+        vid_line_t line;
+        vid_pixel_t pix;
     } s;
 };
 
@@ -135,17 +144,17 @@ union params_vid_t
 
     struct
     {
-	vid_shape_t *shapes;
-	size_t length;
-	uint64_t reserved;
+        vid_shape_t *shapes;
+        size_t length;
+        uint64_t reserved;
     } vid_draw;
 
     struct
     {
-	point_t *points;
-	size_t length;
-	colour_t colour;
-	uint32_t reserved;
+        point_t *points;
+        size_t length;
+        colour_t colour;
+        uint32_t reserved;
     } vid_fillpolygon;
 };
 
