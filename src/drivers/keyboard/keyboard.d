@@ -8,4 +8,4 @@ keyboard.o: keyboard.c /mn/include/kernel/kernel.h \
  /mn/include/ctype.h /mn/include/errno.h /mn/include/kernel/debug.h \
  /mn/include/os/coff.h /mn/include/kernel/driver.h \
  /mn/include/os/device.h keyboard.h /mn/include/os/keyboard.h \
- british.h
+ russian.h

@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.12 2002/04/04 00:08:42 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.13 2002/04/10 12:24:11 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -17,7 +17,19 @@
 
 #include <kernel/driver.h>
 #include "keyboard.h"
-#include "british.h"
+
+typedef struct keydef_t keydef_t;
+struct keydef_t
+{
+    uint32_t normal;
+    uint32_t shift;
+    uint32_t control;
+    uint32_t control_shift;
+    uint32_t altgr;
+    uint32_t altgr_shift;
+};
+
+#include "russian.h"
 
 /* in tty.drv */
 void TtySwitchConsoles(unsigned n);
@@ -37,6 +49,7 @@ struct keyboard_t
     uint32_t *write, *read;
     uint32_t buffer[64];
     bool isps2;
+    bool extended;
     uint16_t port, ctrl;
 };
 
@@ -118,10 +131,26 @@ uint32_t KbdScancodeToKey(keyboard_t* keyb, uint8_t scancode)
     };
 
     bool down = (scancode & 0x80) == 0;
-    uint8_t code = scancode & ~0x80;
+    uint16_t code = scancode & ~0x80;
     uint32_t key = 0;
     uint8_t temp;
-    
+
+    /*
+     * xxx - I thought the extended scan code was 0xe0. HelpPC seems to think 
+     *   so too.
+     */
+    if (code == 0x60)
+    {
+        keyb->extended = true;
+        return 0;
+    }
+    else
+    {
+        if (keyb->extended)
+            code |= 0x6000;
+        keyb->extended = false;
+    }
+
     switch (code)
     {
     case RAW_LEFT_CTRL:
@@ -130,19 +159,22 @@ uint32_t KbdScancodeToKey(keyboard_t* keyb, uint8_t scancode)
 	break;
 
     case RAW_LEFT_ALT:
-    /*case RAW_RIGHT_ALT: */
-	if (down && (keyb->keys & KBD_BUCKY_ALT) == 0)
+    	if (down && (keyb->keys & KBD_BUCKY_ALT) == 0)
 	    keyb->compose = 0;
 	else if (!down && (keyb->keys & KBD_BUCKY_ALT))
         {
             if (keyb->compose != 0)
-    	        key = keyb->compose;
+                key = keyb->compose;
             else
                 key = KBD_BUCKY_ALT | KBD_BUCKY_RELEASE;
         }
 
 	SET(keyb->keys, KBD_BUCKY_ALT, down);
 	break;
+
+    case RAW_RIGHT_ALT:
+        SET(keyb->keys, KBD_BUCKY_ALTGR, down);
+        break;
 
     case RAW_LEFT_SHIFT:
     case RAW_RIGHT_SHIFT:
@@ -186,6 +218,7 @@ leds:
 	break;
 
     default:
+        code &= ~0x6000;
 	if (code >= RAW_NUM7 && 
 	    code <= RAW_NUM0 &&
 	    code != 0x4a &&
@@ -194,20 +227,31 @@ leds:
 	    if (keyb->keys & KBD_BUCKY_ALT &&
 		keypad[code - RAW_NUM7] != -1)
 	    {
-		keyb->compose *= 10;
-		keyb->compose += keypad[code - RAW_NUM7];
-		/*wprintf(L"pad = %d compose = %d\n",  */
-		    /*keypad[code - RAW_NUM7], keyb->compose); */
+                if (down)
+                {
+		    keyb->compose *= 10;
+		    keyb->compose += keypad[code - RAW_NUM7];
+                }
 	    }
 	    else if (keyb->keys & KBD_BUCKY_NUM)
 		key = '0' + keypad[code - RAW_NUM7];
 	    else
-		key = keys[code];
+		key = keys[code].normal;
 	}
-	else if (keyb->keys & KBD_BUCKY_SHIFT)
-	    key = keys_shift[code];
+        else if ((keyb->keys & (KBD_BUCKY_SHIFT | KBD_BUCKY_ALTGR)) 
+            == (KBD_BUCKY_SHIFT | KBD_BUCKY_ALTGR))
+	    key = keys[code].altgr_shift;
+        else if ((keyb->keys & (KBD_BUCKY_SHIFT | KBD_BUCKY_CTRL)) 
+            == (KBD_BUCKY_SHIFT | KBD_BUCKY_CTRL))
+	    key = keys[code].control_shift;
+        else if (keyb->keys & KBD_BUCKY_ALTGR)
+	    key = keys[code].altgr;
+        else if (keyb->keys & KBD_BUCKY_CTRL)
+	    key = keys[code].control;
+        else if (keyb->keys & KBD_BUCKY_SHIFT)
+	    key = keys[code].shift;
 	else
-	    key = keys[code];
+	    key = keys[code].normal;
 
 	if (keyb->keys & KBD_BUCKY_CAPS)
 	{
@@ -390,6 +434,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     keyb->write = keyb->read = keyb->buffer;
     keyb->port = port;
     keyb->ctrl = ctrl;
+    keyb->extended = false;
 
     TRACE2("keyboard: port = %x ctrl = %x\n", port, ctrl);
 

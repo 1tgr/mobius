@@ -1,4 +1,4 @@
-/* $Id: keyboard.h,v 1.2 2002/01/08 01:20:31 pavlovskii Exp $ */
+/* $Id: keyboard.h,v 1.3 2002/04/10 12:24:11 pavlovskii Exp $ */
 
 #ifndef __KEYBOARD_H
 #define __KEYBOARD_H
@@ -44,8 +44,8 @@
 #define RAW_LEFT_SHIFT  0x2A
 #define RAW_CAPS_LOCK   0x3A
 #define RAW_LEFT_ALT    0x38
-#define RAW_RIGHT_ALT   0xFF
-#define RAW_RIGHT_CTRL  0xFF
+#define RAW_RIGHT_ALT   0x6038
+#define RAW_RIGHT_CTRL  0x601D
 #define RAW_RIGHT_SHIFT 0x36
 #define RAW_SCROLL_LOCK 0x46
 #define RAW_NUM_LOCK    0x45
