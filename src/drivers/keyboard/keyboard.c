@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.14 2002/04/20 12:47:27 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.15 2002/05/05 13:36:01 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -333,8 +333,10 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 	/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
 	    KbdReboot();*/
 	
-	if (key >= KEY_F1 && key <= KEY_F12)
+	if (key >= KEY_F1 && key <= KEY_F11)
 	    TtySwitchConsoles(key - KEY_F1);
+        else if (key == KEY_F12)
+            __asm__("int3");
 	else if (key)
 	{
 	    *keyb->write = key;
@@ -390,13 +392,16 @@ bool kbdRequest(device_t* dev, request_t* req)
         switch (req_dev->params.dev_ioctl.code)
         {
         case IOCTL_BYTES_AVAILABLE:
+            TRACE0("keyboard: IOCTL_BYTES_AVAILABLE: ");
             if (req_dev->params.dev_ioctl.size < sizeof(size_t))
             {
                 req_dev->header.result = EBUFFER;
+                TRACE0("failed\n");
                 return false;
             }
 
             *(size_t*) req_dev->params.dev_ioctl.params = keyb->write - keyb->read;
+            TRACE1("%u\n", keyb->write - keyb->read);
             return true;
         }
 
@@ -451,6 +456,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     keyb->dev.vtbl = &keyboard_vtbl;
     keyb->dev.cfg = cfg;
     keyb->dev.io_first = keyb->dev.io_last = NULL;
+    keyb->dev.flags = 0;
     keyb->keys = 0;
     keyb->write = keyb->read = keyb->buffer;
     keyb->port = port;
