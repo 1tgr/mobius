@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.19 2002/03/07 15:51:53 pavlovskii Exp $ */
+/* $Id: device.c,v 1.20 2002/03/13 14:25:52 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -703,6 +703,13 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 {
     device_t *dev;
     driver_t *drv;
+
+    if (driver == NULL)
+	driver = name;
+
+    dev = IoOpenDevice(name);
+    if (dev != NULL)
+	return dev;
 
     drv = DevInstallNewDriver(driver);
     if (drv != NULL &&

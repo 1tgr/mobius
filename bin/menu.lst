@@ -1,7 +1,6 @@
-# $Id: menu.lst,v 1.7 2002/03/07 15:51:51 pavlovskii Exp $
+# $Id: menu.lst,v 1.8 2002/03/13 14:25:51 pavlovskii Exp $
 
 title	The M”bius
-# root	(hd0,0)
 kernel	/boot/kernel.exe
 module	/boot/tty.drv
 module	/boot/keyboard.drv
@@ -15,6 +14,7 @@ module	/boot/ata.drv
 module	/boot/cmos.drv
 module	/boot/video.drv
 module	/boot/pci.drv
+module	/boot/ps2mouse.drv
 # module	/boot/libiconv.dll
 module	/boot/hello.exe
 module	/boot/test.exe

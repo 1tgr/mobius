@@ -88,6 +88,10 @@ CFG=librtl - Win32 Debug
 
 SOURCE=.\fullpath.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\hash.c
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -107,6 +111,10 @@ SOURCE=..\..\include\sys\version.h
 # Begin Group "os"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\os\hash.h
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\include\os\rtl.h

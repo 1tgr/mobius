@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.14 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: main.c,v 1.15 2002/03/13 14:26:24 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -15,6 +15,7 @@
 #include <kernel/arch.h>
 #include <kernel/proc.h>
 #include <kernel/debug.h>
+#include <kernel/profile.h>
 
 #include <kernel/init.h>
 #include <stdio.h>
@@ -27,11 +28,20 @@ void SemInit(semaphore_t *sem)
     sem->owner = NULL;
 }
 
+static bool KernelEnumDevices(void *param, const wchar_t *name, const wchar_t *value)
+{
+    /*wprintf(L"KernelEnumDevices: loading device %s from driver %s\n",
+	name, value);*/
+    if (value != NULL)
+	DevInstallDevice(value, name, NULL);
+    return true;
+}
+
 void KernelMain(void)
 {
     MemInit();
     ArchInit();
-    
+
     TRACE0("ProcInit\n");
     ProcInit();
     TRACE0("RdInit\n");
@@ -39,26 +49,17 @@ void KernelMain(void)
     TRACE0("FsInit\n");
     FsInit();
 
-    DevInstallDevice(L"keyboard", L"keyboard", NULL);
-    DevInstallDevice(L"tty", L"tty0", NULL);
-    DevInstallDevice(L"tty", L"tty1", NULL);
-    DevInstallDevice(L"tty", L"tty2", NULL);
-    DevInstallDevice(L"tty", L"tty3", NULL);
-    DevInstallDevice(L"tty", L"tty4", NULL);
-    DevInstallDevice(L"tty", L"tty5", NULL);
-    DevInstallDevice(L"tty", L"tty6", NULL);
-    DevInstallDevice(L"cmos", L"cmos", NULL);
-    DevInstallDevice(L"video", L"video", NULL);
-    
-    FsMount(L"/hd", L"fat", IoOpenDevice(L"ide0a"));
+    ProLoadProfile(L"system.pro", L"/");
+    ProEnumValues(L"Devices", NULL, KernelEnumDevices);
+
+    /*FsMount(L"/hd", L"fat", IoOpenDevice(L"ide0a"));*/
     FsMount(L"/fd", L"fat", IoOpenDevice(L"fdc0"));
-    
+
     ProcSpawnProcess(SYS_BOOT L"/shell.exe", proc_idle.info);
     ScEnableSwitch(true);
-    
+
     wprintf(L"Idle\n");
-    DevInstallDevice(L"pci", L"pci", NULL);
-    
+
     for (;;)
 	ArchProcessorIdle();
 }

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.10 2002/03/13 14:26:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -191,7 +191,7 @@ bool ProcFirstTimeInit(process_t *proc)
 	if (info->std_in == NULL)
 		info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
 	if (info->std_out == NULL)
-		info->std_out = FsOpen(SYS_DEVICES L"/tty0", FILE_WRITE);
+		info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
 
 	if (proc->creator)
 		proc->creator->hdr.copies--;

@@ -437,10 +437,18 @@ bool tty::onWrite(request_dev_t *req)
 device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
     tty *tty;
+    wchar_t ch;
     
-    tty = consoles + num_consoles;
+    ch = name[3];
+    if (ch >= '0' && ch <= '9')
+	tty = consoles + ch - '0';
+    else
+	tty = consoles + num_consoles;
+
     tty->driver = drv;
-    tty->clear();
+
+    if (tty > consoles)
+	tty->clear();
     /*tty->switchTo();*/
 
     SemAcquire(&sem_consoles);

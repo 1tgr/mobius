@@ -66,7 +66,7 @@ TIME=	time/localtime.o time/time.o
 RTL=	string/djmd.o string/djmdr.o
 SYS=	sys/access.o sys/close.o sys/cputs.o sys/cputws.o \
 	sys/creatnew.o sys/float_dx.o sys/fmode.o sys/getenv.o \
-	sys/huge_val.o sys/isatty.o \
+	sys/huge_val.o sys/isatty.o sys/int64.o \
 	sys/lseek.o sys/main.o sys/open.o sys/read.o \
 	sys/sbrk.o sys/towc.o sys/wopen.o sys/write.o 
 
@@ -74,20 +74,5 @@ OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 	$(MALLOC) $(MATH) $(SETJMP) $(STDARG) \
 	$(STDIO) $(STDLIB) $(STRING) $(TIME) \
 	$(RTL) $(SYS)
-
-#all:	$(TARGET_D) $(IMP) $(TARGET_S)
-
-# Import library for DLL
-#$(IMP):	$(DEF)
-#	dlltool -d $< -l $@ -D $(<:.def=.dll)
-
-#$(TARGET_S):	$(OBJS)
-#	ar rcs $(TARGET_S) $(OBJS)
-
-#$(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS) .base
-#	$(LD) -g --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
-#		--image-base `cat .base` \
-#		$(EXP) dllmain.o \
-#		$(TARGET_S) $(LIBS)
 
 include ../make.actions

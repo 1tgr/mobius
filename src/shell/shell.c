@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.15 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.16 2002/03/13 14:26:25 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -221,7 +221,7 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 		wprintf(L"%10lu\t", (uint32_t) dir.length);
 
 	    wprintf(L"\t%s", dir.name);
-	    if (dir.standard_attributes & FILE_ATTR_DEVICE)
+	    /*if (dir.standard_attributes & FILE_ATTR_DEVICE)
 	    {
 		wcscpy(star, dir.name);
 		if (FsQueryFile(sh_path, FILE_QUERY_DEVICE, &dev, sizeof(dev)))
@@ -229,7 +229,7 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 		    printf("%*s", 20 - wcslen(dir.name) + 1, "");
 		    _cputws(dev.description, wcslen(dev.description));
 		}
-	    }
+	    }*/
 
 	    _cputs("\n", 1);
 	}
@@ -240,7 +240,7 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 
 static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
 {
-    static char buf[512];
+    static char buf[16];
 
     handle_t file;
     size_t len;
@@ -256,7 +256,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
 
     op.event = EvtAlloc();
     origin = 0;
-    while (true)
+    do
     {
 	if (!FsRead(file, buf, sizeof(buf), &op))
 	{
@@ -271,8 +271,10 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
 
 	len = op.bytes;
 	if (len == 0)
-	    /* FSD read zero bytes but didn't report an error */
+	{
+	    printf("FSD read zero bytes but didn't report an error\n");
 	    break;
+	}
 	
 	if (len < _countof(buf))
 	    buf[len] = '\0';
@@ -280,12 +282,11 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
 
 	origin += len;
 	if (len < sizeof(buf))
-	    /*
-	     * FSD hit the end of the file: successful but fewer bytes read 
-	     *	  than requested
-	     */
+	{
+	    printf("FSD hit the end of the file: successful but only %u bytes read\n", len);
 	    break;
-    }
+	}
+    } while (true);
     
     HndClose(op.event);
     FsClose(file);
@@ -314,7 +315,7 @@ void ShCmdType(const wchar_t *command, wchar_t *params)
 
 static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
 {
-    /*const uint8_t *ptr;
+    const uint8_t *ptr;
     int i, j;
 
     ptr = (const uint8_t*) buf;
@@ -329,7 +330,7 @@ static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
 	}
 
 	wprintf(L"\n");
-    }*/
+    }
 }
 
 void ShCmdDump(const wchar_t *command, wchar_t *params)

@@ -5,7 +5,7 @@ OBJS=	start.o main.o thread.o \
 	device.o io.o vmm.o \
 	mod_pe.o syscall.o port.o \
 	ramdisk_mb.o cache.o cppsup.o \
-	rtlsup.o debug.o 
+	rtlsup.o debug.o profile.o
 LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 DEFINES=-Di386 -DKERNEL
 DEF=	kernel.def

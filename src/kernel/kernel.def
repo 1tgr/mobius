@@ -93,6 +93,10 @@ EXPORTS
 	ProcGetCwd
 	ProcPageFault
 	ProcSpawnProcess
+	ProEnumValues
+	ProGetBoolean
+	ProGetString
+	ProLoadProfile
 	ScEnableSwitch
 	ScNeedSchedule
 	ScSchedule

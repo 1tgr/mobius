@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.9 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.10 2002/03/13 14:25:51 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -114,9 +114,9 @@
  *	initial kernel GDT is set up.
  */
 #define MANGLE_PTR(type, ptr)	((type) ((char*) ptr - scode + KERNEL_PHYS))
-#define DEMANGLE_PTR(type, ptr)	((type) ((addr_t) ptr + scode - KERNEL_PHYS))
+#define DEMANGLE_PTR(type, ptr)	((type) ((addr_t) ptr + (addr_t) scode - KERNEL_PHYS))
 
-#pragma pack (push, 1)  /* align structures to a uint8_t boundary */
+#pragma pack (push, 1)  /* align structures to a byte boundary */
 
 /* Segment desciptor definition */
 struct descriptor_t

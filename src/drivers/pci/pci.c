@@ -1,6 +1,8 @@
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/arch.h>
+#include <kernel/profile.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <wchar.h>
@@ -326,7 +328,8 @@ bool DrvInit(driver_t *drv)
 {
     uint16_t bus, dev, func;
     device_t *pci;
-    wchar_t name[20];
+    wchar_t name[20], key[30];
+    const wchar_t *driver, *desc, *device;
     device_config_t* cfg;
     pci_cfg_t pcfg;
     int i, j;
@@ -347,6 +350,10 @@ bool DrvInit(driver_t *drv)
 		if (pciProbe(bus, dev, func, &pcfg))
 		{
 		    swprintf(name, L"pci:%d:%d:%d", bus, dev, func);
+		    swprintf(key, L"PCI/Vendor%04xDevice%04x", pcfg.vendor_id, pcfg.device_id);
+		    driver = ProGetString(key, L"Driver", name);
+		    desc = ProGetString(key, L"Description", NULL);
+		    device = ProGetString(key, L"Device", name);
 		    
 		    cfg = malloc(sizeof(device_config_t));
 		    cfg->parent = pci;
@@ -403,7 +410,8 @@ bool DrvInit(driver_t *drv)
 			    break;
 			}
 
-		    DevInstallDevice(NULL, name, cfg);
+		    wprintf(L"%s => %s\n", name, desc);
+		    DevInstallDevice(driver, device, cfg);
 		}
 	    }
 	}

@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.4 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.5 2002/03/13 14:26:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -77,8 +77,8 @@ bool RdFsRequest(device_t* dev, request_t* req)
 	{
 	    req_fs->header.result = ENOTFOUND;
 	    req_fs->params.fs_open.file = NULL;
-	    wprintf(L"%s: not found on ram disk\n", 
-		req_fs->params.fs_open.name);
+	    /*wprintf(L"%s: not found on ram disk\n", 
+		req_fs->params.fs_open.name);*/
 	    return false;
 	}
 
@@ -243,10 +243,16 @@ bool RdFsRequest(device_t* dev, request_t* req)
  *
  *    \return	 \p true if the ramdisk was correct
  */
+
+descriptor_t arch_gdt[11];
+
 bool RdInit(void)
 {
     /*unsigned i;
     multiboot_module_t *mods;*/
+    wprintf(L"ramdisk: multiboot_info at %p, DS base = %x\n", 
+	kernel_startup.multiboot_info, 
+	arch_gdt[4].base_l | (arch_gdt[4].base_m << 16) | (arch_gdt[4].base_h << 24));
     wprintf(L"ramdisk: number of modules = %u\n",
 	kernel_startup.multiboot_info->mods_count);
     /*mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;

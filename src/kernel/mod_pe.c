@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.6 2002/03/13 14:26:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -116,7 +116,7 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
 	
 	header = PeGetHeaders(mod->base);
 	directories = header->OptionalHeader.DataDirectory;
-
+	
 	if (directories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == 0)
 	{
 		wprintf(L"%s: no export directory looking for %S\n", 
@@ -145,8 +145,8 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
 			_stricmp(export_name, name) == 0)
 			return mod->base + function_table[ordinal_table[hint]];
 
-		wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
-			mod->name, hint, name, export_name);
+		/*wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
+			mod->name, hint, name, export_name);*/
 	}
 
 	for (i = 0; i < exp->NumberOfNames; i++)

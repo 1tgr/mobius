@@ -112,7 +112,7 @@ __3tty():
 /mn/src/drivers/tty/tty.cpp:78
 800f10b4:	68 40 10 0f 80       	push   $0x800f1040
 800f10b9:	56                   	push   %esi
-800f10ba:	e8 85 0c 00 00       	call   800f1d44 <_swprintf>
+800f10ba:	e8 c5 0c 00 00       	call   800f1d84 <_swprintf>
 /mn/src/drivers/tty/tty.cpp:79
 800f10bf:	c7 87 18 02 00 00 00 	movl   $0x0,0x218(%edi)
 800f10c6:	00 00 00 
@@ -292,7 +292,7 @@ scroll__3tty():
 800f1232:	50                   	push   %eax
 800f1233:	52                   	push   %edx
 800f1234:	53                   	push   %ebx
-800f1235:	e8 02 0b 00 00       	call   800f1d3c <_memmove>
+800f1235:	e8 42 0b 00 00       	call   800f1d7c <_memmove>
 /mn/src/drivers/tty/tty.cpp:129
 800f123a:	8b 86 30 02 00 00    	mov    0x230(%esi),%eax
 /mn/src/drivers/tty/tty.cpp:130
@@ -349,7 +349,7 @@ flush__3tty():
 800f12b4:	6a 51                	push   $0x51
 800f12b6:	6a 00                	push   $0x0
 800f12b8:	53                   	push   %ebx
-800f12b9:	e8 76 0a 00 00       	call   800f1d34 <_memset>
+800f12b9:	e8 b6 0a 00 00       	call   800f1d74 <_memset>
 /mn/src/drivers/tty/tty.cpp:147
 800f12be:	83 c4 fc             	add    $0xfffffffc,%esp
 800f12c1:	8b 86 54 02 00 00    	mov    0x254(%esi),%eax
@@ -365,14 +365,14 @@ flush__3tty():
 800f12e1:	50                   	push   %eax
 800f12e2:	8d 85 f0 fe ff ff    	lea    0xfffffef0(%ebp),%eax
 800f12e8:	50                   	push   %eax
-800f12e9:	e8 3e 0a 00 00       	call   800f1d2c <_strncpy>
+800f12e9:	e8 7e 0a 00 00       	call   800f1d6c <_strncpy>
 /mn/src/drivers/tty/tty.cpp:148
 800f12ee:	83 c4 fc             	add    $0xfffffffc,%esp
 800f12f1:	8d 95 f0 fe ff ff    	lea    0xfffffef0(%ebp),%edx
 800f12f7:	6a 50                	push   $0x50
 800f12f9:	52                   	push   %edx
 800f12fa:	53                   	push   %ebx
-800f12fb:	e8 24 0a 00 00       	call   800f1d24 <_mbstowcs>
+800f12fb:	e8 64 0a 00 00       	call   800f1d64 <_mbstowcs>
 800f1300:	89 c7                	mov    %eax,%edi
 /mn/src/drivers/tty/tty.cpp:149
 800f1302:	83 c4 20             	add    $0x20,%esp
@@ -395,7 +395,7 @@ flush__3tty():
 /mn/src/drivers/tty/tty.cpp:153
 800f132f:	50                   	push   %eax
 800f1330:	51                   	push   %ecx
-800f1331:	e8 56 09 00 00       	call   800f1c8c <_wcsto437>
+800f1331:	e8 96 09 00 00       	call   800f1ccc <_wcsto437>
 800f1336:	89 c7                	mov    %eax,%edi
 /mn/src/drivers/tty/tty.cpp:154
 800f1338:	8b 96 1c 02 00 00    	mov    0x21c(%esi),%edx
@@ -614,7 +614,7 @@ doEscape__3ttycUiPCUi():
 800f1561:	16                   	push   %ss
 800f1562:	0f 80 ee 17 0f 80    	jo     1e2d56 <__size_of_heap_reserve__+0xe2d56>
 800f1568:	84 16                	test   %dl,(%esi)
-800f156a:	0f 80 85 ff 74 18    	jo     988414f5 <.stab+0x18748959>
+800f156a:	0f 80 85 ff 74 18    	jo     988414f5 <.stab+0x18748935>
 /mn/src/drivers/tty/tty.cpp:202
 800f1570:	8b 4d 14             	mov    0x14(%ebp),%ecx
 800f1573:	8b 83 30 02 00 00    	mov    0x230(%ebx),%eax
@@ -784,7 +784,7 @@ doEscape__3ttycUiPCUi():
 800f1740:	e5 17                	in     $0x17,%eax
 800f1742:	0f 80 74 17 0f 80    	jo     1e2ebc <__size_of_heap_reserve__+0xe2ebc>
 800f1748:	8c 17                	movl   %ss,(%edi)
-800f174a:	0f 80 66 81 a3 20    	jo     a0b298b6 <.stab+0x20a30d1a>
+800f174a:	0f 80 66 81 a3 20    	jo     a0b298b6 <.stab+0x20a30cf6>
 /mn/src/drivers/tty/tty.cpp:269
 800f1750:	02 00                	add    (%eax),%al
 800f1752:	00 00                	add    %al,(%eax)
@@ -1184,359 +1184,401 @@ TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t():
 800f1aed:	89 e5                	mov    %esp,%ebp
 800f1aef:	83 ec 14             	sub    $0x14,%esp
 800f1af2:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:441
-800f1af3:	8b 15 00 20 0f 80    	mov    0x800f2000,%edx
-/mn/src/drivers/tty/tty.cpp:443
-800f1af9:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:441
-800f1afc:	8d 14 92             	lea    (%edx,%edx,4),%edx
 /mn/src/drivers/tty/tty.cpp:438
-800f1aff:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/tty/tty.cpp:441
-800f1b02:	89 d0                	mov    %edx,%eax
-800f1b04:	c1 e0 04             	shl    $0x4,%eax
-800f1b07:	29 d0                	sub    %edx,%eax
-800f1b09:	c1 e0 03             	shl    $0x3,%eax
-800f1b0c:	8d 98 00 30 0f 80    	lea    0x800f3000(%eax),%ebx
+800f1af3:	8b 45 0c             	mov    0xc(%ebp),%eax
 /mn/src/drivers/tty/tty.cpp:442
-800f1b12:	89 88 00 30 0f 80    	mov    %ecx,0x800f3000(%eax)
+800f1af6:	0f b7 50 06          	movzwl 0x6(%eax),%edx
 /mn/src/drivers/tty/tty.cpp:443
-800f1b18:	53                   	push   %ebx
-800f1b19:	e8 f2 f8 ff ff       	call   800f1410 <_clear__3tty>
+800f1afa:	8d 42 d0             	lea    0xffffffd0(%edx),%eax
+800f1afd:	66 83 f8 09          	cmp    $0x9,%ax
+800f1b01:	77 11                	ja     800f1b14 <_TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t+0x28>
+/mn/src/drivers/tty/tty.cpp:444
+800f1b03:	0f b7 c2             	movzwl %dx,%eax
+800f1b06:	69 c0 58 02 00 00    	imul   $0x258,%eax,%eax
+800f1b0c:	8d 98 80 bf 0e 80    	lea    0x800ebf80(%eax),%ebx
+800f1b12:	eb 17                	jmp    800f1b2b <_TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t+0x3f>
 /mn/src/drivers/tty/tty.cpp:446
-800f1b1e:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1b21:	68 20 4c 0f 80       	push   $0x800f4c20
-800f1b26:	e8 f1 01 00 00       	call   800f1d1c <_SemAcquire>
+800f1b14:	8b 15 00 20 0f 80    	mov    0x800f2000,%edx
+800f1b1a:	8d 14 92             	lea    (%edx,%edx,4),%edx
+800f1b1d:	89 d0                	mov    %edx,%eax
+800f1b1f:	c1 e0 04             	shl    $0x4,%eax
+800f1b22:	29 d0                	sub    %edx,%eax
+800f1b24:	8d 1c c5 00 30 0f 80 	lea    0x800f3000(,%eax,8),%ebx
 /mn/src/drivers/tty/tty.cpp:448
-800f1b2b:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/tty/tty.cpp:447
-800f1b2e:	ff 05 00 20 0f 80    	incl   0x800f2000
-/mn/src/drivers/tty/tty.cpp:448
-800f1b34:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1b37:	68 20 4c 0f 80       	push   $0x800f4c20
-800f1b3c:	e8 d3 01 00 00       	call   800f1d14 <_SemRelease>
+800f1b2b:	8b 45 08             	mov    0x8(%ebp),%eax
+800f1b2e:	89 03                	mov    %eax,(%ebx)
 /mn/src/drivers/tty/tty.cpp:450
-800f1b41:	89 d8                	mov    %ebx,%eax
-800f1b43:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
-800f1b46:	89 ec                	mov    %ebp,%esp
-800f1b48:	5d                   	pop    %ebp
-800f1b49:	c3                   	ret    
-800f1b4a:	89 f6                	mov    %esi,%esi
+800f1b30:	81 fb 00 30 0f 80    	cmp    $0x800f3000,%ebx
+800f1b36:	76 0c                	jbe    800f1b44 <_TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t+0x58>
+/mn/src/drivers/tty/tty.cpp:451
+800f1b38:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1b3b:	53                   	push   %ebx
+800f1b3c:	e8 cf f8 ff ff       	call   800f1410 <_clear__3tty>
+800f1b41:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:454
+800f1b44:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1b47:	68 20 4c 0f 80       	push   $0x800f4c20
+800f1b4c:	e8 0b 02 00 00       	call   800f1d5c <_SemAcquire>
+/mn/src/drivers/tty/tty.cpp:456
+800f1b51:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:455
+800f1b54:	ff 05 00 20 0f 80    	incl   0x800f2000
+/mn/src/drivers/tty/tty.cpp:456
+800f1b5a:	68 20 4c 0f 80       	push   $0x800f4c20
+800f1b5f:	e8 f0 01 00 00       	call   800f1d54 <_SemRelease>
+/mn/src/drivers/tty/tty.cpp:458
+800f1b64:	89 d8                	mov    %ebx,%eax
+800f1b66:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
+800f1b69:	89 ec                	mov    %ebp,%esp
+800f1b6b:	5d                   	pop    %ebp
+800f1b6c:	c3                   	ret    
+800f1b6d:	8d 76 00             	lea    0x0(%esi),%esi
 
-800f1b4c <_DrvInit>:
+800f1b70 <_DrvInit>:
 DrvInit():
-800f1b4c:	55                   	push   %ebp
-800f1b4d:	89 e5                	mov    %esp,%ebp
-800f1b4f:	83 ec 10             	sub    $0x10,%esp
-800f1b52:	56                   	push   %esi
-800f1b53:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:457
-800f1b54:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/tty/tty.cpp:461
-800f1b57:	bb 7c 1d 0f 80       	mov    $0x800f1d7c,%ebx
-800f1b5c:	83 3d 7c 1d 0f 80 00 	cmpl   $0x0,0x800f1d7c
-800f1b63:	74 0b                	je     800f1b70 <_DrvInit+0x24>
-800f1b65:	8d 76 00             	lea    0x0(%esi),%esi
-800f1b68:	83 c3 04             	add    $0x4,%ebx
-800f1b6b:	83 3b 00             	cmpl   $0x0,(%ebx)
-800f1b6e:	75 f8                	jne    800f1b68 <_DrvInit+0x1c>
-/mn/src/drivers/tty/tty.cpp:463
-800f1b70:	83 c3 fc             	add    $0xfffffffc,%ebx
-800f1b73:	81 fb 78 1d 0f 80    	cmp    $0x800f1d78,%ebx
-800f1b79:	76 10                	jbe    800f1b8b <_DrvInit+0x3f>
-800f1b7b:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:464
-800f1b7c:	8b 03                	mov    (%ebx),%eax
-800f1b7e:	83 c3 fc             	add    $0xfffffffc,%ebx
-800f1b81:	ff d0                	call   *%eax
-800f1b83:	81 fb 78 1d 0f 80    	cmp    $0x800f1d78,%ebx
-800f1b89:	77 f1                	ja     800f1b7c <_DrvInit+0x30>
-/mn/src/drivers/tty/tty.cpp:466
-800f1b8b:	c7 46 0c ec 1a 0f 80 	movl   $0x800f1aec,0xc(%esi)
-/mn/src/drivers/tty/tty.cpp:468
-800f1b92:	b0 01                	mov    $0x1,%al
-/mn/src/drivers/tty/tty.cpp:467
-800f1b94:	89 35 00 30 0f 80    	mov    %esi,0x800f3000
-/mn/src/drivers/tty/tty.cpp:468
-800f1b9a:	5b                   	pop    %ebx
-800f1b9b:	5e                   	pop    %esi
-800f1b9c:	89 ec                	mov    %ebp,%esp
-800f1b9e:	5d                   	pop    %ebp
-800f1b9f:	c3                   	ret    
-
-800f1ba0 <_TtySwitchConsoles>:
-TtySwitchConsoles():
-800f1ba0:	55                   	push   %ebp
-800f1ba1:	89 e5                	mov    %esp,%ebp
-800f1ba3:	83 ec 08             	sub    $0x8,%esp
-/mn/src/drivers/tty/tty.cpp:473
-800f1ba6:	69 45 08 58 02 00 00 	imul   $0x258,0x8(%ebp),%eax
-800f1bad:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1bb0:	05 00 30 0f 80       	add    $0x800f3000,%eax
-800f1bb5:	50                   	push   %eax
-800f1bb6:	e8 d9 f5 ff ff       	call   800f1194 <_switchTo__3tty>
-800f1bbb:	89 ec                	mov    %ebp,%esp
-800f1bbd:	5d                   	pop    %ebp
-800f1bbe:	c3                   	ret    
-800f1bbf:	90                   	nop    
-
-800f1bc0 <___static_initialization_and_destruction_0>:
-__static_initialization_and_destruction_0():
-800f1bc0:	55                   	push   %ebp
-800f1bc1:	89 e5                	mov    %esp,%ebp
-800f1bc3:	83 ec 10             	sub    $0x10,%esp
-800f1bc6:	56                   	push   %esi
-800f1bc7:	53                   	push   %ebx
+800f1b70:	55                   	push   %ebp
+800f1b71:	89 e5                	mov    %esp,%ebp
+800f1b73:	83 ec 10             	sub    $0x10,%esp
+800f1b76:	56                   	push   %esi
+800f1b77:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:465
+800f1b78:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/tty/tty.cpp:469
+800f1b7b:	bb bc 1d 0f 80       	mov    $0x800f1dbc,%ebx
+800f1b80:	83 3d bc 1d 0f 80 00 	cmpl   $0x0,0x800f1dbc
+800f1b87:	74 0b                	je     800f1b94 <_DrvInit+0x24>
+800f1b89:	8d 76 00             	lea    0x0(%esi),%esi
+800f1b8c:	83 c3 04             	add    $0x4,%ebx
+800f1b8f:	83 3b 00             	cmpl   $0x0,(%ebx)
+800f1b92:	75 f8                	jne    800f1b8c <_DrvInit+0x1c>
+/mn/src/drivers/tty/tty.cpp:471
+800f1b94:	83 c3 fc             	add    $0xfffffffc,%ebx
+800f1b97:	81 fb b8 1d 0f 80    	cmp    $0x800f1db8,%ebx
+800f1b9d:	76 10                	jbe    800f1baf <_DrvInit+0x3f>
+800f1b9f:	90                   	nop    
+/mn/src/drivers/tty/tty.cpp:472
+800f1ba0:	8b 03                	mov    (%ebx),%eax
+800f1ba2:	83 c3 fc             	add    $0xfffffffc,%ebx
+800f1ba5:	ff d0                	call   *%eax
+800f1ba7:	81 fb b8 1d 0f 80    	cmp    $0x800f1db8,%ebx
+800f1bad:	77 f1                	ja     800f1ba0 <_DrvInit+0x30>
 /mn/src/drivers/tty/tty.cpp:474
-800f1bc8:	81 7d 0c ff ff 00 00 	cmpl   $0xffff,0xc(%ebp)
-800f1bcf:	75 2a                	jne    800f1bfb <___static_initialization_and_destruction_0+0x3b>
-800f1bd1:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
-800f1bd5:	74 24                	je     800f1bfb <___static_initialization_and_destruction_0+0x3b>
+800f1baf:	c7 46 0c ec 1a 0f 80 	movl   $0x800f1aec,0xc(%esi)
+/mn/src/drivers/tty/tty.cpp:476
+800f1bb6:	b0 01                	mov    $0x1,%al
+/mn/src/drivers/tty/tty.cpp:475
+800f1bb8:	89 35 00 30 0f 80    	mov    %esi,0x800f3000
+/mn/src/drivers/tty/tty.cpp:476
+800f1bbe:	5b                   	pop    %ebx
+800f1bbf:	5e                   	pop    %esi
+800f1bc0:	89 ec                	mov    %ebp,%esp
+800f1bc2:	5d                   	pop    %ebp
+800f1bc3:	c3                   	ret    
+
+800f1bc4 <_TtySwitchConsoles>:
+TtySwitchConsoles():
+800f1bc4:	55                   	push   %ebp
+800f1bc5:	89 e5                	mov    %esp,%ebp
+800f1bc7:	83 ec 08             	sub    $0x8,%esp
+/mn/src/drivers/tty/tty.cpp:481
+800f1bca:	69 45 08 58 02 00 00 	imul   $0x258,0x8(%ebp),%eax
+800f1bd1:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1bd4:	05 00 30 0f 80       	add    $0x800f3000,%eax
+800f1bd9:	50                   	push   %eax
+800f1bda:	e8 b5 f5 ff ff       	call   800f1194 <_switchTo__3tty>
+800f1bdf:	89 ec                	mov    %ebp,%esp
+800f1be1:	5d                   	pop    %ebp
+800f1be2:	c3                   	ret    
+800f1be3:	90                   	nop    
+
+800f1be4 <___static_initialization_and_destruction_0>:
+__static_initialization_and_destruction_0():
+800f1be4:	55                   	push   %ebp
+800f1be5:	89 e5                	mov    %esp,%ebp
+800f1be7:	83 ec 10             	sub    $0x10,%esp
+800f1bea:	56                   	push   %esi
+800f1beb:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:482
+800f1bec:	81 7d 0c ff ff 00 00 	cmpl   $0xffff,0xc(%ebp)
+800f1bf3:	75 2a                	jne    800f1c1f <___static_initialization_and_destruction_0+0x3b>
+800f1bf5:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
+800f1bf9:	74 24                	je     800f1c1f <___static_initialization_and_destruction_0+0x3b>
 /mn/src/drivers/tty/tty.cpp:55
-800f1bd7:	be 00 30 0f 80       	mov    $0x800f3000,%esi
-800f1bdc:	bb 0b 00 00 00       	mov    $0xb,%ebx
-800f1be1:	8d 76 00             	lea    0x0(%esi),%esi
-800f1be4:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1be7:	56                   	push   %esi
-800f1be8:	e8 7b f4 ff ff       	call   800f1068 <___3tty>
-800f1bed:	81 c6 58 02 00 00    	add    $0x258,%esi
-800f1bf3:	83 c4 10             	add    $0x10,%esp
-800f1bf6:	83 eb 01             	sub    $0x1,%ebx
-800f1bf9:	73 e9                	jae    800f1be4 <___static_initialization_and_destruction_0+0x24>
-800f1bfb:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f1bfe:	5b                   	pop    %ebx
-800f1bff:	5e                   	pop    %esi
-800f1c00:	89 ec                	mov    %ebp,%esp
-800f1c02:	5d                   	pop    %ebp
-800f1c03:	c3                   	ret    
+800f1bfb:	be 00 30 0f 80       	mov    $0x800f3000,%esi
+800f1c00:	bb 0b 00 00 00       	mov    $0xb,%ebx
+800f1c05:	8d 76 00             	lea    0x0(%esi),%esi
+800f1c08:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1c0b:	56                   	push   %esi
+800f1c0c:	e8 57 f4 ff ff       	call   800f1068 <___3tty>
+800f1c11:	81 c6 58 02 00 00    	add    $0x258,%esi
+800f1c17:	83 c4 10             	add    $0x10,%esp
+800f1c1a:	83 eb 01             	sub    $0x1,%ebx
+800f1c1d:	73 e9                	jae    800f1c08 <___static_initialization_and_destruction_0+0x24>
+800f1c1f:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f1c22:	5b                   	pop    %ebx
+800f1c23:	5e                   	pop    %esi
+800f1c24:	89 ec                	mov    %ebp,%esp
+800f1c26:	5d                   	pop    %ebp
+800f1c27:	c3                   	ret    
 
-800f1c04 <__GLOBAL_$I$num_consoles>:
+800f1c28 <__GLOBAL_$I$num_consoles>:
 _GLOBAL_$I$num_consoles():
-800f1c04:	55                   	push   %ebp
-800f1c05:	89 e5                	mov    %esp,%ebp
-800f1c07:	83 ec 08             	sub    $0x8,%esp
-800f1c0a:	83 c4 f8             	add    $0xfffffff8,%esp
-800f1c0d:	68 ff ff 00 00       	push   $0xffff
-800f1c12:	6a 01                	push   $0x1
-800f1c14:	e8 a7 ff ff ff       	call   800f1bc0 <___static_initialization_and_destruction_0>
-800f1c19:	89 ec                	mov    %ebp,%esp
-800f1c1b:	5d                   	pop    %ebp
-800f1c1c:	c3                   	ret    
-800f1c1d:	8d 76 00             	lea    0x0(%esi),%esi
-
-800f1c20 <_bsearch>:
-bsearch():
-800f1c20:	55                   	push   %ebp
-800f1c21:	89 e5                	mov    %esp,%ebp
-800f1c23:	83 ec 0c             	sub    $0xc,%esp
-800f1c26:	57                   	push   %edi
-800f1c27:	56                   	push   %esi
-800f1c28:	53                   	push   %ebx
-/mn/src/drivers/tty/map.c:175
-800f1c29:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/tty/map.c:179
-800f1c2c:	8b 75 10             	mov    0x10(%ebp),%esi
-800f1c2f:	85 f6                	test   %esi,%esi
-800f1c31:	74 34                	je     800f1c67 <_bsearch+0x47>
-800f1c33:	90                   	nop    
-/mn/src/drivers/tty/map.c:181
-800f1c34:	89 f0                	mov    %esi,%eax
-/mn/src/drivers/tty/map.c:182
-800f1c36:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/tty/map.c:181
-800f1c39:	d1 f8                	sar    %eax
-800f1c3b:	0f af 45 14          	imul   0x14(%ebp),%eax
-800f1c3f:	8d 1c 38             	lea    (%eax,%edi,1),%ebx
-/mn/src/drivers/tty/map.c:182
-800f1c42:	53                   	push   %ebx
-800f1c43:	8b 45 08             	mov    0x8(%ebp),%eax
-800f1c46:	50                   	push   %eax
-800f1c47:	8b 55 18             	mov    0x18(%ebp),%edx
-800f1c4a:	ff d2                	call   *%edx
-/mn/src/drivers/tty/map.c:183
-800f1c4c:	83 c4 10             	add    $0x10,%esp
-800f1c4f:	85 c0                	test   %eax,%eax
-800f1c51:	75 05                	jne    800f1c58 <_bsearch+0x38>
-/mn/src/drivers/tty/map.c:184
-800f1c53:	89 d8                	mov    %ebx,%eax
-800f1c55:	eb 12                	jmp    800f1c69 <_bsearch+0x49>
+800f1c28:	55                   	push   %ebp
+800f1c29:	89 e5                	mov    %esp,%ebp
+800f1c2b:	83 ec 08             	sub    $0x8,%esp
+800f1c2e:	83 c4 f8             	add    $0xfffffff8,%esp
+800f1c31:	68 ff ff 00 00       	push   $0xffff
+800f1c36:	6a 01                	push   $0x1
+800f1c38:	e8 a7 ff ff ff       	call   800f1be4 <___static_initialization_and_destruction_0>
+800f1c3d:	89 ec                	mov    %ebp,%esp
+800f1c3f:	5d                   	pop    %ebp
+800f1c40:	c3                   	ret    
+800f1c41:	90                   	nop    
+800f1c42:	90                   	nop    
+800f1c43:	90                   	nop    
+800f1c44:	90                   	nop    
+800f1c45:	90                   	nop    
+800f1c46:	90                   	nop    
+800f1c47:	90                   	nop    
+800f1c48:	90                   	nop    
+800f1c49:	90                   	nop    
+800f1c4a:	90                   	nop    
+800f1c4b:	90                   	nop    
+800f1c4c:	90                   	nop    
+800f1c4d:	90                   	nop    
+800f1c4e:	90                   	nop    
+800f1c4f:	90                   	nop    
+800f1c50:	90                   	nop    
+800f1c51:	90                   	nop    
+800f1c52:	90                   	nop    
+800f1c53:	90                   	nop    
+800f1c54:	90                   	nop    
+800f1c55:	90                   	nop    
+800f1c56:	90                   	nop    
 800f1c57:	90                   	nop    
-/mn/src/drivers/tty/map.c:186
-800f1c58:	85 c0                	test   %eax,%eax
-800f1c5a:	7e 07                	jle    800f1c63 <_bsearch+0x43>
-/mn/src/drivers/tty/map.c:188
-800f1c5c:	8b 45 14             	mov    0x14(%ebp),%eax
-/mn/src/drivers/tty/map.c:189
-800f1c5f:	4e                   	dec    %esi
-/mn/src/drivers/tty/map.c:188
-800f1c60:	8d 3c 18             	lea    (%eax,%ebx,1),%edi
+800f1c58:	90                   	nop    
+800f1c59:	90                   	nop    
+800f1c5a:	90                   	nop    
+800f1c5b:	90                   	nop    
+800f1c5c:	90                   	nop    
+800f1c5d:	90                   	nop    
+800f1c5e:	90                   	nop    
+800f1c5f:	90                   	nop    
+
+800f1c60 <_bsearch>:
+bsearch():
+800f1c60:	55                   	push   %ebp
+800f1c61:	89 e5                	mov    %esp,%ebp
+800f1c63:	83 ec 0c             	sub    $0xc,%esp
+800f1c66:	57                   	push   %edi
+800f1c67:	56                   	push   %esi
+800f1c68:	53                   	push   %ebx
+/mn/src/drivers/tty/map.c:175
+800f1c69:	8b 7d 0c             	mov    0xc(%ebp),%edi
 /mn/src/drivers/tty/map.c:179
-800f1c63:	d1 fe                	sar    %esi
-800f1c65:	75 cd                	jne    800f1c34 <_bsearch+0x14>
-/mn/src/drivers/tty/map.c:192
-800f1c67:	31 c0                	xor    %eax,%eax
-800f1c69:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f1c6c:	5b                   	pop    %ebx
-800f1c6d:	5e                   	pop    %esi
-800f1c6e:	5f                   	pop    %edi
-800f1c6f:	89 ec                	mov    %ebp,%esp
-800f1c71:	5d                   	pop    %ebp
-800f1c72:	c3                   	ret    
-/mn/src/drivers/tty/map.c:193
+800f1c6c:	8b 75 10             	mov    0x10(%ebp),%esi
+800f1c6f:	85 f6                	test   %esi,%esi
+800f1c71:	74 34                	je     800f1ca7 <_bsearch+0x47>
 800f1c73:	90                   	nop    
+/mn/src/drivers/tty/map.c:181
+800f1c74:	89 f0                	mov    %esi,%eax
+/mn/src/drivers/tty/map.c:182
+800f1c76:	83 c4 f8             	add    $0xfffffff8,%esp
+/mn/src/drivers/tty/map.c:181
+800f1c79:	d1 f8                	sar    %eax
+800f1c7b:	0f af 45 14          	imul   0x14(%ebp),%eax
+800f1c7f:	8d 1c 38             	lea    (%eax,%edi,1),%ebx
+/mn/src/drivers/tty/map.c:182
+800f1c82:	53                   	push   %ebx
+800f1c83:	8b 45 08             	mov    0x8(%ebp),%eax
+800f1c86:	50                   	push   %eax
+800f1c87:	8b 55 18             	mov    0x18(%ebp),%edx
+800f1c8a:	ff d2                	call   *%edx
+/mn/src/drivers/tty/map.c:183
+800f1c8c:	83 c4 10             	add    $0x10,%esp
+800f1c8f:	85 c0                	test   %eax,%eax
+800f1c91:	75 05                	jne    800f1c98 <_bsearch+0x38>
+/mn/src/drivers/tty/map.c:184
+800f1c93:	89 d8                	mov    %ebx,%eax
+800f1c95:	eb 12                	jmp    800f1ca9 <_bsearch+0x49>
+800f1c97:	90                   	nop    
+/mn/src/drivers/tty/map.c:186
+800f1c98:	85 c0                	test   %eax,%eax
+800f1c9a:	7e 07                	jle    800f1ca3 <_bsearch+0x43>
+/mn/src/drivers/tty/map.c:188
+800f1c9c:	8b 45 14             	mov    0x14(%ebp),%eax
+/mn/src/drivers/tty/map.c:189
+800f1c9f:	4e                   	dec    %esi
+/mn/src/drivers/tty/map.c:188
+800f1ca0:	8d 3c 18             	lea    (%eax,%ebx,1),%edi
+/mn/src/drivers/tty/map.c:179
+800f1ca3:	d1 fe                	sar    %esi
+800f1ca5:	75 cd                	jne    800f1c74 <_bsearch+0x14>
+/mn/src/drivers/tty/map.c:192
+800f1ca7:	31 c0                	xor    %eax,%eax
+800f1ca9:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f1cac:	5b                   	pop    %ebx
+800f1cad:	5e                   	pop    %esi
+800f1cae:	5f                   	pop    %edi
+800f1caf:	89 ec                	mov    %ebp,%esp
+800f1cb1:	5d                   	pop    %ebp
+800f1cb2:	c3                   	ret    
+/mn/src/drivers/tty/map.c:193
+800f1cb3:	90                   	nop    
 
-800f1c74 <_asciimap_search_wchar_t>:
+800f1cb4 <_asciimap_search_wchar_t>:
 asciimap_search_wchar_t():
-800f1c74:	55                   	push   %ebp
-800f1c75:	89 e5                	mov    %esp,%ebp
+800f1cb4:	55                   	push   %ebp
+800f1cb5:	89 e5                	mov    %esp,%ebp
 /mn/src/drivers/tty/map.c:196
-800f1c77:	8b 45 08             	mov    0x8(%ebp),%eax
-800f1c7a:	8b 55 0c             	mov    0xc(%ebp),%edx
+800f1cb7:	8b 45 08             	mov    0x8(%ebp),%eax
+800f1cba:	8b 55 0c             	mov    0xc(%ebp),%edx
 /mn/src/drivers/tty/map.c:199
-800f1c7d:	89 ec                	mov    %ebp,%esp
-800f1c7f:	0f b7 08             	movzwl (%eax),%ecx
-800f1c82:	0f b7 02             	movzwl (%edx),%eax
-800f1c85:	29 c1                	sub    %eax,%ecx
-800f1c87:	5d                   	pop    %ebp
-800f1c88:	89 c8                	mov    %ecx,%eax
-800f1c8a:	c3                   	ret    
+800f1cbd:	89 ec                	mov    %ebp,%esp
+800f1cbf:	0f b7 08             	movzwl (%eax),%ecx
+800f1cc2:	0f b7 02             	movzwl (%edx),%eax
+800f1cc5:	29 c1                	sub    %eax,%ecx
+800f1cc7:	5d                   	pop    %ebp
+800f1cc8:	89 c8                	mov    %ecx,%eax
+800f1cca:	c3                   	ret    
 /mn/src/drivers/tty/map.c:200
-800f1c8b:	90                   	nop    
+800f1ccb:	90                   	nop    
 
-800f1c8c <_wcsto437>:
+800f1ccc <_wcsto437>:
 wcsto437():
-800f1c8c:	55                   	push   %ebp
-800f1c8d:	89 e5                	mov    %esp,%ebp
-800f1c8f:	83 ec 0c             	sub    $0xc,%esp
-800f1c92:	57                   	push   %edi
-800f1c93:	56                   	push   %esi
-800f1c94:	31 ff                	xor    %edi,%edi
-800f1c96:	53                   	push   %ebx
-800f1c97:	8b 5d 0c             	mov    0xc(%ebp),%ebx
-800f1c9a:	8b 75 08             	mov    0x8(%ebp),%esi
-800f1c9d:	eb 59                	jmp    800f1cf8 <_wcsto437+0x6c>
-800f1c9f:	90                   	nop    
-800f1ca0:	66 83 f8 0d          	cmp    $0xd,%ax
-800f1ca4:	74 1c                	je     800f1cc2 <_wcsto437+0x36>
-800f1ca6:	66 83 f8 0a          	cmp    $0xa,%ax
-800f1caa:	74 16                	je     800f1cc2 <_wcsto437+0x36>
-800f1cac:	66 83 f8 09          	cmp    $0x9,%ax
-800f1cb0:	74 10                	je     800f1cc2 <_wcsto437+0x36>
-800f1cb2:	66 83 f8 20          	cmp    $0x20,%ax
-800f1cb6:	74 0a                	je     800f1cc2 <_wcsto437+0x36>
-800f1cb8:	66 83 c0 e0          	add    $0xffffffe0,%ax
-800f1cbc:	66 83 f8 5f          	cmp    $0x5f,%ax
-800f1cc0:	77 06                	ja     800f1cc8 <_wcsto437+0x3c>
-800f1cc2:	8a 03                	mov    (%ebx),%al
-800f1cc4:	88 06                	mov    %al,(%esi)
-800f1cc6:	eb 2b                	jmp    800f1cf3 <_wcsto437+0x67>
-800f1cc8:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1ccb:	68 74 1c 0f 80       	push   $0x800f1c74
-800f1cd0:	6a 04                	push   $0x4
-800f1cd2:	68 a0 00 00 00       	push   $0xa0
-800f1cd7:	68 04 20 0f 80       	push   $0x800f2004
-800f1cdc:	53                   	push   %ebx
-800f1cdd:	e8 3e ff ff ff       	call   800f1c20 <_bsearch>
-800f1ce2:	83 c4 20             	add    $0x20,%esp
-800f1ce5:	85 c0                	test   %eax,%eax
-800f1ce7:	74 07                	je     800f1cf0 <_wcsto437+0x64>
-800f1ce9:	8a 40 02             	mov    0x2(%eax),%al
-800f1cec:	88 06                	mov    %al,(%esi)
-800f1cee:	eb 03                	jmp    800f1cf3 <_wcsto437+0x67>
-800f1cf0:	c6 06 3f             	movb   $0x3f,(%esi)
-800f1cf3:	83 c3 02             	add    $0x2,%ebx
-800f1cf6:	46                   	inc    %esi
-800f1cf7:	47                   	inc    %edi
-800f1cf8:	0f b7 03             	movzwl (%ebx),%eax
-800f1cfb:	66 85 c0             	test   %ax,%ax
-800f1cfe:	74 05                	je     800f1d05 <_wcsto437+0x79>
-800f1d00:	3b 7d 10             	cmp    0x10(%ebp),%edi
-800f1d03:	72 9b                	jb     800f1ca0 <_wcsto437+0x14>
-800f1d05:	c6 06 00             	movb   $0x0,(%esi)
-800f1d08:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f1d0b:	5b                   	pop    %ebx
-800f1d0c:	89 f8                	mov    %edi,%eax
-800f1d0e:	5e                   	pop    %esi
-800f1d0f:	5f                   	pop    %edi
-800f1d10:	89 ec                	mov    %ebp,%esp
-800f1d12:	5d                   	pop    %ebp
-800f1d13:	c3                   	ret    
+800f1ccc:	55                   	push   %ebp
+800f1ccd:	89 e5                	mov    %esp,%ebp
+800f1ccf:	83 ec 0c             	sub    $0xc,%esp
+800f1cd2:	57                   	push   %edi
+800f1cd3:	56                   	push   %esi
+800f1cd4:	31 ff                	xor    %edi,%edi
+800f1cd6:	53                   	push   %ebx
+800f1cd7:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+800f1cda:	8b 75 08             	mov    0x8(%ebp),%esi
+800f1cdd:	eb 59                	jmp    800f1d38 <_wcsto437+0x6c>
+800f1cdf:	90                   	nop    
+800f1ce0:	66 83 f8 0d          	cmp    $0xd,%ax
+800f1ce4:	74 1c                	je     800f1d02 <_wcsto437+0x36>
+800f1ce6:	66 83 f8 0a          	cmp    $0xa,%ax
+800f1cea:	74 16                	je     800f1d02 <_wcsto437+0x36>
+800f1cec:	66 83 f8 09          	cmp    $0x9,%ax
+800f1cf0:	74 10                	je     800f1d02 <_wcsto437+0x36>
+800f1cf2:	66 83 f8 20          	cmp    $0x20,%ax
+800f1cf6:	74 0a                	je     800f1d02 <_wcsto437+0x36>
+800f1cf8:	66 83 c0 e0          	add    $0xffffffe0,%ax
+800f1cfc:	66 83 f8 5f          	cmp    $0x5f,%ax
+800f1d00:	77 06                	ja     800f1d08 <_wcsto437+0x3c>
+800f1d02:	8a 03                	mov    (%ebx),%al
+800f1d04:	88 06                	mov    %al,(%esi)
+800f1d06:	eb 2b                	jmp    800f1d33 <_wcsto437+0x67>
+800f1d08:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1d0b:	68 b4 1c 0f 80       	push   $0x800f1cb4
+800f1d10:	6a 04                	push   $0x4
+800f1d12:	68 a0 00 00 00       	push   $0xa0
+800f1d17:	68 04 20 0f 80       	push   $0x800f2004
+800f1d1c:	53                   	push   %ebx
+800f1d1d:	e8 3e ff ff ff       	call   800f1c60 <_bsearch>
+800f1d22:	83 c4 20             	add    $0x20,%esp
+800f1d25:	85 c0                	test   %eax,%eax
+800f1d27:	74 07                	je     800f1d30 <_wcsto437+0x64>
+800f1d29:	8a 40 02             	mov    0x2(%eax),%al
+800f1d2c:	88 06                	mov    %al,(%esi)
+800f1d2e:	eb 03                	jmp    800f1d33 <_wcsto437+0x67>
+800f1d30:	c6 06 3f             	movb   $0x3f,(%esi)
+800f1d33:	83 c3 02             	add    $0x2,%ebx
+800f1d36:	46                   	inc    %esi
+800f1d37:	47                   	inc    %edi
+800f1d38:	0f b7 03             	movzwl (%ebx),%eax
+800f1d3b:	66 85 c0             	test   %ax,%ax
+800f1d3e:	74 05                	je     800f1d45 <_wcsto437+0x79>
+800f1d40:	3b 7d 10             	cmp    0x10(%ebp),%edi
+800f1d43:	72 9b                	jb     800f1ce0 <_wcsto437+0x14>
+800f1d45:	c6 06 00             	movb   $0x0,(%esi)
+800f1d48:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f1d4b:	5b                   	pop    %ebx
+800f1d4c:	89 f8                	mov    %edi,%eax
+800f1d4e:	5e                   	pop    %esi
+800f1d4f:	5f                   	pop    %edi
+800f1d50:	89 ec                	mov    %ebp,%esp
+800f1d52:	5d                   	pop    %ebp
+800f1d53:	c3                   	ret    
 
-800f1d14 <_SemRelease>:
-800f1d14:	ff 25 54 60 0f 80    	jmp    *0x800f6054
-800f1d1a:	90                   	nop    
-800f1d1b:	90                   	nop    
+800f1d54 <_SemRelease>:
+800f1d54:	ff 25 54 60 0f 80    	jmp    *0x800f6054
+800f1d5a:	90                   	nop    
+800f1d5b:	90                   	nop    
 
-800f1d1c <_SemAcquire>:
-800f1d1c:	ff 25 50 60 0f 80    	jmp    *0x800f6050
-800f1d22:	90                   	nop    
-800f1d23:	90                   	nop    
+800f1d5c <_SemAcquire>:
+800f1d5c:	ff 25 50 60 0f 80    	jmp    *0x800f6050
+800f1d62:	90                   	nop    
+800f1d63:	90                   	nop    
 
-800f1d24 <_mbstowcs>:
-800f1d24:	ff 25 58 60 0f 80    	jmp    *0x800f6058
-800f1d2a:	90                   	nop    
-800f1d2b:	90                   	nop    
+800f1d64 <_mbstowcs>:
+800f1d64:	ff 25 58 60 0f 80    	jmp    *0x800f6058
+800f1d6a:	90                   	nop    
+800f1d6b:	90                   	nop    
 
-800f1d2c <_strncpy>:
-800f1d2c:	ff 25 64 60 0f 80    	jmp    *0x800f6064
-800f1d32:	90                   	nop    
-800f1d33:	90                   	nop    
+800f1d6c <_strncpy>:
+800f1d6c:	ff 25 64 60 0f 80    	jmp    *0x800f6064
+800f1d72:	90                   	nop    
+800f1d73:	90                   	nop    
 
-800f1d34 <_memset>:
-800f1d34:	ff 25 60 60 0f 80    	jmp    *0x800f6060
-800f1d3a:	90                   	nop    
-800f1d3b:	90                   	nop    
+800f1d74 <_memset>:
+800f1d74:	ff 25 60 60 0f 80    	jmp    *0x800f6060
+800f1d7a:	90                   	nop    
+800f1d7b:	90                   	nop    
 
-800f1d3c <_memmove>:
-800f1d3c:	ff 25 5c 60 0f 80    	jmp    *0x800f605c
-800f1d42:	90                   	nop    
-800f1d43:	90                   	nop    
+800f1d7c <_memmove>:
+800f1d7c:	ff 25 5c 60 0f 80    	jmp    *0x800f605c
+800f1d82:	90                   	nop    
+800f1d83:	90                   	nop    
 
-800f1d44 <_swprintf>:
-800f1d44:	ff 25 68 60 0f 80    	jmp    *0x800f6068
-800f1d4a:	90                   	nop    
-800f1d4b:	90                   	nop    
+800f1d84 <_swprintf>:
+800f1d84:	ff 25 68 60 0f 80    	jmp    *0x800f6068
+800f1d8a:	90                   	nop    
+800f1d8b:	90                   	nop    
 
-800f1d4c <_request__3ttyPQ26kernel9request_t>:
+800f1d8c <_request__3ttyPQ26kernel9request_t>:
 request__3ttyPQ26kernel9request_t():
-800f1d4c:	55                   	push   %ebp
-800f1d4d:	89 e5                	mov    %esp,%ebp
-800f1d4f:	83 ec 08             	sub    $0x8,%esp
+800f1d8c:	55                   	push   %ebp
+800f1d8d:	89 e5                	mov    %esp,%ebp
+800f1d8f:	83 ec 08             	sub    $0x8,%esp
 /mn/src/drivers/tty/tty.cpp:23
-800f1d52:	8b 45 0c             	mov    0xc(%ebp),%eax
-800f1d55:	81 38 77 64 00 80    	cmpl   $0x80006477,(%eax)
-800f1d5b:	75 0f                	jne    800f1d6c <_request__3ttyPQ26kernel9request_t+0x20>
+800f1d92:	8b 45 0c             	mov    0xc(%ebp),%eax
+800f1d95:	81 38 77 64 00 80    	cmpl   $0x80006477,(%eax)
+800f1d9b:	75 0f                	jne    800f1dac <_request__3ttyPQ26kernel9request_t+0x20>
 /mn/src/drivers/tty/tty.cpp:24
-800f1d5d:	83 c4 f8             	add    $0xfffffff8,%esp
-800f1d60:	50                   	push   %eax
-800f1d61:	8b 45 08             	mov    0x8(%ebp),%eax
-800f1d64:	50                   	push   %eax
-800f1d65:	e8 5e fd ff ff       	call   800f1ac8 <_onWrite__3ttyPQ26kernel13request_dev_t>
-800f1d6a:	eb 08                	jmp    800f1d74 <_request__3ttyPQ26kernel9request_t+0x28>
+800f1d9d:	83 c4 f8             	add    $0xfffffff8,%esp
+800f1da0:	50                   	push   %eax
+800f1da1:	8b 45 08             	mov    0x8(%ebp),%eax
+800f1da4:	50                   	push   %eax
+800f1da5:	e8 1e fd ff ff       	call   800f1ac8 <_onWrite__3ttyPQ26kernel13request_dev_t>
+800f1daa:	eb 08                	jmp    800f1db4 <_request__3ttyPQ26kernel9request_t+0x28>
 /mn/src/drivers/tty/tty.cpp:25
-800f1d6c:	c7 00 04 00 00 00    	movl   $0x4,(%eax)
-800f1d72:	b0 00                	mov    $0x0,%al
-800f1d74:	89 ec                	mov    %ebp,%esp
-800f1d76:	5d                   	pop    %ebp
-800f1d77:	c3                   	ret    
+800f1dac:	c7 00 04 00 00 00    	movl   $0x4,(%eax)
+800f1db2:	b0 00                	mov    $0x0,%al
+800f1db4:	89 ec                	mov    %ebp,%esp
+800f1db6:	5d                   	pop    %ebp
+800f1db7:	c3                   	ret    
 
-800f1d78 <__CTOR_LIST__>:
-800f1d78:	ff                   	(bad)  
-800f1d79:	ff                   	(bad)  
-800f1d7a:	ff                   	(bad)  
-800f1d7b:	ff 04 1c             	incl   (%esp,%ebx,1)
+800f1db8 <__CTOR_LIST__>:
+800f1db8:	ff                   	(bad)  
+800f1db9:	ff                   	(bad)  
+800f1dba:	ff                   	(bad)  
+800f1dbb:	ff 28                	ljmp   *(%eax)
 
-800f1d7c <.ctor>:
-800f1d7c:	04 1c                	add    $0x1c,%al
-800f1d7e:	0f 80 00 00 00 00    	jo     800f1d84 <__DTOR_LIST__>
-
-800f1d84 <__DTOR_LIST__>:
-800f1d84:	ff                   	(bad)  
-800f1d85:	ff                   	(bad)  
-800f1d86:	ff                   	(bad)  
-800f1d87:	ff 00                	incl   (%eax)
-800f1d89:	00 00                	add    %al,(%eax)
+800f1dbc <.ctor>:
+800f1dbc:	28 1c 0f             	sub    %bl,(%edi,%ecx,1)
+800f1dbf:	80 00 00             	addb   $0x0,(%eax)
 	...
 
-800f1d8c <etext>:
+800f1dc4 <__DTOR_LIST__>:
+800f1dc4:	ff                   	(bad)  
+800f1dc5:	ff                   	(bad)  
+800f1dc6:	ff                   	(bad)  
+800f1dc7:	ff 00                	incl   (%eax)
+800f1dc9:	00 00                	add    %al,(%eax)
+	...
+
+800f1dcc <etext>:
 	...

@@ -94,6 +94,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <kernel/i386.h>
+#include <os/syscall.h>
 
 /************************************************************************
  *
@@ -115,7 +116,7 @@ extern ExceptionHook exceptionHook;	/* hook variable for errors/exceptions */
 
 static char initialized;	/* boolean flag. != 0 means we've been initialized */
 
-int remote_debug = 1;
+int remote_debug = 0;
 /*	debug >	0 prints ill-formed commands in valid packets & checksum errors */
 
 void waitabit();
@@ -717,6 +718,8 @@ void handle_exception(int exceptionVector)
 	error = 0;
 	remcomOutBuffer[0] = 0;
 	getpacket(remcomInBuffer);
+	if (remote_debug)
+	    printf("command: %c\n", remcomInBuffer[0]);
 	switch (remcomInBuffer[0])
 	{
 		case '?' :
@@ -827,6 +830,8 @@ void handle_exception(int exceptionVector)
 
 		/* kill the program */
 		case 'k' :	/* do nothing */
+		    ProcExitProcess(0);
+		    _returnFromException();
 #if 0
 	/* Huh? This doesn't look like "nothing".
 		 m68k-stub.c and sparc-stub.c don't have it.	*/

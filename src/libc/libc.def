@@ -10,6 +10,8 @@ EXPORTS
 	__main
 	__open
 	__sbrk
+	__udivdi3
+	__umoddi3
 	__wopen
 	_atold
 	_cputs

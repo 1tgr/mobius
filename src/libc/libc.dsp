@@ -765,6 +765,10 @@ SOURCE=.\sys\getenv.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\sys\int64.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\sys\isatty.c
 # End Source File
 # Begin Source File

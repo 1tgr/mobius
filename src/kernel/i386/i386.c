@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.19 2002/03/04 18:56:31 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.20 2002/03/13 14:26:24 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -165,7 +165,8 @@ uint32_t i386Isr(context_t ctx)
 	    uint32_t dr6;
 	    __asm__("mov %%dr6, %0" : "=r" (dr6));
 	    if (dr6 & DR6_BS)
-		wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);
+		i386TrapToDebugger(&ctx);
+		/*wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);*/
 	    handled = true;
 	}
 	else if (ctx.intr == 13 &&
@@ -176,7 +177,7 @@ uint32_t i386Isr(context_t ctx)
 	{
 	    handled = ProcPageFault(current->process, cr2);
 	    if (!handled &&
-		cr2 >= 0x80000000 &&
+		cr2 >= 0x80000000 && cr2 <= 0xe0000000 &&
 		kernel_pagedir[PAGE_DIRENT(cr2)] &&
 		(*ADDR_TO_PDE(cr2) & PRIV_PRES) == 0)
 	    {
@@ -225,19 +226,19 @@ uint32_t i386Isr(context_t ctx)
 		    wprintf(L"in kernel mode\n");
 	    }
 
-	    if (ctx.eflags & EFLAG_VM)
+	    /*if (ctx.eflags & EFLAG_VM)
 		wprintf(L"Stack dump not available in V86 mode\n");
 	    else
-		DbgDumpStack(current->process, ctx.regs.ebp);
+		DbgDumpStack(current->process, ctx.regs.ebp);*/
 
 	    /*ArchDbgDumpContext(&ctx);*/
 	    /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-	    if (current->process == &proc_idle)
-		/*i386TrapToDebugger(&ctx);*/
-		halt(ctx.eip);
+	    /*if (current->process == &proc_idle)*/
+		i386TrapToDebugger(&ctx);
+		/*halt(ctx.eip);
 	    else
-		ProcExitProcess(-ctx.intr);
+		ProcExitProcess(-ctx.intr);*/
 	}
     }
     

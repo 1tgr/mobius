@@ -150,10 +150,6 @@ SOURCE=.\io.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\kernel.def
-# End Source File
-# Begin Source File
-
 SOURCE=.\main.c
 # End Source File
 # Begin Source File
@@ -167,6 +163,10 @@ SOURCE=.\port.c
 # Begin Source File
 
 SOURCE=.\proc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\profile.c
 # End Source File
 # Begin Source File
 
@@ -288,6 +288,10 @@ SOURCE=.\i386\wrappers.h
 # Begin Source File
 
 SOURCE=C:\BOCHS\bochs.out
+# End Source File
+# Begin Source File
+
+SOURCE=.\kernel.def
 # End Source File
 # Begin Source File
 
