@@ -1,0 +1,29 @@
+<html>
+
+<head>
+<title><% Title %></title>
+<meta name="generator" content="Microsoft FrontPage 4.0">
+<meta name="preprocessor" content="<% Ver %>">
+</head>
+
+<body>
+<table border="0" width="100%">
+  <tr>
+    <td bgcolor="#CBCBE6"><img border="0" src="images/logo3.gif"></td>
+    <td width="100%" bgcolor="#6F6FB9" colspan="3"><strong><font color="#FFFFFF"><% Title %></font></strong></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td bgcolor="#<% c1 %>"><a href="index.html">Home</a></td>
+    <td bgcolor="#<% c2 %>"><a href="download.html">Downloads</a></td>
+    <td bgcolor="#CBCBE6" width="100%"></td>
+  </tr>
+</table>
+<p>
+    
+<% Body %>
+
+</p>
+</body>
+
+</html>
