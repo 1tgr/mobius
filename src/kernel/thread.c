@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.23 2002/08/19 19:56:39 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.24 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -329,7 +329,7 @@ bool ThrAllocateThreadInfo(thread_t *thr)
             NULL,
             3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
 
-    wprintf(L"ThrAllocateThreadInfo(%s/%u): %p\n", thr->process->exe, thr->id, thr->info);
+    //wprintf(L"ThrAllocateThreadInfo(%s/%u): %p\n", thr->process->exe, thr->id, thr->info);
     if (thr->info == NULL)
         return false;
 
@@ -423,7 +423,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     if (isKernel)
     {
         stack = (addr_t) thr->kernel_stack;
-        wprintf(L"ThrCreateThread(kernel): stack at %x\n", stack);
+        //wprintf(L"ThrCreateThread(kernel): stack at %x\n", stack);
     }
     else
     {
@@ -433,7 +433,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
         {
             stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
                 3 | MEM_READ | MEM_WRITE);
-            wprintf(L"ThrCreateThread(user): user stack at %x\n", stack);
+            //wprintf(L"ThrCreateThread(user): user stack at %x\n", stack);
             stack += 0x100000;
         }
         else

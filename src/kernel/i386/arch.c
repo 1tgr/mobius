@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.23 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.24 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -355,14 +355,14 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
     context_t *new;
     thread_apc_t *a, *next;
     cpu_t *c;
-    
+
     c = cpu();
     c->current_thread = thr;
     if (isNewAddressSpace)
         __asm__("mov %0, %%cr3"
             :
             : "r" (thr->process->page_dir_phys));
-    
+
     new = ThrGetContext(thr);
 
     if (new->eflags & EFLAG_VM)
@@ -453,19 +453,8 @@ void ArchPowerOff(void)
     /*HndClose(current()->process, hnd, 0);*/
 }
 
-typedef struct keydef_t keydef_t;
-struct keydef_t
-{
-    uint32_t normal;
-    uint32_t shift;
-    uint32_t control;
-    uint32_t control_shift;
-    uint32_t altgr;
-    uint32_t altgr_shift;
-};
-
-#include <os/keyboard.h>
-#include "../../drivers/keyboard/british.h"
+//#include <os/keyboard.h>
+#include "../../drivers/keyboard/british.c"
 
 wchar_t ArchGetKey(void)
 {

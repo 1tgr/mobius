@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.24 2002/08/20 22:58:00 pavlovskii Exp $ */
+/* $Id: main.c,v 1.25 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -54,7 +54,7 @@ static void KernelCpuMeter(void)
 static void __initcode KeInstallDevices(void)
 {
     unsigned i, j, count;
-    wchar_t value[10], line[256], *tok, *comma;
+    wchar_t value[10], line[256], *tok, *comma, key[50];
     const wchar_t *ptr, *driver, *device_path, *dest;
     bool is_mount;
     device_config_t *cfg;
@@ -149,12 +149,12 @@ static void __initcode KeInstallDevices(void)
             cfg->bus_type = DEV_BUS_UNKNOWN;
             cfg->device_class = 0;
             cfg->reserved = 0;
-            wprintf(L"Installing device %s using driver %s\n", device_path, driver);
-            DevInstallDevice(driver, device_path, cfg);
+            wprintf(L"-- %s (%s)\n", device_path, driver);
+            swprintf(key, L"ISA/%s", driver);
+            DevInstallDevice(driver, device_path, cfg, key);
         }
 
         TextUpdateProgress(0, i, count - 1);
-        wprintf(L"--\n");
         swprintf(value, L"%u", i + 1);
     }
 

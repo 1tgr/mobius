@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.20 2002/08/17 22:52:13 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.21 2002/08/29 13:59:38 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,20 +43,6 @@ void ShCtrlCThread(void *param)
     ThrExitThread(0);
 }
 
-/*void ShCtrlCThread(void *param)
-{
-    char ch;
-    for (;;)
-    {
-        do
-        {
-            ch = ShReadKey();
-        } while (ch == 0);
-        _cputs(&ch, 1);
-        fflush(stdout);
-    }
-}*/
-
 void ShCmdHelp(const wchar_t *command, wchar_t *params)
 {
     wchar_t text[1024];
@@ -69,7 +55,7 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
         printf("Valid commands are:\n");
         for (i = 0; sh_commands[i].name != NULL; i++)
         {
-            for (j = wcslen(sh_commands[i].name); j < 8; j++)
+            for (j = wcslen(sh_commands[i].name); j < 10; j++)
                 printf(" ");
             _cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
             if (i > 0 && i % 8 == 0)
@@ -79,7 +65,7 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
         printf("\n\nValid file actions are:\n");
         for (i = 0; sh_actions[i].name != NULL; i++)
         {
-            for (j = wcslen(sh_actions[i].name); j < 8; j++)
+            for (j = wcslen(sh_actions[i].name); j < 10; j++)
                 printf(" ");
             _cputws(sh_actions[i].name, wcslen(sh_actions[i].name));
             if (i > 0 && i % 8 == 0)
@@ -534,7 +520,8 @@ void ShCmdPoke(const wchar_t *command, wchar_t *params)
     FsClose(file);
 }
 
-static bool ShExecProcess(const wchar_t *command, const wchar_t *params)
+static handle_t ShExecProcess(const wchar_t *command, const wchar_t *params, 
+                              bool wait)
 {
     wchar_t buf[MAX_PATH], *space;
     handle_t spawned;
@@ -577,13 +564,17 @@ static bool ShExecProcess(const wchar_t *command, const wchar_t *params)
             swprintf(info.cmdline, L"%s %s", buf, params);
 
         spawned = ProcSpawnProcess(buf, &info);
-        ThrWaitHandle(spawned);
-        code = ProcGetExitCode(spawned);
-        wprintf(L"The process %s has exited with code %d\n", 
-            buf, code);
-        HndClose(spawned);
-        //__asm__("int3");
-        return true;
+
+        if (wait)
+        {
+            ThrWaitHandle(spawned);
+            code = ProcGetExitCode(spawned);
+            wprintf(L"The process %s has exited with code %d\n", 
+                buf, code);
+            HndClose(spawned);
+        }
+
+        return spawned;
     }
     else
         return false;
@@ -844,23 +835,98 @@ void ShCmdEcho(const wchar_t *cmd, wchar_t *params)
     wprintf(L"%s\n", params);
 }
 
+void ShCmdMount(const wchar_t *cmd, wchar_t *params)
+{
+    unsigned num_names;
+    wchar_t **names, **values;
+    const wchar_t *fs, *path, *device;
+
+    num_names = ShParseParams(params, &names, &values, NULL);
+    fs = ShFindParam(names, values, L"fs");
+    path = ShFindParam(names, values, L"path");
+    device = ShFindParam(names, values, L"device");
+
+    if (num_names == 0 ||
+        fs == NULL ||
+        path == NULL)
+    {
+        wprintf(L"usage: %s \\fs=<fs> \\path=<path> [\\device=<device>]\n",
+            cmd);
+        free(names);
+        free(values);
+        return;
+    }
+
+    wprintf(L"mount: mounting %s on %s as %s\n",
+        device, path, fs);
+    if (!FsMount(path, fs, device))
+        _pwerror(L"mount");
+}
+
+void ShCmdDismount(const wchar_t *cmd, wchar_t *params)
+{
+}
+
+void ShCmdPipe(const wchar_t *cmd, wchar_t *params)
+{
+    handle_t server, pipe[2];
+    char buf[2];
+    wchar_t handle[11];
+    size_t bytes;
+
+    if (!FsCreatePipe(pipe))
+    {
+        _pwerror(L"pipe");
+        return;
+    }
+
+    wprintf(L"ShCmdPipe: client = %u, server = %u\n", pipe[0], pipe[1]);
+    swprintf(handle, L"0x%x", pipe[1]);
+    HndSetInheritable(pipe[1], true);
+    server = ShExecProcess(L"/System/Boot/pserver", handle, false);
+
+    do
+    {
+        if (FsReadSync(pipe[0], buf, _countof(buf) - 1, &bytes))
+        {
+            buf[bytes] = '\0';
+            wprintf(L"%u [%S]\n", bytes, buf);
+            //wprintf(L"%u bytes read\n", bytes);
+        }
+        else
+        {
+            _pwerror(L"read");
+            break;
+        }
+    } while (buf[0] != '\n');
+
+    ThrWaitHandle(server);
+    wprintf(L"ShCmdPipe: server exited\n");
+    HndClose(server);
+    HndClose(pipe[0]);
+    HndClose(pipe[1]);
+}
+
 shell_command_t sh_commands[] =
 {
     { L"cd",        ShCmdCd,        3 },
     { L"cls",       ShCmdCls,       6 },
     { L"detach",    ShCmdDetach,    10 },
     { L"dir",       ShCmdDir,       4 },
+    { L"dismount",  ShCmdDismount,  18 },
     { L"dump",      ShCmdDump,      8 },
     { L"echo",      ShCmdEcho,      16 },
     { L"exit",      ShCmdExit,      2 },
     { L"help",      ShCmdHelp,      1 },
     { L"info",      ShCmdInfo,      12 },
+    { L"mount",     ShCmdMount,     17 },
     { L"off",       ShCmdOff,       14 },
     { L"parse",     ShCmdParse,     11 },
     { L"poke",      ShCmdPoke,      7 },
     { L"sleep",     ShCmdSleep,     15 },
     { L"type",      ShCmdType,      5 },
     { L"v86",       ShCmdV86,       13 },
+    { L"pipe",      ShCmdPipe,      19 },
     { NULL,         NULL,           0 },
 };
 
@@ -915,7 +981,7 @@ bool ShAction(const wchar_t *command, wchar_t *params)
 
             if (_wcsmatch(info.mimetype, sh_actions[i].mimetype) == 0)
             {
-                if (!ShExecProcess(sh_actions[i].program, params))
+                if (ShExecProcess(sh_actions[i].program, params, true) == NULL)
                     _pwerror(sh_actions[i].program);
                 return true;
             }
@@ -934,7 +1000,7 @@ bool ShAction(const wchar_t *command, wchar_t *params)
 
 bool ShExternalCommand(const wchar_t *command, wchar_t *params)
 {
-    return ShExecProcess(command, params);
+    return ShExecProcess(command, params, true) != NULL;
 }
 
 bool ShInvalidCommand(const wchar_t *command, wchar_t *params)
@@ -1012,6 +1078,5 @@ int main(void)
                 break;    
     }
 
-    /*iconv_close(sh_iconv);*/
     return EXIT_SUCCESS;
 }

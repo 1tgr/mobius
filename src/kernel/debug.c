@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.14 2002/08/19 19:56:37 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.15 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -832,6 +832,30 @@ static void DbgCmdKill(wchar_t *cmd, wchar_t *params)
     dbg_handled = false;
 }
 
+static void DbgCmdPdbr(wchar_t *cmd, wchar_t *params)
+{
+    process_t *proc;
+
+    if (*params == '\0')
+    {
+        uint32_t pdbr;
+        __asm__("mov %%cr3, %0" : "=r" (pdbr));
+        wprintf(L"Current PDBR: cr3 = %08x\n", pdbr);
+    }
+    else
+    {
+        proc = DbgFindProcess(wcstol(params, NULL, 0));
+        if (proc == NULL)
+        {
+            wprintf(L"%s: unknown process\n", params);
+            return;
+        }
+
+        wprintf(L"PDBR for process %u: cr3 = %08x\n", 
+            proc->id, proc->page_dir_phys);
+    }
+}
+
 static void DbgCmdHelp(wchar_t *cmd, wchar_t *params);
 
 static struct
@@ -859,6 +883,7 @@ static struct
     { L"malloc",    DbgCmdMalloc },
     { L"mal",       DbgCmdMalloc },
     { L"leak",      DbgCmdLeak },
+    { L"pdbr",      DbgCmdPdbr },
 };
 
 void DbgCmdHelp(wchar_t *cmd, wchar_t *params)

@@ -1,4 +1,4 @@
-/* $Id: ip.c,v 1.1 2002/08/17 17:08:32 pavlovskii Exp $ */
+/* $Id: ip.c,v 1.2 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/net.h>
@@ -33,7 +33,7 @@ static status_t IpSendPacket(net_binding_t *bind, uint32_t to, uint8_t proto,
                              void *data, size_t length)
 {
     net_ip *packet;
-    uint8_t to_mac[6];
+    const net_hwaddr_t *hwto;
     page_array_t *pages;
     request_eth_t req_eth;
     status_t ret;
@@ -58,7 +58,7 @@ static status_t IpSendPacket(net_binding_t *bind, uint32_t to, uint8_t proto,
     packet->ip_chk = IpChecksum(packet, sizeof(net_ip));
     memcpy(packet + 1, data, length);
 
-    ArpLookupIpAddress(to, to_mac);
+    hwto = ArpLookupIpAddress(to);
 
 #ifdef DEBUG
     wprintf(L"IpSendPacket: %u.%u.%u.%u => %02X-%02X-%02X-%02X-%02X-%02X\n",
@@ -69,7 +69,7 @@ static status_t IpSendPacket(net_binding_t *bind, uint32_t to, uint8_t proto,
 
     pages = MemCreatePageArray(packet, length_packet);
     req_eth.header.code = ETH_SEND;
-    memcpy(req_eth.params.eth_send.to, to_mac, 6);
+    memcpy(req_eth.params.eth_send.to, hwto->u.ethernet, 6);
     req_eth.params.eth_send.type = htons(ETH_FRAME_IP);
     req_eth.params.eth_send.pages = pages;
     req_eth.params.eth_send.length = length_packet;
@@ -116,7 +116,7 @@ void IpPing(net_binding_t *bind, uint32_t ip)
     } packet;
 
     page_array_t *pages;
-    uint8_t to[6];
+    const net_hwaddr_t *hwto;
     request_eth_t req_eth;
     unsigned i;
 
@@ -145,7 +145,7 @@ void IpPing(net_binding_t *bind, uint32_t ip)
     packet.ping.ping_icmp.icmp_chk = 
         IpChecksum(&packet.ping, sizeof(packet.ping) + sizeof(packet.data));
 
-    ArpLookupIpAddress(packet.ip.ip_dst, to);
+    hwto = ArpLookupIpAddress(packet.ip.ip_dst);
 
 #ifdef DEBUG
     wprintf(L"IpPing: %u.%u.%u.%u => %02X-%02X-%02X-%02X-%02X-%02X\n",
@@ -155,7 +155,7 @@ void IpPing(net_binding_t *bind, uint32_t ip)
 #endif
 
     req_eth.header.code = ETH_SEND;
-    memcpy(req_eth.params.eth_send.to, to, 6);
+    memcpy(req_eth.params.eth_send.to, hwto->u.ethernet, 6);
     req_eth.params.eth_send.type = htons(ETH_FRAME_IP);
     req_eth.params.eth_send.pages = pages;
     req_eth.params.eth_send.length = sizeof(packet);
@@ -171,8 +171,8 @@ static void IpBind(net_protocol_t *proto, net_binding_t *bind, void **cookie)
 
 static void IpReceivePacket(net_protocol_t *proto, 
                             net_binding_t *bind,
-                            const char *from, 
-                            const char *to,
+                            const net_hwaddr_t *from, 
+                            const net_hwaddr_t *to,
                             void *data, 
                             size_t length)
 {

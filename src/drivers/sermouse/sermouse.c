@@ -139,6 +139,9 @@ bool MseIsr(device_t *dev, uint8_t irq)
     {
         temp = in(mouse->iobase + 0);
         wprintf(L"%02X ", temp);
+
+        if (temp & 0x80)
+            mouse->bytes = 0;
         mouse->data[mouse->bytes++] = temp;
     }
 

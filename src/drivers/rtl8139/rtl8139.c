@@ -1,4 +1,4 @@
-/* $Id: rtl8139.c,v 1.1 2002/08/17 17:08:32 pavlovskii Exp $ */
+/* $Id: rtl8139.c,v 1.2 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -319,7 +319,11 @@ void RtlStartIo(rtl8139_t *rtl)
         switch (io->req->code)
         {
         case ETH_SEND:
-            tx = io->extra;
+            assert(io->extra == NULL);
+            tx = malloc(sizeof(txpacket_t));
+            if (tx == NULL)
+                continue;
+
             if (!(in32(rtl->iobase + TxStatus0 + rtl->cur_tx * 4) & TxHostOwns))
             {
                 wprintf(L"rtl8139: buffer %u not available\n", rtl->cur_tx);
@@ -328,7 +332,7 @@ void RtlStartIo(rtl8139_t *rtl)
 
             memcpy(rtl->tx_ring, req_eth->params.eth_send.to, ETH_ALEN);
             memcpy(rtl->tx_ring + ETH_ALEN, rtl->station_address, ETH_ALEN);
-	        memcpy(rtl->tx_ring + 2 * ETH_ALEN, &req_eth->params.eth_send.type, 2);
+            memcpy(rtl->tx_ring + 2 * ETH_ALEN, &req_eth->params.eth_send.type, 2);
 
             len = min(io->length, ETH_MAX_MTU);
             buf = DevMapBuffer(io);
@@ -336,19 +340,20 @@ void RtlStartIo(rtl8139_t *rtl)
             DevUnmapBuffer();
 
             len += ETH_HLEN;
-	        //len += ETH_HLEN;
-	        wprintf(L"rtl8139: sending %d bytes, cur_tx = %u... ", len, rtl->cur_tx);
+            wprintf(L"rtl8139: sending %d bytes, cur_tx = %u... ", len, rtl->cur_tx);
 
-	        /* Note: RTL8139 doesn't auto-pad, send minimum payload (another 4
-	         * bytes are sent automatically for the FCS, totalling to 64 bytes). */
-	        while (len < ETH_ZLEN)
-		        rtl->tx_ring[len++] = '\0';
+            /* Note: RTL8139 doesn't auto-pad, send minimum payload (another 4
+             * bytes are sent automatically for the FCS, totalling to 64 bytes). */
+            while (len < ETH_ZLEN)
+                rtl->tx_ring[len++] = '\0';
 
             tx->buffer = rtl->cur_tx;
             /* xxx -- this isn't used yet */
             tx->timeout = SysUpTime() + 1000;
-	        out32(rtl->iobase + TxAddr0 + rtl->cur_tx * 4, rtl->tx_phys);
-	        out32(rtl->iobase + TxStatus0 + rtl->cur_tx * 4, ((TX_FIFO_THRESH<<11) & 0x003f0000) | len);
+            io->extra = tx;
+
+            out32(rtl->iobase + TxAddr0 + rtl->cur_tx * 4, rtl->tx_phys);
+            out32(rtl->iobase + TxStatus0 + rtl->cur_tx * 4, ((TX_FIFO_THRESH<<11) & 0x003f0000) | len);
             break;
 
         case ETH_RECEIVE:
@@ -401,18 +406,19 @@ void RtlHandleRx(rtl8139_t *rtl)
     rxpacket_t *packet;
 
     ring_offs = rtl->cur_rx % RX_BUF_LEN;
-	rx_status = *(uint32_t*) (rtl->rx_ring + ring_offs);
-	rx_size = rx_status >> 16;
-	rx_status &= 0xffff;
+    rx_status = *(uint32_t*) (rtl->rx_ring + ring_offs);
+    rx_size = rx_status >> 16;
+    rx_status &= 0xffff;
 
-	if ((rx_status & (RxBadSymbol | RxRunt | RxTooLong | RxCRCErr | RxBadAlign)) ||
-	    (rx_size < ETH_ZLEN) || 
+    if ((rx_status & (RxBadSymbol | RxRunt | RxTooLong | RxCRCErr | RxBadAlign)) ||
+        (rx_size < ETH_ZLEN) || 
         (rx_size > ETH_FRAME_LEN + 4))
     {
-		wprintf(L"rx error 0x%x\n", rx_status);
-		RtlReset(rtl);	/* this clears all interrupts still pending */
-		return;
-	}
+        wprintf(L"rx error 0x%x\n", rx_status);
+        RtlReset(rtl);  /* this clears all interrupts still pending */
+        RtlStartIo(rtl);
+        return;
+    }
 
     packet = malloc(sizeof(rxpacket_t) - 1 + rx_size - 4);
     if (packet == NULL)
@@ -420,29 +426,29 @@ void RtlHandleRx(rtl8139_t *rtl)
 
     packet->length = rx_size - 4;   /* no one cares about the FCS */
     /* Received a good packet */
-	if (ring_offs + 4 + rx_size - 4 > RX_BUF_LEN)
+    if (ring_offs + 4 + rx_size - 4 > RX_BUF_LEN)
     {
-		int semi_count = RX_BUF_LEN - ring_offs - 4;
+        int semi_count = RX_BUF_LEN - ring_offs - 4;
 
-		memcpy(packet->data, rtl->rx_ring + ring_offs + 4, semi_count);
-		memcpy(packet->data + semi_count, rtl->rx_ring, rx_size - 4 - semi_count);
+        memcpy(packet->data, rtl->rx_ring + ring_offs + 4, semi_count);
+        memcpy(packet->data + semi_count, rtl->rx_ring, rx_size - 4 - semi_count);
         //wprintf(L"rx packet %d+%d bytes", semi_count,rx_size - 4 - semi_count);
-	}
+    }
     else
     {
-		memcpy(packet->data, rtl->rx_ring + ring_offs + 4, packet->length);
-		//wprintf(L"rx packet %d bytes", rx_size-4);
-	}
+        memcpy(packet->data, rtl->rx_ring + ring_offs + 4, packet->length);
+        //wprintf(L"rx packet %d bytes", rx_size-4);
+    }
 
-	/*wprintf(L" at %X type %02X%02X rxstatus %hX\n",
-		(unsigned long)(rtl->rx_ring + ring_offs+4),
-		packet->data[12], packet->data[13], rx_status);*/
+    /*wprintf(L" at %X type %02X%02X rxstatus %hX\n",
+        (unsigned long)(rtl->rx_ring + ring_offs+4),
+        packet->data[12], packet->data[13], rx_status);*/
 
     packet->type = *(unsigned short*) (packet->data + 12);
     LIST_ADD(rtl->packet, packet);
 
     rtl->cur_rx = (rtl->cur_rx + rx_size + 4 + 3) & ~3;
-	out16(rtl->iobase + RxBufPtr, rtl->cur_rx - 16);
+    out16(rtl->iobase + RxBufPtr, rtl->cur_rx - 16);
 
     RtlStartIo(rtl);
 }
@@ -462,12 +468,16 @@ void RtlHandleTx(rtl8139_t *rtl)
         if (io->req->code == ETH_SEND)
         {
             tx = io->extra;
+            assert(tx != NULL);
             assert(tx->buffer != -1);
             if ((in32(rtl->iobase + TxStatus0 + tx->buffer * 4) & TxHostOwns))
             {
-                wprintf(L"buffer %u sent\n", tx->buffer);
+                wprintf(L"buffer %u (%p) sent\n", tx->buffer, tx);
+                free(tx);
                 DevFinishIo(&rtl->dev, io, 0);
             }
+            else
+                wprintf(L"host doesn't own buffer %u (%p)\n", tx->buffer, tx);
         }
     }
 
@@ -478,12 +488,14 @@ bool RtlRequest(device_t* dev, request_t* req)
 {
     rtl8139_t *rtl;
     request_eth_t *req_eth;
+    request_net_t *req_net;
     asyncio_t *io;
     bool was_empty;
-    txpacket_t *tx;
+    net_hwaddr_t *addr;
 
     rtl = (rtl8139_t*) dev;
     req_eth = (request_eth_t*) req;
+    req_net = (request_net_t*) req;
     switch (req->code)
     {
     case DEV_REMOVE:
@@ -502,13 +514,6 @@ bool RtlRequest(device_t* dev, request_t* req)
         else
             was_empty = true;
 
-        tx = malloc(sizeof(txpacket_t));
-        if (tx == NULL)
-        {
-            req->result = errno;
-            return false;
-        }
-
         io = DevQueueRequest(&rtl->dev, 
             &req_eth->header, 
             sizeof(*req_eth),
@@ -518,12 +523,10 @@ bool RtlRequest(device_t* dev, request_t* req)
         if (io == NULL)
         {
             req->result = errno;
-            free(tx);
             return false;
         }
 
-        tx->buffer = -1;    /* not sent yet */
-        io->extra = tx;
+        io->extra = NULL;
         if (was_empty)
         {
             SpinAcquire(&rtl->sem);
@@ -533,11 +536,24 @@ bool RtlRequest(device_t* dev, request_t* req)
 
         return true;
 
-    case ETH_ADAPTOR_INFO:
-        memcpy(req_eth->params.eth_adaptor_info.station_address, 
-            rtl->station_address, 
-            6);
-        req_eth->params.eth_adaptor_info.mtu = ETH_MAX_MTU;
+    case NET_GET_HW_INFO:
+        addr = req_net->params.net_hw_info.addr;
+        if (addr != NULL)
+        {
+            if (req_net->params.net_hw_info.addr_data_size < 6)
+            {
+                req->result = EBUFFER;
+                req_net->params.net_hw_info.addr_data_size = 6;
+                return false;
+            }
+
+            memcpy(addr->u.ethernet, rtl->station_address, 6);
+            addr->type = NET_HW_ETHERNET;
+            addr->data_size = 6;
+        }
+
+        req_net->params.net_hw_info.addr_data_size = 6;
+        req_net->params.net_hw_info.mtu = ETH_MAX_MTU;
         return true;
     }
 
@@ -565,9 +581,6 @@ bool RtlIsr(device_t *dev, uint8_t irq)
     else
         wprintf(L"rtl8139: unknown interrupt: isr = %04x\n", status);
 
-    /* See RTL8139 Programming Guide V0.1 for the official handling of
-     * Rx overflow situations.  The document itself contains basically no
-     * usable information, except for a few exception handling rules.  */
     out16(rtl->iobase + IntrStatus, status & (RxFIFOOver | RxOverflow | RxOK));
     out16(rtl->iobase + IntrMask, IntrDefault);
     SpinRelease(&rtl->sem);

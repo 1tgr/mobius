@@ -1,43 +1,84 @@
-/* $Id: arp.c,v 1.1 2002/08/17 17:08:32 pavlovskii Exp $ */
+/* $Id: arp.c,v 1.2 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/net.h>
+
 #include <stdio.h>
+#include <wchar.h>
 
 typedef struct arp_adaptor_t arp_adaptor_t;
 struct arp_adaptor_t
 {
     uint32_t ip;
-    uint8_t station_address[6];
+    net_hwaddr_t *hwaddr;
 };
 
 static struct
 {
     uint32_t ip;
-    uint8_t mac[6];
+    net_hwaddr_t *addr;   
 } arp_table[16];
 
 static spinlock_t sem_arp;
 static unsigned arp_count;
 
-bool ArpLookupIpAddress(uint32_t ip, uint8_t *eth)
+int NetCompareHwAddr(const net_hwaddr_t *addr1, const net_hwaddr_t *addr2)
+{
+    if (addr1->type != addr2->type)
+        return addr1->type - addr2->type;
+    else
+        return memcmp(addr1->u.raw, addr2->u.raw, 
+            min(addr1->data_size, addr2->data_size));
+}
+
+net_hwaddr_t *NetCopyHwAddr(const net_hwaddr_t *addr)
+{
+    net_hwaddr_t *ret;
+
+    ret = malloc(sizeof(*ret) - sizeof(ret->u) + addr->data_size);
+    if (ret == NULL)
+        return NULL;
+
+    ret->type = addr->type;
+    ret->data_size = addr->data_size;
+    memcpy(ret->u.raw, addr->u.raw, ret->data_size);
+    return ret;
+}
+
+const wchar_t *NetFormatHwAddr(const net_hwaddr_t *addr)
+{
+    static wchar_t ret[30];
+    wchar_t *ch;
+    unsigned i;
+
+    i = 0;
+    ch = ret;
+    while (i < addr->data_size && ch < ret + _countof(ret) - 1)
+        ch += swprintf(ch, L"%02X-", addr->u.raw[i++]);
+
+    ch[-1] = '\0';
+    return ret;
+}
+
+const net_hwaddr_t *ArpLookupIpAddress(uint32_t ip)
 {
     unsigned i;
+    const net_hwaddr_t *ret;
 
     SpinAcquire(&sem_arp);
     for (i = 0; i < arp_count; i++)
         if (arp_table[i].ip == ip)
         {
-            memcpy(eth, arp_table[i].mac, 6);
+            ret = arp_table[i].addr;
             SpinRelease(&sem_arp);
-            return true;
+            return ret;
         }
 
     SpinRelease(&sem_arp);
-    return false;
+    return NULL;
 }
 
-void ArpAddIpAddress(uint32_t ip, const uint8_t *eth)
+void ArpAddIpAddress(uint32_t ip, const net_hwaddr_t *addr)
 {
     unsigned i;
 
@@ -45,7 +86,8 @@ void ArpAddIpAddress(uint32_t ip, const uint8_t *eth)
 
     for (i = 0; i < arp_count; i++)
         if (arp_table[i].ip == ip ||
-            memcmp(arp_table[i].mac, eth, 6) == 0)
+            (arp_table[i].addr != NULL && 
+                NetCompareHwAddr(addr, arp_table[i].addr) == 0))
             break;
 
     if (i == arp_count)
@@ -55,43 +97,59 @@ void ArpAddIpAddress(uint32_t ip, const uint8_t *eth)
         else
             i = arp_count++;
 
-        wprintf(L"ArpAddIpAddress: %02X-%02X-%02X-%02X-%02X-%02X => %u.%u.%u.%u\n",
-            eth[0], eth[1], eth[2], eth[3], eth[4], eth[5], 
+        wprintf(L"ArpAddIpAddress: %s => %u.%u.%u.%u\n",
+            NetFormatHwAddr(addr), 
             IP_A(ip), IP_B(ip), IP_C(ip), IP_D(ip));
     }
 
+    if (arp_table[i].addr != NULL)
+        free(arp_table[i].addr);
+
     arp_table[i].ip = ip;
-    memcpy(arp_table[i].mac, eth, 6);
+    arp_table[i].addr = NetCopyHwAddr(addr);
     SpinRelease(&sem_arp);
 }
 
 static void ArpBind(net_protocol_t *proto, net_binding_t *bind, void **cookie)
 {
     arp_adaptor_t *adaptor;
-    request_eth_t req_eth;
+    request_net_t req_net;
+    union
+    {
+        net_hwaddr_t addr;
+        uint8_t buf[14];
+    } u;
 
     adaptor = malloc(sizeof(arp_adaptor_t));
     assert(adaptor != NULL);
     adaptor->ip = IP_ADDRESS(192, 168, 0, 200);
 
-    req_eth.header.code = ETH_ADAPTOR_INFO;
-    if (IoRequestSync(bind->dev, &req_eth.header))
-        memcpy(adaptor->station_address, 
-            req_eth.params.eth_adaptor_info.station_address, 
-            6);
+    u.addr.type = 0;
+    u.addr.data_size = 0;
+    req_net.header.code = NET_GET_HW_INFO;
+    req_net.params.net_hw_info.addr_data_size = sizeof(u.buf);
+    req_net.params.net_hw_info.addr = &u.addr;
+    IoRequestSync(bind->dev, &req_net.header);
+    adaptor->hwaddr = NetCopyHwAddr(&u.addr);
 
-    wprintf(L"ArpBind: binding to adaptor %02X-%02X-%02X-%02X-%02X-%02X on ip %u.%u.%u.%u\n",
-        adaptor->station_address[0], adaptor->station_address[1], adaptor->station_address[2], 
-        adaptor->station_address[3], adaptor->station_address[4], adaptor->station_address[5], 
+    wprintf(L"ArpBind: binding to adaptor %s on ip %u.%u.%u.%u\n",
+        NetFormatHwAddr(adaptor->hwaddr),
         IP_A(adaptor->ip), IP_B(adaptor->ip), IP_C(adaptor->ip), IP_D(adaptor->ip));
 
     *cookie = adaptor;
 }
 
+static void ArpUnbind(net_protocol_t *proto, net_binding_t *bind, void *cookie)
+{
+    arp_adaptor_t *adaptor;
+    adaptor = cookie;
+    free(adaptor->hwaddr);
+}
+
 static void ArpReceivePacket(net_protocol_t *proto, 
                              net_binding_t *bind,
-                             const char *from, 
-                             const char *to,
+                             const net_hwaddr_t *from, 
+                             const net_hwaddr_t *to,
                              void *data, 
                              size_t length)
 {
@@ -118,7 +176,7 @@ static void ArpReceivePacket(net_protocol_t *proto,
             reply = *arp;
             reply.arp_op = htons(ARP_OP_REPLY);
 
-            memcpy(&reply.arp_enet_sender, adaptor->station_address, 6);
+            memcpy(&reply.arp_enet_sender, adaptor->hwaddr->u.ethernet, 6);
             reply.arp_ip_sender = adaptor->ip;
 
             memcpy(&reply.arp_enet_target, &arp->arp_enet_sender, 6);
@@ -126,7 +184,7 @@ static void ArpReceivePacket(net_protocol_t *proto,
 
             pages = MemCreatePageArray(&reply, sizeof(reply));
             req_eth.header.code = ETH_SEND;
-            memcpy(req_eth.params.eth_send.to, from, 6);
+            memcpy(req_eth.params.eth_send.to, from->u.ethernet, 6);
             req_eth.params.eth_send.type = htons(ETH_FRAME_ARP);
             req_eth.params.eth_send.pages = pages;
             req_eth.params.eth_send.length = sizeof(reply);
@@ -151,8 +209,8 @@ static void ArpReceivePacket(net_protocol_t *proto,
 
 static const net_protocol_vtbl_t arp_vtbl = 
 {
-    ArpBind,    /* bind */
-    NULL,       /* unbind */
+    ArpBind,
+    ArpUnbind,
     ArpReceivePacket,
 };
 

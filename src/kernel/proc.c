@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.20 2002/08/19 19:56:38 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.21 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -51,6 +51,7 @@ process_t proc_idle =
     {
         0,                      /* hdr.locks */
         'proc',                 /* hdr.tag */
+        0,                      /* flags */
         NULL,                   /* hdr.locked_by */
         0,                      /* hdr.signal */
         {
@@ -93,7 +94,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     KeAtomicInc((unsigned*) &current()->process->hdr.copies);
     proc = ProcCreateProcess(temp);
     if (proc == NULL)
-            return NULL;
+        return NULL;
 
     proc->creator = current()->process;
     proc->info = malloc(sizeof(*proc->info));
@@ -103,7 +104,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
 
     thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
     ScNeedSchedule(true);
-    wprintf(L"ProcSpawnProcess(%s): proc = %p\n", exe, proc);
+    //wprintf(L"ProcSpawnProcess(%s): proc = %p\n", exe, proc);
     return HndDuplicate(current()->process, &proc->hdr);
 }
 
@@ -259,6 +260,7 @@ bool ProcFirstTimeInit(process_t *proc)
         proc->root = proc->cur_dir = proc_idle.root;
     else
     {
+        HndInheritHandles(proc->creator, proc);
         KeAtomicDec((unsigned*) &proc->creator->hdr.copies);
         proc->root = proc->creator->root;
         proc->cur_dir = proc->creator->cur_dir;
@@ -398,13 +400,13 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 #ifdef DEBUG
     static unsigned nest;
     unsigned i;
-    
+
     for (i = 0; i < nest; i++)
         _cputws(L"  ", 2);
-    
+
     wprintf(L"(%u) ProcPageFault(%s, %lx)\n", nest++, proc->exe, addr);
 #endif
-    
+
     if (proc->mod_first == NULL &&
         addr == 0xdeadbeef)
     {
@@ -416,20 +418,37 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 #endif
         return ProcFirstTimeInit(proc);
     }
-    
-    if (addr < 0x80000000 && addr >= proc->stack_end)
+
+    if (addr < 0x80000000 && 
+        addr >= proc->stack_end)
     {
         addr = PAGE_ALIGN(addr);
+        if (MemGetPageState((void*) addr) == 0)
+        {
 #ifdef DEBUG
-        nest--;
-        for (i = 0; i < nest; i++)
-            _cputws(L"  ", 2);
-        wprintf(L"(%u) Stack\n", nest);
+            nest--;
+            for (i = 0; i < nest; i++)
+                _cputws(L"  ", 2);
+            wprintf(L"(%u) Stack\n", nest);
 #endif
-        return MemMap(addr, MemAlloc(), addr + PAGE_SIZE, 
-            PRIV_USER | PRIV_RD | PRIV_WR | PRIV_PRES);
+            return MemMap(addr, MemAlloc(), addr + PAGE_SIZE, 
+                PRIV_USER | PRIV_RD | PRIV_WR | PRIV_PRES);
+        }
+        else
+        {
+            static bool nested;
+            wprintf(L"ProcPageFault: invalid stack page %x\n", addr);
+            if (nested)
+                halt(0);
+            else
+            {
+                nested = true;
+                __asm__("int3");
+            }
+            return false;
+        }
     }
-    
+
     FOREACH (area, proc->area)
     {
         if (area->type != VM_AREA_EMPTY && 
@@ -446,7 +465,7 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
             return VmmPageFault(area, addr, is_writing);
         }
     }
-    
+
     if (proc != &proc_idle)
         FOREACH (area, proc_idle.area)
         {

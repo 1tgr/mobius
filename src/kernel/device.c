@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.31 2002/08/19 19:56:37 pavlovskii Exp $ */
+/* $Id: device.c,v 1.32 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -565,7 +565,7 @@ void DfsFreeDirCookie(fsd_t *fsd, void *dir_cookie)
     free(dir_cookie);
 }
 
-static const fsd_vtbl_t devfs_vtbl =
+static const struct vtbl_fsd_t devfs_vtbl =
 {
     NULL,           /* dismount */
     NULL,           /* get_fs_info */
@@ -601,6 +601,7 @@ fsd_t *DfsMountFs(driver_t *drv, const wchar_t *dest)
 static driver_t devfs_driver =
 {
     &mod_kernel,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -823,7 +824,7 @@ void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 
     io->req->result = result;
 
-    if (io->owner == current())
+    if (io->owner->process == current()->process)
     {
         TRACE0("Not queueing APC\n");
         DevFinishIoApc(io);
@@ -862,8 +863,9 @@ bool DevCancelIo(asyncio_t *io)
 uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
 {
     unsigned i, j;
-    device_resource_t *res = DEV_CFG_RESOURCES(cfg);
+    device_resource_t *res;
 
+    res = cfg->resources;
     for (i = j = 0; i < cfg->num_resources; i++)
         if (res[i].cls == resIrq)
         {
@@ -889,8 +891,9 @@ uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
 device_resource_t *DevCfgFindMemory(const device_config_t *cfg, unsigned n)
 {
     unsigned i, j;
-    device_resource_t *res = DEV_CFG_RESOURCES(cfg);
+    device_resource_t *res;
 
+    res = cfg->resources;
     for (i = j = 0; i < cfg->num_resources; i++)
         if (res[i].cls == resMemory)
         {
@@ -925,7 +928,7 @@ extern driver_t win32fs_driver;
 *    \param	name	Name of the device driver
 *    \return	 A pointer to a device driver
 */
-driver_t *DevInstallNewDriver(const wchar_t *name)
+driver_t *DevInstallNewDriver(const wchar_t *name, const wchar_t *profile_key)
 {
     if (_wcsicmp(name, L"ramfs") == 0)
         return &rd_driver;
@@ -968,6 +971,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
         drv->mod = mod;
         drv->add_device = NULL;
         drv->mount_fs = NULL;
+        drv->profile_key = _wcsdup(profile_key);
 
         DrvInit = (void*) mod->entry;
         //wprintf(L"DevInstallNewDriver: DrvInit = %p\n", DrvInit);
@@ -1107,7 +1111,7 @@ void DevUnloadDriver(driver_t *driver)
 *    \return	 A pointer to the new device object
 */
 bool DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
-                      device_config_t *cfg)
+                      device_config_t *cfg, const wchar_t *profile_key)
 {
     device_t *dev;
     driver_t *drv;
@@ -1119,7 +1123,7 @@ bool DevInstallDevice(const wchar_t *driver, const wchar_t *name,
     if (dev != NULL)
         return true;
 
-    drv = DevInstallNewDriver(driver);
+    drv = DevInstallNewDriver(driver, profile_key);
     if (drv != NULL)
     {
         if (drv->add_device != NULL)

@@ -174,6 +174,10 @@ SOURCE=.\mod_pe.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\pipe.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\port.c
 # End Source File
 # Begin Source File

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.29 2002/08/17 19:13:33 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.30 2002/08/29 13:59:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -246,12 +246,12 @@ uint32_t i386Isr(context_t ctx)
                 i386TrapToDebugger(&ctx);
             else
             {
+                ArchDbgDumpContext(&ctx);
+
                 if (ctx.eflags & EFLAG_VM)
                     wprintf(L"Stack dump not available in V86 mode\n");
                 else
                     DbgDumpStack(old_current->process, ctx.regs.ebp);
-
-                ArchDbgDumpContext(&ctx);
 
                 if (!DbgStartShell())
                 {
@@ -265,21 +265,23 @@ uint32_t i386Isr(context_t ctx)
     }
 
     old_current->ctx_last = ctx.ctx_prev;
+    old_current->kernel_esp = ctx.kernel_esp;
     while (true)
     {
         if (sc_need_schedule)
             ScSchedule();
-        
-        if (old_current != current())
+
+        //if (old_current != current())
         {
-            old_current->kernel_esp = ctx.kernel_esp;
-            if (ArchAttachToThread(current(), old_current != current()))
+            if (ArchAttachToThread(current(), 
+                /*old_current->process != current()->process*/
+                true))
                 return current()->kernel_esp;
             else
                 ScNeedSchedule(true);
         }
-        else
-            return ctx.kernel_esp;
+        //else
+            //return ctx.kernel_esp;
     }
 }
 

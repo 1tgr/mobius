@@ -1,4 +1,4 @@
-/* $Id: isapnp.c,v 1.2 2002/08/17 17:45:38 pavlovskii Exp $ */
+/* $Id: isapnp.c,v 1.3 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 /*
  * Mobius ISAPnP driver
@@ -517,7 +517,7 @@ void PnpAddCard(isapnp_t *pnp, isacard_t *card)
     wprintf(L"isapnp: %s\n", key);
     driver = ProGetString(key, L"Driver", card->name);
     device = ProGetString(key, L"Device", card->name);
-    DevInstallDevice(driver, device, &card->cfg);
+    DevInstallDevice(driver, device, &card->cfg, key);
 }
 
 void PnpAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)

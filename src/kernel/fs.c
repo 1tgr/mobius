@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.29 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.30 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -36,22 +36,25 @@ struct fs_mount_t
 static spinlock_t sem_mounts;
 fs_mount_t *fs_mount_first, *fs_mount_last;
 
+static void FsDoCompletion(fs_asyncio_t *io)
+{
+    assert(io->owner->process == current()->process);
+    *io->original = io->op;
+    io->original = NULL;
+    HndUnlock(NULL, io->file_handle, 'file');
+    EvtSignal(NULL, io->op.event);
+    free(io);
+}
+
 static void FsCompletionApc(void *param)
 {
     fs_asyncio_t *io;
 
     io = param;
     assert(io != NULL);
-    /*wprintf(L"FsCompletionApc(%p): io->owner = %s/%d current = %s/%d\n", 
-        io,
-        io->owner->process->exe, io->owner->id, 
-        current->process->exe, current->id);*/
-    assert(io->owner == current());
-    *io->original = io->op;
-    io->original = NULL;
-    HndUnlock(NULL, io->file_handle, 'file');
-    EvtSignal(NULL, io->op.event);
-    free(io);
+    wprintf(L"FsCompletionApc(%p): io->original = %p\n",
+        io, io->original);
+    FsDoCompletion(param);
 }
 
 void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
@@ -62,11 +65,12 @@ void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
     /*wprintf(L"FsNotifyCompletion(%p): io->owner = %p current = %p\n", 
         io, io->owner, current);*/
 
-    if (io->owner == current())
-        FsCompletionApc(io);
+    if (io->owner->process == current()->process)
+        FsDoCompletion(io);
     else
     {
         wprintf(L"FsNotifyCompletion: queueing APC\n");
+        //MemMap(0x7FFFF000, 0, 0x80000000, PAGE_READFAILED);
         ThrQueueKernelApc(io->owner, FsCompletionApc, io);
     }
 }
@@ -1212,8 +1216,10 @@ bool FsMount(const wchar_t *path, const wchar_t *filesys, const wchar_t *dest)
 {
     driver_t *driver;
     fsd_t *fsd;
+    wchar_t temp[50];
 
-    driver = DevInstallNewDriver(filesys);
+    swprintf(temp, L"FileSystems/%s", filesys);
+    driver = DevInstallNewDriver(filesys, temp);
     if (driver == NULL)
     {
         wprintf(L"%s: unknown driver\n", filesys);

@@ -8,6 +8,7 @@ EXPORTS
     FsClose
     FsCreate
     FsCreateDir
+    FsCreatePipe
     FsDismount
     FsFullPath
     FsIoCtl
@@ -25,6 +26,7 @@ EXPORTS
     FsWriteSync
     Hello
     HndClose
+    HndSetInheritable
     KeLeakBegin
     KeLeakEnd
     KeSetSingleStep

@@ -1,4 +1,4 @@
-/* $Id: maldebug.c,v 1.2 2002/08/21 10:44:32 pavlovskii Exp $ */
+/* $Id: maldebug.c,v 1.3 2002/08/29 13:59:38 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -59,6 +59,7 @@ void __free(void *ptr, const char *file, int line)
         if (maldbg_first == header)
             maldbg_first = header->next;
 
+        header->tag = 0;
         free(header);
     }
 }

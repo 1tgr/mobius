@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.18 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.19 2002/08/29 13:59:37 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -279,4 +279,20 @@ void KeSetSingleStep(bool set)
         ctx->eflags |= EFLAG_TF;
     else
         ctx->eflags &= ~EFLAG_TF;
+}
+
+bool HndSetInheritable(handle_t hnd, bool inheritable)
+{
+    handle_hdr_t *ptr;
+
+    ptr = HndGetPtr(NULL, hnd, 0);
+    if (ptr == NULL)
+        return false;
+
+    if (inheritable)
+        ptr->flags |= HND_FLAG_INHERITABLE;
+    else
+        ptr->flags &= ~HND_FLAG_INHERITABLE;
+
+    return true;
 }

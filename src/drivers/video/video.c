@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.16 2002/08/17 17:45:39 pavlovskii Exp $ */
+/* $Id: video.c,v 1.17 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -420,8 +420,7 @@ void vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     }
 
     dev = malloc(sizeof(video_drv_t));
-    dev->dev.vtbl = &vid_vtbl;
-    dev->dev.driver = drv;
+    DevInitDevice(&dev->dev, &vid_vtbl, drv, 0);
     dev->vid = NULL;
 
     DevAddDevice(&dev->dev, name, cfg);

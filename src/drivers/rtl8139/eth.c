@@ -1,4 +1,4 @@
-/* $Id: eth.c,v 1.1 2002/08/17 17:08:32 pavlovskii Exp $ */
+/* $Id: eth.c,v 1.2 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -31,12 +31,15 @@ static void EthHandleBinding(void)
     page_array_t *pages;
     io_callback_t cb;
     handle_t event;
+    net_hwaddr_t src, dst;
 
     bind = ThrGetCurrent()->info->param;
     //wprintf(L"EthHandleBinding: %04x\n", bind->type);
 
     pages = MemCreatePageArray(packet.raw, sizeof(packet.raw));
     event = EvtAlloc(NULL);
+    src.type = dst.type = NET_HW_ETHERNET;
+    src.data_size = dst.data_size = 6;
 
     while (true)
     {
@@ -59,12 +62,12 @@ static void EthHandleBinding(void)
         SysThrWaitHandle(event);
         KeYield();
 
+        memcpy(src.u.ethernet, packet.header.src, sizeof(src.u.ethernet));
+        memcpy(dst.u.ethernet, packet.header.dst, sizeof(dst.u.ethernet));
         //wprintf(L"EthHandleBinding: got packet\n");
         if (bind->proto->vtbl->receive_packet != NULL)
             bind->proto->vtbl->receive_packet(bind->proto, 
-                bind,
-                packet.header.src, 
-                packet.header.dst, 
+                bind, &src, &dst, 
                 packet.raw + sizeof(packet.header),
                 req_eth.params.eth_receive.length - sizeof(packet.header));
     }

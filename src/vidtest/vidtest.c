@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.8 2002/08/17 22:52:14 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.9 2002/08/29 13:59:38 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -31,6 +31,8 @@ int main(int argc, char **argv)
     fileop_t op;
     void *mem;
     unsigned x, y;
+    handle_t vidmem;
+
     union
     {
         uint8_t *p8;
@@ -66,7 +68,8 @@ int main(int argc, char **argv)
     }
 
     mode = params.vid_setmode;
-    mem = VmmMapShared(mode.framebuffer, NULL, MEM_READ | MEM_WRITE);
+    vidmem = VmmOpenSharedArea(mode.framebuffer);
+    mem = VmmMapSharedArea(vidmem, NULL, MEM_READ | MEM_WRITE);
     if (mem != NULL)
     {
         pix.v = mem;
@@ -100,6 +103,7 @@ int main(int argc, char **argv)
         _pwerror(L"VID_SETMODE");
     }
 
+    HndClose(vidmem);
     FsClose(vid);
     return EXIT_SUCCESS;
 }

@@ -1,4 +1,4 @@
-/* $Id: ext2.c,v 1.5 2002/08/20 16:10:12 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.6 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -888,7 +888,7 @@ void Ext2FlushCache(fsd_t *fsd, file_t *fd)
 {
 }
 
-static const fsd_vtbl_t ext2_vtbl =
+static const vtbl_fsd_t ext2_vtbl =
 {
     Ext2Dismount,
     Ext2GetFsInfo,

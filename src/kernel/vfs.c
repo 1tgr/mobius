@@ -1,4 +1,4 @@
-/* $Id: vfs.c,v 1.5 2002/08/20 22:58:00 pavlovskii Exp $ */
+/* $Id: vfs.c,v 1.6 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 
@@ -190,7 +190,7 @@ static void VfsFreeDirCookie(fsd_t *fsd, void *dir_cookie)
     free(search);
 }
 
-static const fsd_vtbl_t vfs_vtbl =
+static const struct vtbl_fsd_t vfs_vtbl =
 {
     VfsDismount,
     VfsGetFsInfo,
@@ -233,6 +233,7 @@ extern struct module_t mod_kernel;
 driver_t vfs_driver = 
 {
     &mod_kernel,
+    NULL,
     NULL,
     NULL,
     NULL,

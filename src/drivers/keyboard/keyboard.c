@@ -1,10 +1,12 @@
-/* $Id: keyboard.c,v 1.16 2002/08/17 17:45:38 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.17 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/handle.h>
 #include <kernel/arch.h>
 #include <kernel/memory.h>
+#include <kernel/profile.h>
+#include <kernel/fs.h>
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -13,6 +15,7 @@
 #include <errno.h>
 
 #include <os/ioctl.h>
+#include <os/syscall.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -20,18 +23,7 @@
 #include <kernel/driver.h>
 #include "keyboard.h"
 
-typedef struct keydef_t keydef_t;
-struct keydef_t
-{
-    uint32_t normal;
-    uint32_t shift;
-    uint32_t control;
-    uint32_t control_shift;
-    uint32_t altgr;
-    uint32_t altgr_shift;
-};
-
-#include "russian.h"
+keydef_t keys[94];
 
 /* in tty.drv */
 void TtySwitchConsoles(unsigned n);
@@ -332,7 +324,7 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 
 	/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
 	    KbdReboot();*/
-	
+
 	if (key >= KEY_F1 && key <= KEY_F11)
 	    TtySwitchConsoles(key - KEY_F1);
         else if (key == KEY_F12)
@@ -422,32 +414,11 @@ static const device_vtbl_t keyboard_vtbl =
 void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
     keyboard_t* keyb;
-    /*uint32_t i;*/
     uint16_t port, ctrl;
-    /*device_t* kdebug;*/
-    /*uint8_t status;*/
+    const wchar_t *keymap;
+    handle_t file;
 
     keyb = malloc(sizeof(keyboard_t));
-
-    /*if (cfg)
-	i = devFindResource(cfg, dresIo, 0);
-    else
-	i = -1;
-
-    if (i == (uint32_t) -1)
-	port = KEYB_PORT;
-    else
-	port = cfg->resources[i].u.io.base;
-
-    if (cfg)
-	i = devFindResource(cfg, dresIo, 1);
-    else
-	i = -1;
-
-    if (i == (uint32_t) -1)
-	ctrl = KEYB_CTRL;
-    else
-	ctrl = cfg->resources[i].u.io.base;*/
 
     port = KEYB_PORT;
     ctrl = KEYB_CTRL;
@@ -465,40 +436,6 @@ void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 
     TRACE2("keyboard: port = %x ctrl = %x\n", port, ctrl);
 
-    /*
-     * The kernel debugger may have registered our IRQ1, which would make a 
-     *	  mess of keyboard initialization.
-     */
-    /*kdebug = devOpen(L"debugger", NULL);
-    devRegisterIrq(kdebug, 1, false);
-    devClose(kdebug);*/
-
-    /* Keyboard initialisation seems to work best if we leave it alone... */
-#if 0
-    out(port, 0xff); /*reset keyboard	*/ 
-    do {
-	status = in(ctrl);
-    } while (status & 0x02);
-
-    out(ctrl, 0xAA); /*selftest   */
-    in(port);
-    out(ctrl, 0xAB); /*interface selftest   */
-    in(port);
-
-    out(ctrl, 0xAE); /*enable keyboard	 */
-
-    out(port, 0xff); /*reset keyboard	*/
-
-    in(port);
-    in(port);
-
-    out(ctrl, 0xAD); /*disable keyboard   */
-
-    out(ctrl, 0x60);
-    out(port, 0x01 | 0x04 | 0x20 | 0x40);
-
-    out(ctrl, 0xAE); /*enable keyboard	 */
-#elif 1
     /* Reset keyboard and disable scanning until further down */
     TRACE0("Disable...");
     kbdHwWriteRead(keyb, keyb->port, KEYB_RESET_DISABLE, KEYB_ACK);
@@ -549,7 +486,20 @@ void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     TRACE0("done\nEnable...");
     kbdHwWriteRead(keyb, keyb->port, KEYB_ENABLE, KEYB_ACK);
     TRACE0("done\n");
-#endif
+
+    keymap = ProGetString(drv->profile_key, L"DefaultMap", 
+        SYS_BOOT L"/british.kbd");
+    file = FsOpen(keymap, FILE_READ);
+    if (file == NULL)
+    {
+        wprintf(L"keyboard: unable to open key map file %s\n", keymap);
+        __asm__("int3");
+    }
+    else
+    {
+        FsReadSync(file, keys, sizeof(keys), NULL);
+        FsClose(file);
+    }
 
     DevRegisterIrq(1, &keyb->dev);
     DevAddDevice(&keyb->dev, name, cfg);
@@ -558,7 +508,6 @@ void KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 bool DrvInit(driver_t* drv)
 {
     drv->add_device = KbdAddDevice;
-    /*devRegister(L"keyboard", kbdAddDevice(drv, L"keyboard", NULL), NULL); */
     return true;
 }
 

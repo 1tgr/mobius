@@ -1,4 +1,8 @@
-/* $Id: shell.rc,v 1.9 2002/08/17 22:52:13 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.10 2002/08/29 13:59:38 pavlovskii Exp $ */
+
+#ifdef APSTUDIO_INVOKED
+#error Do not edit this with the Visual Studio resource editor
+#endif
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -16,6 +20,10 @@ BEGIN
     12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
     13                      "Loads and runs a .COM file under the DOS emulator"
     14                      "Turns the computer's power off"
+    15                      "xxx -- sleep"
+    16                      "xxx -- echo"
+    17                      "xxx -- mount"
+    18                      "xxx -- dismount"
 
     4096                    "The Möbius: command-line shell\n"
 END

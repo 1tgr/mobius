@@ -44,6 +44,7 @@ EXPORTS
 	FsCreate
 	FsCreateDir
 	FsCreateFileHandle
+	FsCreatePipe
 	FsDismount
 	FsFullPath
 	FsGuessMimeType
@@ -66,6 +67,7 @@ EXPORTS
 	HndIsSignalled
 	HndLock
 	HndRemovePtrEntries
+	HndSetInheritable
 	HndSignal
 	HndSignalPtr
 	HndUnlock

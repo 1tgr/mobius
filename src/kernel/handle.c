@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.16 2002/08/19 19:56:38 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.17 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -218,6 +218,38 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 		assert(ptr->waiting.first == NULL);
 		KeAtomicDec((unsigned*) &ptr->signals);
 	}
+}
+
+void HndInheritHandles(process_t *src, process_t *dest)
+{
+    unsigned i, j;
+    handle_hdr_t *ptr;
+
+    if (dest->handle_allocated < src->handle_allocated)
+    {
+        dest->handles = realloc(dest->handles, src->handle_allocated * sizeof(void*));
+        dest->handle_allocated = src->handle_allocated;
+    }
+
+    for (i = 0; i < src->handle_count; i++)
+    {
+        ptr = src->handles[i];
+        if (ptr != NULL &&
+            ptr->flags & HND_FLAG_INHERITABLE)
+        {
+            if (i >= dest->handle_count)
+            {
+                for (j = dest->handle_count; j <= i; j++)
+                    dest->handles[j] = NULL;
+                dest->handle_count = i + 1;
+            }
+
+            wprintf(L"HndInheritHandles: duplicated handle %u\n", i);
+            assert(dest->handles[i] == NULL);
+            dest->handles[i] = ptr;
+            KeAtomicInc((unsigned*) &ptr->copies);
+        }
+    }
 }
 
 handle_t EvtAlloc(process_t *proc)

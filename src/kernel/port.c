@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.15 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: port.c,v 1.16 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -22,7 +22,7 @@ struct port_t
     wchar_t *name;
     bool is_server;
     port_t *prev, *next;
-    semaphore_t sem_connect;
+    spinlock_t sem_connect;
     unsigned copies;
 
     union
@@ -60,7 +60,7 @@ struct port_dir_t
 {
     fsd_t fsd;
     port_t *server_first, *server_last;
-    semaphore_t sem_listen;
+    spinlock_t sem_listen;
     unsigned port_num_unnamed;
     port_asyncio_t *io_first, *io_last;
 };
@@ -141,8 +141,8 @@ static bool PortConnect(port_t *port, port_dir_t *dir, const wchar_t *name, stat
         return false;
     }
 
-    SemAcquire(&server->sem_connect);
-    SemAcquire(&port->sem_connect);
+    SpinAcquire(&server->sem_connect);
+    SpinAcquire(&port->sem_connect);
     port->u.client.server = server;
     LIST_ADD(server->u.server.waiting, port);
     port->u.client.buffer = malloc(PORT_BUFFER_SIZE);
@@ -150,8 +150,8 @@ static bool PortConnect(port_t *port, port_dir_t *dir, const wchar_t *name, stat
     port->u.client.readptr = port->u.client.writeptr = port->u.client.buffer;
     PortAddRef(port);
     PortAddRef(server);
-    SemRelease(&port->sem_connect);
-    SemRelease(&server->sem_connect);
+    SpinRelease(&port->sem_connect);
+    SpinRelease(&server->sem_connect);
 
     FsNotifyCompletion(server->u.server.listener, 0, 0);
     server->u.server.listener = NULL;
@@ -175,7 +175,7 @@ static port_t *PortCreate(const wchar_t *name)
 
     memset(port, 0, sizeof(port_t));
     port->name = _wcsdup(name);
-    SemInit(&port->sem_connect);
+    SpinInit(&port->sem_connect);
     return port;
 }
 
@@ -330,14 +330,12 @@ void PortDismount(fsd_t *fsd)
 
 status_t PortParseElement(fsd_t *fsd, const wchar_t *name, vnode_t *node)
 {
+    return ENOTIMPL;
 }
 
 status_t PortCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **cookie)
 {
     port_t *port;
-
-    if (*path == '/')
-        path++;
 
     assert(dir == VNODE_ROOT);
     port = PortCreate(name);
@@ -357,8 +355,6 @@ status_t PortLookupFile(fsd_t *fsd, vnode_id_t node, void **cookie)
     port_t *port;
 
     dir = (port_dir_t*) fsd;
-    if (*path == '/')
-        path++;
 
     swprintf(client_name, L"client_%u", ++dir->port_num_unnamed);
 
@@ -390,7 +386,6 @@ void PortFreeCookie(fsd_t *fsd, void *cookie)
 {
     PortRelease(cookie);
 }
-
 
 bool PortQueueRequest(port_dir_t *dir, file_t *file, page_array_t *pages,
                       size_t length, fs_asyncio_t *io, bool is_reading)
@@ -534,7 +529,7 @@ bool PortPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf,
             return false;
         }
 
-        SemAcquire(&dir->sem_listen);
+        SpinAcquire(&dir->sem_listen);
 
         if (!port->is_server)
             LIST_ADD(dir->server, port);
@@ -542,7 +537,7 @@ bool PortPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf,
         port->is_server = true;
         port->u.server.listener = io;
         wprintf(L"PortDoPortRequest(PORT_LISTEN): listening on %p(%s)\n", port, port->name);
-        SemRelease(&dir->sem_listen);
+        SpinRelease(&dir->sem_listen);
         io->op.result = io->original->result = SIOPENDING;
         return true;
 
@@ -569,11 +564,11 @@ bool PortPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf,
         remote = port->u.server.waiting_first;
         wprintf(L"PortDoPortRequest(PORT_ACCEPT): accepting %s on %s\n",
             remote->name, port->name);
-        SemAcquire(&remote->sem_connect);
-        SemAcquire(&port->sem_connect);
+        SpinAcquire(&remote->sem_connect);
+        SpinAcquire(&port->sem_connect);
         LIST_REMOVE(port->u.server.waiting, remote);
         PortRelease(port);
-        SemRelease(&port->sem_connect);
+        SpinRelease(&port->sem_connect);
 
         client = PortCreate(L"");
         client->u.client.buffer = malloc(PORT_BUFFER_SIZE);
@@ -585,7 +580,7 @@ bool PortPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf,
         PortAddRef(client);
         PortAddRef(remote);
 
-        SemRelease(&remote->sem_connect);
+        SpinRelease(&remote->sem_connect);
 
         params->port_accept.client = 
             FsCreateFileHandle(NULL, fsd, client, NULL, params->port_accept.flags);
@@ -611,7 +606,7 @@ void PortFreeDirCookie(fsd_t *fsd, void *dir_cookie)
 {
 }
 
-static const fsd_vtbl_t portfs_vtbl =
+static const struct vtbl_fsd_t portfs_vtbl =
 {
     PortDismount,       /* dismount */
     NULL,               /* get_fs_info */

@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.15 2002/08/14 16:24:00 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.16 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -245,7 +245,7 @@ bool RdInit(void)
     return true;
 }
 
-static const fsd_vtbl_t ramdisk_vtbl =
+static const struct vtbl_fsd_t ramdisk_vtbl =
 {
     NULL,           /* dismount */
     NULL,           /* get_fs_info */
@@ -279,6 +279,7 @@ fsd_t* RdMountFs(driver_t* driver, const wchar_t *dest)
 
 driver_t rd_driver =
 {
+    NULL,
     NULL,
     NULL,
     NULL,

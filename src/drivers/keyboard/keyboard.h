@@ -1,4 +1,4 @@
-/* $Id: keyboard.h,v 1.3 2002/04/10 12:24:11 pavlovskii Exp $ */
+/* $Id: keyboard.h,v 1.4 2002/08/29 13:59:37 pavlovskii Exp $ */
 
 #ifndef __KEYBOARD_H
 #define __KEYBOARD_H
@@ -59,5 +59,20 @@
 #define RAW_NUM2		0x50
 #define RAW_NUM3		0x51
 #define RAW_NUM0		0x52
+
+/* for the keyboard layout files */
+#include <sys/types.h>
+typedef struct keydef_t keydef_t;
+struct keydef_t
+{
+    uint32_t normal;
+    uint32_t shift;
+    uint32_t control;
+    uint32_t control_shift;
+    uint32_t altgr;
+    uint32_t altgr_shift;
+};
+
+extern keydef_t keys[94];
 
 #endif
