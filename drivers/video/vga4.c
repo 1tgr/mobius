@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.3 2003/06/22 15:43:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -152,8 +152,7 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
     //clip.rects = NULL;
     //vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
 
-	vgaStorePalette(vid, palette, 0, 8);
-	vgaStorePalette(vid, palette + 8, 56, 8);
+	vgaStorePalette(vid, palette, 0, _countof(palette));
     return true;
 }
 
@@ -302,6 +301,140 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     }
 
     SpinRelease(&sem_vga);
+}
+
+void vga4BltScreenToScreen(video_t *vid, const rect_t *dest, const rect_t *src)
+{
+}
+
+void vga4BltScreenToMemory(video_t *vid, void *dest, int dest_pitch, const rect_t *src)
+{
+	unsigned width, height, x, y, mask, plane;
+	uint8_t volatile *vid_ptr, *vid_base;
+	uint8_t *dest_ptr, *dest_base;
+
+	if (src->right < src->left)
+		return;
+	if (src->bottom < src->top)
+		return;
+
+	width = src->right - src->left;
+	height = src->bottom - src->top;
+
+	memset(dest, 0, dest_pitch * height);
+
+	for (plane = 0; plane < 4; plane++)
+	{
+		mask = 0x80 >> (src->left & 7);
+		dest_base = dest;
+		vid_base = vga_base_global + xconv[src->left] + y80[src->top];
+
+		SpinAcquire(&sem_vga);
+		out16(VGA_GC_INDEX, (plane << 8) | 0x0004);
+
+		for (x = 0; x < width; x++)	
+		{
+			dest_ptr = dest_base;
+			vid_ptr = vid_base;
+
+			if ((x & 1) == 0)
+			{
+				for (y = 0; y < height; y++)
+				{
+					if (*vid_ptr & mask)
+						*dest_ptr |= 1 << plane;
+					vid_ptr += video_mode.bytesPerLine;
+					dest_ptr += dest_pitch;
+				}
+			}
+			else
+			{
+				for (y = 0; y < height; y++)
+				{
+					if (*vid_ptr & mask)
+						*dest_ptr |= 1 << (plane + 4);
+					vid_ptr += video_mode.bytesPerLine;
+					dest_ptr += dest_pitch;
+				}
+
+				dest_base++;
+			}
+
+			mask >>= 1;
+			if (mask == 0)
+			{
+				mask = 0x80;
+				vid_base++;
+			}
+		}
+
+		SpinRelease(&sem_vga);
+	}
+}
+
+void vga4BltMemoryToScreen(video_t *vid, const rect_t *dest, const void *src, int src_pitch)
+{
+	unsigned width, height, x, y, mask;
+	uint8_t volatile *vid_ptr, *vid_base, a;
+	const uint8_t *src_ptr, *src_base;
+
+	if (dest->right < dest->left)
+		return;
+	if (dest->bottom < dest->top)
+		return;
+
+	width = dest->right - dest->left;
+	height = dest->bottom - dest->top;
+
+	SpinAcquire(&sem_vga);
+
+	out16(VGA_GC_INDEX, 0x0205);	// write mode 2
+	out(VGA_GC_INDEX, 0x08);		// set bit mask
+	out16(VGA_SEQ_INDEX, 0xff02);	// write to all planes
+	mask = 0x80 >> (dest->left & 7);
+	src_base = src;
+	vid_base = vga_base_global + xconv[dest->left] + y80[dest->top];
+
+	for (x = 0; x < width; x++)
+	{
+		src_ptr = src_base;
+		vid_ptr = vid_base;
+
+		out(VGA_GC_DATA, mask);
+
+		if ((x & 1) == 0)
+		{
+			for (y = 0; y < height; y++)
+			{
+				a = *vid_ptr;
+				*vid_ptr = *src_ptr & 0x0f;
+				vid_ptr += video_mode.bytesPerLine;
+				src_ptr += src_pitch;
+			}
+		}
+		else
+		{
+			for (y = 0; y < height; y++)
+			{
+				a = *vid_ptr;
+				*vid_ptr = *src_ptr >> 4;
+				vid_ptr += video_mode.bytesPerLine;
+				src_ptr += src_pitch;
+			}
+
+			src_base++;
+		}
+
+		mask >>= 1;
+		if (mask == 0)
+		{
+			mask = 0x80;
+			vid_base++;
+		}
+	}
+
+	out16(VGA_GC_INDEX, 0x0005);	// write mode 0
+	SpinRelease(&sem_vga);
 }
 
 void vga4TextOut(int *x, int *y, wchar_t max_char, uint8_t *font_bitmaps, 
@@ -515,6 +648,9 @@ video_t vga4 =
     NULL,          /* fillrect */
     //NULL,          /* vga4TextOut */
     NULL,          /* fillpolygon */
+	vga4BltScreenToScreen,
+	vga4BltScreenToMemory,
+	vga4BltMemoryToScreen,
 };
 
 video_t *vga4Init(device_config_t *cfg)

@@ -1,11 +1,11 @@
-/* $Id: vga.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
+/* $Id: vga.c,v 1.3 2003/06/22 15:43:38 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include "include/video.h"
 
 spinlock_t sem_vga;
 uint8_t *vga_base;
-extern bool video_suppress_mode_switch;
+bool video_suppress_mode_switch = false;
 
 #if 1
 void vgaWriteRegs(const uint8_t *regs)

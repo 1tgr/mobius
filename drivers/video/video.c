@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
+/* $Id: video.c,v 1.3 2003/06/22 15:43:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -23,7 +23,7 @@ void swap_int(int *a, int *b)
 }
 
 videomode_t video_mode = { 0, 80, 25, 4, 0, VIDEO_MODE_TEXT };
-bool video_suppress_mode_switch = false;
+extern bool video_suppress_mode_switch;
 
 typedef struct request_vid_t request_vid_t;
 struct request_vid_t
@@ -53,7 +53,7 @@ struct
 } drivers[] =
 {
     { L"vga4",     vga4Init, NULL },
-    //{ L"vga8",      vga8Init, NULL },
+    { L"vga8",      vga8Init, NULL },
     //{ L"vgaplane",  VgapInit, NULL },
     //{ L"s3_8",      s3Init8,  NULL },
     //{ L"s3_16",     s3Init16, NULL },
@@ -306,6 +306,38 @@ bool vidRequest(device_t* dev, request_t* req)
             return true;
         }
         break;
+
+	case VID_BLT_SCREEN_TO_SCREEN:
+		if (video->vid->vidBltScreenToScreen)
+		{
+			video->vid->vidBltScreenToScreen(video->vid, 
+				&params->vid_blt.dest.rect, 
+				&params->vid_blt.src.rect);
+			return true;
+		}
+		break;
+
+	case VID_BLT_SCREEN_TO_MEMORY:
+		if (video->vid->vidBltScreenToMemory)
+		{
+			video->vid->vidBltScreenToMemory(video->vid, 
+				params->vid_blt.dest.memory.buffer, 
+				params->vid_blt.dest.memory.pitch,
+				&params->vid_blt.src.rect);
+			return true;
+		}
+		break;
+
+	case VID_BLT_MEMORY_TO_SCREEN:
+		if (video->vid->vidBltMemoryToScreen)
+		{
+			video->vid->vidBltMemoryToScreen(video->vid, 
+				&params->vid_blt.dest.rect,
+				params->vid_blt.src.memory.buffer, 
+				params->vid_blt.src.memory.pitch);
+			return true;
+		}
+		break;
     }
 
     req->result = ENOTIMPL;

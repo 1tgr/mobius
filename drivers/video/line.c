@@ -1,12 +1,10 @@
-/* $Id: line.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
+/* $Id: line.c,v 1.3 2003/06/22 15:43:37 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include "vidfuncs.h"
 
 void vidFillRect(video_t *vid, int x1, int y1, int x2, int y2, colour_t c)
 {
-	wprintf(L"vidFillRect(%d, %d, %d, %d, %u)\n", 
-		x1, y1, x2, y2, c);
     for (; y1 < y2; y1++)
         vid->vidHLine(vid, x1, x2, y1, c);
 }

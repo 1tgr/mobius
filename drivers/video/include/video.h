@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
+/* $Id: video.h,v 1.3 2003/06/22 15:43:38 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -66,6 +66,9 @@ struct video_t
     void (*vidFillRect)(video_t *vid, int x1, int y1, int x2, int y2, colour_t c);
     void (*vidFillPolygon)(video_t *vid, const point_t *points, 
         unsigned num_points, colour_t colour);
+	void (*vidBltScreenToScreen)(video_t *vid, const rect_t *dest, const rect_t *src);
+	void (*vidBltScreenToMemory)(video_t *vid, void *dest, int dest_pitch, const rect_t *src);
+	void (*vidBltMemoryToScreen)(video_t *vid, const rect_t *dest, const void *src, int src_pitch);
 };
 
 #define VID_ENUM_CONTINUE	1
