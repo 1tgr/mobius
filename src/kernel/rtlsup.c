@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -75,20 +75,21 @@ char *sbrk(size_t diff)
 	start = kernel_sbrk;
 	new_sbrk = kernel_sbrk + diff;
 
-	wprintf(L"sbrk: getting %d bytes at %lx: ", diff, start);
+	wprintf(L"sbrk: getting %d bytes at %lx", diff, start);
 	for (; kernel_sbrk < new_sbrk; kernel_sbrk += PAGE_SIZE)
 	{
 		phys = MemAlloc();
 		if (phys == NULL)
 			return (char*) -1;
 
-		wprintf(L"%lx=>%lx ", kernel_sbrk, phys);
+		/*wprintf(L"%lx=>%lx ", kernel_sbrk, phys);*/
+		putwchar('.');
 		if (!MemMap(kernel_sbrk, phys, kernel_sbrk + PAGE_SIZE, 
 			PRIV_WR | PRIV_KERN | PRIV_PRES))
 			return (char*) -1;
 	}
 
-	wprintf(L"\n");
+	wprintf(L"done\n");
 	return (char*) start;
 }
 

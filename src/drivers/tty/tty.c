@@ -529,11 +529,11 @@ void TtyWriteString(tty_t *tty, const wchar_t *str, size_t count)
 			break;
 
 		case 10:	/* after all parameters */
-			wprintf(L"esc: %c: %u/%u/%u\n", 
+			/*wprintf(L"esc: %c: %u/%u/%u\n", 
 				*str, 
 				tty->esc[0],
 				tty->esc[1],
-				tty->esc[2]);
+				tty->esc[2]);*/
 			TtyDoEscape(tty, (char) *str, tty->esc_param + 1, tty->esc);
 			tty->escape = 0;
 			tty->writebuf = str + 1;
@@ -548,11 +548,19 @@ void TtyWriteString(tty_t *tty, const wchar_t *str, size_t count)
 	TtyFlush(tty);
 }
 
+bool TtyIsr(device_t *dev, uint8_t irq)
+{
+	uint8_t scan;
+	scan = in(0x60);
+	if (scan >= 0x3b && scan < 0x3b + 12)
+		TtySwitchTo(consoles + scan - 0x3b);
+	return true;
+}
+
 bool TtyRequest(device_t* dev, request_t* req)
 {
 	tty_t *tty = (tty_t*) dev;
 	request_dev_t *req_dev = (request_dev_t*) req;
-	uint8_t scan;
 	
 	switch (req->code)
 	{
@@ -564,12 +572,6 @@ bool TtyRequest(device_t* dev, request_t* req)
 		TtyWriteString(tty, 
 			req_dev->params.dev_write.buffer, 
 			req_dev->params.dev_write.length / sizeof(wchar_t));
-		return true;
-
-	case DEV_ISR:
-		scan = in(0x60);
-		if (scan >= 0x3b && scan < 0x3b + 12)
-			TtySwitchTo(consoles + scan - 0x3b);
 		return true;
 	}
 
@@ -585,6 +587,8 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	tty = consoles + num_consoles;
 	memset(tty, 0, sizeof(tty));
 	tty->dev.request = TtyRequest;
+	tty->dev.isr = TtyIsr;
+	tty->dev.finishio = NULL;
 	tty->dev.driver = drv;
 
 	SemAcquire(&sem_consoles);
@@ -598,7 +602,7 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	tty->escape = 0;
 
 	TtyClear(tty);
-	TtySwitchTo(tty);
+	/*TtySwitchTo(tty);*/
 	return &tty->dev;
 }
 
@@ -607,6 +611,8 @@ bool DrvInit(driver_t *drv)
 	drv->add_device = TtyAddDevice;
 
 	consoles[0].dev.request = TtyRequest;
+	consoles[0].dev.isr = TtyIsr;
+	consoles[0].dev.finishio = NULL;
 	consoles[0].dev.driver = drv;
 	consoles[0].buf_top = (uint16_t*) PHYSICAL(0xb8000);
 	consoles[0].attribs = 0x1700;
@@ -616,6 +622,6 @@ bool DrvInit(driver_t *drv)
 	consoles[0].height = 25;
 	consoles[0].escape = 0;
 
-	/*DevRegisterIrq(1, &consoles[0].dev);*/
+	DevRegisterIrq(1, &consoles[0].dev);
 	return true;
 }

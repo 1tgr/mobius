@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: device.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -6,6 +6,7 @@
 #include <kernel/proc.h>
 #include <kernel/debug.h>
 #include <kernel/fs.h>
+#include <kernel/memory.h>
 
 #include <stdio.h>
 #include <wchar.h>
@@ -92,11 +93,17 @@ bool DevFsRequest(device_t *dev, request_t *req)
 		}
 
 		if (req->code == FS_READ)
-			wprintf(L"DevFsRequest: write to %lu => %p buf = %p len = %lu\n",
+			wprintf(L"DevFsRequest: read from %lu => %p buf = %p len = %lu\n",
 				req_fs->params.fs_read.file,
 				file->dev,
 				req_fs->params.fs_read.buffer,
 				req_fs->params.fs_read.length);
+		/*else
+			wprintf(L"DevFsRequest: write to %lu => %p buf = %p len = %lu\n",
+				req_fs->params.fs_write.file,
+				file->dev,
+				req_fs->params.fs_write.buffer,
+				req_fs->params.fs_write.length);*/
 
 		req_dev.header.code = req->code == FS_WRITE ? DEV_WRITE : DEV_READ;
 		req_dev.params.dev_read.buffer = req_fs->params.fs_read.buffer;
@@ -168,7 +175,7 @@ bool DevRequestSync(device_t *dev, request_t *req)
 		/*assert(req->event == NULL);*/
 		if (req->event)
 		{
-			if (current == &thr_idle)
+			if (true || current == &thr_idle)
 			{
 				wprintf(L"DevRequestSync: busy-waiting\n");
 				while (!EvtIsSignalled(NULL, req->event))
@@ -178,6 +185,7 @@ bool DevRequestSync(device_t *dev, request_t *req)
 			{
 				wprintf(L"DevRequestSync: doing proper wait\n");
 				ThrWaitHandle(current, req->event, 'evnt');
+				assert(false || "Reached this bit");
 			}
 
 			/*EvtFree(NULL, req->event);*/
@@ -223,37 +231,77 @@ bool DevRegisterIrq(uint8_t irq, device_t *dev)
 	return true;
 }
 
-asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size)
+asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
+						   void *user_buffer,
+						   size_t user_buffer_length)
 {
 	asyncio_t *io;
+	unsigned pages;
+	addr_t *ptr, user_addr;
 	
-	io = malloc(sizeof(asyncio_t));
+	pages = PAGE_ALIGN_UP(user_buffer_length) / PAGE_SIZE;
+	io = malloc(sizeof(asyncio_t) + sizeof(addr_t) * pages);
 	if (io == NULL)
 		return NULL;
 
-	io->req = malloc(size);
-	if (io->req == NULL)
+	io->owner = current;
+
+	if ((addr_t) req < 0x80000000)
 	{
-		free(io);
-		return NULL;
+		io->req = malloc(size);
+		if (io->req == NULL)
+		{
+			free(io);
+			return NULL;
+		}
+
+		memcpy(io->req, req, size);
+		io->req->original = req;
+	}
+	else
+		io->req = req;
+
+	req->original = NULL;
+	io->dev = dev;
+	io->length = user_buffer_length;
+	io->mod_buffer_start = (unsigned) user_buffer % PAGE_SIZE;
+	ptr = (addr_t*) (io + 1);
+	user_addr = PAGE_ALIGN((addr_t) user_buffer);
+	for (; pages > 0; pages--, user_addr += PAGE_SIZE)
+	{
+		*ptr = MemTranslate((void*) user_addr) & -PAGE_SIZE;
+		assert(*ptr != NULL);
+		MemLockPages(*ptr, 1, true);
+		ptr++;
 	}
 
-	LIST_ADD(dev->io, io);
-	io->owner = current;
-	memcpy(io->req, req, size);
-	io->dev = dev;
-	io->length = 0;
-	io->buffer = NULL;
-
 	req->event = io->req->event = EvtAlloc(NULL);
+	LIST_ADD(dev->io, io);
 	return io;
 }
 
 void DevFinishIo(device_t *dev, asyncio_t *io)
 {
+	addr_t *ptr;
+	unsigned i;
+
+	ptr = (addr_t*) (io + 1);
+	for (i = 0; i < io->length; i += PAGE_SIZE, ptr++)
+		MemLockPages(*ptr, 1, false);
+	
 	LIST_REMOVE(dev->io, io);
-	LIST_ADD(io->owner->fio, io);
-	ThrInsertQueue(io->owner, &thr_finished, NULL);
+	/*LIST_ADD(io->owner->fio, io);*/
+	/*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
+	EvtSignal(io->owner->process, io->req->event);
+	free(io);
+
+	if (io->req->original != NULL)
+	{
+		free(io->req);
+		io->req = NULL;
+	}
+
+	/* Need to free io->req->event */
 }
 
 uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)
@@ -306,7 +354,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 		bool (*DrvInit)(driver_t *drv);
 
 		swprintf(temp, SYS_BOOT L"/%s.drv", name);
-		wprintf(L"DevInstallNewDriver: loading %s\n", temp);
+		/*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
 		
 		mod = PeLoad(&proc_idle, temp, 0);
 		if (mod == NULL)
@@ -316,7 +364,7 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 			if (drv->mod == mod)
 				return drv;
 
-		wprintf(L"DevInstallNewDriver: performing first-time init\n");
+		/*wprintf(L"DevInstallNewDriver: performing first-time init\n");*/
 		drv = malloc(sizeof(driver_t));
 		if (drv == NULL)
 		{
@@ -384,7 +432,7 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 		return NULL;
 }
 
-void DevRunHandlers(void)
+/*void DevRunHandlers(void)
 {
 	asyncio_t *io, *ionext;
 	for (io = current->fio_first; io; io = ionext)
@@ -398,4 +446,4 @@ void DevRunHandlers(void)
 		free(io->req);
 		free(io);
 	}
-}
+}*/

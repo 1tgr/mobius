@@ -114,6 +114,10 @@ SOURCE=.\i386\scdsptch.c
 # End Group
 # Begin Source File
 
+SOURCE=.\cache.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\debug.c
 # End Source File
 # Begin Source File
@@ -178,6 +182,10 @@ SOURCE=.\vmm.c
 # Begin Source File
 
 SOURCE=..\..\include\kernel\arch.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\kernel\cache.h
 # End Source File
 # Begin Source File
 

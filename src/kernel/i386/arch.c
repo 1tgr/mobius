@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -304,6 +304,6 @@ thread_t *ArchAttachToThread(thread_t *thr)
 		ACS_DATA | ACS_DPL_3, 
 		0);
 
-	DevRunHandlers();
+	/*DevRunHandlers();*/
 	return old;
 }

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -17,11 +17,19 @@ typedef struct asyncio_t asyncio_t;
 struct asyncio_t
 {
 	asyncio_t *prev, *next;
+
+	/** Thread that owns this request */
 	struct thread_t *owner;
+	/** Copy of the original request structure */
 	request_t *req;
+	/** Device to which this request applies */
 	device_t *dev;
+	/** Size, in bytes, of the user buffer */
 	size_t length;
-	void *buffer;
+	/** Offset of the start of the user buffer from the previous page boundary */
+	unsigned mod_buffer_start;
+	/** Physical page addresses follow this structure */
+	/*addr_t buffer[];*/
 };
 
 typedef struct device_resource_t device_resource_t;
@@ -102,7 +110,9 @@ size_t	DevRead(device_t *dev, uint64_t ofs, void *buf, size_t size);
 bool	DevRegisterIrq(uint8_t irq, device_t *dev);
 bool	DevAddDevice(device_t *dev, const wchar_t *name, 
 					 device_config_t *cfg);
-asyncio_t*	DevQueueRequest(device_t *dev, request_t *req, size_t size);
+asyncio_t*	DevQueueRequest(device_t *dev, request_t *req, size_t size,
+							void *user_buffer,
+							size_t user_buffer_length);
 void	DevFinishIo(device_t *dev, asyncio_t *io);
 uint8_t	DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt);
 

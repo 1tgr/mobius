@@ -10,6 +10,7 @@ EXPORTS
 	memcpy
 	memmove
 	wprintf
+	CcInstallBlockCache
 	DevAddDevice
 	DevFinishIo
 	DevInstallDevice
@@ -23,6 +24,8 @@ EXPORTS
 	HndLock
 	HndSignal
 	HndUnlock
+	MemMapTemp
+	MemUnmapTemp
 	SemAcquire
 	SemInit
 	SemRelease

@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: device.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -12,6 +12,7 @@ struct request_t
 	uint32_t code;
 	status_t result;
 	handle_t event;
+	request_t *original;
 };
 
 typedef union params_dev_t params_dev_t;

@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -207,7 +207,7 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 	char *strings, *name;
 	addr_t addr;
 
-	wprintf(L"ebp\t\tReturn To\tModule\n");
+	wprintf(L"ebp\t\t\tReturn To\tModule\n");
 	do
 	{
 		wprintf(L"%08x\t", (uint32_t) pebp);

@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.2 2001/11/05 22:41:07 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -15,6 +15,7 @@ extern process_t proc_idle;
 
 page_pool_t pool_low, pool_all;
 addr_t mem_temp_end = MEM_TEMP_START;
+uint8_t *locked_pages;
 
 bool mem_ready;
 
@@ -155,13 +156,24 @@ uint32_t MemTranslate(const void *address)
 		return 0;
 }
 
-void *MemMapTemp(addr_t phys, size_t bytes, uint8_t priv)
+void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 {
 	void *ptr;
-	bytes = PAGE_ALIGN_UP(bytes);
-	MemMap(mem_temp_end, phys, mem_temp_end + bytes, priv);
+
+	if (num_pages == 1 &&
+		*phys < 0x08000000)
+		return PHYSICAL(*phys);
+
 	ptr = (void*) mem_temp_end;
-	mem_temp_end += bytes;
+	for (; num_pages > 0; phys++, num_pages--)
+	{
+		assert(*phys != 0);
+		if (!MemMap(mem_temp_end, *phys, mem_temp_end + PAGE_SIZE, priv))
+			return NULL;
+
+		mem_temp_end += PAGE_SIZE;
+	}
+
 	return ptr;
 }
 
@@ -176,7 +188,7 @@ addr_t MemAllocPageDir(void)
 	addr_t page_dir, *pd;
 
 	page_dir = MemAlloc();
-	pd = MemMapTemp(page_dir, PAGE_SIZE, PRIV_KERN | PRIV_WR | PRIV_PRES);
+	pd = MemMapTemp(&page_dir, 1, PRIV_KERN | PRIV_WR | PRIV_PRES);
 	memcpy(pd, kernel_pagedir, PAGE_SIZE);
 	pd[1023] = page_dir | PRIV_KERN | PRIV_WR | PRIV_PRES;
 	MemUnmapTemp();
@@ -197,6 +209,27 @@ bool MemVerifyBuffer(const void *buf, size_t bytes)
 	return true;
 }
 
+bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
+{
+	unsigned index;
+	int d;
+
+	phys = PAGE_ALIGN(phys);
+	index = phys / PAGE_SIZE;
+	d = do_lock ? 1 : -1;
+	
+	for (; pages > 0; pages--, index++, phys += PAGE_SIZE)
+	{
+		/*if (phys > kernel_startup.memory_size)
+			return false;*/
+
+		assert(phys < kernel_startup.memory_size);
+		locked_pages[index] += d;
+	}
+
+	return true;
+}
+
 bool MemInit(void)
 {
 	unsigned num_pages;
@@ -204,16 +237,30 @@ bool MemInit(void)
 	uint32_t entry;
 
 	num_pages = kernel_startup.memory_size / PAGE_SIZE;
+
+	/*
+	 * Total kernel size composed of:
+	 *	Kernel file image
+	 *	bss
+	 *	Page address stack
+	 *	Page lock counts
+	 */
 	kernel_startup.kernel_data = kernel_startup.kernel_size 
 		+ ebss - edata 
-		+ num_pages * sizeof(addr_t);
+		+ num_pages * sizeof(addr_t)
+		+ num_pages;
 	kernel_startup.kernel_data = PAGE_ALIGN_UP(kernel_startup.kernel_data);
 
 	/* One page of PTEs at one page per PTE = 4MB */
 	assert(kernel_startup.kernel_data < PAGE_SIZE * PAGE_SIZE / sizeof(uint32_t));
 
+	/* Page address stack goes after the bss */
 	pages = (addr_t*) ebss;
 	memset(pages, 0, num_pages * sizeof(addr_t));
+
+	/* Page lock counts go after the stack */
+	locked_pages = (uint8_t*) ((addr_t*) ebss + num_pages);
+	memset(locked_pages, 0, num_pages);
 	
 	pool_all.num_pages = num_pages - NUM_LOW_PAGES;
 	pool_all.pages = pages + NUM_LOW_PAGES;

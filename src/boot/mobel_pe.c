@@ -1,4 +1,4 @@
-/* $Id: mobel_pe.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: mobel_pe.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <dos.h>
 #include <string.h>
@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include "mobel.h"
 
-typedef unsigned char byte;
-typedef unsigned short word;
-typedef unsigned long dword;
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
 typedef unsigned char bool;
 typedef unsigned short wchar_t;
+typedef uint32_t addr_T;
 enum { false, true };
 
 #include "../../include/kernel/ramdisk.h"
@@ -27,11 +28,11 @@ mount_t _mount;
 dev_t disk;
 char kernel_cfg[] = "/kernel.cfg";
 unsigned old_ss;
-dword load_addr = LOAD_ADDR + PAGE_SIZE, kernel_addr;
-void copy_to_extended(dword dest, void *src, unsigned bytes);
-void start_kernel(dword kernel, dword ramdisk);
+uint32_t load_addr = LOAD_ADDR + PAGE_SIZE, kernel_addr;
+void copy_to_extended(uint32_t dest, void *src, unsigned bytes);
+void start_kernel(uint32_t kernel, uint32_t ramdisk);
 
-dword memory_top, kernel_size, rdsk_size;
+uint32_t memory_top, kernel_size, rdsk_size;
 
 void writechar(char ch)
 {
@@ -209,7 +210,7 @@ int enable_frm(int enable_a20);
 
 union rd
 {
-	byte raw[PAGE_SIZE];
+	uint8_t raw[PAGE_SIZE];
 	struct
 	{
 		ramdisk_t header;
@@ -219,7 +220,7 @@ union rd
 
 void process_line(const char *key, char *value)
 {
-	static byte buf[8192];
+	static uint8_t buf[8192];
 	file_t file;
 	int bytes;
 	unsigned blocks, i;

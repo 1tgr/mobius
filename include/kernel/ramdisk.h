@@ -1,4 +1,4 @@
-/* $Id: ramdisk.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: ramdisk.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 #ifndef __KERNEL_RAMDISK_H
 #define __KERNEL_RAMDISK_H
 
@@ -36,10 +36,12 @@ struct ramfile_t
 	char name[16];
 };
 
+#ifdef KERNEL
 bool	RdInit();
 void*	RdOpen(const wchar_t* name);
 size_t	RdFileLength(const wchar_t* name);
 bool	RdPageFault(addr_t virt);
+#endif
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -34,7 +34,7 @@ struct thread_t
 	unsigned span;
 	unsigned id;
 	unsigned sleep_end;
-	struct asyncio_t *fio_first, *fio_last;
+	/*struct asyncio_t *fio_first, *fio_last;*/
 };
 
 extern thread_t *thr_first, *thr_last, *current;

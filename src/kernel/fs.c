@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -210,8 +210,8 @@ size_t FsRead(handle_t file, void *buf, size_t bytes)
 	fsd = fd->fsd;
 	HndUnlock(NULL, file, 'file');
 
-	wprintf(L"FsRead: file = %lx buf = %p bytes = %lu\n",
-		file, buf, bytes);
+	/*wprintf(L"FsRead: file = %lx buf = %p bytes = %lu\n",
+		file, buf, bytes);*/
 	req.header.code = FS_READ;
 	req.params.fs_read.length = bytes;
 	req.params.fs_read.buffer = buf;
@@ -373,6 +373,8 @@ bool FsCreateVirtualDir(const wchar_t *path)
 bool FsInit(void)
 {
 	bool b;
+	device_t *dev;
+
 	FsCreateVirtualDir(L"/");
 	FsCreateVirtualDir(L"/system");
 	b = FsMount(SYS_BOOT, L"ram", NULL);
@@ -384,8 +386,8 @@ bool FsInit(void)
 
 	DevInstallDevice(L"ata", NULL, NULL);
 	
-	/*dev = DevOpen(L"ide0a");
-	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n",dev);
-	FsMount(L"/hd", L"fat", dev);*/
+	dev = DevOpen(L"ide0a");
+	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
+	FsMount(L"/hd", L"fat", dev);
 	return true;
 }

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -196,8 +196,9 @@ uint32_t i386Isr(context_t ctx)
 			}
 
 			DbgDumpStack(current->process, ctx.regs.ebp);
-			ArchDbgDumpContext(&ctx);
-			ProcExitProcess(-ctx.intr);
+			/*ArchDbgDumpContext(&ctx);*/
+			/*ProcExitProcess(-ctx.intr);*/
+			ArchProcessorIdle();
 		}
 	}
 	

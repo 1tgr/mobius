@@ -1,4 +1,4 @@
-DIRS=	ata fat keyboard tty
+DIRS=	ata fat tty
 
 all:
 	for dir in $(DIRS); do make -C $$dir; done

@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.2 2001/11/05 18:38:23 pavlovskii Exp $ */
+/* $Id: test.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,8 +12,12 @@ process_info_t *ProcGetProcessInfo(void);
 
 int main(void)
 {
-	uint32_t key;
-	process_info_t *info;
+	/*uint32_t key;
+	process_info_t *info;*/
+	handle_t file;
+	size_t bytes;
+	wchar_t name[] = L"/hd/bochsrc";
+	uint8_t buf[512];
 
 	wprintf(L"Hello from tty0!\n");
 	wprintf(L"Here's an escape sequence: \x1b[31mThis should be red!\x1b[37m\n");
@@ -24,10 +28,23 @@ int main(void)
 		L"...and fourth lines\n");
 	wprintf(L"Here's a tab, just for a laugh...\tHa ha!\n");
 	
-	info = ProcGetProcessInfo();
+	file = FsOpen(name, FILE_READ);
+	if (file == NULL)
+		wprintf(L"Failed to open %s\n", name);
+	else
+	{
+		bytes = FsRead(file, buf, sizeof(buf));
+		FsClose(file);
+		wprintf(L"Read %u bytes\n", bytes);
+	}
+
+	/*info = ProcGetProcessInfo();
 	while (FsRead(info->std_in, &key, sizeof(key)) == sizeof(key))
-		wprintf(L"Key: %u\n", key);
+		wprintf(L"Key: %u\n", key);*/
 	
+	for (;;)
+		;
+
 	wprintf(L"Bye now...\n");
 	return EXIT_SUCCESS;
 }

@@ -1,10 +1,12 @@
-/* $Id: ata.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/arch.h>
 #include <kernel/handle.h>
 #include <kernel/thread.h>
+#include <kernel/memory.h>
+#include <kernel/cache.h>
 
 #include <os/syscall.h>
 
@@ -566,7 +568,7 @@ bool AtapiPacketInterrupt(ata_ctrl_t *ctrl, ata_ctrlreq_t *req_ctrl)
 	}
 }
 
-void AtaCtrlFinish(device_t *dev, asyncio_t *io)
+/*void AtaCtrlFinish(device_t *dev, asyncio_t *io)
 {
 	ata_ctrlreq_t *req_ctrl = (ata_ctrlreq_t*) io->req;
 
@@ -591,18 +593,18 @@ void AtaCtrlFinish(device_t *dev, asyncio_t *io)
 			break;
 		}
 	}
-}
+}*/
 
 bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 {
 	ata_ctrl_t *ctrl = (ata_ctrl_t*) dev;
 	ata_ctrlreq_t *req_ctrl;
 	asyncio_t *io;
-	uint16_t *ptr;
-	unsigned j;
-
+	addr_t *ptr;
+	uint8_t *buf;
+	
 	ctrl->status = in(ctrl->base + REG_STATUS);
-	/*wprintf(L"AtaCtrlRequest: status = %x\n", ctrl->status);*/
+	/*wprintf(L"AtaCtrlIsr: status = %x\n", ctrl->status);*/
 
 	io = ctrl->dev.io_first;
 	if (io != NULL)
@@ -614,11 +616,21 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 		req_ctrl->header.result = 0;
 		if (req_ctrl->header.code == ATA_COMMAND)
 		{
-			ptr = (uint16_t*) io->buffer;
-			wprintf(L"Finish ATA command: buffer = %p count = %u\n",
-				ptr, req_ctrl->params.ata_command.cmd.count);
-			for (j = 0; j < io->length / 2; j++)
-				*ptr++ = in16(ctrl->base + REG_DATA);
+			ptr = (addr_t*) (io + 1);
+			
+			wprintf(L"Finish ATA command: count = %u length = %u phys = %x ",
+				req_ctrl->params.ata_command.cmd.count,
+				io->length,
+				*ptr);
+			
+			buf = MemMapTemp(ptr, PAGE_ALIGN_UP(io->length) / PAGE_SIZE, 
+				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
+
+			assert(buf != NULL);
+			wprintf(L"buf = %p + %x\n", buf, io->mod_buffer_start);
+			ins16(ctrl->base + REG_DATA, buf + io->mod_buffer_start, io->length);
+			
+			MemUnmapTemp();
 			finish = true;
 		}
 		else
@@ -649,18 +661,22 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
 
 	case ATAPI_PACKET:
 		req_ctrl = (ata_ctrlreq_t*) req;
-		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t));
-		io->length = ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count;
-		io->buffer = malloc(io->length);
+		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
+			req_ctrl->params.atapi_packet.buffer, 
+			ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
+		/*io->length = ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count;
+		io->buffer = malloc(io->length);*/
 		if (ctrl->command == CMD_IDLE)
 			AtaServiceCtrlRequest(ctrl);
 		break;
 	
 	case ATA_COMMAND:
 		req_ctrl = (ata_ctrlreq_t*) req;
-		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t));
-		io->length = SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count;
-		io->buffer = malloc(io->length);
+		io = DevQueueRequest(dev, req, sizeof(ata_ctrlreq_t),
+			req_ctrl->params.ata_command.buffer,
+			SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count);
+		/*io->length = SECTOR_SIZE * req_ctrl->params.ata_command.cmd.count;
+		io->buffer = malloc(io->length);*/
 		if (ctrl->command == CMD_IDLE)
 			AtaServiceCtrlRequest(ctrl);
 		return true;
@@ -759,7 +775,7 @@ bool AtaPartitionRequest(device_t *dev, request_t *req)
 		req_dev->params.dev_read.offset += part->start_sector * SECTOR_SIZE;
 
 	default:
-		return part->drive->request(dev, req);
+		return part->drive->request(part->drive, req);
 	}
 }
 
@@ -774,11 +790,13 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 		uint8_t bytes[512];
 		struct
 		{
-			uint8_t pad[512 - sizeof(partition_t) * 4];
+			uint8_t pad[512 - sizeof(partition_t) * 4 - 2];
 			partition_t parts[4];
+			uint16_t _55aa;
 		} ptab;
 	} sec0;
 
+	wprintf(L"bytes = %p\n", sec0.bytes);
 	if (!DevRead(dev, 0, sec0.bytes, sizeof(sec0.bytes)))
 		return;
 
@@ -797,6 +815,8 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 		part->start_sector = sec0.ptab.parts[i].start_sector_abs;
 		part->sector_count = sec0.ptab.parts[i].sector_count;
 		part->drive = dev;
+		wprintf(L"partition %c: start = %u, count = %u\n",
+			i + 'a', part->start_sector, part->sector_count);
 
 		suffix[0] = i + 'a';
 		DevAddDevice(&part->dev, name, NULL);
@@ -843,6 +863,7 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 	ata_command_t cmd;
 	uint32_t size;
 	wchar_t name[50];
+	device_t *dev;
 
 	wprintf(L"AtaInitController: initialising controller on %x\n", ctrl->base);
 
@@ -936,10 +957,11 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 		ctrl->drives[i].dev.driver = ctrl->dev.driver;
 		ctrl->drives[i].dev.request = AtaDriveRequest;
 		ctrl->drives[i].ctrl = ctrl;
-		DevAddDevice(&ctrl->drives[i].dev, name, NULL);
+		dev = CcInstallBlockCache(&ctrl->drives[i].dev, ctrl->drives[i].is_atapi ? ATAPI_SECTOR_SIZE : SECTOR_SIZE);
+		DevAddDevice(dev, name, NULL);
 
 		if (!ctrl->drives[i].is_atapi)
-			AtaPartitionDevice(&ctrl->drives[i].dev, name);
+			AtaPartitionDevice(dev, name);
 	}
 
 	return true;
@@ -952,6 +974,8 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 
 	ctrl = malloc(sizeof(ata_ctrl_t));
 	ctrl->dev.request = AtaCtrlRequest;
+	ctrl->dev.isr = AtaCtrlIsr;
+	ctrl->dev.finishio = NULL;
 	ctrl->dev.driver = drv;
 	ctrl->dev.cfg = cfg;
 	ctrl->base = 0x1F0;
