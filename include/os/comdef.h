@@ -1,4 +1,4 @@
-/* $Id: comdef.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: comdef.h,v 1.2 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __OS_COMDEF_H
 #define __OS_COMDEF_H
@@ -25,7 +25,7 @@
 
 #ifdef __cplusplus
 
-#define METHOD(ret, name)       virtual ret __comcall name
+#define METHOD(ret, name)   virtual ret __comcall name
 #define PURE                    = 0
 #define THIS                    void
 #define THIS_
@@ -36,12 +36,12 @@
 
 #else
 
-#define METHOD(ret, name)       ret __comcall (*name)
+#define METHOD(ret, name)   ret __comcall (*name)
 #define PURE
 #define THIS_                   __interface_name *this, 
 #define THIS                    __interface_name *this
 #define METHODIMP(ret, name)    ret __comcall name
-#define INTERFACE(name)         typedef struct name name; \
+#define INTERFACE(name) typedef struct name name; \
                                 struct name \
                                 { \
                                     const struct vtbl_##name *vtbl; \

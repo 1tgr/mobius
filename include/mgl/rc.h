@@ -1,4 +1,4 @@
-/* $Id: rc.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: rc.h,v 1.2 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __MGL_RC_H
 #define __MGL_RC_H
@@ -11,7 +11,7 @@
 namespace mgl
 {
 
-struct DrawState
+struct MGL_EXPORT DrawState
 {
     MGLcolour colour_pen;
     MGLcolour colour_fill;
@@ -23,7 +23,7 @@ struct DrawState
     }
 };
 
-class Rc : public RefCount<Rc>
+class MGL_EXPORT Rc : public RefCount<Rc>
 {
 protected:
     Bitmap *m_bitmap;
@@ -38,11 +38,13 @@ protected:
     void VLine8(int x, int y1, int y2, MGLcolour clr);
     void PutPixel8(int x, int y, MGLcolour clr);
     MGLcolour GetPixel8(int x, int y);
+    void Scroll8(const rect_t& rect, int dx, int dy);
 
     void HLine16(int x1, int x2, int y, MGLcolour clr);
     void VLine16(int x, int y1, int y2, MGLcolour clr);
     void PutPixel16(int x, int y, MGLcolour clr);
     MGLcolour GetPixel16(int x, int y);
+    void Scroll16(const rect_t& rect, int dx, int dy);
 
 public:
     DrawState m_state;
@@ -53,6 +55,7 @@ public:
     void (Rc::*DoPutPixel)(int x, int y, MGLcolour clr);
     MGLcolour (Rc::*DoGetPixel)(int x, int y);
     void (Rc::*DoFillRect)(const rect_t& rect, MGLcolour clr);
+    void (Rc::*DoScroll)(const rect_t& rect, int dx, int dy);
 
     Rc(Bitmap *bitmap);
     virtual ~Rc();
@@ -92,9 +95,10 @@ public:
     void FillPolygon(const MGLpoint *points, unsigned vertices);
     void Polygon(const MGLpoint *points, unsigned vertices);
     void Bevel(const MGLrect& rect, int width, int diff, bool is_raised);
+    void Scroll(const MGLrect& rect, MGLreal dx, MGLreal dy);
 };
 
-class RcDevice : public Rc
+class MGL_EXPORT RcDevice : public Rc
 {
 public:
     handle_t m_video, m_area;

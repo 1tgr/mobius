@@ -1,4 +1,4 @@
-/* $Id: font.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: font.h,v 1.2 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __MGL_FONT_H
 #define __MGL_FONT_H
@@ -15,7 +15,16 @@ namespace mgl
 
 class Rc;
 
-class Font : public RefCount<Font>
+struct FontMetrics
+{
+    MGLreal char_width_max;
+    MGLreal char_width_min;
+    MGLreal height;
+    MGLreal ascent;
+    MGLreal descent;
+};
+
+class MGL_EXPORT Font : public RefCount<Font>
 {
 protected:
     FT_FaceRec_ *m_ft_face;
@@ -32,6 +41,7 @@ public:
 
     MGLpoint GetTextSize(Rc *rc, const wchar_t *str, int len = -1);
     void DrawText(Rc *rc, const MGLrect& rect, const wchar_t *str, int len = -1);
+    void GetMetrics(Rc *rc, FontMetrics *m);
 };
 
 };

@@ -1,6 +1,10 @@
-/* $Id: pe.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: pe.h,v 1.4 2002/12/18 23:54:45 pavlovskii Exp $ */
 #ifndef __OS_PE_H
 #define __OS_PE_H
+
+#ifdef _WINNT_
+#define IMAGE_PE_HEADERS IMAGE_NT_HEADERS
+#else
 
 /* ANSI-compliant names for un-named structs (SUx) and unions (UUx) */
 #ifdef _MSC_VER
@@ -390,7 +394,7 @@ typedef struct IMAGE_RESOURCE_DIR_STRING_U {
 /* Each resource data entry describes a leaf node in the resource directory */
 /* tree.  It contains an offset, relative to the beginning of the resource */
 /* directory of the data for the resource, a size field that gives the number */
-/* of uint8_ts of data at that offset, a CodePage that should be used when */
+/* of bytes of data at that offset, a CodePage that should be used when */
 /* decoding code point values within the resource data.  Typically for new */
 /* applications the code page would be the unicode code page. */
 /* */
@@ -419,5 +423,7 @@ typedef struct IMAGE_PE_HEADERS {
     ))
 
 /*! @} */
+
+#endif
 
 #endif

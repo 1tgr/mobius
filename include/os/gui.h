@@ -1,4 +1,4 @@
-/* $Id: gui.h,v 1.3 2002/09/08 20:47:03 pavlovskii Exp $ */
+/* $Id: gui.h,v 1.4 2002/12/18 23:54:45 pavlovskii Exp $ */
 
 #ifndef __OS_GUI_H
 #define __OS_GUI_H
@@ -8,6 +8,7 @@ extern "C"
 {
 #endif
 
+#if 0
 /*!
  *  \ingroup    libsys
  *  \defgroup   gui Graphical User Interface
@@ -131,9 +132,33 @@ struct wndinput_t
 #define WND_INPUT_MOUSE_UP      4
 #define WND_INPUT_MOUSE_WHEEL   5
 
-#define SYSCALL_GUI(rtn, name, argbytes, args)	rtn name args;
+/*#define IPC_PARAM_OUT    0x80000000
+#define IPC_PARAM_IN     0x40000000
+#define IPC_PARAM_NULL   0x20000000
+#define IPC_FLAGS_MASK  (IPC_PARAM_OUT | IPC_PARAM_IN | IPC_PARAM_NULL )
+
+typedef struct ipc_packet_t ipc_packet_t;
+struct ipc_packet_t
+{
+    uint32_t code;
+    size_t length;
+    size_t params_length;
+    unsigned num_params;
+    uint8_t data[1];
+};
+
+bool IpcConnect(const wchar_t *server);
+ipc_packet_t *IpcBeginCall(uint32_t code);
+ipc_packet_t *IpcAddParameter(ipc_packet_t *packet, const void *data, 
+                              size_t size, uint32_t flags);
+ipc_packet_t *IpcReceivePacket(handle_t pipe);
+uint32_t IpcDispatchCall(handle_t pipe, ipc_packet_t *packet, bool want_reply);
+bool IpcGetNextParameter(ipc_packet_t *packet, void **it, void *buf, size_t max);*/
+
+#define SYSCALL_GUI(rtn, name, argbytes, args)	rtn name args; rtn __kernel_##name args;
 
 #include <gui/sysdef.h>
+#endif
 
 /*! @} */
 

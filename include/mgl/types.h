@@ -1,15 +1,31 @@
-/* $Id: types.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: types.h,v 1.2 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __GL_TYPES_H
 #define __GL_TYPES_H
 
 #include <sys/types.h>
 
+#ifdef WIN32
+#include "common.h"
+
+#ifndef MGL_EXPORT
+#ifdef LIBMGL_EXPORTS
+#define MGL_EXPORT	__declspec(dllexport)
+#else
+#define MGL_EXPORT
+#endif
+#endif
+#endif
+
 typedef    int	    MGLreal;
 typedef    uint32_t MGLcolour;
 #define    MGLcolor MGLcolour
 
-typedef struct mglrc_t mglrc_t;
+typedef struct mgl_rect_t mgl_rect_t;
+struct mgl_rect_t
+{
+	MGLreal left, top, right, bottom;
+};
 
 typedef struct MGLpoint MGLpoint;
 /*! \brief  MGL point */
@@ -33,13 +49,11 @@ struct MGLpoint
 #endif
 };
 
+#ifdef __cplusplus
 typedef struct MGLrect MGLrect;
 /*! \brief  MGL rectangle */
-struct MGLrect
+struct MGLrect : mgl_rect_t
 {
-    MGLreal left, top, right, bottom;
-
-#ifdef __cplusplus
     MGLrect()
     {
     }
@@ -83,8 +97,10 @@ struct MGLrect
         return x >= left && y >= top &&
             x < right && y < bottom;
     }
-#endif
 };
+#else
+typedef mgl_rect_t MGLrect;
+#endif
 
 typedef struct MGLclip MGLclip;
 struct MGLclip

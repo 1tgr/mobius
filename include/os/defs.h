@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.12 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.13 2002/12/18 23:54:44 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -18,7 +18,9 @@
 #define SYS_DEVICES    L"/System/Devices"
 
 /*!    \brief    Maximum length of a path specification, in characters */
+#ifndef WIN32
 #define MAX_PATH    256
+#endif
 
 #ifndef PAGE_SIZE
 /*!    \brief    Size of one page on the target architecture */
@@ -140,6 +142,10 @@ struct process_info_t
     module_info_t *module_first, *module_last;
 };
 
+#ifdef exception_info
+#undef exception_info
+#endif
+
 typedef struct thread_info_t thread_info_t;
 /*!
  *    \brief    User-mode thead information structure
@@ -162,7 +168,7 @@ struct thread_info_t
     int status;
     /*! \brief    Parameter passed to \p ThrCreateThread */
     void *param;
-    handle_t msgqueue_event;
+    /*handle_t msgqueue_event;*/
     void (*exception_handler)(void);
     context_t exception_info;
 };
@@ -233,6 +239,7 @@ struct dirent_device_t
     uint32_t device_class;
 };
 
+#ifndef _WINUSER_
 /* Resources */
 #define RT_CURSOR           1
 #define RT_BITMAP           2
@@ -245,6 +252,7 @@ struct dirent_device_t
 #define RT_ACCELERATOR      9
 #define RT_RCDATA           10
 #define RT_MESSAGETABLE     11
+#endif
 
 typedef struct sysinfo_t sysinfo_t;
 /*! \brief    Information structure for \p SysGetInfo() */

@@ -1,4 +1,4 @@
-/* $Id: frame.h,v 1.6 2002/09/08 20:47:03 pavlovskii Exp $ */
+/* $Id: frame.h,v 1.7 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __GUI_FRAME_H
 #define __GUI_FRAME_H
@@ -9,7 +9,7 @@ namespace os
 {
     //! Frame class
     /*! \ingroup    gui */
-    class Frame : public Container
+    class GUI_EXPORT Frame : public Container
     {
     protected:
         enum FrameRegion

@@ -1,4 +1,4 @@
-/* $Id: rtl.h,v 1.10 2002/09/01 16:24:38 pavlovskii Exp $ */
+/* $Id: rtl.h,v 1.11 2002/12/18 23:54:45 pavlovskii Exp $ */
 #ifndef __OS_RTL_H
 #define __OS_RTL_H
 
@@ -9,6 +9,7 @@ extern "C"
 
 #include <sys/types.h>
 #include <os/defs.h>
+#include <os/pe.h>
 
 bool	    FsFullPath(const wchar_t* src, wchar_t* dst);
 wchar_t *   ProcGetCwd();
@@ -23,6 +24,10 @@ bool        FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_rea
 bool        FsWriteSync(handle_t file, const void *buf, size_t bytes, size_t *bytes_written);
 bool        FsRequestSync(handle_t file, uint32_t code, void *buf, size_t bytes, size_t *bytes_out);
 uint32_t    ConReadKey(void);
+module_info_t *DbgFindModule(addr_t addr);
+IMAGE_PE_HEADERS *DbgGetPeHeaders(addr_t base);
+IMAGE_SECTION_HEADER *DbgFindSectionByName(addr_t base, const char *name);
+bool        DbgLookupLineNumber(addr_t addr, char **path, char **file, unsigned *line);
 
 #ifdef __cplusplus
 }

@@ -1,12 +1,15 @@
-/* $Id: window.h,v 1.5 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: window.h,v 1.6 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __GUI_WINDOW_H
 #define __GUI_WINDOW_H
 
 /*#include <gl/types.h>*/
 #include <mgl/rc.h>
-#include <os/gui.h>
+//#include <os/gui.h>
+#include "winmgr.h"
 #include <list>
+
+struct ipc_message_t;
 
 namespace os
 {
@@ -20,10 +23,10 @@ namespace os
      *  \p Window objects are not used directly but as the base of some more 
      *  useful class, such as \p Frame, \p Container or \p Control.
      */
-    class Window
+    class GUI_EXPORT Window
     {
     protected:
-        handle_t m_handle;
+        wnd_h m_handle;
         Window *m_parent;
         std::list<Window*> m_children;
 
@@ -43,7 +46,7 @@ namespace os
         /*!
          *  Binds a Window object to a window handle
          */
-        Window(handle_t hnd);
+        Window(wnd_h hnd);
 
         //! Creates the underlying window
         /*!
@@ -57,7 +60,7 @@ namespace os
         void AddChild(Window *child);
         void RemoveChild(Window *child);
 
-        handle_t GetHandle()
+        wnd_h GetHandle()
         {
             if (this)
                 return m_handle;
@@ -113,7 +116,7 @@ namespace os
         //! Returns a pointer to the window's next child
         Window *GetNextChild(Window *child);
 
-        virtual void HandleMessage(const msg_t *msg);
+        virtual void HandleMessage(ipc_message_t *msg);
         virtual void OnPaint(mgl::Rc *rc);
         virtual void OnKeyDown(uint32_t key);
         virtual void OnKeyUp(uint32_t key);

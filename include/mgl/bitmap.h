@@ -1,4 +1,4 @@
-/* $Id: bitmap.h,v 1.1 2002/09/13 23:13:03 pavlovskii Exp $ */
+/* $Id: bitmap.h,v 1.2 2002/12/18 23:54:44 pavlovskii Exp $ */
 
 #ifndef __MGL_BITMAP_H
 #define __MGL_BITMAP_H
@@ -9,7 +9,7 @@
 namespace mgl
 {
 
-struct BitmapDescriptor
+struct MGL_EXPORT BitmapDescriptor
 {
     unsigned char bpp;
     size_t bytes_per_line;
@@ -26,7 +26,7 @@ struct BitmapDescriptor
 
 class Rc;
 
-class Bitmap : public RefCount<Bitmap>
+class MGL_EXPORT Bitmap : public RefCount<Bitmap>
 {
 protected:
     void *m_buffer;

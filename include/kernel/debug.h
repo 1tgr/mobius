@@ -1,4 +1,4 @@
-/* $Id: debug.h,v 1.6 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: debug.h,v 1.7 2002/12/18 23:54:44 pavlovskii Exp $ */
 #ifndef __KERNEL_DEBUG_H
 #define __KERNEL_DEBUG_H
 
@@ -52,8 +52,8 @@ void	DbgDumpStack(struct process_t *proc, uint32_t _ebp);
 void	DbgDumpModules(struct process_t *proc);
 void	DbgDumpThreads(void);
 void	DbgDumpContext(const struct context_t* ctx);
-void	DbgLookupLineNumber(addr_t base, void *rawdata, void *symbol, 
-							unsigned *line, char** file);
+/*void	DbgLookupLineNumber(addr_t base, void *rawdata, void *symbol, 
+							unsigned *line, char** file);*/
 void	DbgDumpVmm(struct process_t *proc);
 void	DbgDumpBuffer(const void* buf, size_t size);
 bool    DbgStartShell(void);
