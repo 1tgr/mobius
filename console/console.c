@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.1 2002/12/21 09:48:38 pavlovskii Exp $ */
+/* $Id: console.c,v 1.2 2003/06/05 22:02:12 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -651,7 +651,8 @@ void mainCRTStartup(void)
 {
     handle_t server, client, vidmem, vid;
     const wchar_t *server_name = SYS_PORTS L"/console",
-        *shell_name = SYS_BOOT L"/shell.exe";
+        *shell_name = L"/fd/mobius/shell.exe";
+	//*shell_name = L"/System/Boot/shell.exe";
     process_info_t defaults = { 0 };
     unsigned i;
     params_vid_t params;
@@ -714,7 +715,12 @@ void mainCRTStartup(void)
         client = FsOpen(server_name, FILE_READ | FILE_WRITE);
         defaults.std_in = defaults.std_out = client;
         wcscpy(defaults.cwd, L"/");
-        ProcSpawnProcess(shell_name, &defaults);
+        if (ProcSpawnProcess(shell_name, &defaults) == NULL)
+		{
+			char *str;
+			str = strerror(errno);
+			FsWriteSync(client, str, strlen(str), NULL);
+		}
     }
 
     while ((client = PortAccept(server, FILE_READ | FILE_WRITE)))

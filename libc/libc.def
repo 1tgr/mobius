@@ -1,9 +1,9 @@
 NAME	libc
 EXPORTS
-	__builtin_delete
-	__builtin_new
-	__builtin_vec_delete
-	__builtin_vec_new
+	_ZdaPv
+	_ZdlPv
+	_Znaj
+	_Znwj
 	__crt0_parseargs_char
 	__crt0_parseargs_wide
 	__dj_assert

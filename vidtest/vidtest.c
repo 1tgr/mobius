@@ -1,10 +1,11 @@
-/* $Id: vidtest.c,v 1.1 2002/12/21 09:51:12 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.2 2003/06/05 22:02:14 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
 #include <wchar.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 #include <os/syscall.h>
 #include <os/defs.h>
@@ -123,6 +124,36 @@ void DoTestPatterns(void *mem)
     memset(mem, 0, mode.height * mode.bytesPerLine);
 }
 
+void DoAccelTestPatterns(void)
+{
+	vid_shape_t shape;
+	params_vid_t params;
+
+	while (true)
+	{
+		shape.shape = VID_SHAPE_FILLRECT;
+		shape.s.rect.colour = rand() % 16;
+		shape.s.rect.rect.left = rand() % mode.width;
+		shape.s.rect.rect.top = rand() % mode.height;
+		shape.s.rect.rect.right = shape.s.rect.rect.left + rand() % mode.width;
+		shape.s.rect.rect.bottom = shape.s.rect.rect.top + rand() % mode.height;
+		if (shape.s.rect.rect.right > mode.width)
+			shape.s.rect.rect.right = mode.width;
+		if (shape.s.rect.rect.bottom > mode.height)
+			shape.s.rect.rect.bottom = mode.height;
+
+		params.vid_draw.shapes = &shape;
+		params.vid_draw.length = sizeof(shape);
+		//_wdprintf(L"DoAccelTestPatterns: shapes = %p, length = %u\n", 
+			//params.vid_draw.shapes, 
+			//params.vid_draw.length);
+		FsRequestSync(vid, VID_DRAW, &params, sizeof(params), NULL);
+
+		//ThrSleep(1000);
+		//WaitForKeyPress();
+	}
+}
+
 int main(int argc, char **argv)
 {
     params_vid_t params;
@@ -156,18 +187,25 @@ int main(int argc, char **argv)
     }
 
     mode = params.vid_setmode;
-    vidmem = VmmOpenSharedArea(mode.framebuffer);
-    mem = VmmMapSharedArea(vidmem, NULL, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
-    if (mem != NULL)
-        DoTestPatterns(mem);
 
-    /*memset(&params, 0, sizeof(params));
-    params.vid_setmode.width = 80;
-    params.vid_setmode.height = 25;
-    if (!FsRequestSync(vid, VID_SETMODE, &params, sizeof(params), NULL))
-        _pwerror(L"VID_SETMODE");*/
+	if (mode.bitsPerPixel <= 4)
+		DoAccelTestPatterns();
+	else
+	{
+		vidmem = VmmOpenSharedArea(mode.framebuffer);
+		mem = VmmMapSharedArea(vidmem, NULL, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
+		if (mem != NULL)
+			DoTestPatterns(mem);
 
-    HndClose(vidmem);
+		/*memset(&params, 0, sizeof(params));
+		params.vid_setmode.width = 80;
+		params.vid_setmode.height = 25;
+		if (!FsRequestSync(vid, VID_SETMODE, &params, sizeof(params), NULL))
+			_pwerror(L"VID_SETMODE");*/
+
+		HndClose(vidmem);
+	}
+
     HndClose(vid);
     return EXIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
 # Generated automatically from Makefile.in by configure.
-# $Id: Makefile,v 1.1 2002/12/21 09:50:50 pavlovskii Exp $
+# $Id: Makefile,v 1.2 2003/06/05 22:02:13 pavlovskii Exp $
 #
 # Auto-configuring Makefile for the Netwide Assembler.
 #
@@ -18,7 +18,7 @@ mandir		= ${prefix}/man
 
 CC		= gcc
 CFLAGS		= -g -O2 -Wall -ansi -pedantic -I$(srcdir) -I. -I/mn/include
-LDFLAGS		= $(LIB)/libc.lib $(LIB)/libsys.lib
+LDFLAGS		= $(LIB)/libc.lib $(LIB)/libsys.lib -lgcc -L/lib/gcc-lib/i686-pc-cygwin/3.2
 
 INSTALL		= /usr/bin/install -c
 INSTALL_PROGRAM	= ${INSTALL}

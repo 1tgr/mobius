@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.1 2002/12/21 09:50:19 pavlovskii Exp $ */
+/* $Id: main.c,v 1.2 2003/06/05 22:02:13 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -14,11 +14,11 @@ static bool DbgHandleException(context_t *ctx)
     char *path, *file;
     unsigned line;
 
-    fprintf(stderr, "libc: exception %ld at %08lx\n",
+    _wdprintf(L"libc: exception %ld at %08lx\n",
         ctx->intr, ctx->eip);
 
     if (DbgLookupLineNumber(ctx->eip, &path, &file, &line))
-        fprintf(stderr, "%s%s(%hu)\n", path, file, line);
+        _wdprintf(L"%S%S(%hu)\n", path, file, line);
 
     return ctx->intr == 3;
 }

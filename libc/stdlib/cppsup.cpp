@@ -1,23 +1,23 @@
-/* $Id: cppsup.cpp,v 1.1 2002/12/21 09:50:10 pavlovskii Exp $ */
+/* $Id: cppsup.cpp,v 1.2 2003/06/05 22:02:12 pavlovskii Exp $ */
 
 #include <stdlib.h>
 
-void *operator new(size_t size)
+__attribute__((dllexport)) void *operator new(size_t size)
 {
     return malloc(size);
 }
 
-void operator delete(void *p)
+__attribute__((dllexport)) void operator delete(void *p)
 {
     free(p);
 }
 
-void *operator new[](size_t size)
+__attribute__((dllexport)) void *operator new[](size_t size)
 {
     return malloc(size);
 }
 
-void operator delete[](void *p)
+__attribute__((dllexport)) void operator delete[](void *p)
 {
     free(p);
 }

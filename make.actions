@@ -16,7 +16,7 @@ $(TARGET_D):	$(OBJS) $(LIBS) $(EXP) .base
 
 # Normal EXE
 $(TARGET):	$(OBJS) $(LIBS)
-	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS)
+	$(LD) -o $(TARGET) $(OBJS) $(LDFLAGS) $(LIBS) -lgcc -L/lib/gcc-lib/i686-pc-cygwin/3.2
 
 $(IMP):	$(DEF)
 	dlltool -d $< -l $@ -D $(<:.def=.dll)
