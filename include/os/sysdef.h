@@ -1,13 +1,14 @@
-/* $Id: sysdef.h,v 1.7 2002/03/04 18:56:07 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.8 2002/03/05 01:59:07 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
 #define ThrWaitHandle	SysThrWaitHandle
-#define ThrSleep		SysThrSleep
-#define EvtAlloc		SysEvtAlloc
-#define EvtSignal		SysEvtSignal
+#define ThrSleep	SysThrSleep
+#define ThrCreateThread	SysThrCreateThread
+#define EvtAlloc	SysEvtAlloc
+#define EvtSignal	SysEvtSignal
 #define EvtIsSignalled	SysEvtIsSignalled
-#define HndClose		SysHndClose
+#define HndClose	SysHndClose
 #endif
 
 #ifndef SYS_BEGIN_GROUP
@@ -19,44 +20,45 @@
 #endif
 
 /*!
- *	\ingroup	libsys
- *	\defgroup	sys	Syscall Interface
- *	@{
+ *    \ingroup	  libsys
+ *    \defgroup    sys	  Syscall Interface
+ *    @{
  */
 
-#define SYS_DbgWrite			0x100
-#define SYS_Hello				0x101
-#define SYS_SysUpTime			0x102
-#define SYS_SysGetInfo			0x103
-#define SYS_SysGetTimes			0x104
+#define SYS_DbgWrite		0x100
+#define SYS_Hello		0x101
+#define SYS_SysUpTime		0x102
+#define SYS_SysGetInfo		0x103
+#define SYS_SysGetTimes 	0x104
 
-#define SYS_ThrExitThread		0x200
-#define SYS_ThrWaitHandle		0x201
-#define SYS_ThrSleep			0x202
+#define SYS_ThrExitThread	0x200
+#define SYS_ThrWaitHandle	0x201
+#define SYS_ThrSleep		0x202
 #define SYS_ThrCreateV86Thread	0x203
 #define SYS_ThrGetV86Context	0x204
 #define SYS_ThrSetV86Context	0x205
-#define SYS_ThrContinueV86		0x206
+#define SYS_ThrContinueV86	0x206
+#define SYS_ThrCreateThread	0x207
 
-#define SYS_ProcExitProcess		0x300
+#define SYS_ProcExitProcess	0x300
 #define SYS_ProcSpawnProcess	0x301
 
-#define SYS_FsCreate			0x400
-#define SYS_FsOpen				0x401
-#define SYS_FsClose				0x402
-#define SYS_FsRead				0x403
-#define SYS_FsWrite				0x404
-#define SYS_FsSeek				0x405
-/*#define SYS_FsRequestSync		0x406*/
-#define SYS_FsOpenSearch		0x406
-#define SYS_FsQueryFile			0x407
+#define SYS_FsCreate		0x400
+#define SYS_FsOpen		0x401
+#define SYS_FsClose		0x402
+#define SYS_FsRead		0x403
+#define SYS_FsWrite		0x404
+#define SYS_FsSeek		0x405
+#define SYS_FsOpenSearch	0x406
+#define SYS_FsQueryFile 	0x407
+#define SYS_FsRequestSync	0x408
 
-#define SYS_VmmAlloc			0x500
+#define SYS_VmmAlloc		0x500
 
-#define SYS_EvtAlloc			0x600
-#define SYS_HndClose			0x601
-#define SYS_EvtSignal			0x602
-#define SYS_EvtIsSignalled		0x603
+#define SYS_EvtAlloc		0x600
+#define SYS_HndClose		0x601
+#define SYS_EvtSignal		0x602
+#define SYS_EvtIsSignalled	0x603
 
 /* 0 */
 SYS_BEGIN_GROUP(0)
@@ -80,6 +82,7 @@ SYSCALL(handle_t, ThrCreateV86Thread, 16, uint32_t, uint32_t, unsigned, void (*)
 SYSCALL(bool, ThrGetV86Context, 4, struct context_v86_t*)
 SYSCALL(bool, ThrSetV86Context, 4, const struct context_v86_t*)
 SYSCALL(bool, ThrContinueV86, 0, void)
+SYSCALL(handle_t, ThrCreateThread, 12, void (*)(void*), void*, unsigned)
 SYS_END_GROUP(2)
 
 /* 3 */
@@ -96,9 +99,9 @@ SYSCALL(bool, FsClose, 4, handle_t)
 SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t*)
 SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
 SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
-/*SYSCALL(bool, FsRequestSync, 8, handle_t, struct request_t*)*/
 SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
 SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)
+SYSCALL(bool, FsRequestSync, 20, handle_t, uint32_t, void*, size_t, struct fileop_t*)
 SYS_END_GROUP(4)
 
 /* 5 */
@@ -119,6 +122,7 @@ SYS_END_GROUP(6)
 #ifdef KERNEL
 #undef ThrWaitHandle
 #undef ThrSleep
+#undef ThrCreateThread
 #undef EvtAlloc
 #undef EvtSignal
 #undef EvtIsSignalled
