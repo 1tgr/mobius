@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.19 2002/09/01 16:24:40 pavlovskii Exp $ */
+/* $Id: test.c,v 1.20 2002/12/18 23:02:32 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +29,7 @@ wchar_t _wgetch(void)
 
 	if (keyb_event == NULL)
 	{
-		keyb_event = EvtAlloc();
+		keyb_event = EvtCreate();
 		if (keyb_event == NULL)
 			return (wchar_t) -1;
 	}
@@ -64,7 +64,7 @@ void testFileIo(const wchar_t *name)
 		return;
 	}
 
-	op.event = EvtAlloc();
+	op.event = EvtCreate();
 	for (i = 0; i < 16; i++)
 	{
 		FsSeek(file, 0, FILE_SEEK_SET);
@@ -107,7 +107,7 @@ void testBlockDeviceIo(const wchar_t *name)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		op.event = EvtAlloc();
+		op.event = EvtCreate();
 		for (j = 0; j < 1; j++)
 		{
 			wprintf(/*L"\x1b[2J"*/ L"\x1b[%um", (j % 8) + 30);
@@ -154,7 +154,7 @@ void testCharDeviceIo(const wchar_t *name)
 		wprintf(L"Failed to open %s\n", name);
 	else
 	{
-		op.event = EvtAlloc();
+		op.event = EvtCreate();
 		op.bytes = 0;
 		wprintf(L"op = %p op.event = %u sig = %u\n", 
 			&op,
