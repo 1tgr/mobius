@@ -1,4 +1,4 @@
-/* $Id: render.c,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: render.c,v 1.2 2002/03/06 01:39:43 pavlovskii Exp $ */
 
 #include "mgl.h"
 #include "render.h"
@@ -123,6 +123,7 @@ bool vidPutPixel(queue_t *queue, int x, int y, colour_t colour)
     return vidAddToQueue(queue, &shape) != NULL;
 }
 
+/*! \brief  Draws a filled rectangle */
 void glFillRect(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 {
     point_t topLeft, bottomRight;
@@ -141,6 +142,7 @@ void glFillRect(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
     vidFillRect(&current->render_queue, topLeft, bottomRight, current->colour);
 }
 
+/*! \brief  Clears the current rendering context */
 void glClear(void)
 {
     point_t topLeft, bottomRight;
@@ -178,6 +180,7 @@ void glClear(void)
     }*/
 }
 
+/*! \brief  Sets the current position */
 void glMoveTo(MGLreal x, MGLreal y)
 {
     CCV;
@@ -185,6 +188,7 @@ void glMoveTo(MGLreal x, MGLreal y)
     current->pos.y = y;
 }
 
+/*! \brief  Draws a line from the current position */
 void glLineTo(MGLreal x, MGLreal y)
 {
     point_t to, from;
@@ -205,6 +209,7 @@ void glLineTo(MGLreal x, MGLreal y)
     current->pos.y = y;
 }
 
+/*! \brief  Draws an outlined rectangle */
 void glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 {
     point_t topLeft, bottomRight;
@@ -230,6 +235,7 @@ void glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom)
 	bottomRight.x, topLeft.y, bottomRight.y, current->colour);
 }
 
+/*! \brief  Sets a single pixel */
 void glPutPixel(MGLreal x, MGLreal y)
 {
     point_t pt;

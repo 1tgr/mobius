@@ -102,7 +102,6 @@ EXPORTS
 	mal_verify
 	malloc
 	mbstowcs
-	mbtowc
 	memalign
 	memchr
 	memcmp
@@ -179,5 +178,4 @@ EXPORTS
 	wcspbrk
 	wcsrchr
 	wcstombs
-	wctomb
 	wprintf

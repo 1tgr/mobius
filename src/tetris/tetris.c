@@ -1,29 +1,40 @@
 #include <stdlib.h> /* random() */
 #include <stdio.h> /* printf() */
+#include <errno.h>
 #include <os/keyboard.h>
+#include <os/syscall.h>
+#include <os/device.h>
+#include <os/defs.h>
+#include <os/rtl.h>
+#include <gl/mgl.h>
 
+/*!
+ *	\ingroup	programs
+ *	\defgroup	tetris	Tetris
+ *	@{
+ */
 
 /* dimensions of playing area */
-#define	SCN_WID		15
-#define	SCN_HT		20
+#define	SCN_WID			15
+#define	SCN_HT			20
 /* direction vectors */
-#define	DIR_UP		{ 0, -1 }
-#define	DIR_DN		{ 0, +1 }
-#define	DIR_LT		{ -1, 0 }
-#define	DIR_RT		{ +1, 0 }
-#define	DIR_UP2		{ 0, -2 }
-#define	DIR_DN2		{ 0, +2 }
-#define	DIR_LT2		{ -2, 0 }
-#define	DIR_RT2		{ +2, 0 }
+#define	DIR_UP			{ 0, -1 }
+#define	DIR_DN			{ 0, +1 }
+#define	DIR_LT			{ -1, 0 }
+#define	DIR_RT			{ +1, 0 }
+#define	DIR_UP2			{ 0, -2 }
+#define	DIR_DN2			{ 0, +2 }
+#define	DIR_LT2			{ -2, 0 }
+#define	DIR_RT2			{ +2, 0 }
 /* ANSI colors */
-#define	COLOR_BLACK	0
-#define	COLOR_RED	1
-#define	COLOR_GREEN	2
+#define	COLOR_BLACK		0
+#define	COLOR_RED		1
+#define	COLOR_GREEN		2
 #define	COLOR_YELLOW	3
-#define	COLOR_BLUE	4
+#define	COLOR_BLUE		4
 #define	COLOR_MAGENTA	5
-#define	COLOR_CYAN	6
-#define	COLOR_WHITE	7
+#define	COLOR_CYAN		6
+#define	COLOR_WHITE		7
 
 typedef struct
 {	short int DeltaX, DeltaY; } vector;
@@ -72,23 +83,32 @@ char Dirty[SCN_HT], Screen[SCN_WID][SCN_HT];
 		marked Dirty[]
 *****************************************************************************/
 void refresh(void)
-{	unsigned XPos, YPos;
-
+{
+	unsigned XPos, YPos;
+	
 	for(YPos=0; YPos < SCN_HT; YPos++)
-	{	if(!Dirty[YPos])
+	{
+		if(!Dirty[YPos])
 			continue;
-/* gotoxy(0, YPos) */
-		wprintf(L"\x1B[%d;1H", YPos + 1);
-		for(XPos=0; XPos < SCN_WID; XPos++)
-/* 0xDB is a solid rectangular block in the PC character set */
-			//wprintf(L"\x1B[%dm\xDB\xDB", 30 + Screen[XPos][YPos]);
 
-			/* U+2588 is the Unicode Full Block character */
-			wprintf(L"\x1B[%dm\x2588\x2588", 30 + Screen[XPos][YPos]);
-		Dirty[YPos]=0; }
-/* reset foreground color to gray */
-	wprintf(L"\x1B[37m");
-	//fflush(stdout);
+		for(XPos=0; XPos < SCN_WID; XPos++)
+		{
+			glSetColour(Screen[XPos][YPos]);
+			glFillRect(XPos * 48, YPos * 48, (XPos + 1) * 48, (YPos + 1) * 48);
+
+			if (Screen[XPos][YPos] != 0)
+			{
+			    glSetColour(Screen[XPos][YPos] | 8);
+			    glMoveTo((XPos + 1) * 48, YPos * 48);
+			    glLineTo(XPos * 48, YPos * 48);
+			    glLineTo(XPos * 48, (YPos + 1) * 48);
+			}
+		}
+
+		Dirty[YPos]=0;
+	}
+
+	glFlush();
 }
 //////////////////////////////////////////////////////////////////////////////
 //			GRAPHIC CHUNK DRAW & HIT DETECT
@@ -215,112 +235,142 @@ void collapse(void)
 /*****************************************************************************
 *****************************************************************************/
 
+bool _kbhit(void)
+{
+	static params_dev_t params;
+	fileop_t op;
+	params.buffered.length = 0;
+	if (FsRequestSync(ProcGetProcessInfo()->std_in, CHR_GETSIZE, &params, 
+	    sizeof(params), &op))
+	    return params.buffered.length > 0;
+	else
+	{
+	    errno = op.result;
+	    return false;
+	}
+}
+
 wint_t getKey(void)
 {
-	dword end = sysUpTime() + 200;
+	uint32_t end = SysUpTime() + 200;
 
 	while (!_kbhit())
-		if (sysUpTime() >= end)
+		if (SysUpTime() >= end)
 			return 0;
 
-	return _wgetch();
+	return ConReadKey();
 }
 
 /*****************************************************************************
 	name:	main
 *****************************************************************************/
 int main(void)
-{	char Fell, NewShape, NewX, NewY;
+{
+	char Fell, NewShape, NewX, NewY;
 	unsigned Shape, X, Y;
 	wint_t Key;
+	mglrc_t *rc;
 
 /* re-seed the random number generator */
-	srand(sysUpTime());
+	srand(SysUpTime());
 /* turn off stdio.h buffering */
 	//setbuf(stdout, NULL);
 /* banner screen */
-	/*wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov",
+	wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov",
 		SCN_WID * 2 + 2);
 	wprintf(L"\x1B[2;%dH"L"Software by Chris Giese", SCN_WID * 2 + 2);
 	wprintf(L"\x1B[4;%dH"L"'1' and '2' rotate shape", SCN_WID * 2 + 2);
 	wprintf(L"\x1B[5;%dH"L"Arrow keys move shape", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", SCN_WID * 2 + 2);*/
+	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", SCN_WID * 2 + 2);
 
-	wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov", 2);
+	/*wprintf(L"\x1B[2J"L"\x1B[1;%dH"L"TETRIS by Alexei Pazhitnov", 2);
 	wprintf(L"\x1B[2;%dH"L"Software by Chris Giese", 2);
 	wprintf(L"\x1B[4;%dH"L"'1' and '2' rotate shape", 2);
 	wprintf(L"\x1B[5;%dH"L"Arrow keys move shape", 2);
-	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", 2);
+	wprintf(L"\x1B[6;%dH"L"Esc or Q quits", 2);*/
 
 NEW:
-	//wprintf(L"\x1B[9;%dH"L"Press any key to begin", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[9;%dH"L"Press any key to begin", 2);
-	//fflush(stdout);
-	_wgetch();
-	/*wprintf(L"\x1B[8;%dH"L"                      ", SCN_WID * 2 + 2);
-	wprintf(L"\x1B[9;%dH"L"                      ", SCN_WID * 2 + 2);*/
-	wprintf(L"\x1B[8;%dH"L"                      ", 2);
-	wprintf(L"\x1B[9;%dH"L"                      ", 2);
+	wprintf(L"\x1B[9;%dH"L"Press any key to begin", SCN_WID * 2 + 2);
+	//wprintf(L"\x1B[9;%dH"L"Press any key to begin", 2);
+	fflush(stdout);
+	ConReadKey();
+	wprintf(L"\x1B[8;%dH"L"                      ", SCN_WID * 2 + 2);
+	wprintf(L"\x1B[9;%dH"L"                      ", SCN_WID * 2 + 2);
+	/*wprintf(L"\x1B[8;%dH"L"                      ", 2);
+	wprintf(L"\x1B[9;%dH"L"                      ", 2);*/
+
+	rc = mglCreateRc(NULL);
+	glClear();
 	screenInit();
 	goto FOO;
 
 	while(1)
-	{	Fell=0;
-		NewShape=Shape;
-		NewX=X;
-		NewY=Y;
-		Key=getKey();
-		if(Key == 0)
-		{	NewY++;
-			Fell=1; }
+	{
+		Fell = 0;
+		NewShape = Shape;
+		NewX = X;
+		NewY = Y;
+		Key = getKey();
+		if (Key == 0)
+		{
+			NewY++;
+			Fell = 1;
+		}
 		else
-		{	if(Key == 'q' || Key == 'Q' || Key == 27)
+		{
+			if(Key == 'q' || Key == 'Q' || Key == 27)
 				break;
 				//goto FIN;
 			if (Key == '1' || Key == KEY_UP)
-				NewShape=Shapes[Shape].Plus90;
-			else if(Key == '2')
-				NewShape=Shapes[Shape].Minus90;
-			else if(Key == KEY_LEFT)
+				NewShape = Shapes[Shape].Plus90;
+			else if (Key == '2')
+				NewShape = Shapes[Shape].Minus90;
+			else if (Key == KEY_LEFT)
 			{
-				if(X > 0)
-					NewX=X - 1;
+				if (X > 0)
+					NewX = X - 1;
 			}
-			else if(Key == KEY_RIGHT)
+			else if (Key == KEY_RIGHT)
 			{
-				if(X < SCN_WID - 1)
-					NewX=X + 1;
+				if (X < SCN_WID - 1)
+					NewX = X + 1;
 			}
-			else if(Key == KEY_DOWN)
+			else if (Key == KEY_DOWN)
 			{
-				if(Y < SCN_HT - 1)
-					NewY=Y + 1;
+				if (Y < SCN_HT - 1)
+					NewY = Y + 1;
 			}
 
-			Fell=0;
+			Fell = 0;
 		}
-/* if nothing has changed, skip the bottom half of this loop */
+		/* if nothing has changed, skip the bottom half of this loop */
 		if(NewX == X && NewY == Y && NewShape == Shape)
 			continue;
-/* otherwise, erase old shape from the old pos'n */
+		/* otherwise, erase old shape from the old pos'n */
 		shapeErase(X, Y, Shape);
-/* hit anything? */
+
+		/* hit anything? */
 		if(shapeHit(NewX, NewY, NewShape) == 0)
-/* no, update pos'n */
-		{	X=NewX;
-			Y=NewY;
-			Shape=NewShape; }
-/* yes -- did the piece hit something while falling on its own? */
+		{
+			/* no, update pos'n */
+			X = NewX;
+			Y = NewY;
+			Shape=NewShape; 
+		}
+		/* yes -- did the piece hit something while falling on its own? */
 		else if(Fell)
-/* yes, draw it at the old pos'n... */
-		{	shapeDraw(X, Y, Shape);
-/* ... and spawn new shape */
-FOO:			Y=3;
-			X=SCN_WID / 2;
-			Shape=rand() % 19;
+		{
+			/* yes, draw it at the old pos'n... */
+			shapeDraw(X, Y, Shape);
+
+			/* ... and spawn new shape */
+FOO:		Y = 3;
+			X = SCN_WID / 2;
+			Shape = rand() % _countof(Shapes);
 			collapse();
-/* if newly spawned shape hits something, game over */
-			if(shapeHit(X, Y, Shape))
+
+			/* if newly spawned shape hits something, game over */
+			if (shapeHit(X, Y, Shape))
 			{
 				/*wprintf(L"\x1B[8;%dH"L"\x1B[37;40;1m"
 					L"       GAME OVER"L"\x1B[0m",
@@ -331,11 +381,14 @@ FOO:			Y=3;
 				goto NEW; 
 			}
 		}
-/* hit something because of user movement/rotate OR no hit: just redraw it */
+
+		/* hit something because of user movement/rotate OR no hit: just redraw it */
 		shapeDraw(X, Y, Shape);
 		refresh();
 	}
 	
-	wprintf(L"\x1B[2J");
+	mglDeleteRc(rc);
 	return 0;
 }
+
+//@}

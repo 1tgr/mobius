@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.6 2002/03/05 16:21:44 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.7 2002/03/06 01:39:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -189,7 +189,6 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 
     pix = vga4Dither(x1, y, clr);
     offset = video_base + xconv[x1] + y80[y];
-    x2--;
     
     /* midx = start of middle region */
     midx = (x1 + 7) & -8;

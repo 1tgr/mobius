@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.10 2002/03/05 16:21:44 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.11 2002/03/06 01:39:26 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -353,8 +353,7 @@ bool kbdRequest(device_t* dev, request_t* req)
 	return true;
 
     case CHR_GETSIZE:
-	*((size_t*) req_dev->params.buffered.buffer) = 
-	    keyb->write - keyb->read;
+	req_dev->params.buffered.length = keyb->write - keyb->read;
 	return true;
     }
 

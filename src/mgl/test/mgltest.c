@@ -1,4 +1,4 @@
-/* $Id: mgltest.c,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: mgltest.c,v 1.2 2002/03/06 01:39:43 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <gl/mgl.h>
@@ -16,9 +16,11 @@ int main(void)
 	/*mouse_packet_t pkt;*/
 	size_t length;
 	MGLreal x, y;
+	MGLrect dims;
 
 	srand(SysUpTime());
 	rc = mglCreateRc(NULL);
+	mglGetDimensions(rc, &dims);
 	glSetClearColour(0x000000);
 	glClear();
 
@@ -47,8 +49,8 @@ int main(void)
 	glSetColour(0x000005);
 	for (i = 0; i < 100; i++)
 	{
-		glMoveTo(rand() % 1280, rand() % 960);
-		glLineTo(rand() % 1280, rand() % 960);
+		glMoveTo(rand() % dims.right, rand() % dims.bottom);
+		glLineTo(rand() % dims.right, rand() % dims.bottom);
 	}
 
 	glFlush();

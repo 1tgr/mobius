@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.5 2002/03/05 16:21:44 pavlovskii Exp $ */
+/* $Id: video.c,v 1.6 2002/03/06 01:39:27 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -16,8 +16,15 @@ void swap_int(int *a, int *b)
     *a = temp;
 }
 
-extern uint8_t cupertino[];
-vga_font_t _Cupertino = { 0, 256, 12, cupertino };
+extern uint8_t font8x8[];
+vga_font_t _Font = { 0, 256, 8, font8x8 };
+
+typedef struct request_vid_t request_vid_t;
+struct request_vid_t
+{
+    request_t header;
+    params_vid_t params;
+};
 
 typedef struct video_drv_t video_drv_t;
 struct video_drv_t
@@ -248,7 +255,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
 bool vidRequest(device_t* dev, request_t* req)
 {
     video_drv_t *video = (video_drv_t*) dev;
-    params_vid_t *params = (params_vid_t*) (req + 1);
+    params_vid_t *params = &((request_vid_t*) req)->params;
     size_t user_length;
     
     switch (req->code)
@@ -343,7 +350,7 @@ bool vidRequest(device_t* dev, request_t* req)
     case VID_TEXTOUT:
     {
 	vid_text_t *p = &params->vid_textout;
-	video->vid->vidTextOut(video->vid, p->x, p->y, &_Cupertino, 
+	video->vid->vidTextOut(video->vid, p->x, p->y, &_Font, 
 	    (const wchar_t*) p->buffer, p->length / sizeof(wchar_t), 
 	    p->foreColour, p->backColour);
 	return true;

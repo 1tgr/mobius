@@ -1,4 +1,4 @@
-/* $Id: line.c,v 1.3 2002/03/05 02:04:48 pavlovskii Exp $ */
+/* $Id: line.c,v 1.4 2002/03/06 01:39:43 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -17,6 +17,7 @@ shell_line_t *ShReadLine(void)
     uint32_t ch;
     size_t read, allocd;
     shell_line_t *line;
+    wchar_t wc[2];
     char mb[5];
     int len;
     
@@ -116,7 +117,9 @@ shell_line_t *ShReadLine(void)
 		}
 		else
 		{
-		    len = wctomb(mb, ch);
+		    wc[0] = ch;
+		    wc[1] = '\0';
+		    len = wcstombs(mb, wc, _countof(mb));
 		    if (len == -1)
 			mb[0] = '\0';
 		    else

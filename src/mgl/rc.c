@@ -1,4 +1,4 @@
-/* $Id: rc.c,v 1.1 2002/03/05 16:33:49 pavlovskii Exp $ */
+/* $Id: rc.c,v 1.2 2002/03/06 01:39:43 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <os/device.h>
@@ -9,7 +9,7 @@
 
 mglrc_t *current;
 
-bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first, 
+static bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first, 
 		     unsigned count)
 {
     params_vid_t params;
@@ -20,7 +20,7 @@ bool vidStorePalette(handle_t video, const rgb_t *rgb, unsigned first,
     return FsRequestSync(video, VID_STOREPALETTE, &params, sizeof(params), &op);
 }
 
-rgb_t palette[] =
+static rgb_t palette[] =
 {
     { 0, 0, 0, 0 },
     { 128, 0, 0, 0 },
@@ -40,6 +40,7 @@ rgb_t palette[] =
     { 255, 255, 255, 0 },
 };
 
+/*! \brief  Creates a rendering context */
 mglrc_t *mglCreateRc(const wchar_t *server)
 {
     mglrc_t *rc;
@@ -110,6 +111,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     }*/
 
     memset(&params, 0, sizeof(params));
+    params.vid_setmode.bitsPerPixel = 4;
     if (!FsRequestSync(rc->video, VID_SETMODE, &params, sizeof(params), &op) ||
 	op.result != 0)
     {
@@ -122,13 +124,13 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     rc->surf_width = params.vid_setmode.width;
     rc->surf_height = params.vid_setmode.height;
     rc->gl_width = 1280;
-    rc->gl_height = (rc->gl_width * rc->surf_height) / rc->surf_width;
+    rc->gl_height = 960;/*(rc->gl_width * rc->surf_height) / rc->surf_width;*/
     rc->scale_x = rc->gl_width / rc->surf_width;
     rc->scale_y = rc->gl_height / rc->surf_height;
     rc->colour = 0xffffff;
     rc->clear_colour = 0;
-    vidStorePalette(rc->video, palette, 0, 8);
-    vidStorePalette(rc->video, palette + 8, 56, 8);
+    /*vidStorePalette(rc->video, palette, 0, 8);
+    vidStorePalette(rc->video, palette + 8, 56, 8);*/
 
     if (current == NULL)
 	mglUseRc(rc);
@@ -136,6 +138,7 @@ mglrc_t *mglCreateRc(const wchar_t *server)
     return rc;
 }
 
+/*! \brief  Deletes a rendering context */
 bool mglDeleteRc(mglrc_t *rc)
 {
     wprintf(L"mglDeleteRc: %p\n", rc);
@@ -166,6 +169,7 @@ bool mglDeleteRc(mglrc_t *rc)
 	return false;
 }
 
+/*! \brief  Makes another rendering context current */
 bool mglUseRc(mglrc_t *rc)
 {
     wprintf(L"mglUseRc: %p\n", rc);
@@ -181,6 +185,7 @@ bool mglUseRc(mglrc_t *rc)
     return true;
 }
 
+/*! \brief  Retrieves the dimensions of the specified rendering context */
 bool mglGetDimensions(mglrc_t *rc, MGLrect *rect)
 {
     if (rc == NULL)
@@ -210,6 +215,7 @@ bool mgliMapToSurface(MGLreal x, MGLreal y, point_t *pt)
     }
 }
 
+/*! \brief  Changes the colour of the current rendering context */
 MGLcolour glSetColour(MGLcolour clr)
 {
     MGLcolour old;
@@ -225,6 +231,7 @@ MGLcolour glSetColour(MGLcolour clr)
     return old;
 }
 
+/*! \brief  Changes the clear colour of the current rendering context */
 MGLcolour glSetClearColour(MGLcolour clr)
 {
     MGLcolour old;
@@ -240,9 +247,15 @@ MGLcolour glSetClearColour(MGLcolour clr)
     return old;
 }
 
+/*!
+ *  \brief  Ensures that any drawing commands queued on the current rendering 
+ *  context have been executed
+ */
 void glFlush(void)
 {
     CCV;
 
     vidFlushQueue(&current->render_queue, current->video);
 }
+
+/*! @} */
