@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.9 2002/03/04 23:50:18 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.10 2002/03/05 16:21:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -35,7 +35,7 @@ struct keyboard_t
     uint32_t keys;
     wchar_t compose;
     uint32_t *write, *read;
-    uint32_t buffer[16];
+    uint32_t buffer[64];
     bool isps2;
     uint16_t port, ctrl;
 };

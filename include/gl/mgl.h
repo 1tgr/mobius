@@ -1,3 +1,5 @@
+/* $Id: mgl.h,v 1.2 2002/03/05 16:21:42 pavlovskii Exp $ */
+
 #ifndef __GL_MGL_H
 #define __GL_MGL_H
 

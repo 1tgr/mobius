@@ -1,4 +1,4 @@
-# $Id: menu.lst,v 1.5 2002/03/05 02:04:17 pavlovskii Exp $
+# $Id: menu.lst,v 1.6 2002/03/05 16:21:42 pavlovskii Exp $
 
 title	The M”bius
 # root	(hd0,0)
@@ -23,6 +23,8 @@ module	/boot/nasm.exe
 module	/boot/start.asm
 module	/boot/v86.asm
 module	/boot/vidtest.exe
+module	/boot/mgl.dll
+module	/boot/mgltest.exe
 
 title	Reinstall loader to hard disk
 install	(hd0,0)/boot/grub/stage1 (hd0,0) (hd0,0)/boot/grub/stage2 (hd0,0)/menu.lst

@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.4 2002/03/05 14:23:24 pavlovskii Exp $ */
+/* $Id: video.c,v 1.5 2002/03/05 16:21:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -191,7 +191,7 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
 	s = vidMatchMode(&modes[i].mode, mode);
 	wprintf(L"video: mode %u = %ux%ux%u: score = %d\n", 
 	    i, modes[i].mode.width, modes[i].mode.height, modes[i].mode.bitsPerPixel,
-	    score);
+	    s);
 	if (s > score)
 	{
 	    best = i;

@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.5 2002/03/05 14:23:24 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.6 2002/03/05 16:21:44 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -11,6 +11,7 @@
 /*! Physical address of the VGA frame buffer */
 static uint8_t *video_base = PHYSICAL(0xa0000);
 static int maskbit[640], y80[480], xconv[640], startmasks[8], endmasks[8];
+static videomode_t vga4_mode;
 
 uint8_t vga4Dither(int x, int y, colour_t clr)
 {
@@ -27,24 +28,24 @@ struct
     const uint8_t *regs;
 } vga4_modes[] =
 {
-    /* width, height, bpp, bpl, regs, cookie */
-    { { 80,	25,	4,  0,	    0x03, },  mode03h },
-  /*{ { 320,    200,    2,  8192,   0x04, },	mode04h },
-    { { 640,    200,    1,  8192,   0x06, },	mode06h },*/
-  /*{ { 320,    200,    4,  8000,   0x0d, },	mode0Dh },*/ /* xxx - doesn't work */
-    { { 640,    200,    4,  16000,  0x0e, },	mode0Eh },
-  /*{ { 640,    350,    1,  28000,  0x0f, },	mode0Fh },*/
-    { { 640,    350,    4,  28000,  0x10, },	mode10h },
-  /*{ { 640,    480,    1,  38400,  0x11, },	mode11h },*/
-    { { 640,    480,    4,  38400,  0x12, },	mode12h },
+    /* width,	height,	bpp,	bpl,	cookie,		regs */
+    { {  80,	 25,	4,	0,	0x03, },	mode03h },
+    { { 320,	200,	4,	0,	0x0d, },	mode0Dh },
+    { { 640,	200,	4,	0,	0x0e, },	mode0Eh },
+    { { 640,	350,	4,	0,	0x10, },	mode10h },
+    { { 640,	480,	4,	0,	0x12, },	mode12h },
+
+  /*{ { 320,	200,	2,	0,	0x04, },	mode04h },
+    { { 640,	200,	1,	0,	0x06, },	mode06h },
+    { { 640,	350,	1,	0,	0x0f, },	mode0Fh },
+    { { 640,	480,	1,	0,	0x11, },	mode11h },*/
 };
 
 int vga4EnumModes(video_t *vid, unsigned index, videomode_t *mode)
 {
     if (index < _countof(vga4_modes))
     {
-	vga4_modes[index].mode.bytesPerLine = 
-	    (vga4_modes[index].mode.width * vga4_modes[index].mode.bitsPerPixel) / 8;
+	vga4_modes[index].mode.bytesPerLine = vga4_modes[index].mode.width / 8;
 	*mode = vga4_modes[index].mode;
 	return index == _countof(vga4_modes) - 1 ? VID_ENUM_STOP : VID_ENUM_CONTINUE;
     }
@@ -87,7 +88,7 @@ void vga4PreCalc(void)
     }
     
     for (j = 0; j < 480; j++)
-	y80[j] = j * 80;
+	y80[j] = j * vga4_mode.bytesPerLine;
     for (j = 0; j < 640; j++)
 	xconv[j] = j >> 3;
 }
@@ -108,11 +109,10 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
     if (regs == NULL)
 	return false;
 
-    /*vgaWriteRegs(regs);*/
-    
-    /* Clear the screen when we change modes */
+    vgaWriteRegs(regs);
+    vga4_mode = vga4_modes[i].mode;
     vga4PreCalc();
-    vid->vidFillRect(vid, 0, 0, mode->width, mode->height, 0);
+    vid->vidFillRect(vid, 0, 0, vga4_mode.width, vga4_mode.height, 0);
     return true;
 }
 
@@ -188,8 +188,8 @@ void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
     volatile uint8_t a;
 
     pix = vga4Dither(x1, y, clr);
-    offset = video_base;
-    offset += xconv[x1] + y80[y];
+    offset = video_base + xconv[x1] + y80[y];
+    x2--;
     
     /* midx = start of middle region */
     midx = (x1 + 7) & -8;
@@ -320,7 +320,7 @@ void vga4TextOut(video_t *vid,
 		}
 	    }
 
-	    offset += 80;
+	    offset += vga4_mode.bytesPerLine;
 	}
 
 	x += 8;

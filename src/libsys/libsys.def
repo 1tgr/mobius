@@ -20,6 +20,11 @@ EXPORTS
     ProcGetExeBase
     ProcGetProcessInfo
     ProcSpawnProcess
+    QueueAppend
+    QueueClear
+    QueueInit
+    QueuePopFirst
+    QueuePopLast
     ResFindResource
     ResLoadString
     SysGetInfo
@@ -35,3 +40,4 @@ EXPORTS
     ThrSleep
     ThrWaitHandle
     VmmAlloc
+    VmmFree

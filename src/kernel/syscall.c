@@ -1,9 +1,10 @@
-/* $Id: syscall.c,v 1.10 2002/03/04 23:50:35 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.11 2002/03/05 16:22:25 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
 #include <kernel/arch.h>
 #include <kernel/memory.h>
+#include <kernel/vmm.h>
 
 /* #define DEBUG */
 #include <kernel/debug.h>
@@ -186,6 +187,22 @@ handle_t SysThrCreateThread(void (*entry)(void*), void *param, unsigned priority
 	return NULL;
     else
 	return HndDuplicate(current->process, &thr->hdr);
+}
+
+bool SysVmmFree(void *base)
+{
+    vm_area_t *area;
+    area = VmmArea(current->process, base);
+    if (area == NULL)
+    {
+	errno = ENOTFOUND;
+	return false;
+    }
+    else
+    {
+	VmmFree(area);
+	return true;
+    }
 }
 
 /*
