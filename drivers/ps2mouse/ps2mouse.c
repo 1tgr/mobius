@@ -2,7 +2,7 @@
 #include <kernel/driver.h>
 #include <kernel/arch.h>
 
-/*#define DEBUG*/
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <stdlib.h>
