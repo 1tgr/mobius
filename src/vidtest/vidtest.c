@@ -1,4 +1,4 @@
-/* $Id: vidtest.c,v 1.1 2002/03/05 01:56:05 pavlovskii Exp $ */
+/* $Id: vidtest.c,v 1.2 2002/03/05 02:10:21 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <errno.h>
@@ -10,13 +10,37 @@
 #include <os/video.h>
 #include <os/rtl.h>
 
+handle_t vid;
+
+bool VidFillRect(const rect_t *rect, colour_t clr)
+{
+    fileop_t op;
+    params_vid_t params;
+    vid_shape_t shape;
+
+    shapes.shape = VID_SHAPE_FILLRECT;
+    shapes.s.rect.rect = *rect;
+    shapes.s.rect.colour = clr;
+    params.vid_draw.shapes = &shape;
+    params.vid_draw.length = sizeof(shape);
+    if (!FsRequestSync(vid, VID_DRAW, &params, sizeof(params), &op))
+    {
+    	errno = op.result;
+	return false;
+    }
+
+    return true;
+}
+
 int main(int argc, char **argv)
 {
-    handle_t vid;
     params_vid_t params;
     fileop_t op;
     vid_shape_t shapes[1];
     wchar_t str[] = L"Hello from vidtest!";
+    rect_t rc;
+    int dx, dy;
+    videomode_t mode;
     
     vid = FsOpen(SYS_DEVICES L"/video", FILE_READ | FILE_WRITE);
     if (vid == NULL)
@@ -25,13 +49,16 @@ int main(int argc, char **argv)
 	return EXIT_FAILURE;
     }
 
-    memset(&params, 0, sizeof(params));
-    params.vid_setmode.bitsPerPixel = 4;
+    memset(&mode, 0, sizeof(mode));
+    mode.bitsPerPixel = 4;
+    params.vid_setmode = mode;
     if (!FsRequestSync(vid, VID_SETMODE, &params, sizeof(params), &op))
     {
 	errno = op.result;
 	_pwerror(L"VID_SETMODE");
     }
+
+    mode = params.vid_setmode;
 
     shapes[0].shape = VID_SHAPE_LINE;
     shapes[0].s.line.a.x = 100;
@@ -60,7 +87,28 @@ int main(int argc, char **argv)
 	_pwerror(L"VID_TEXTOUT");
     }
 
-    ConReadKey();
+    rc.left = rc.top = 0;
+    rc.right = rc.bottom = 100;
+    dx = dy = 1;
+    for (;;)
+    {
+	VidFillRect(&rect, 0);
+
+	if (rc.left <= 0 ||
+	    rc.right > mode.width)
+	    dx = -dx;
+
+	if (rc.top <= 0 ||
+	    rc.bottom > mode.height)
+	    dy = -dy;
+
+	rc.left += dx;
+	rc.top += dy;
+	rc.right += dx;
+	rc.bottom += dy;
+
+	VidFillRect(&rect, 15);
+    }
 
     memset(&params, 0, sizeof(params));
     params.vid_setmode.width = 80;
