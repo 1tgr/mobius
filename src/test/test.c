@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.10 2002/01/06 01:56:15 pavlovskii Exp $ */
+/* $Id: test.c,v 1.11 2002/01/07 00:14:08 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,13 +13,14 @@ int _cputws(const wchar_t *str, size_t count);
 
 int main(void)
 {
-	static char key[512];
+	static char key[2048];
 	static wchar_t str[_countof(key) + 1];
 	
 	/*uint32_t key;
 	process_info_t *info;*/
 	handle_t file;
 	size_t len;
+	unsigned i;
 
 #if 1
 	wchar_t name[] = L"/hd/test.txt";
@@ -42,19 +43,22 @@ int main(void)
 	else
 	{
 #if 1
-		while ((len = FsRead(file, key, sizeof(key))))
+		for (i = 0; i < 16; i++)
 		{
-			if (len < sizeof(key))
-				key[len] = '\0';
-			len = mbstowcs(str, key, _countof(key) - 1);
-			if (len == -1)
-				wprintf(L"invalid multibyte sequence\n");
-			else
-				_cputws(str, len);
+			FsSeek(file, 0);
+			wprintf(L"\x1b[%um", i + 30);
+			while ((len = FsRead(file, key, sizeof(key))))
+			{
+				if (len < sizeof(key))
+					key[len] = '\0';
+				len = mbstowcs(str, key, _countof(key) - 1);
+				if (len == -1)
+					wprintf(L"invalid multibyte sequence\n");
+				else
+					_cputws(str, len);
+			}
 		}
 #else
-		unsigned i;
-
 		FsSeek(file, 19 * 512);
 		if ((len = FsRead(file, key, sizeof(key))))
 		{

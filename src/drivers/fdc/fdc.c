@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.6 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.7 2002/01/07 00:14:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -6,7 +6,7 @@
 #include <kernel/memory.h>
 #include <kernel/cache.h>
 
-#define DEBUG
+/* #define DEBUG */
 #include <kernel/debug.h>
 
 #include <os/syscall.h>
@@ -218,7 +218,6 @@ start:
 	case fdcIdle:
 		/* Controller is idle, so we need to start a request */
 		fdc->op = fdcSpinUp;
-		wprintf(L"fdc: ");
 		if (fdc->motor_on)
 			goto start;
 		else
@@ -246,7 +245,7 @@ start:
 		}
 		else
 		{
-			wprintf(L"fdc: seeking to track %u\n", track);
+			TRACE1(L"fdc: seeking to track %u\n", track);
 			fdc->sensei = true;
 			FdcSendByte(fdc, CMD_SEEK);
 			FdcSendByte(fdc, 0);
@@ -343,7 +342,6 @@ start:
 				DevUnmapBuffer();
 			}
 
-			wprintf(L".");
 			io->length += 512;
 
 			if (io->length < req_dev->params.buffered.length)
@@ -378,7 +376,6 @@ start:
 	 */
 finished:
 	/* Drive has finished reading/writing, so we can turn off the motor */
-	wprintf(L"done: %d\n", ret);
 	FdcMotorOff(fdc);
 	free(io->extra);
 	req_dev->params.buffered.length = io->length;

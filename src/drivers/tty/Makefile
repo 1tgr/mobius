@@ -1,5 +1,5 @@
 TARGET=	$(BIN)/tty.drv
-OBJS=	tty.o
+OBJS=	tty.o map.o
 BASE=	tty
 EXP=	tty.exp
 IMP=	$(LIB)/tty.lib

@@ -440,6 +440,138 @@ SOURCE=.\sys\main.c
 SOURCE=.\sys\sbrk.c
 # End Source File
 # End Group
+# Begin Group "malloc"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=".\malloc-1.18\_emalloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\_malloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\_memalign.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\_strdup.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\_strsave.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\align.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\assert.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\botch.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\defs.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\dumpheap.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\emalloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\externs.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\getmem.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\globals.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\globals.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\globrename.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\leak.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\mach.sbrk.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\malloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\malloc.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\maltrace.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\memalign.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\setopts.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\simumalloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\stats.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\strdup.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\strsave.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\testmalloc.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\teststomp.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\trace.h"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\verify.c"
+# End Source File
+# Begin Source File
+
+SOURCE=".\malloc-1.18\version.c"
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=.\libc.def

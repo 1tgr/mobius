@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.4 2002/01/07 00:14:05 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -267,6 +267,24 @@ void	i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector,
 uint32_t	i386DoCall(void *routine, void *args, uint32_t argbytes);
 void	i386DispatchSysCall(context_t *ctx);
 
+/* Remote debugging */
+
+/* Number of bytes of registers.  */
+#define NUMREGBYTES 64
+enum i386_regnames {EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI,
+	       PC /* also known as eip */,
+	       PS /* also known as eflags */,
+	       CS, SS, DS, ES, FS, GS};
+
+/*
+ * these should not be static cuz they can be used outside this module
+ */
+extern int i386_registers[NUMREGBYTES/4];
+
+void	i386InitSerialDebug(void);
+void	i386TrapToDebugger(const context_t *ctx);
+
+/* CPUID */
 extern uint32_t cpuid_ecx, cpuid_edx, cpu_max_level;
 uint32_t	i386IdentifyCpu();
 

@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.3 2002/01/07 00:14:05 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -22,6 +22,7 @@ extern int errno;
 #define EHANDLE		10
 #define EHARDWARE	11
 #define EACCESS		12
+#define EEOF		13
 
 #define EACCES		EACCESS
 #define EINVAL		EINVALID

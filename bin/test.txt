@@ -1,41 +1,13 @@
-<head>
-<meta name="GENERATOR" content="Microsoft FrontPage 4.0">
-<meta name="ProgId" content="FrontPage.Editor.Document">
-</head>
+<p>The Möbius is an open-source operating system for the IA-32 platform 
+(Intel i386 and compatibles).</p>
 
-<table border="0" width="100%" bgcolor="#3A22C2" cellspacing="0" cellpadding="0">
-  <tr>
-    <td><img border="0" src="images/banner1.jpg" alt="The Möbius" width="400" height="100"></td>
-  </tr>
-</table>
-The Möbius is an open-source operating system for the IA-32 platform (Intel
-i386 and compatibles).
-<p>There are a lot of other operating systems for the i386:</p>
-<ul>
-  <li>Windows NT and its successors are closed-source. Their development is
-    dictated solely by Microsoft and their interests.</li>
-  <li>Windows 95 and its successors are hacks to Windows 3.x and MS-DOS.</li>
-  <li>Linux has been going a long time, and has traditionally been a Unix clone.
-    As such it is a bit of a hack and is struggling to keep up with modern OS
-    concepts.</li>
-  <li>Most of the other amateur OS projects consist of a boot sector and a
-    'kernel' which prints &quot;Hello, world!&quot;.</li>
-  <li>Of the others, most have followed the same path as Linux, without any
-    regard to design or future compatibility.</li>
-  <li>The small remainder are promising, well-designed operating systems.</li>
-</ul>
-<p>The Möbius has been designed as a good modern OS. Its main goals are:</p>
-<ul>
-  <li>To be extensible enough so that it is easy to modify it for new devices
-    and technologies</li>
-  <li>To keep the kernel as small and modular as possible</li>
-  <li>To support existing applications where possible</li>
-  <li>To remain easy enough to use that users can install and configure a Möbius
-    system without having to learn it</li>
-</ul>
 <p>You can try the OS by downloading a floppy disk image, writing it to a disk
 and booting from it. Alternatively, you can use the disk image in an emulator
 such as Bochs. Full source code is available through CVS.</p>
-<p><a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=23527" border="0" alt="SourceForge Logo"></a><a href="http://www.digits.com/"><img src="http://counter.digits.com/wc/-d/4/moebius" align="middle" border="0" hspace="4" vspace="2" width="60" height="20"></a></p>
+<p><a href="http://sourceforge.net">
+<img src="http://sourceforge.net/sflogo.php?group_id=23527" border="0" 
+	alt="SourceForge Logo"></a><a href="http://www.digits.com/">
+<img src="http://counter.digits.com/wc/-d/4/moebius" align="middle" 
+	border="0" hspace="4" vspace="2" width="60" height="20"></a></p>
 
 This file is test.txt and comes from the floppy disk.

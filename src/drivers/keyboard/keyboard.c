@@ -383,7 +383,7 @@ static const IDeviceVtbl keyboard_vtbl =
 device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
 	Keyboard* keyb;
-	uint32_t i;
+	/*uint32_t i;*/
 	uint16_t port, ctrl;
 	/*device_t* kdebug;*/
 	uint8_t status;
@@ -432,7 +432,8 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 	devRegisterIrq(kdebug, 1, false);
 	devClose(kdebug);*/
 
-#if 1
+	/* Keyboard initialisation seems to work best if we leave it alone... */
+#if 0
 	out(port, 0xff); /*reset keyboard   */ 
     do {
         status = in(ctrl);
@@ -456,7 +457,7 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
     out(port, 0x01 | 0x04 | 0x20 | 0x40);
 
     out(ctrl, 0xAE); /*enable keyboard   */
-#else
+#elif 0
 	/* Reset keyboard and disable scanning until further down */
 	TRACE0("Disable...");
 	kbdHwWriteRead(keyb, keyb->port, KEYB_RESET_DISABLE, KEYB_ACK);
@@ -506,11 +507,10 @@ device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 	/* Enable keyboard, expect 0xFA (ACK) */
 	TRACE0("done\nEnable...");
 	kbdHwWriteRead(keyb, keyb->port, KEYB_ENABLE, KEYB_ACK);
+	TRACE0("done\n");
 #endif
 
-	TRACE0("done\nIRQ...");
 	DevRegisterIrq(1, &keyb->dev);
-	TRACE0("done\n");
 	return &keyb->dev;
 }
 

@@ -10,9 +10,9 @@ EXPORTS
 	ArchStartup
 	CcCreateFileCache
 	CcDeleteFileCache
-	CcIsPageValid
-	CcRequestPage
-	CcReleasePage
+	CcIsBlockValid
+	CcRequestBlock
+	CcReleaseBlock
 	DbgDumpModules
 	DbgDumpStack
 	DbgDumpThreads

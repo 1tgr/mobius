@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.5 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: device.h,v 1.6 2002/01/07 00:14:05 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -163,9 +163,9 @@ struct request_port_t
 };
 
 #define REQUEST_CODE(buff, sys, maj, min)	\
-	((buff) << 31 | \
+	((uint32_t) ((buff) << 31 | \
 	((sys) << 16) | \
-	((maj) << 8) | (min))
+	((maj) << 8) | (min)))
 
 #define	DEV_OPEN		REQUEST_CODE(0, 0, 'd', 'o')
 #define	DEV_CLOSE		REQUEST_CODE(0, 0, 'd', 'c')

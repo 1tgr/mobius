@@ -1,4 +1,4 @@
-/* $Id: arch.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: arch.h,v 1.3 2002/01/07 00:14:05 pavlovskii Exp $ */
 #ifndef __KERNEL_ARCH_H
 #define __KERNEL_ARCH_H
 
@@ -24,9 +24,6 @@ void	ArchMaskIrq(uint16_t enable, uint16_t disable);
 void	ArchDbgBreak(void);
 void	ArchDbgDumpContext(const struct context_t* ctx);
 struct thread_t *	ArchAttachToThread(struct thread_t *thr);
-
-/* this is in device.c but is only called on a context switch */
-void	DevRunHandlers(void);
 
 #ifdef __cplusplus
 }

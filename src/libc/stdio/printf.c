@@ -1,4 +1,4 @@
-/* $Id: printf.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: printf.c,v 1.3 2002/01/07 00:14:08 pavlovskii Exp $ */
 
 #include <stddef.h>
 #include <printf.h>
@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <wchar.h>
 
-int _cputs(const char *);
+int _cputs(const char *, size_t);
 
 #ifdef BUFFER
 static char printf_buffer[80], *ch;
@@ -25,7 +25,7 @@ static bool kprintfhelp(void* pContext, const char* str, size_t len)
 	strcpy(ch, str);
 	ch += len;
 #else
-	_cputs(str);
+	_cputs(str, len);
 #endif
 	return true;
 }
@@ -47,7 +47,7 @@ int vprintf(const char* fmt, va_list ptr)
 #endif
 	ret = doprintf(kprintfhelp, NULL, fmt, ptr);
 #ifdef BUFFER
-	_cputs(printf_buffer);
+	_cputs(printf_buffer, ch - printf_buffer);
 #endif
 	return ret;
 }

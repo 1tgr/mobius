@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.8 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.9 2002/01/07 00:14:05 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -972,9 +972,10 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 	ata_ctrl_t* ctrl;
 	addr_t phys;
 	uint32_t *bda;
-	unsigned num_bios_drives, mod;
+	unsigned num_bios_drives;
+	/*unsigned mod;
 	uint16_t vector[2];
-	uint8_t *buf;
+	uint8_t *buf;*/
 
 	phys = 0;
 	bda = MemMapTemp(&phys, 1, PRIV_KERN | PRIV_RD | PRIV_PRES);
