@@ -1,6 +1,6 @@
 EXP=    libsys.exp
 DEF=    libsys.def
-OBJS=	syscall.o port.o misc.o
+OBJS=	syscall.o port.o misc.o resource.o
 BASE=	libsys
 
 include ../make.actions
@@ -8,7 +8,7 @@ include ../make.actions
 TARGET_D=       $(BIN)/libsys.dll
 TARGET_S=       $(LIB)/libsys_s.lib
 IMP=            $(LIB)/libsys.lib
-LIBS=           
+LIBS=           $(LIB)/libc_s.lib
 
 #include ../make.actions
 

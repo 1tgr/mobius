@@ -1,0 +1,11 @@
+/* $Id: shell.rc,v 1.1 2002/02/22 16:51:35 pavlovskii Exp $ */
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    1                       "Displays help for the shell"
+    2                       "Exits the shell"
+    3                       "Changes the current working directory"
+    4                       "Displays a list of files in the current directory"
+    5                       "Displays the contents of a file"
+    6                       "Clears the screen"
+END

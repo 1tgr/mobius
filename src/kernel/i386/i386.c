@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.13 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.14 2002/02/22 16:51:35 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -219,14 +219,8 @@ uint32_t i386Isr(context_t ctx)
 
 			DbgDumpStack(current->process, ctx.regs.ebp);
 			ArchDbgDumpContext(&ctx);
-			DbgDumpBuffer((char*) ctx.eip - 8, 16);
+			/*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
 
-			/*eip = (uint8_t*) ctx.eip;
-			wprintf(L"%02x ", eip[0]);
-			wprintf(L"%02x ", eip[1]);
-			wprintf(L"%02x\n", eip[2]);*/
-
-			halt(0);
 			if (current->process == &proc_idle)
 				i386TrapToDebugger(&ctx);
 			else

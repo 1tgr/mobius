@@ -10,6 +10,7 @@ CPPFLAGS+=	$(CFLAGS) -fno-rtti
 ASFLAGS+=	--gstabs
 CC=		gcc
 LD=		ld
+RC=		windres
 
 %.o:	%.c
 	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
@@ -34,6 +35,9 @@ LD=		ld
 
 %.d:	%.S
 	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(ASFLAGS)
+
+%.res.o: %.rc
+	$(RC) -i $< -o $@
 
 .base:	$(BIN)/coffbase.txt Makefile
 	$(BIN)/base.pl $(BASE) < $(BIN)/coffbase.txt > .base

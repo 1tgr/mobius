@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.1 2002/02/22 15:31:19 pavlovskii Exp $ */
+/* $Id: main.c,v 1.2 2002/02/22 16:51:28 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -344,6 +344,7 @@ int main(void)
 		"fat.drv",
 		"fdc.drv",
 		"kernel.exe",
+		"test.txt",
 	};
 	
 	if (enable_a20() != 0)

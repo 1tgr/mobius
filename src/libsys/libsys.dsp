@@ -102,6 +102,10 @@ SOURCE=.\port.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\resource.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\syscall.S
 # End Source File
 # End Group

@@ -8,8 +8,11 @@ EXPORTS
 	ThrSleep
 	ProcExitProcess
 	ProcGetCwd
+	ProcGetExeBase
 	ProcGetProcessInfo
 	ProcSpawnProcess
+	ResFindResource
+	ResLoadString
 	EvtAlloc
 	EvtIsSignalled
 	EvtSignal
