@@ -75,6 +75,8 @@ EXPORTS
 	IoReadSync
 	IoRequest
 	IoRequestSync
+	KeAtomicDec
+	KeAtomicInc
 	KeInstallHooks
 	MemAlloc
 	MemAllocLow

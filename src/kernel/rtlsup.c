@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.16 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.17 2002/06/14 13:05:38 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -113,14 +113,14 @@ int name(const ct *str, size_t count) \
         switch (*str) \
         { \
         case '\n': \
-            con_y++; \
+            KeAtomicInc(&con_y); \
         case '\r': \
             con_x = 0; \
             break; \
  \
         case '\b': \
             if (con_x > 0) \
-                con_x--; \
+                KeAtomicDec(&con_x); \
             break; \
  \
         case '\t': \
@@ -130,13 +130,13 @@ int name(const ct *str, size_t count) \
         default: \
             mem[con_x + con_y * 80] =  \
                 (uint16_t) (uint8_t) *str | con_attribs; \
-            con_x++; \
+            KeAtomicInc(&con_x); \
         } \
  \
         if (con_x >= 80) \
         { \
             con_x = 0; \
-            con_y++; \
+            KeAtomicInc(&con_y); \
         } \
  \
         while (con_y >= 24) \
@@ -147,7 +147,7 @@ int name(const ct *str, size_t count) \
             for (i = 0; i < 80; i++) \
                 mem[80 * 23 + i] = ' ' | con_attribs; \
  \
-            con_y--; \
+            KeAtomicDec(&con_y); \
         } \
     } \
  \

@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.12 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: port.c,v 1.13 2002/06/14 13:05:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -78,7 +78,7 @@ static port_t *PortFind(port_dir_t *dir, const wchar_t *name)
 
 static void PortAddRef(port_t *port)
 {
-    port->copies++;
+    KeAtomicInc(&port->copies);
 }
 
 static int PortRelease(port_t *port)
@@ -95,7 +95,7 @@ static int PortRelease(port_t *port)
         PortRelease(s);
     }*/
 
-    port->copies--;
+    KeAtomicDec(&port->copies);
     if (port->copies == 0)
     {
         /*HndRemovePtrEntries(NULL, &port->hdr);*/

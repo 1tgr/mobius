@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.11 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.12 2002/06/14 13:05:36 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -83,7 +83,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     const wchar_t *temp;
     wchar_t *search_path, *ch;
 
-    nesting++;
+    KeAtomicInc(&nesting);
 
     temp = ProGetString(L"", L"LibrarySearchPath", L"/hd/boot,/System/Boot,.");
     search_path = malloc(sizeof(wchar_t) * (wcslen(temp) + 2));
@@ -101,7 +101,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     else if (!PeFindFile(file, full_file, search_path))
     {
         free(search_path);
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
 
@@ -117,8 +117,8 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         FOREACH (mod, proc->mod)
             if (_wcsicmp(mod->name, full_file) == 0)
             {
-                mod->refs++;
-                nesting--;
+                KeAtomicInc(&mod->refs);
+                KeAtomicDec(&nesting);
                 return mod;
             }
 
@@ -126,7 +126,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     fd = FsOpen(full_file, FILE_READ);
     if (!fd)
     {
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
     
@@ -135,14 +135,14 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         size < sizeof(dos))
     {
         wprintf(L"%s: only %d bytes read (%d)\n", file, size, errno);
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
     
     if (dos.e_magic != IMAGE_DOS_SIGNATURE)
     {
         wprintf(L"%s: not an executable (%S)\n", file, &dos);
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
 
@@ -152,7 +152,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         size < sizeof(pe))
     {
         wprintf(L"%s: only %d bytes of PE header read (%d)\n", file, size, errno);
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
 
@@ -161,7 +161,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         char *c = (char*) &pe.Signature;
         wprintf(L"%s: not PE format (%c%c%c%c)\n", full_file, 
             c[0], c[1], c[2], c[3]);
-        nesting--;
+        KeAtomicDec(&nesting);
         return NULL;
     }
 
@@ -198,7 +198,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     if (proc == current->process)
         PeInitImage(mod);
 
-    nesting--;
+    KeAtomicDec(&nesting);
     return mod;
 }
 
@@ -525,7 +525,7 @@ void PeUnload(process_t* proc, module_t* mod)
 {
     /*vm_area_t *area;*/
 
-    mod->refs--;
+    KeAtomicDec(&mod->refs);
 
     if (mod->refs == 0)
     {

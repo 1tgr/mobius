@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.14 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.15 2002/06/14 13:05:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -90,7 +90,7 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     wchar_t temp[MAX_PATH];
 
     FsFullPath(exe, temp);
-    current->process->hdr.copies++;
+    KeAtomicInc((unsigned*) &current->process->hdr.copies);
     proc = ProcCreateProcess(temp);
     if (proc == NULL)
             return NULL;
@@ -137,7 +137,8 @@ process_t *ProcCreateProcess(const wchar_t *exe)
     proc->stack_end = 0x80000000;
     proc->exe = _wcsdup(exe);
     proc->info = NULL;
-    proc->id = ++proc_last_id;
+    KeAtomicInc(&proc_last_id);
+    proc->id = proc_last_id;
 
     memset(area, 0, sizeof(vm_area_t));
     area->owner = proc;
@@ -232,7 +233,7 @@ bool ProcFirstTimeInit(process_t *proc)
         info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
 
     if (proc->creator)
-        proc->creator->hdr.copies--;
+        KeAtomicDec((unsigned*) &proc->creator->hdr.copies);
 
     proc->info = info;
     info->id = proc->id;
@@ -307,7 +308,7 @@ void ProcExitProcess(int code)
     proc->handles = NULL;
     proc->handle_count = 0;
 
-    proc->hdr.copies--;
+    KeAtomicDec((unsigned*) &proc->hdr.copies);
     if (proc->hdr.copies == 0)
     {
         free((wchar_t*) proc->exe);

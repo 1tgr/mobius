@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.26 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: device.c,v 1.27 2002/06/14 13:05:34 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -955,7 +955,7 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
     if (class != NULL)
     {
         swprintf(link_name, L"%s%u", class->base, class->count);
-        class->count++;
+        KeAtomicInc(&class->count);
 
         link = malloc(sizeof(device_info_t));
         if (link != NULL)

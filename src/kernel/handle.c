@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.12 2002/04/20 12:29:42 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.13 2002/06/14 13:05:35 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -33,7 +33,7 @@ bool HndClose(struct process_t *proc, handle_t hnd, uint32_t tag)
 
 	proc->handles[hnd] = NULL;
 
-	ptr->copies--;
+	KeAtomicDec((unsigned*) &ptr->copies);
 	if (ptr->copies == 0)
 	{
 		HndSignalPtr(ptr, 0);
@@ -102,7 +102,7 @@ void *HndLock(struct process_t *proc, handle_t hnd, uint32_t tag)
 		return NULL;*/
 	else
 	{
-		ptr->locks++;
+		KeAtomicInc(&ptr->locks);
 		ptr->locked_by = current;
 		return (void*) (ptr + 1);
 	}
@@ -115,7 +115,7 @@ void HndUnlock(struct process_t *proc, handle_t hnd, uint32_t tag)
 	ptr = HndGetPtr(proc, hnd, tag);
 	if (ptr != NULL && ptr->locks > 0)
 	{
-		ptr->locks--;
+		KeAtomicDec(&ptr->locks);
 
 		if (ptr->locks == 0)
 			ptr->locked_by = NULL;
@@ -162,7 +162,7 @@ void HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr)
 	for (hnd = 0; hnd < proc->handle_count; hnd++)
 		if (proc->handles[hnd] == ptr)
 		{
-			ptr->copies--;
+			KeAtomicDec((unsigned*) &ptr->copies);
 			proc->handles[hnd] = NULL;
 		}
 }
@@ -175,7 +175,7 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 	/*wprintf(L"HndDuplicate: handles = %p handle_count = %u\n", 
 		proc->handles, proc->handle_count);*/
 
-	proc->handle_count++;
+	KeAtomicInc(&proc->handle_count);
 	if (proc->handle_count > proc->handle_allocated)
 	{
 		proc->handle_allocated += 16;
@@ -189,7 +189,7 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 	}
 
 	proc->handles[proc->handle_count - 1] = ptr;
-	ptr->copies++;
+	KeAtomicInc((unsigned*) &ptr->copies);
 
 	return proc->handle_count - 1;
 }
@@ -197,9 +197,9 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 {
 	if (sig)
-		ptr->signals++;
+		KeAtomicInc((unsigned*) &ptr->signals);
 	else
-		ptr->signals--;
+		KeAtomicDec((unsigned*) &ptr->signals);
 
 	if (ptr->signals > 0 &&
 		ptr->waiting.first != NULL)
@@ -216,7 +216,7 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 
 		TRACE0("\n");
 		assert(ptr->waiting.first == NULL);
-		ptr->signals--;
+		KeAtomicDec((unsigned*) &ptr->signals);
 	}
 }
 

@@ -6,7 +6,7 @@ OBJS=	start.o main.o thread.o \
 	mod_pe.o syscall.o port.o \
 	ramdisk_mb.o cache.o cppsup.o \
 	rtlsup.o debug.o profile.o winmgr.o \
-	queue.o clip.o
+	queue.o clip.o kernel.res.o
 LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
 DEF=	kernel.def

@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.11 2002/06/09 18:43:05 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.12 2002/06/14 13:05:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -160,7 +160,7 @@ status_t RdReadDir(fsd_t *fsd, void *dir_cookie, dirent_t *buf)
     if (*index < kernel_startup.multiboot_info->mods_count)
     {
         mod = first_mod + *index;
-        (*index)++;
+        KeAtomicInc(index);
 
         ch = strrchr(PHYSICAL(mod->string), '/');
         if (ch == NULL)

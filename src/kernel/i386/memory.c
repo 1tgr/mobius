@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.15 2002/05/19 13:05:00 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.16 2002/06/14 13:05:42 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -44,7 +44,8 @@ static addr_t MemAllocPool(page_pool_t *pool)
 	if (pool->free_pages <= 0)
 	    return NULL;
 	
-	addr = pool->pages[--pool->free_pages];
+    KeAtomicDec(&pool->free_pages);
+	addr = pool->pages[pool->free_pages];
     } while (addr == (addr_t) -1);
     SemRelease(&pool->sem);
 
@@ -54,7 +55,8 @@ static addr_t MemAllocPool(page_pool_t *pool)
 static void MemFreePool(page_pool_t *pool, addr_t block)
 {
     SemAcquire(&pool->sem);
-    pool->pages[pool->free_pages++] = block;
+    pool->pages[pool->free_pages] = block;
+    KeAtomicInc(&pool->free_pages);
     SemRelease(&pool->sem);
 }
 
@@ -65,7 +67,10 @@ static void MemFreePoolRange(page_pool_t *pool, addr_t start, addr_t end)
     start = PAGE_ALIGN(start);
     end = PAGE_ALIGN(end);
     for (; start < end; start += PAGE_SIZE)
-	pool->pages[pool->free_pages++] = start;
+    {
+    	pool->pages[pool->free_pages] = start;
+        KeAtomicInc(&pool->free_pages);
+    }
 
     SemRelease(&pool->sem);
 }

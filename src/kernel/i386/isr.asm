@@ -1,18 +1,20 @@
-; $Id: isr.asm,v 1.5 2002/04/20 12:30:04 pavlovskii Exp $
+; $Id: isr.asm,v 1.6 2002/06/14 13:05:38 pavlovskii Exp $
 
-[bits        32]
+[bits           32]
 
-[section    .text]
+[section        .text]
 
-[global        _SemAcquire]
-[global        _SemRelease]
-[global        _i386DoCall]
-[global        _i386IdentifyCpu]
+[global         _SemAcquire]
+[global         _SemRelease]
+[global         _KeAtomicInc]
+[global         _KeAtomicDec]
+[global         _i386DoCall]
+[global         _i386IdentifyCpu]
 
-[extern        _i386Isr]
-[extern        _i386DoubleFault]
-[extern        _tss]
-[extern        _current]
+[extern         _i386Isr]
+[extern         _i386DoubleFault]
+[extern         _tss]
+[extern         _current]
 
 _SemAcquire:
     push    ebp
@@ -45,19 +47,33 @@ _SemAcquire:
 
 .2:
     ;mov     eax, [esp+4]
-    mov	    eax, [ebp+4]
+    mov     eax, [ebp+4]
     cli
     hlt
 
 _SemRelease:
-    mov        eax, [esp+4]
-    mov        dword [eax], 0
-    mov        eax, [eax+8]
+    mov     eax, [esp+4]
+    mov     dword [eax], 0
+    mov     eax, [eax+8]
     push    eax
     popfd
     ret
 
-    align    8
+    align   8
+
+_KeAtomicInc:
+    mov     edx, [esp+4]
+    lock inc dword [edx]
+    ret
+
+    align   8
+
+_KeAtomicDec:
+    mov     edx, [esp+4]
+    lock dec dword [edx]
+    ret
+
+    align   8
 
 ; uint32_t i386DoCall(addr_t routine#8#, void *args#12#, uint32_t argbytes#16#);
 _i386DoCall:

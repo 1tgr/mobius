@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.17 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.18 2002/06/14 13:05:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -134,7 +134,7 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
         queue->first = ent;
 
     /*thr->queue = queue;*/
-    thr->queued++;
+    KeAtomicInc(&thr->queued);
     TRACE2("ThrInsertQueue: thread %u added to queue %p\n",
         thr->id, queue);
     SemRelease(&queue->sem);
@@ -160,7 +160,7 @@ void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
         queue->current = NULL;
 
     free(ent);
-    thr->queued--;
+    KeAtomicDec(&thr->queued);
     /*ent->next = ent->prev = NULL;
     thr->queue = NULL;*/
     TRACE2("ThrRemoveQueue: thread %u removed from queue %p\n",
@@ -247,7 +247,7 @@ void ScSchedule(void)
                     thr_priority[i].current = thr_priority[i].first;
 
                 new = newent->thr;
-                new->span++;
+                KeAtomicInc(&new->span);
                 if (new->span > 10)
                     new->span = 0;
                 else
@@ -278,9 +278,9 @@ void ScEnableSwitch(bool enable)
 {
     SemAcquire(&sc_sem);
     if (enable)
-        sc_switch_enabled++;
+        KeAtomicInc(&sc_switch_enabled);
     else
-        sc_switch_enabled--;
+        KeAtomicDec(&sc_switch_enabled);
     SemRelease(&sc_sem);
 }
 
@@ -288,9 +288,9 @@ void ScNeedSchedule(bool need)
 {
     /*SemAcquire(&sc_sem);*/
     if (need)
-        sc_need_schedule++;
+        KeAtomicInc(&sc_need_schedule);
     else if (sc_need_schedule > 0)
-        sc_need_schedule--;
+        KeAtomicDec(&sc_need_schedule);
     /*SemRelease(&sc_sem);*/
 }
 
@@ -424,7 +424,8 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     
     thr->process = proc;
     thr->priority = priority;
-    thr->id = ++thr_last_id;
+    KeAtomicInc(&thr_last_id);
+    thr->id = thr_last_id;
     thr->param = param;
     thr->is_kernel = isKernel;
 
@@ -488,7 +489,7 @@ void ThrDeleteThread(thread_t *thr)
         0);
 
     HndSignalPtr(&thr->hdr, true);
-    thr->hdr.copies--;
+    KeAtomicDec((unsigned*) &thr->hdr.copies);
     if (thr->hdr.copies == 0)
     {
         TRACE1("ThrDeleteThread: freeing thread %u\n", thr->id);
@@ -600,7 +601,7 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
     if (ptr->signals)
     {
         /*wprintf(L"ThrWaitHandle: already signalled...\n");*/
-        ptr->signals--;
+        KeAtomicDec((unsigned*) &ptr->signals);
         return true;
     }
 
