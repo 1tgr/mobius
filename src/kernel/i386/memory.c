@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.8 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.9 2002/02/20 01:35:54 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -210,11 +210,25 @@ void MemUnmapTemp(void)
 addr_t MemAllocPageDir(void)
 {
 	addr_t page_dir, *pd;
+	/*unsigned i;
+	bool fail;*/
 
 	page_dir = MemAlloc();
 	pd = MemMapTemp(&page_dir, 1, PRIV_KERN | PRIV_WR | PRIV_PRES);
-	memcpy(pd, kernel_pagedir, PAGE_SIZE);
+	memset(pd, 0, 512 * sizeof(*pd));
+	memcpy(pd + 512, kernel_pagedir + 512, 511 * sizeof(*pd));
 	pd[1023] = page_dir | PRIV_KERN | PRIV_WR | PRIV_PRES;
+
+	/*for (i = 0; i < 512; i++)
+	{
+		if (pd[i] != 0)
+		{
+			wprintf(L"MemAllocPageDir: pd[%d] == 0x%x\n", i, pd[i]);
+			fail = true;
+		}
+	}
+
+	assert(!fail);*/
 	MemUnmapTemp();
 
 	return page_dir;

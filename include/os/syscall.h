@@ -1,4 +1,4 @@
-/* $Id: syscall.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: syscall.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __OS_SYSCALL_H
 #define __OS_SYSCALL_H
 
@@ -11,7 +11,7 @@ extern "C"
 
 #define SYSCALL(rtn, name, argbytes, args...)	rtn name(##args);
 
-struct request_t;
+struct fileop_t;
 
 #include <os/sysdef.h>
 

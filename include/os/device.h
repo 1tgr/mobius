@@ -1,27 +1,18 @@
-/* $Id: device.h,v 1.8 2002/01/12 02:16:07 pavlovskii Exp $ */
+/* $Id: device.h,v 1.9 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
 #include <sys/types.h>
 
-typedef uint32_t status_t;
-
-typedef struct request_t request_t;
-struct request_t
-{
-	uint32_t code;
-	status_t result;
-	/*handle_t event;*/
-#ifdef KERNEL
-	request_t *original;
-	struct device_t *from;
-	void *param;
-#else
-	void *reserved[3];
-#endif
-};
+/*!
+ *	\ingroup	libsys
+ *	\defgroup	osdev	Device Interface
+ *	@{
+ */
 
 typedef union params_dev_t params_dev_t;
+
+/*!	\brief	Parameters for a \p DEV_xxx request */
 union params_dev_t
 {
 	struct
@@ -33,15 +24,31 @@ union params_dev_t
 
 	struct
 	{
+		/*! Number of bytes to read */
 		uint32_t length;
+		/*! Buffer into which to read */
 		void *buffer;
+		/*!
+		 *	\brief	Offset of the first byte to read
+		 *
+		 *	Block devices (e.g. disk drives) must honour this; character 
+		 *	devices (e.g. serial ports) may ignore this.
+		 */
 		uint64_t offset;
 	} dev_read;
 
 	struct
 	{
+		/*! Number of bytes to write */
 		uint32_t length;
+		/*! Buffer from which to write */
 		const void *buffer;
+		/*!
+		 *	\brief	Offset of the first byte to write
+		 *
+		 *	Block devices (e.g. disk drives) must honour this; character 
+		 *	devices (e.g. serial ports) may ignore this.
+		 */
 		uint64_t offset;
 	} dev_write;
 
@@ -59,6 +66,7 @@ union params_dev_t
 };
 
 typedef union params_fs_t params_fs_t;
+/*!	\brief	Parameters for a \p FS_xxx request */
 union params_fs_t
 {
 	struct
@@ -118,6 +126,7 @@ union params_fs_t
 };
 
 typedef union params_port_t params_port_t;
+/*!	\brief	Parameters for a \p PORT_xxx request */
 union params_port_t
 {
 	struct
@@ -140,27 +149,6 @@ union params_port_t
 		handle_t client;
 		uint32_t flags;
 	} port_accept;
-};
-
-typedef struct request_dev_t request_dev_t;
-struct request_dev_t
-{
-	request_t header;
-	params_dev_t params;
-};
-
-typedef struct request_fs_t request_fs_t;
-struct request_fs_t
-{
-	request_t header;
-	params_fs_t params;
-};
-
-typedef struct request_port_t request_port_t;
-struct request_port_t
-{
-	request_t header;
-	params_port_t params;
 };
 
 #define REQUEST_CODE(buff, sys, maj, min)	\
@@ -192,5 +180,7 @@ struct request_port_t
 #define PORT_CONNECT	REQUEST_CODE(1, 0, 'p', 'c')
 #define PORT_LISTEN		REQUEST_CODE(0, 0, 'p', 'l')
 #define PORT_ACCEPT		REQUEST_CODE(0, 0, 'p', 'a')
+
+/*! @} */
 
 #endif

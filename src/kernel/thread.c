@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.5 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.6 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -8,6 +8,9 @@
 #include <kernel/handle.h>
 #include <kernel/vmm.h>
 #include <kernel/memory.h>
+
+/*#define DEBUG*/
+#include <kernel/debug.h>
 
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,13 +22,13 @@ extern process_t proc_idle;
 thread_info_t idle_thread_info;
 uint32_t thr_queue_ready;
 
-/* running threads: one queue per priority level */
+/*! Running threads: one queue per priority level */
 thread_queue_t thr_priority[32];
 
-/* sleeping threads */
+/*! Sleeping threads */
 thread_queue_t thr_sleeping;
 
-/* threads that have APCs queues */
+/*! Threads that have APCs queues */
 thread_queue_t thr_apc;
 
 thread_t thr_idle =
@@ -127,7 +130,7 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
 
 	/*thr->queue = queue;*/
 	thr->queued++;
-	wprintf(L"ThrInsertQueue: thread %u added to queue %p\n",
+	TRACE2("ThrInsertQueue: thread %u added to queue %p\n",
 		thr->id, queue);
 	SemRelease(&queue->sem);
 }
@@ -155,11 +158,20 @@ void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 	thr->queued--;
 	/*ent->next = ent->prev = NULL;
 	thr->queue = NULL;*/
-	wprintf(L"ThrRemoveQueue: thread %u removed from queue %p\n",
+	TRACE2("ThrRemoveQueue: thread %u removed from queue %p\n",
 		thr->id, queue);
 	SemRelease(&queue->sem);
 }
 
+/*!
+ *	\brief	Runs a queue of threads
+ *
+ *	The threads on the queue are removed from the queue and added to their 
+ *	respective priority queues, to be scheduled next time the scheduler is 
+ *	called.
+ *
+ *	\param	queue	Queue to run
+ */
 void ThrRunQueue(thread_queue_t *queue)
 {
 	thread_queuent_t *ent, *next;
@@ -169,7 +181,7 @@ void ThrRunQueue(thread_queue_t *queue)
 	{
 		next = ent->next;
 		thr = ent->thr;
-		wprintf(L"ThrRunQueue: running thread %u\n", thr->id);
+		TRACE1("ThrRunQueue: running thread %u\n", thr->id);
 		SemAcquire(&sc_sem);
 		ThrRemoveQueue(thr, queue);
 		SemRelease(&sc_sem);
@@ -250,6 +262,14 @@ void ScSchedule(void)
 	scr[79] = 0x7100 | current->id;
 }
 
+/*!
+ *	\brief	Enables or disables the scheduler
+ *
+ *	The scheduler will only be called if its enable count is greater than zero;
+ *	this function either increments or decrements the scheduler enable count.
+ *
+ *	\param	enable	\p true to enable the scheduler; \p false to disable it
+ */
 void ScEnableSwitch(bool enable)
 {
 	SemAcquire(&sc_sem);
@@ -277,7 +297,7 @@ bool ThrAllocateThreadInfo(thread_t *thr)
 	thr->info = VmmAlloc(PAGE_ALIGN_UP(sizeof(thread_info_t)) / PAGE_SIZE,
 		NULL,
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
-	wprintf(L"ThrAllocateThreadInfo: %p\n", thr->info);
+	TRACE1("ThrAllocateThreadInfo: %p\n", thr->info);
 	if (thr->info == NULL)
 		return false;
 
@@ -379,7 +399,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 	thr->priority = priority;
 	thr->id = ++thr_last_id;
 
-	wprintf(L"thread %u: kernel stack at %p = %x\n",
+	TRACE3("thread %u: kernel stack at %p = %x\n",
 		thr->id, thr->kernel_stack, thr->kernel_stack_phys);
 
 	if (proc != current->process)
@@ -399,10 +419,10 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void*),
 
 	SemRelease(&sc_sem);
 
-	/*wprintf(L"Created thread %s/%u\n", proc->exe, thr->id);*/
+	wprintf(L"Created thread %s/%u\n", proc->exe, thr->id);
 	HndDuplicate(proc, &thr->hdr);
 	ThrRun(thr);
-	return NULL;
+	return thr;
 }
 
 void ThrDeleteThread(thread_t *thr)
@@ -508,7 +528,12 @@ void ThrSleep(thread_t *thr, unsigned ms)
 	ThrPause(thr);
 	thr->sleep_end = end;
 	SemAcquire(&sc_sem);
-	ThrInsertQueue(thr, &thr_sleeping, sleep->thr);
+
+	if (sleep)
+		ThrInsertQueue(thr, &thr_sleeping, sleep->thr);
+	else
+		ThrInsertQueue(thr, &thr_sleeping, NULL);
+
 	SemRelease(&sc_sem);
 	/* wprintf(L"ThrSleep: thread %d sleeping until %u\n", thr->id, thr->sleep_end); */
 	ScNeedSchedule(true);
@@ -522,7 +547,7 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 	if (ptr == NULL)
 		return false;
 
-	wprintf(L"ThrWaitHandle: waiting on %s:%S:%d(%lx)\n", 
+	TRACE4("ThrWaitHandle: waiting on %s:%S:%d(%lx)\n", 
 		current->process->exe, ptr->file, ptr->line, handle);
 	if (ptr->signals)
 	{
@@ -539,12 +564,26 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 	return true;
 }
 
+/*!
+ *	\brief	Queues an asynchronous procedure call for the specified thread
+ *
+ *	This function adds the function provided to the thread's APC queue;
+ *	the thread's APC queue will be run next time the scheduler runs.
+ *
+ *	APCs run in the same context as the thread they belong to.
+ *
+ *	\param	thr	Thread in which to queue the APC
+ *	\param	fn	APC function to call
+ *	\param	param	Parameter for the APC function
+ */
 void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
 {
-	assert(thr->kernel_apc == NULL);
+	thread_apc_t *apc;
 	SemAcquire(&sc_sem);
-	thr->kernel_apc = fn;
-	thr->kernel_apc_param = param;
+	apc = malloc(sizeof(thread_apc_t));
+	apc->fn = fn;
+	apc->param = param;
+	LIST_ADD(thr->apc, apc);
 	ThrInsertQueue(thr, &thr_apc, NULL);
 	SemRelease(&sc_sem);
 }

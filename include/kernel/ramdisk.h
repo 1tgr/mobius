@@ -1,4 +1,4 @@
-/* $Id: ramdisk.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: ramdisk.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_RAMDISK_H
 #define __KERNEL_RAMDISK_H
 
@@ -6,6 +6,12 @@
 extern "C"
 {
 #endif
+
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	rd	Ramdisk
+ *	@{
+ */
 
 /*#define RAMDISK_SIGNATURE_1	\
 	((unsigned long) 'R' | \
@@ -37,11 +43,12 @@ struct ramfile_t
 };
 
 #ifdef KERNEL
-bool	RdInit();
-void*	RdOpen(const wchar_t* name);
+/*void*	RdOpen(const wchar_t* name);
 size_t	RdFileLength(const wchar_t* name);
-bool	RdPageFault(addr_t virt);
+bool	RdPageFault(addr_t virt);*/
 #endif
+
+/*! @} */
 
 #ifdef __cplusplus
 }

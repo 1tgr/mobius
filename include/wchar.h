@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.4 2002/01/09 01:23:39 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -131,7 +131,9 @@ wchar_t *wcsstr(const wchar_t *s1, const wchar_t *s2);
 wchar_t *wmemchr(const wchar_t *s, wchar_t c,
     size_t n);
 
+#ifndef _wcsdup
 wchar_t *_wcsdup(const wchar_t *s);
+#endif
 int		_wcsmatch(const wchar_t *mask, const wchar_t *name);
 
 #define iswupper(c)		((c) >= 'A' && (c) <= 'Z')

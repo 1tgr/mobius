@@ -1,8 +1,10 @@
-/* $Id: handle.c,v 1.4 2002/01/15 00:12:58 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
+
+#include <kernel/debug.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -115,8 +117,8 @@ void HndSignal(struct process_t *proc, handle_t hnd, uint32_t tag, bool sig)
 {
 	handle_hdr_t *ptr;
 
-	if (hnd != 7)
-		wprintf(L"HndSignal: %lx(%.4S)\n", hnd, &tag);
+	/*if (hnd != 7)
+		wprintf(L"HndSignal: %lx(%.4S)\n", hnd, &tag);*/
 	ptr = HndGetPtr(proc, hnd, tag);
 	if (ptr != NULL)
 		HndSignalPtr(ptr, sig);
@@ -187,7 +189,7 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 	if (ptr->signals > 0 &&
 		ptr->waiting.first != NULL)
 	{
-		wprintf(L"HndSignalPtr(%S:%d): resuming threads: ", ptr->file, ptr->line);
+		TRACE2("HndSignalPtr(%S:%d): resuming threads: ", ptr->file, ptr->line);
 		ThrRunQueue(&ptr->waiting);
 		/*for (thr = ptr->waiting.first; thr; thr = next)
 		{
@@ -197,7 +199,7 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 			ThrRun(thr);
 		}*/
 
-		wprintf(L"\n");
+		TRACE0("\n");
 		assert(ptr->waiting.first == NULL);
 		ptr->signals--;
 	}

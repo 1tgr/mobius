@@ -4,6 +4,6 @@ fs.o: fs.c /mn/include/kernel/driver.h /mn/include/sys/types.h \
  /mn/include/os/defs.h /mn/include/os/device.h /mn/include/kernel/fs.h \
  /mn/include/os/syscall.h /mn/include/os/sysdef.h \
  /mn/include/kernel/io.h /mn/include/kernel/init.h \
- /mn/include/kernel/debug.h /mn/include/stdio.h \
- /mn/include/sys/version.h /mn/include/os/coff.h /mn/include/os/rtl.h \
- /mn/include/errno.h /mn/include/wchar.h
+ /mn/include/kernel/debug.h /mn/include/os/coff.h /mn/include/os/rtl.h \
+ /mn/include/errno.h /mn/include/wchar.h /mn/include/stdio.h \
+ /mn/include/sys/version.h

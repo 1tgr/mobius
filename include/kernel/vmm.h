@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -9,6 +9,11 @@ extern "C"
 
 #include <kernel/proc.h>
 
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	vmm	Virtual Memory
+ *	@{
+ */
 typedef struct vm_area_t vm_area_t;
 
 #define VM_AREA_NORMAL	0
@@ -61,6 +66,8 @@ bool		VmmCommit(vm_area_t* area, addr_t start, size_t pages);
 void		VmmUncommit(vm_area_t* area);
 void		VmmInvalidate(vm_area_t* area, addr_t start, size_t pages);
 vm_area_t*	VmmArea(process_t* proc, const void* ptr);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

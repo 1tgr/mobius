@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.4 2002/01/05 00:54:09 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -70,9 +70,16 @@ int 	wctomb(char *_s, wchar_t _wchar);
 
 void *	__malloc(size_t _size, const char *, int);
 void	__free(void *_ptr, const char *, int);
+void *	__realloc(void *_ptr, size_t _size, const char *, int);
+wchar_t *__wcsdup(const wchar_t *_str, const char *, int);
+char *	__strdup(const char *_str, const char *, int);
 #ifdef KERNEL
-#define	malloc(s)	__malloc(s, __FILE__, __LINE__)
-#define	free(s)		__free(s, __FILE__, __LINE__)
+#define malloc(x)		__malloc((x), __FILE__, __LINE__)
+#define calloc(x, n)	__calloc((x), (n), __FILE__, __LINE__)
+#define free(p)			__free((p), __FILE__, __LINE__)
+#define realloc(p, x)	__realloc((p), (x), __FILE__, __LINE__)
+#define strdup(p)		__strdup((p), __FILE__, __LINE__)
+#define _wcsdup(p)		__wcsdup((p), __FILE__, __LINE__)
 #endif
 
 #ifdef __cplusplus

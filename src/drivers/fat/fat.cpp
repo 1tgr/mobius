@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.3 2002/01/10 20:50:14 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -482,6 +482,7 @@ start:
 			extra->dev_request.params.buffered.length = m_bytes_per_cluster;
 			extra->dev_request.params.buffered.offset = 
 				ClusterToOffset(extra->clusters[extra->cluster_index]);
+			extra->dev_request.header.param = io;
 
 			//wprintf(L"FatStartIo: req = %p\n", &extra->dev_request.header);
 			if (!IoRequest(this, m_device, &extra->dev_request.header))
@@ -608,8 +609,15 @@ void Fat::finishio(request_t *req)
 		//req->original->original);
 	/*FOREACH (io, io)
 	{*/
+	assert(req != NULL);
+	assert(req->original != NULL);
+
 	io = (asyncio_t*) req->original->param;
+	assert(io != NULL);
+
 	extra = (fat_ioextra_t*) io->extra;
+	assert(extra != NULL);
+
 	assert(req->original->original == &extra->dev_request.header);
 	StartIo(io);
 	/*}*/

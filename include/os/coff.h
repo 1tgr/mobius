@@ -1,4 +1,4 @@
-/* $Id: coff.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: coff.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_coff_h_
 #define __dj_include_coff_h_
@@ -6,6 +6,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*!
+ *	\ingroup	libsys
+ *	\defgroup	oscoff	COFF Format Support
+ *	@{
+ */
 
 #ifndef __dj_ENFORCE_ANSI_FREESTANDING
 
@@ -326,6 +332,8 @@ struct external_reloc {
 
 #ifndef __dj_ENFORCE_FUNCTION_CALLS
 #endif /* !__dj_ENFORCE_FUNCTION_CALLS */
+
+/*! @} */
 
 #ifdef __cplusplus
 }

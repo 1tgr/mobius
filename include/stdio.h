@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.3 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -36,14 +36,7 @@ extern "C" {
    are here at all is to comply with ANSI specifictions. */
    
 typedef struct FILE {
-  int	_cnt;
-  char *_ptr;
-  char *_base;
-  int	_bufsiz;
-  int	_flag;
-  int	_file;
-  char *_name_to_remove;
-  int	_fillsize;
+  handle_t _osfhnd;
 } FILE;
 
 typedef unsigned long			fpos_t;
@@ -97,6 +90,9 @@ int 	vsprintf(char *_s, const char *_format, va_list _ap);
 
 /* Putting wprintf() in stdio.h isn't ANSI but I don't care */
 int 	wprintf(const wchar_t *_format, ...);
+
+/* This isn't ANSI at all... */
+int		_cputws(const wchar_t *str, size_t count);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __OS_FS_H
 #define __OS_FS_H
 
@@ -10,8 +10,8 @@ extern "C"
 #include <sys/types.h>
 
 /*!
- *	\ingroup	kernelu
- *	\defgroup	fs	File System
+ *	\ingroup	libsys
+ *	\defgroup	osfs	File System
  *	@{
  */
 

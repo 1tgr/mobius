@@ -1,4 +1,4 @@
-/* $Id: cache.h,v 1.2 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: cache.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_CACHE_H
 #define __KERNEL_CACHE_H
 
@@ -7,11 +7,14 @@ extern "C"
 {
 #endif
 
-/*struct device_t;
-
-struct device_t *CcInstallBlockCache(struct device_t *dev, uint32_t block_size);*/
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	cc	Cache
+ *	@{
+ */
 
 typedef struct cache_t cache_t;
+/*! \brief	Represents a file cache object */
 struct cache_t
 {
 	semaphore_t lock;
@@ -28,6 +31,8 @@ void		CcDeleteFileCache(cache_t *cc);
 void *		CcRequestBlock(cache_t *cc, uint64_t offset);
 bool		CcIsBlockValid(cache_t *cc, uint64_t offset);
 void		CcReleaseBlock(cache_t *cc, uint64_t offset, bool isValid);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

@@ -1,9 +1,11 @@
-/* $Id: syscall.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.4 2002/02/20 01:35:54 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
+#include <kernel/arch.h>
 
 #include <os/syscall.h>
+#include <os/rtl.h>
 
 #include <wchar.h>
 
@@ -43,6 +45,25 @@ void ProcExitProcess(int code)
 {
 	wprintf(L"Process %u exited with code %d\n", current->process->id, code);
 	ProcDeleteProcess(current->process);
+}
+
+handle_t ProcSpawnProcess(const wchar_t *exe)
+{
+	process_t *proc;
+	thread_t *thr;
+	context_t *ctx;
+	wchar_t temp[MAX_PATH];
+	
+	FsFullPath(exe, temp);
+	proc = ProcCreateProcess(temp);
+	if (proc == NULL)
+		return NULL;
+
+	thr = ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
+	ctx = ThrGetContext(thr);
+	/*ctx->eflags |= EFLAG_TF;*/
+	ScNeedSchedule(true);
+	return HndDuplicate(current->process, &proc->hdr);
 }
 
 bool SysThrWaitHandle(handle_t hnd)

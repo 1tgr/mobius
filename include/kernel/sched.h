@@ -1,4 +1,4 @@
-/* $Id: sched.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: sched.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_SCHED_H
 #define __KERNEL_SCHED_H
 
@@ -11,9 +11,17 @@ extern "C"
 
 extern unsigned sc_uptime;
 
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	sc	Scheduler
+ *	@{
+ */
+
 void	ScSchedule(void);
 void	ScEnableSwitch(bool enable);
 void	ScNeedSchedule(bool need);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

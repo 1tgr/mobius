@@ -83,11 +83,11 @@ tty::tty()
 void tty::updateCursor()
 {
 	uint16_t addr;
-	/* move cursor */
-
+	
 	if ((unsigned) (this - consoles) == cur_console)
 	{
-		addr = y * width + x;
+		addr = (uint16_t) (addr_t) (buf_top - (uint16_t*) PHYSICAL(0xb8000)) 
+			+ y * width + x;
 		out(_crtc_base_adr + VGA_CRTC_INDEX, 14);
 		out(_crtc_base_adr + VGA_CRTC_DATA, addr >> 8);
 		out(_crtc_base_adr + VGA_CRTC_INDEX, 15);
@@ -100,7 +100,6 @@ void tty::switchTo()
 	uint16_t addr;
 	addr = (uint16_t) (addr_t) (buf_top - (uint16_t*) PHYSICAL(0xb8000));
 	
-	/* set base address */
 	out(_crtc_base_adr + VGA_CRTC_INDEX, 12);
 	out(_crtc_base_adr + VGA_CRTC_DATA, addr >> 8);
 	out(_crtc_base_adr + VGA_CRTC_INDEX, 13);
@@ -160,6 +159,7 @@ void tty::flush()
 
 	writebuf += writeptr;
 	writeptr = 0;
+	updateCursor();
 }
 
 void tty::clear()
@@ -324,6 +324,15 @@ void tty::writeString(const wchar_t *str, size_t count)
 				scroll();
 				updateCursor();
 				break;
+			case '\b':
+				flush();
+				writebuf = str + 1;
+				if (x > 0)
+				{
+					x--;
+					updateCursor();
+				}
+				break;
 			default:
 				writeptr++;
 				if (writeptr >= 80)
@@ -416,6 +425,7 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	tty = consoles + num_consoles;
 	tty->driver = drv;
 	tty->clear();
+	tty->switchTo();
 
 	SemAcquire(&sem_consoles);
 	num_consoles++;

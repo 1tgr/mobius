@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.3 2002/01/05 00:54:09 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -11,6 +11,11 @@ extern "C"
 #include <assert.h>
 #include <stdlib.h>
 #include <os/defs.h>
+
+/*!
+ *	\defgroup	kernel
+ *	@{
+ */
 
 typedef struct kernel_startup_t kernel_startup_t;
 struct kernel_startup_t
@@ -68,6 +73,8 @@ void	MtxRelease(semaphore_t *sem);
 
 #define FOREACH(item, list) \
 	for (item = list##_first; item != NULL; item = item->next)
+
+/*! @} */
 
 #ifdef __cplusplus
 }

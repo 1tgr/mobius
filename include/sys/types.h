@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.3 2002/01/06 18:36:14 pavlovskii Exp $ */
+/* $Id: types.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 
@@ -35,6 +35,10 @@ typedef unsigned short wchar_t;
 
 typedef int wint_t;
 typedef void *va_list;
+
+#ifdef __MOBIUS__
 typedef addr_t handle_t;
+typedef uint32_t status_t;
+#endif
 	
 #endif

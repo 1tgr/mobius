@@ -1,9 +1,10 @@
-/* $Id: io.c,v 1.4 2002/01/15 00:12:58 pavlovskii Exp $ */
+/* $Id: io.c,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
+#include <kernel/sched.h>
 #include <errno.h>
 
 /*#define DEBUG*/

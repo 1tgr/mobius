@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.5 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -230,7 +230,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, size_t pages)
 	{
 		wprintf(L"VmmCommit(%lx, %u): already mapped: %lx\n", 
 			start, pages, f);
-		return false;
+		/*return false;*/
 	}
 
 	SemAcquire(&area->owner->sem_vmm);

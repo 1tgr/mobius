@@ -1,4 +1,4 @@
-/* $Id: debug.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: debug.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_DEBUG_H
 #define __KERNEL_DEBUG_H
 
@@ -8,6 +8,12 @@ extern "C"
 #endif
 
 #include <sys/types.h>
+
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	dbg	Debugging
+ *	@{
+ */
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -49,6 +55,8 @@ void	DbgDumpContext(const struct context_t* ctx);
 void	DbgLookupLineNumber(addr_t base, void *rawdata, void *symbol, 
 							unsigned *line, char** file);
 void	DbgDumpVmm(struct process_t *proc);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

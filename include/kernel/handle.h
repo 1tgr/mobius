@@ -1,4 +1,4 @@
-/* $Id: handle.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: handle.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_HANDLE_H
 #define __KERNEL_HANDLE_H
 
@@ -12,10 +12,23 @@ extern "C"
 
 struct thread_t;
 
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	hnd	Handles
+ *	@{
+ */
+
+typedef struct thread_queuent_t thread_queuent_t;
+struct thread_queuent_t
+{
+	thread_queuent_t *prev, *next;
+	struct thread_t *thr;
+};
+
 typedef struct thread_queue_t thread_queue_t;
 struct thread_queue_t
 {
-	struct thread_t *first, *last, *current;
+	thread_queuent_t *first, *last, *current;
 	semaphore_t sem;
 };
 
@@ -54,10 +67,12 @@ void	HndFreePtr(handle_hdr_t *ptr);
 void	HndSignalPtr(handle_hdr_t *ptr, bool sig);
 void	HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr);
 
-#define EvtAlloc(proc)			HndAlloc(proc, 0, 'evnt')
-#define EvtSignal(proc, evt)	HndSignal(proc, evt, 'evnt', true)
-#define EvtFree(proc, evt)		HndFree(proc, evt, 'evnt')
-#define EvtIsSignalled(proc, evt)	HndIsSignalled(proc, evt, 'evnt')
+handle_t	EvtAlloc(struct process_t *proc);
+void	EvtSignal(struct process_t *proc, handle_t evt);
+bool	EvtFree(struct process_t *proc, handle_t evt);
+bool	EvtIsSignalled(struct process_t *proc, handle_t evt);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

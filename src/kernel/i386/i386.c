@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.11 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.12 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -132,11 +132,6 @@ uint32_t i386Isr(context_t ctx)
 		while (irq)
 		{
 			assert(irq->dev->vtbl->isr);
-			/*req.header.code = DEV_ISR;
-			req.header.result = 0;
-			req.params.dev_irq.irq = ctx.intr;
-			if (irq->dev->request(irq->dev, (request_t*) &req))
-				break;*/
 			if (irq->dev->vtbl->isr(irq->dev, ctx.intr))
 				break;
 			irq = irq->next;
@@ -155,11 +150,7 @@ uint32_t i386Isr(context_t ctx)
 	{
 		addr_t cr2;
 		bool handled;
-		/*wchar_t str[8];
-
-		swprintf(str, L"[%d]", ctx.intr);
-		_cputws(str, wcslen(str));*/
-
+		
 		__asm__("mov %%cr2, %0"
 			: "=r" (cr2));
 
@@ -225,7 +216,7 @@ uint32_t i386Isr(context_t ctx)
 			}
 
 			DbgDumpStack(current->process, ctx.regs.ebp);
-			/*ArchDbgDumpContext(&ctx);*/
+			ArchDbgDumpContext(&ctx);
 
 			if (current->process == &proc_idle)
 				i386TrapToDebugger(&ctx);
@@ -260,9 +251,9 @@ void i386DoubleFault(uint32_t error, uint32_t eip, uint32_t cs, uint32_t eflags)
 	 * The context of the faulting thread is saved in the general-purpose TSS.
 	 * (Double faults usually mean we've messed up one of the kernel stacks.)
 	 */
-	wprintf(L"Double fault ");
+	_cputws(L"Double fault ", 13);
 	wprintf(L"at %x: ", arch_tss.eip);
 	wprintf(L"esp0 = %x\n", arch_tss.esp0);
-	wprintf(L"System halted\n");
+	_cputws(L"System halted\n", 14);
 	__asm__("hlt");
 }

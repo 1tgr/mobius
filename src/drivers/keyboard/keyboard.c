@@ -1,4 +1,4 @@
-/* $Id: keyboard.c,v 1.7 2002/01/15 00:12:57 pavlovskii Exp $ */
+/* $Id: keyboard.c,v 1.8 2002/02/20 01:35:52 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -12,7 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <kernel/driver.h>
@@ -249,7 +249,7 @@ void KbdStartIo(keyboard_t* keyb)
 			req = (request_dev_t*) io->req;
 			buf = DevMapBuffer(io);
 			
-			wprintf(L"req = %p buffer = %p + %x: ", 
+			TRACE3("req = %p buffer = %p + %x: ", 
 				req, buf, io->mod_buffer_start);
 
 			*(uint32_t*) (buf + io->mod_buffer_start + io->length) = key;
@@ -261,10 +261,10 @@ void KbdStartIo(keyboard_t* keyb)
 			if (io->length >= req->params.dev_read.length)
 			{
 				DevFinishIo(&keyb->dev, io, 0);
-				wprintf(L"finished\n");
+				TRACE0("finished\n");
 			}
 			else
-				wprintf(L"more to do\n");
+				TRACE0("more to do\n");
 		}
 	}
 }
@@ -320,7 +320,7 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 			if (keyb->write >= keyb->buffer + _countof(keyb->buffer))
 				keyb->write = keyb->buffer;
 
-			wprintf(L"read = %d, write = %d\n", 
+			TRACE2("read = %d, write = %d\n", 
 				keyb->read - keyb->buffer, keyb->write - keyb->buffer);
 			KbdStartIo(keyb);
 		}

@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.8 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.9 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -126,9 +126,6 @@ bool ArchInit(void)
 	cpuid_info cpuid1, cpuid2;
 	uint16_t *ptr;
 
-	wprintf(L"ArchInit: kernel is %u bytes (%u bytes code)\n",
-		kernel_startup.kernel_data, _data_end__ - scode);
-
 	arch_gdtr.base = (addr_t) arch_gdt;
 	arch_gdtr.limit = sizeof(arch_gdt) - 1;
 	__asm__("lgdt %0" : : "m" (arch_gdtr));
@@ -191,6 +188,9 @@ bool ArchInit(void)
 	ptr = PHYSICAL(0xb8000);
 	for (i = 0; i < 80 * 25; i++)
 		ptr[i] = con_attribs | ' ';
+
+	wprintf(L"ArchInit: kernel is %u bytes (%u bytes code)\n",
+		kernel_startup.kernel_data, _data_end__ - scode);
 
 	/*cpu = i386IdentifyCpu();
 	switch (cpu)
@@ -330,7 +330,7 @@ thread_t *ArchAttachToThread(thread_t *thr)
 {
 	thread_t *old;
 	context_t *new;
-	void (*apc)(void*);
+	thread_apc_t *a, *next;
 	
 	old = current;
 	current = thr;
@@ -345,12 +345,6 @@ thread_t *ArchAttachToThread(thread_t *thr)
 	/*wprintf(L"(%u) %02lx:%08lx %08lx\r", 
 		current->id, new->cs, new->eip, current->kernel_esp);*/
 
-	if (thr->info == NULL)
-	{
-		ThrAllocateThreadInfo(thr);
-		assert(thr->info != NULL);
-	}
-
 	i386SetDescriptor(arch_gdt + 8, 
 		(uint32_t) thr->info, 
 		sizeof(thread_info_t) - 1, 
@@ -358,12 +352,17 @@ thread_t *ArchAttachToThread(thread_t *thr)
 		0);
 
 	/*DevRunHandlers();*/
-	if (thr->kernel_apc)
+	if (thr->apc_first)
 	{
-		apc = thr->kernel_apc;
-		thr->kernel_apc = NULL;
-		apc(thr->kernel_apc_param);
-		ThrPause(current);
+		for (a = thr->apc_first; a; a = next)
+		{
+			next = a->next;
+			LIST_REMOVE(thr->apc, a);
+			a->fn(a->param);
+			free(a);
+			ThrPause(current);
+		}
+
 		return NULL;
 	}
 

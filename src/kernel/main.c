@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.6 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: main.c,v 1.7 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -59,6 +59,9 @@ void KernelMain(void)
 	process_t *proc;
 	device_t *dev;
 	
+	if (kernel_startup.memory_size > 256 * 1024 * 1024)
+		kernel_startup.memory_size = 256 * 1024 * 1024;
+
 	MemInit();
 	ArchInit();
 
@@ -84,7 +87,7 @@ void KernelMain(void)
 	DevInstallDevice(L"tty", L"tty0", NULL);
 	DevInstallDevice(L"keyboard", L"keyboard", NULL);
 	
-	proc = ProcCreateProcess(SYS_BOOT L"/test.exe");
+	proc = ProcCreateProcess(SYS_BOOT L"/shell.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
 
 	wprintf(L"Kernel ready\n");

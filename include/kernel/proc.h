@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.3 2002/01/05 00:54:09 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -11,6 +11,12 @@ extern "C"
 #include <kernel/handle.h>
 
 struct thread_t;
+
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	proc	Processes and Modules
+ *	@{
+ */
 
 typedef struct module_t module_t;
 struct module_t
@@ -39,6 +45,7 @@ struct process_t
 	struct vm_area_t *area_first, *area_last;
 	addr_t vmm_end;
 	semaphore_t sem_vmm;
+	semaphore_t sem_lock;
 	const wchar_t *exe;
 	struct process_info_t *info;
 	unsigned id;
@@ -47,7 +54,6 @@ struct process_t
 extern process_t *proc_first, *proc_last;
 extern process_t proc_idle;
 
-bool		ProcInit(void);
 process_t	*ProcCreateProcess(const wchar_t *exe);
 void		ProcDeleteProcess(process_t *proc);
 bool		ProcPageFault(process_t *proc, addr_t addr);
@@ -56,6 +62,8 @@ module_t *	PeLoad(process_t* proc, const wchar_t* file, uint32_t base);
 bool		PePageFault(process_t* proc, module_t* mod, addr_t addr);
 void		PeUnload(process_t* proc, module_t* mod);
 addr_t		PeGetExport(module_t* mod, const char* name, uint16_t hint);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

@@ -201,6 +201,10 @@ SOURCE=.\stdio\dowprintf.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdio\fopen.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\printf.c
 # End Source File
 # Begin Source File
@@ -513,10 +517,6 @@ SOURCE=".\malloc-1.18\leak.c"
 # End Source File
 # Begin Source File
 
-SOURCE=".\malloc-1.18\mach.sbrk.c"
-# End Source File
-# Begin Source File
-
 SOURCE=".\malloc-1.18\malloc.c"
 # End Source File
 # Begin Source File
@@ -525,19 +525,11 @@ SOURCE=".\malloc-1.18\malloc.h"
 # End Source File
 # Begin Source File
 
-SOURCE=".\malloc-1.18\maltrace.c"
-# End Source File
-# Begin Source File
-
 SOURCE=".\malloc-1.18\memalign.c"
 # End Source File
 # Begin Source File
 
 SOURCE=".\malloc-1.18\setopts.c"
-# End Source File
-# Begin Source File
-
-SOURCE=".\malloc-1.18\simumalloc.c"
 # End Source File
 # Begin Source File
 
@@ -550,14 +542,6 @@ SOURCE=".\malloc-1.18\strdup.c"
 # Begin Source File
 
 SOURCE=".\malloc-1.18\strsave.c"
-# End Source File
-# Begin Source File
-
-SOURCE=".\malloc-1.18\testmalloc.c"
-# End Source File
-# Begin Source File
-
-SOURCE=".\malloc-1.18\teststomp.c"
 # End Source File
 # Begin Source File
 

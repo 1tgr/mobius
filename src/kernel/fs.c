@@ -1,10 +1,10 @@
-/* $Id: fs.c,v 1.11 2002/01/15 00:12:58 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.12 2002/02/20 01:35:52 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
 #include <kernel/init.h>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <os/rtl.h>
@@ -129,7 +129,7 @@ static void VfsFinishIo(device_t *dev, request_t *req)
 	request_fs_t *req_fs;
 
 	if (req->code == FS_READ)
-		wprintf(L"VfsFinishIo: req = %p op = %p code = %x: ", 
+		TRACE3("VfsFinishIo: req = %p op = %p code = %x: ", 
 			req, req->param, req->code);
 
 	assert(req->code == FS_READ || req->code == FS_WRITE);
@@ -140,11 +140,11 @@ static void VfsFinishIo(device_t *dev, request_t *req)
 		op->bytes = req_fs->params.buffered.length;
 
 	if (req->code == FS_READ)
-		wprintf(L"finished io: event = %u bytes = %u result = %u\n",
+		TRACE3("finished io: event = %u bytes = %u result = %u\n",
 			op->event, op->bytes, op->result);
 
 	EvtSignal(NULL, op->event);
-	/*free(req);*/
+	free(req);
 }
 
 static bool FsCheckAccess(file_t *file, uint32_t mask)

@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.5 2002/01/12 02:16:07 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.6 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -13,9 +13,23 @@ extern "C"
 struct context_t;
 struct process_t;
 
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	thr	Threads
+ *	@{
+ */
+
 typedef struct thread_t thread_t;
 
 #include <kernel/handle.h>
+
+typedef struct thread_apc_t thread_apc_t;
+struct thread_apc_t
+{
+	thread_apc_t *prev, *next;
+	void (*fn)(void*);
+	void *param;
+};
 
 struct thread_t
 {
@@ -30,20 +44,19 @@ struct thread_t
 	addr_t kernel_esp;
 	struct process_t *process;
 	unsigned priority;
-	thread_queue_t *queue;
-	thread_t *queue_prev, *queue_next;
+	/*thread_queue_t *queue;
+	thread_t *queue_prev, *queue_next;*/
+	unsigned queued;
 	unsigned span;
 	unsigned id;
 	unsigned sleep_end;
-
-	void (*kernel_apc)(void*);
-	void *kernel_apc_param;
+	thread_apc_t *apc_first, *apc_last;
 };
 
 extern thread_t *thr_first, *thr_last, *current;
 extern thread_t thr_idle;
 
-#include <kernel/handle.h>
+/*#include <kernel/handle.h>*/
 
 thread_t *	ThrCreateThread(struct process_t *proc, bool isKernel, 
 							void (*entry)(void*), bool useParam, void *param, 
@@ -56,8 +69,11 @@ void	ThrSleep(thread_t *thr, unsigned ms);
 bool	ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag);
 void	ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before);
 void	ThrRemoveQueue(thread_t *thr, thread_queue_t *queue);
+void	ThrRunQueue(thread_queue_t *queue);
 bool	ThrAllocateThreadInfo(thread_t *thr);
 void	ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param);
+
+/*! @} */
 
 #ifdef __cplusplus
 }

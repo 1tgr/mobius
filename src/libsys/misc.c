@@ -1,4 +1,4 @@
-/* $Id: misc.c,v 1.3 2002/01/06 18:36:16 pavlovskii Exp $ */
+/* $Id: misc.c,v 1.4 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <os/defs.h>
 
@@ -12,4 +12,9 @@ thread_info_t *ThrGetThreadInfo(void)
 process_info_t *ProcGetProcessInfo(void)
 {
 	return ThrGetThreadInfo()->process;
+}
+
+wchar_t *ProcGetCwd(void)
+{
+	return ThrGetThreadInfo()->process->cwd;
 }

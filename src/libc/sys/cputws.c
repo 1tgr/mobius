@@ -1,7 +1,7 @@
-/* $Id: cputws.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: cputws.c,v 1.4 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <os/syscall.h>
-#include <os/defs.h>
+#include <os/rtl.h>
 
 #include <wchar.h>
 #include <errno.h>

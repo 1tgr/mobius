@@ -3,7 +3,6 @@ EXPORTS
 	ArchAttachToThread
 	ArchDbgBreak
 	ArchDbgDumpContext
-	ArchInit
 	ArchMaskIrq
 	ArchProcessorIdle
 	ArchSetupContext
@@ -43,7 +42,6 @@ EXPORTS
 	FsCreate
 	FsCreateVirtualDir
 	FsFullPath
-	FsInit
 	FsMount
 	FsOpen
 	FsRead
@@ -75,7 +73,6 @@ EXPORTS
 	MemAllocPageDir
 	MemFree
 	MemFreeLow
-	MemInit
 	MemLockPages
 	MemMap
 	MemMapTemp
@@ -94,10 +91,9 @@ EXPORTS
 	ProcExitProcess
 	ProcFirstTimeInit
 	ProcGetCwd
-	ProcInit
 	ProcPageFault
+	ProcSpawnProcess
 	RdFileLength
-	RdInit
 	RdMountFs
 	RdOpen
 	ScEnableSwitch

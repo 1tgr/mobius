@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.5 2002/02/20 01:35:54 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -7,7 +7,7 @@
 #include <kernel/thread.h>
 #include <kernel/fs.h>
 
-/*#define DEBUG*/
+#define DEBUG
 #include <kernel/debug.h>
 
 #include <stdlib.h>
@@ -150,9 +150,16 @@ bool ProcFirstTimeInit(process_t *proc)
 	info->std_out = FsOpen(SYS_DEVICES L"/tty0", FILE_WRITE);
 	
 	for (thr = thr_first; thr; thr = thr->all_next)
-		if (thr->process == proc &&
-			thr->info != NULL)
+		if (thr->process == proc)
+		{
+			if (thr->info == NULL)
+			{
+				ThrAllocateThreadInfo(thr);
+				assert(thr->info != NULL);
+			}
+
 			thr->info->process = info;
+		}
 
 	mod = PeLoad(proc, proc->exe, NULL);
 	if (mod == NULL)

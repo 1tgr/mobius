@@ -1,4 +1,4 @@
-/* $Id: pe.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: pe.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __OS_PE_H
 #define __OS_PE_H
 
@@ -16,6 +16,12 @@
 #define UU1	u
 #define UU2	u2
 #endif
+
+/*!
+ *	\ingroup	libsys
+ *	\defgroup	pe	PE Format Support
+ *	@{
+ */
 
 #define IMAGE_DOS_SIGNATURE                 0x5A4D      /* MZ */
 #define IMAGE_OS2_SIGNATURE                 0x454E      /* NE */
@@ -411,5 +417,7 @@ typedef struct IMAGE_PE_HEADERS {
      FIELD_OFFSET( IMAGE_PE_HEADERS, OptionalHeader ) +                 \
      ((PIMAGE_PE_HEADERS)(ntheader))->FileHeader.SizeOfOptionalHeader   \
     ))
+
+/*! @} */
 
 #endif

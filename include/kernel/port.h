@@ -1,4 +1,4 @@
-/* $Id: port.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: port.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
 #ifndef __KERNEL_PORT_H
 #define __KERNEL_PORT_H
 
@@ -11,6 +11,12 @@ extern "C"
 #include <kernel/proc.h>
 #include <kernel/fs.h>
 #include <kernel/thread.h>
+
+/*!
+ *	\ingroup	kernel
+ *	\defgroup	port	Ports
+ *	@{
+ */
 
 #define PORT_CONNECTED			1
 #define PORT_PENDING_CONNECT	2
@@ -47,6 +53,8 @@ struct port_t
 };
 
 CASSERT(offsetof(port_t, file) == sizeof(handle_hdr_t));
+
+/*! @} */
 
 #ifdef __cplusplus
 }

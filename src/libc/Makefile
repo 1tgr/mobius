@@ -25,8 +25,8 @@ MALLOC=	malloc-1.18/_emalloc.o malloc-1.18/_malloc.o malloc-1.18/_memalign.o \
 	malloc-1.18/stats.o malloc-1.18/strdup.o malloc-1.18/strsave.o malloc-1.18/verify.o \
 	malloc-1.18/sptree.o
 MATH=	
-STDIO=	stdio/doprintf.o stdio/dowprintf.o stdio/printf.o stdio/sprintf.o \
-	stdio/swprintf.o stdio/stdio.o stdio/wprintf.o
+STDIO=	stdio/doprintf.o stdio/dowprintf.o stdio/fopen.o stdio/printf.o \
+	stdio/sprintf.o stdio/swprintf.o stdio/stdio.o stdio/wprintf.o
 STDLIB=	stdlib/abort.o stdlib/qsort.o stdlib/mbtowc.o stdlib/wctomb.o
 STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/memset.o string/memcmp.o string/strcat.o string/strchr.o \
