@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.22 2002/09/01 16:24:40 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.23 2002/12/18 23:03:33 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -210,7 +210,7 @@ static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent,
     file_info_t *entries;
     wchar_t *end;
     unsigned num_entries, alloc_entries, i, n, columns;
-    size_t max_len;
+    size_t max_len, len;
 
     end = path + wcslen(path);
     if (end[-1] != '/')
@@ -230,8 +230,9 @@ static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent,
         max_len = 0;
         while (FsReadDir(search, &entries[num_entries].dirent, sizeof(dirent_t)))
         {
-            if (wcslen(entries[num_entries].dirent.name) > max_len)
-                max_len = wcslen(entries[num_entries].dirent.name);
+            len = wcslen(entries[num_entries].dirent.name) + 2;
+            if (len > max_len)
+                max_len = len;
 
             wcscpy(end, entries[num_entries].dirent.name);
             if (!FsQueryFile(path, 
@@ -255,7 +256,10 @@ static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent,
         HndClose(search);
 
         qsort(entries, num_entries, sizeof(file_info_t), ShCompareDirent);
-        columns = 80 / (max_len + 2) - 1;
+        if (max_len == 0)
+            columns = 1;
+        else
+            columns = 78 / max_len - 1;
         for (i = n = 0; i < num_entries; i++)
         {
             if (do_recurse)
@@ -290,7 +294,7 @@ static void ShListDirectory(wchar_t *path, const wchar_t *spec, unsigned indent,
                     if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
                         printf("\x1b[1m");
 
-                    printf("%S  %*s", entries[i].dirent.name, 
+                    printf("%S%*s", entries[i].dirent.name, 
                         max_len - wcslen(entries[i].dirent.name), "");
 
                     if (entries[i].standard.attributes & FILE_ATTR_DIRECTORY)
@@ -387,7 +391,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size
         return;
     }
 
-    op.event = EvtAlloc();
+    op.event = EvtCreate();
     origin = 0;
     do
     {
@@ -477,6 +481,20 @@ void ShCmdDump(const wchar_t *command, wchar_t *params)
         return;
 
     ShDumpFile(params, ShDumpOutput);
+}
+
+static void ShThrashOutput(const void *buf, addr_t origin, size_t size)
+{
+    printf("%lu\r", origin);
+}
+
+void ShCmdThrash(const wchar_t *command, wchar_t *params)
+{
+    params = ShPrompt(L" File? ", params);
+    if (*params == '\0')
+        return;
+
+    ShDumpFile(params, ShThrashOutput);
 }
 
 void ShCmdCls(const wchar_t *command, wchar_t *params)
@@ -731,7 +749,7 @@ uint8_t *sh_v86stack;
 
 void *aligned_alloc(size_t bytes)
 {
-    return VmmAlloc(PAGE_ALIGN_UP(bytes) / PAGE_SIZE, NULL, MEM_READ | MEM_WRITE);
+    return VmmAlloc(PAGE_ALIGN_UP(bytes) / PAGE_SIZE, NULL, VM_MEM_READ | VM_MEM_WRITE);
 }
 
 void ShCmdV86(const wchar_t *cmd, wchar_t *params)
@@ -905,6 +923,12 @@ void ShCmdPipe(const wchar_t *cmd, wchar_t *params)
     HndClose(pipe[0]);
 }
 
+void ShCmdCrash(const wchar_t *cmd, wchar_t *params)
+{
+    __asm__("int3");
+    strcpy((char*) 0xf0000000, "hello");
+}
+
 shell_command_t sh_commands[] =
 {
     { L"cd",        ShCmdCd,        3 },
@@ -925,6 +949,8 @@ shell_command_t sh_commands[] =
     { L"type",      ShCmdType,      5 },
     { L"v86",       ShCmdV86,       13 },
     { L"pipe",      ShCmdPipe,      19 },
+    { L"crash",     ShCmdCrash,     20 },
+    { L"thrash",    ShCmdThrash,    21 },
     { NULL,         NULL,           0 },
 };
 
@@ -1009,8 +1035,8 @@ bool ShInvalidCommand(const wchar_t *command, wchar_t *params)
 
 wchar_t *sh_startup[] =
 {
-    L"echo \x1b[37;40m",
-    L"cls",
+    //L"echo \x1b[37;40m",
+    //L"cls",
     NULL,
 };
 
