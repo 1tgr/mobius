@@ -5,3 +5,6 @@ all:
 
 clean:
 	for dir in $(DIRS); do make -C $$dir clean; done
+
+floppy:	all
+	make -C ../bin floppy

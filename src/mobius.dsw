@@ -3,6 +3,18 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "boot"=.\boot\boot.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "kernel"=.\kernel\kernel.dsp - Package Owner=<4>
 
 Package=<5>
@@ -15,7 +27,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libc"=.\lib\libc\libc.dsp - Package Owner=<4>
+Project: "libc"=.\libc\libc.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -27,7 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "librtl"=.\lib\librtl\librtl.dsp - Package Owner=<4>
+Project: "librtl"=.\librtl\librtl.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,7 +51,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "libsys"=.\lib\libsys\libsys.dsp - Package Owner=<4>
+Project: "libsys"=.\libsys\libsys.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

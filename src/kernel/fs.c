@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/driver.h>
@@ -385,9 +385,10 @@ bool FsInit(void)
 	assert(b || "Failed to mount devices");
 
 	DevInstallDevice(L"ata", NULL, NULL);
+	DevInstallDevice(L"fdc", L"fdc0", NULL);
 	
-	dev = DevOpen(L"ide0a");
+	/*dev = DevOpen(L"ide0a");
 	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);
+	FsMount(L"/hd", L"fat", dev);*/
 	return true;
 }

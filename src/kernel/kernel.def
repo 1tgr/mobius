@@ -1,15 +1,26 @@
 NAME	kernel
 EXPORTS
 	__dj_assert
-	ArchAttachToThread
-	ArchMaskIrq
-	ArchProcessorIdle
 	free
 	malloc
 	mbstowcs
 	memcpy
 	memmove
+	sbrk_virtual
+	strcat
+	swprintf
+	wcschr
+	wcscpy
+	_wcsicmp
+	wcslen
+	_wcsmatch
+	wcsncpy
+	_wcsnicmp
+	wctomb
 	wprintf
+	ArchAttachToThread
+	ArchMaskIrq
+	ArchProcessorIdle
 	CcInstallBlockCache
 	DevAddDevice
 	DevFinishIo
@@ -24,19 +35,11 @@ EXPORTS
 	HndLock
 	HndSignal
 	HndUnlock
+	MemAllocLow
+	MemMap
 	MemMapTemp
 	MemUnmapTemp
 	SemAcquire
 	SemInit
 	SemRelease
-	strcat
-	swprintf
 	SysUpTime
-	wcschr
-	wcscpy
-	_wcsicmp
-	wcslen
-	_wcsmatch
-	wcsncpy
-	_wcsnicmp
-	wctomb

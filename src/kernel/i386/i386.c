@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -149,7 +149,7 @@ uint32_t i386Isr(context_t ctx)
 		_cputws(str, wcslen(str));*/
 
 		__asm__("mov %%cr2, %0"
-			: "=g" (cr2));
+			: "=r" (cr2));
 
 		handled = false;
 		if (ctx.intr == 1)

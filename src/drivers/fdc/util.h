@@ -32,13 +32,12 @@
 #define UTIL_H_
 
 #include "mytypes.h"
-//#include <dpmi.h>
 
 /* used to store hardware definition of DMA channels */
 typedef struct DmaChannel {
-   byte page;     /* page register */
-   byte offset;   /* offset register */
-   byte length;   /* length register */
+   uint8_t page;     /* page register */
+   uint8_t offset;   /* offset register */
+   uint8_t length;   /* length register */
 } DmaChannel;
 
 /* function prototypes */
@@ -46,9 +45,9 @@ long alloc_dma_buffer();
 void dma_xfer(int channel,long physaddr,int length,BOOL read);
 
 /* inline funcs */
-extern inline void wfill(word *start,UINT32 size,word value)
+extern __inline void wfill(uint16_t *start,UINT32 size,uint16_t value)
 {
-   asm volatile ("cld\n"
+	__asm__ __volatile__ ("cld\n"
 		 "\trep\n"
 		 "\tstosw"
 		 : /* no outputs */

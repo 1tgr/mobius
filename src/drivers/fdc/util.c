@@ -31,6 +31,7 @@
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/memory.h>
+#include <wchar.h>
 #include "util.h"
 
 /* definition of DMA channels */
@@ -48,7 +49,7 @@ const static DmaChannel dmainfo[] = {
 long alloc_dma_buffer()
 {
 	addr_t phys;
-	phys = memAllocLow();
+	phys = MemAllocLow();
 	assert(phys + PAGE_SIZE < 0x100000);
 	assert(((phys + PAGE_SIZE) & 0xffff) >= ((phys + PAGE_SIZE) & 0xffff));
 	wprintf(L"DMA transfer buffer is at 0x%x\n", phys);

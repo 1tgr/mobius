@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: device.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -175,17 +175,25 @@ bool DevRequestSync(device_t *dev, request_t *req)
 		/*assert(req->event == NULL);*/
 		if (req->event)
 		{
-			if (true || current == &thr_idle)
+			if (!EvtIsSignalled(NULL, req->event))
 			{
-				wprintf(L"DevRequestSync: busy-waiting\n");
-				while (!EvtIsSignalled(NULL, req->event))
-					ArchProcessorIdle();
-			}
-			else
-			{
-				wprintf(L"DevRequestSync: doing proper wait\n");
-				ThrWaitHandle(current, req->event, 'evnt');
-				assert(false || "Reached this bit");
+				if (true || current == &thr_idle)
+				{
+					semaphore_t temp;
+					SemInit(&temp);
+					SemAcquire(&temp);
+					enable();
+					wprintf(L"DevRequestSync: busy-waiting\n");
+					while (!EvtIsSignalled(NULL, req->event))
+						ArchProcessorIdle();
+					SemRelease(&temp);
+				}
+				else
+				{
+					wprintf(L"DevRequestSync: doing proper wait\n");
+					ThrWaitHandle(current, req->event, 'evnt');
+					assert(false || "Reached this bit");
+				}
 			}
 
 			/*EvtFree(NULL, req->event);*/
@@ -246,7 +254,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 
 	io->owner = current;
 
-	if ((addr_t) req < 0x80000000)
+	if (true || (addr_t) req < 0x80000000)
 	{
 		io->req = malloc(size);
 		if (io->req == NULL)

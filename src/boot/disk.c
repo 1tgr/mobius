@@ -1,4 +1,4 @@
-/* $Id: disk.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: disk.c,v 1.3 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 #include <bios.h>
 #include "mobel.h"
@@ -18,7 +18,7 @@ int read_sector(dev_t *dev, sector_t sector, unsigned char **blk)
 	static unsigned char init, evict;
 	static cache_t cache[MAX_CACHE];
 /* */
-	unsigned short c, h, s, temp;
+	unsigned short c, h, s, temp, free_block;
 	unsigned char tries;
 
 	if(!init)
@@ -27,7 +27,10 @@ int read_sector(dev_t *dev, sector_t sector, unsigned char **blk)
 		for(temp = 0; temp < MAX_CACHE; temp++)
 			cache[temp].sector = -1uL;
 	}
+
+#if 1
 /* see if this sector is cached */
+	free_block = MAX_CACHE;
 	for(temp = 0; temp < MAX_CACHE; temp++)
 	{
 		if(cache[temp].sector == sector)
@@ -35,13 +38,16 @@ int read_sector(dev_t *dev, sector_t sector, unsigned char **blk)
 			(*blk) = cache[temp].blk;
 			return 0;
 		}
+		else if (cache[temp].sector == -1uL)
+			free_block = temp;
 	}
 /* not cached, find a free buffer for it */
-	for(temp = 0; temp < MAX_CACHE; temp++)
+	/*for(temp = 0; temp < MAX_CACHE; temp++)
 	{
 		if(cache[temp].sector == -1uL)
 			break;
-	}
+	}*/
+	temp = free_block;
 /* no free buffer, kick out someone else */
 	if(temp >= MAX_CACHE)
 	{
@@ -50,6 +56,15 @@ int read_sector(dev_t *dev, sector_t sector, unsigned char **blk)
 		if(evict >= MAX_CACHE)
 			evict = 0;
 	}
+#else
+	temp = sector % MAX_CACHE;
+	if (cache[temp].sector == sector)
+	{
+		*blk = cache[temp].blk;
+		return 0;
+	}
+#endif
+
 /* load it */
 	cache[temp].sector = sector;
 	(*blk) = cache[temp].blk;

@@ -1,4 +1,4 @@
-DIRS=	ata fat tty
+DIRS=	ata fat tty fdc
 
 all:
 	for dir in $(DIRS); do make -C $$dir; done

@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: device.h,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -22,6 +22,7 @@ union params_dev_t
 	{
 		uint32_t length;
 		addr_t buffer;
+		uint64_t offset;
 	} buffered;
 
 	struct

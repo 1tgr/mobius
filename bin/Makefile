@@ -1,6 +1,6 @@
 FILES1=	test.exe console.exe libsys.dll \
 	kernel.exe kernel.cfg ata.drv 
-FILES2=	fat.drv tty.drv keyboard.drv
+FILES2=	fat.drv tty.drv keyboard.drv fdc.drv
 
 all:
 	mcopy.cmd -o $(FILES1) a:

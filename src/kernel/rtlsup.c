@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -64,35 +64,6 @@ void __dj_assert(const char *test, const char *file, int line)
 	/*__asm__("cli;hlt");*/
 }
 
-char *sbrk(size_t diff)
-{
-	addr_t new_sbrk, start, phys;
-
-	if (kernel_sbrk + diff >= 0xf0000000)
-		return (char*) -1;
-
-	diff = PAGE_ALIGN_UP(diff);
-	start = kernel_sbrk;
-	new_sbrk = kernel_sbrk + diff;
-
-	wprintf(L"sbrk: getting %d bytes at %lx", diff, start);
-	for (; kernel_sbrk < new_sbrk; kernel_sbrk += PAGE_SIZE)
-	{
-		phys = MemAlloc();
-		if (phys == NULL)
-			return (char*) -1;
-
-		/*wprintf(L"%lx=>%lx ", kernel_sbrk, phys);*/
-		putwchar('.');
-		if (!MemMap(kernel_sbrk, phys, kernel_sbrk + PAGE_SIZE, 
-			PRIV_WR | PRIV_KERN | PRIV_PRES))
-			return (char*) -1;
-	}
-
-	wprintf(L"done\n");
-	return (char*) start;
-}
-
 int _cputws(const wchar_t *str, size_t count)
 {
 	uint16_t *mem = (uint16_t*) PHYSICAL(0xb8000);
@@ -105,6 +76,11 @@ int _cputws(const wchar_t *str, size_t count)
 			con_y++;
 		case '\r':
 			con_x = 0;
+			break;
+
+		case '\b':
+			if (con_x > 0)
+				con_x--;
 			break;
 
 		case '\t':
@@ -142,4 +118,46 @@ int _cputws(const wchar_t *str, size_t count)
 wchar_t *ProcGetCwd()
 {
 	return current->process->info->cwd;
+}
+
+char *sbrk(size_t diff)
+{
+	addr_t new_sbrk, start, phys;
+
+	diff = PAGE_ALIGN_UP(diff);
+	if (kernel_sbrk + diff >= 0xf0000000)
+		return (char*) -1;
+
+	start = kernel_sbrk;
+	new_sbrk = kernel_sbrk + diff;
+
+	wprintf(L"sbrk: getting %d bytes at %lx", diff, start);
+	for (; kernel_sbrk < new_sbrk; kernel_sbrk += PAGE_SIZE)
+	{
+		phys = MemAlloc();
+		if (phys == NULL)
+			return (char*) -1;
+
+		/*wprintf(L"%lx=>%lx ", kernel_sbrk, phys);*/
+		_cputws(L".", 1);
+		if (!MemMap(kernel_sbrk, phys, kernel_sbrk + PAGE_SIZE, 
+			PRIV_WR | PRIV_KERN | PRIV_PRES))
+			return (char*) -1;
+	}
+
+	wprintf(L"done\n");
+	return (char*) start;
+}
+
+void *sbrk_virtual(size_t diff)
+{
+	addr_t start;
+
+	diff = PAGE_ALIGN_UP(diff);
+	if (kernel_sbrk + diff >= 0xf0000000)
+		return NULL;
+
+	start = kernel_sbrk;
+	kernel_sbrk += diff;
+	return (void*) start;
 }

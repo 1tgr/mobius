@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -123,9 +123,9 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint8_t priv)
 	{
 		pde = ADDR_TO_PDE(virt);
 
-		if (mem_ready && virt < 0x400000)
+		/*if (mem_ready && virt < 0x400000)
 			wprintf(L"MemMap: mapping %lx => %lx pde = %lx\n",
-				virt, phys, *pde);
+				virt, phys, *pde);*/
 
 		if (*pde == NULL)
 		{

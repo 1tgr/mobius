@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.3 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 /*
  * fdc.c
@@ -32,18 +32,20 @@
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
-#include <kernel/sys.h>
 #include <kernel/cache.h>
-#include <stdio.h>
+#include <kernel/arch.h>
+#include <kernel/memory.h>
+#include <wchar.h>
 #include <os/blkdev.h>
+#include <os/syscall.h>
 #include <errno.h>
 #include "util.h"
 #include "fdc.h"
 
 #include <kernel/debug.h>
 
-//! \ingroup	fdc
-//!@{
+/*! \ingroup	fdc*/
+/*!@{*/
 
 /* globals */
 struct Fdc
@@ -53,42 +55,53 @@ struct Fdc
 	volatile bool done;
 	bool dchange;
 	bool motor;
-	dword motor_end;
-	byte status[7];
-	byte statsz;
-	byte sr0;
-	byte fdc_track;
+	uint32_t motor_end;
+	uint8_t status[7];
+	uint8_t statsz;
+	uint8_t sr0;
+	uint8_t fdc_track;
 	DrvGeom geometry;
-
-	long tbaddr;	/* physical address of track buffer located below 1M */
+	addr_t tbaddr_phys;
+	void *tbaddr;
 };
 
 /* prototypes */
-void sendbyte(byte b);
+void sendbyte(uint8_t b);
 unsigned getbyte();
 void int1c(Fdc* fdc);
 bool fdcWait(Fdc* fdc, bool sensei);
-bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read);
+bool fdc_rw(Fdc* fdc, int block,uint8_t *blockbuff,bool read);
+
+void *sbrk_virtual(size_t diff);
 
 /* helper functions */
+
+void msleep(unsigned ms)
+{
+	unsigned end;
+	
+	end = SysUpTime() + ms;
+	while (SysUpTime() < end)
+		ArchProcessorIdle();
+}
 
 /* deinit driver */
 void fdcCleanup(Fdc* fdc)
 {
-	//set_irq_handler(6,NULL,&oldirq6);
-	//wprintf(L"uninstalling IRQ6 handler\n");
-	//set_irq_handler(0x1c,NULL,&oldint1c);
-	//wprintf(L"uninstalling timer handler\n");
+	/*set_irq_handler(6,NULL,&oldirq6); */
+	/* wprintf(L"uninstalling IRQ6 handler\n"); */
+	/* set_irq_handler(0x1c,NULL,&oldint1c); */
+	/* wprintf(L"uninstalling timer handler\n"); */
 
-	devRegisterIrq(&fdc->dev, 6, false);
-	devRegisterIrq(&fdc->dev, 0, false);
+	/*DevUnregisterIrq(6, &fdc->dev);
+	DevUnregisterIrq(0, &fdc->dev);*/
 
 	/* stop motor forcefully */
 	out(FDC_DOR, FDC_DOR_ENABLE | FDC_DOR_IRQIO);
 }
 
 /* sendbyte() routine from intel manual */
-void sendbyte(byte b)
+void sendbyte(uint8_t b)
 {
 	volatile int msr;
 	int tmo;
@@ -123,14 +136,14 @@ unsigned getbyte()
 /* this waits for FDC command to complete */
 bool fdcWait(Fdc* fdc, bool sensei)
 {
-	dword timeout_end = sysUpTime() + 1000;   /* set timeout to 1 second */
+	uint32_t timeout_end = SysUpTime() + 1000;   /* set timeout to 1 second */
 	bool failed;
 
 	failed = false;
 	/* wait for IRQ6 handler to signal command finished */
 	enable();
 	while (!fdc->done)
-		if (sysUpTime() > timeout_end)
+		if (SysUpTime() > timeout_end)
 		{
 			failed = true;
 			break;
@@ -189,7 +202,7 @@ void fdcReset(Fdc* fdc)
 	fdc->motor = false;
 
 	/* program data rate (500K/s) */
-	//out(FDC_DRS,0);
+	/* out(FDC_DRS,0); */
 
 	/* re-enable interrupts */
 	out(FDC_DOR, FDC_DOR_ENABLE | FDC_DOR_IRQIO);
@@ -224,7 +237,7 @@ void fdcMotorOn(Fdc* fdc)
 		out(FDC_DOR, FDC_DOR_MOTOR0 | FDC_DOR_ENABLE | FDC_DOR_IRQIO);
 		msleep(500); /* delay 500ms for motor to spin up */
 		fdc->motor = true;
-		//TRACE0("floppy: motor on\n");
+		/* TRACE0("floppy: motor on\n"); */
 	}
 
 	fdc->motor_end = -1;	   /* stop motor kill countdown */
@@ -234,7 +247,7 @@ void fdcMotorOn(Fdc* fdc)
 void fdcMotorOff(Fdc* fdc)
 {
 	if (fdc->motor) {
-		fdc->motor_end = sysUpTime() + 2000;	 /* start motor kill countdown: 36 ticks ~ 2s */
+		fdc->motor_end = SysUpTime() + 2000;	 /* start motor kill countdown: 36 ticks ~ 2s */
 	}
 }
 
@@ -324,14 +337,14 @@ bool fdcLogDisk(Fdc* fdc, DrvGeom *g)
 	return false;
 }
 
-/* read block (blockbuff is 512 byte buffer) */
-bool fdcReadBlock(Fdc* fdc, int block,byte *blockbuff)
+/* read block (blockbuff is 512 uint8_t buffer) */
+bool fdcReadBlock(Fdc* fdc, int block,uint8_t *blockbuff)
 {
 	return fdc_rw(fdc, block,blockbuff,true);
 }
 
-/* write block (blockbuff is 512 byte buffer) */
-bool fdcWriteBlock(Fdc* fdc, int block,byte *blockbuff)
+/* write block (blockbuff is 512 uint8_t buffer) */
+bool fdcWriteBlock(Fdc* fdc, int block,uint8_t *blockbuff)
 {
 	return fdc_rw(fdc, block,blockbuff,false);
 }
@@ -340,7 +353,7 @@ bool fdcWriteBlock(Fdc* fdc, int block,byte *blockbuff)
  * since reads and writes differ only by a few lines, this handles both.  This
  * function is called by read_block() and write_block()
  */
-bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read)
+bool fdc_rw(Fdc* fdc, int block,uint8_t *blockbuff,bool read)
 {
 	int head,track,sector,tries,i;
 
@@ -354,8 +367,8 @@ bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read)
 	if (!read && blockbuff)
 	{
 		/* copy data from data buffer into track buffer */
-		//movedata(_my_ds(),(long)blockbuff,_dos_ds,tbaddr,512);
-		memcpy((void*) fdc->tbaddr, blockbuff, 512);
+		/* movedata(_my_ds(),(long)blockbuff,_dos_ds,tbaddr,512); */
+		memcpy(fdc->tbaddr, blockbuff, 512);
 	}
 
 	for (tries = 0;tries < 3;tries++)
@@ -386,13 +399,13 @@ bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read)
 		if (read)
 		{
 			TRACE0("dma\t");
-			dma_xfer(2,fdc->tbaddr,512,false);
+			dma_xfer(2, fdc->tbaddr_phys, 512, false);
 			TRACE0("read\t");
 			sendbyte(CMD_READ);
 		} else
 		{
 			TRACE0("dma\t");
-			dma_xfer(2,fdc->tbaddr,512,true);
+			dma_xfer(2, fdc->tbaddr_phys, 512, true);
 			TRACE0("write\t");
 			sendbyte(CMD_WRITE);
 		}
@@ -429,8 +442,8 @@ bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read)
 
 	if (read && blockbuff) {
 		/* copy data from track buffer into data buffer */
-		//movedata(_dos_ds,tbaddr,_my_ds(),(long)blockbuff,512);
-		memcpy(blockbuff, (void*) fdc->tbaddr, 512);
+		/* movedata(_dos_ds,tbaddr,_my_ds(),(long)blockbuff,512); */
+		memcpy(blockbuff, fdc->tbaddr, 512);
 	}
 
 	TRACE0("status bytes: ");
@@ -443,10 +456,10 @@ bool fdc_rw(Fdc* fdc, int block,byte *blockbuff,bool read)
 }
 
 /* this formats a track, given a certain geometry */
-bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g)
+bool fdcFormatTrack(Fdc* fdc, uint8_t track,DrvGeom *g)
 {
 	int i,h,r,r_id,split;
-	byte tmpbuff[256];
+	uint8_t tmpbuff[256];
 
 	/* check geometry */
 	if (g->spt != DG144_SPT && g->spt != DG168_SPT)
@@ -506,11 +519,11 @@ bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g)
 		}
 
 		/* copy sector ID's to track buffer */
-		//movedata(_my_ds(),(long)tmpbuff,_dos_ds,tbaddr,i);
-		memcpy((void*) fdc->tbaddr, tmpbuff, i);
+		/* movedata(_my_ds(),(long)tmpbuff,_dos_ds,tbaddr,i); */
+		memcpy(fdc->tbaddr, tmpbuff, i);
 
 		/* start dma xfer */
-		dma_xfer(2,fdc->tbaddr,i,true);
+		dma_xfer(2, fdc->tbaddr_phys, i, true);
 
 		/* prepare "format track" command */
 		sendbyte(CMD_FORMAT);
@@ -521,7 +534,7 @@ bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g)
 			sendbyte(DG144_GAP3FMT);	/* gap3 size for 1.44M format */
 		else
 			sendbyte(DG168_GAP3FMT);	/* gap3 size for 1.68M format */
-		sendbyte(0);	   /* filler byte */
+		sendbyte(0);	   /* filler uint8_t */
 
 		/* wait for command to finish */
 		if (!fdcWait(fdc, false))
@@ -538,72 +551,75 @@ bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g)
 	return true;
 }
 
+bool FdcIsr(device_t *dev, uint8_t irq)
+{
+	Fdc* fdc = (Fdc*) dev;
+	
+	switch (irq)
+	{
+	case 0:
+		if (fdc->motor_end != -1 &&
+			SysUpTime() >= fdc->motor_end &&
+			fdc->motor)
+		{
+			/* TRACE0("floppy: turning off motor\n"); */
+			out(FDC_DOR, FDC_DOR_ENABLE | FDC_DOR_IRQIO);  /* turn off floppy motor */
+			fdc->motor = false;
+			fdc->motor_end = -1;
+		}
+
+		return false;
+	case 6:
+		fdc->done = true;
+		return true;
+	}
+
+	return false;
+}
+
 bool fdcRequest(device_t* dev, request_t* req)
 {
 	Fdc* fdc = (Fdc*) dev;
 	int tries;
 	DrvGeom geom;
-	dword pos;
+	uint32_t pos;
 	block_size_t* size;
+	request_dev_t *req_dev = (request_dev_t*) req;
+	size_t user_length;
 
-	//if (req->code != DEV_ISR)
-		//TRACE2("#%c%c", req->code / 256, req->code % 256);
+	/* if (req->code != DEV_ISR) */
+		/* TRACE2("#%c%c", req->code / 256, req->code % 256); */
 
 	switch (req->code)
 	{
 	case DEV_REMOVE:
 		fdcCleanup(fdc);
-		hndFree(fdc);
-	case DEV_OPEN:
-	case DEV_CLOSE:
-		hndSignal(req->event, true);
+		free(fdc);
 		return true;
-
-	case DEV_ISR:
-		switch (req->params.isr.irq)
-		{
-		case 0:
-			if (fdc->motor_end != -1 &&
-				sysUpTime() >= fdc->motor_end &&
-				fdc->motor)
-			{
-				//TRACE0("floppy: turning off motor\n");
-				out(FDC_DOR, FDC_DOR_ENABLE | FDC_DOR_IRQIO);  /* turn off floppy motor */
-				fdc->motor = false;
-				fdc->motor_end = -1;
-			}
-
-			return false;
-		case 6:
-			fdc->done = true;
-			return true;
-		}
-
-		return false;
 
 	case DEV_READ:
 	case DEV_WRITE:
-		if (req->params.buffered.length < 512)
+		if (req_dev->params.buffered.length < 512)
 		{
 			req->result = EINVALID;
 			return false;
 		}
 
-		req->user_length = req->params.buffered.length;
-		req->params.buffered.length = 0;
-		pos = req->params.buffered.pos / 512;
-		while (req->params.buffered.length < req->user_length)
+		user_length = req_dev->params.buffered.length;
+		req_dev->params.buffered.length = 0;
+		pos = req_dev->params.buffered.offset / 512;
+		while (req_dev->params.buffered.length < user_length)
 		{
 			for (tries = 0; tries < 2; tries++)
 			{
 				if (fdc_rw(fdc, 
 					pos, 
-					(byte*) req->params.buffered.buffer + 
-						req->params.buffered.length,
+					(uint8_t*) req_dev->params.buffered.buffer + 
+						req_dev->params.buffered.length,
 					req->code == DEV_READ))
 				{
 					pos++;
-					req->params.buffered.length += 512;
+					req_dev->params.buffered.length += 512;
 					break;
 				}
 				else if (!fdcLogDisk(fdc, &geom))
@@ -617,15 +633,13 @@ bool fdcRequest(device_t* dev, request_t* req)
 			}
 		}
 
-		hndSignal(req->event, true);
 		return true;
 
 	case BLK_GETSIZE:
-		size = (block_size_t*) req->params.buffered.buffer;
+		size = (block_size_t*) req_dev->params.buffered.buffer;
 		size->block_size = 512;
 		size->total_blocks = 
 			fdc->geometry.heads * fdc->geometry.tracks * fdc->geometry.spt;
-		hndSignal(req->event, true);
 		return true;
 	}
 
@@ -637,20 +651,29 @@ device_t* fdcAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
 	Fdc *fdc;
 	int i;
+	addr_t phys;
 
-	fdc = hndAlloc(sizeof(Fdc), NULL);
+	fdc = malloc(sizeof(Fdc));
 	memset(fdc, 0, sizeof(Fdc));
 	fdc->dev.request = fdcRequest;
+	fdc->dev.isr = FdcIsr;
 	fdc->fdc_track = 0xff;
 	fdc->geometry.heads = DG144_HEADS;
 	fdc->geometry.tracks = DG144_TRACKS;
 	fdc->geometry.spt = DG144_SPT;
 
-	devRegisterIrq(&fdc->dev, 6, true);
-	devRegisterIrq(&fdc->dev, 0, true);
+	DevRegisterIrq(6, &fdc->dev);
+	DevRegisterIrq(0, &fdc->dev);
 
 	/* allocate track buffer (must be located below 1M) */
-	fdc->tbaddr = alloc_dma_buffer();
+	fdc->tbaddr_phys = alloc_dma_buffer();
+	assert(fdc->tbaddr_phys != NULL);
+	fdc->tbaddr = sbrk_virtual(PAGE_SIZE);
+	assert(fdc->tbaddr != NULL);
+	MemMap((addr_t) fdc->tbaddr, 
+		fdc->tbaddr_phys, 
+		(addr_t) fdc->tbaddr + PAGE_SIZE,
+		PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
 
 	fdcReset(fdc);
 
@@ -663,14 +686,14 @@ device_t* fdcAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 	else
 		wprintf(L"enhanced controller found\n");
 
-	return ccInstallBlockCache(&fdc->dev, 512);
-	//return &fdc->dev;
+	return CcInstallBlockCache(&fdc->dev, 512);
+	/* return &fdc->dev; */
 }
 
-bool STDCALL INIT_CODE drvInit(driver_t* drv)
+bool DrvInit(driver_t* drv)
 {
 	drv->add_device = fdcAddDevice;
 	return true;
 }
 
-//@}
+/* @} */

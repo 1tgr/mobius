@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.4 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -117,6 +117,7 @@ struct ata_ctrl_t
 	ata_drive_t drives[DRIVES_PER_CONTROLLER];
 	uint8_t command;
 	uint8_t status;
+	bool need_reset;
 };
 
 #pragma pack(push, 1)
@@ -235,31 +236,25 @@ void AtaReset(ata_ctrl_t *ctrl)
 
 void AtaNeedReset(ata_ctrl_t *ctrl)
 {
-#if 0
-/* The controller needs to be reset. */
-  struct wini *wn;
-
-  for (wn = wini; wn < &wini[MAX_DRIVES]; wn++) {
-	wn->state |= DEAF;
-	wn->state &= ~INITIALIZED;
-  }
-#endif
+	ctrl->need_reset = true;
 }
 
 bool AtaWaitForStatus(ata_ctrl_t *ctrl, unsigned mask, unsigned value)
 {
 /* Wait until controller is in the required state.  Return zero on timeout. */
 
-  unsigned time_end;
+	unsigned time_end, status;
 
-  time_end = SysUpTime() + 10000;
-  do {
-       if ((in(ctrl->base + REG_STATUS) & mask) == value)
-		   return true;
-  } while (SysUpTime() < time_end);
+	time_end = SysUpTime() + 5000;
+	do
+	{
+		status = in(ctrl->base + REG_STATUS);
+		if ((status & mask) == value)
+			return true;
+	} while (SysUpTime() < time_end);
 
-  AtaNeedReset(ctrl);	/* Controller gone deaf. */
-  return false;
+	AtaNeedReset(ctrl);	/* Controller gone deaf. */
+	return false;
 }
 
 bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
@@ -290,6 +285,9 @@ bool AtaIssueCommand(ata_drive_t *drive, ata_command_t *cmd)
 	}
 	else
 		sector = cyl_lo = cyl_hi = 0;
+
+	if (ctrl->need_reset)
+		AtaReset(ctrl);
 
 	/* Output the command block to the winchester controller and return status */
 
@@ -387,6 +385,7 @@ int AtaWaitForInterrupt(volatile ata_ctrl_t *ctrl)
 	while (ctrl->status & STATUS_BSY)
 	{
 		ArchProcessorIdle();
+		wprintf(L"%02x\b\b", ctrl->status);
 		if (SysUpTime() > time_end)
 			return wfiTimeout;
 	}
@@ -633,8 +632,14 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 			MemUnmapTemp();
 			finish = true;
 		}
-		else
+		else if (req_ctrl->header.code == ATAPI_PACKET)
 			finish = AtapiPacketInterrupt(ctrl, req_ctrl);
+		else
+		{
+			wprintf(L"AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
+			assert(req_ctrl->header.code == ATA_COMMAND ||
+				req_ctrl->header.code == ATAPI_PACKET);
+		}
 
 		if (finish)
 		{
@@ -892,7 +897,7 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 		if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd) != wfiOk)
 		{
 			cmd.command = ATAPI_IDENTIFY;
-			wprintf(L"trying ATA: ");
+			wprintf(L"trying ATAPI: ");
 
 			if (AtaIssueSimpleCommand(ctrl->drives + i, &cmd) != wfiOk)
 			{
@@ -957,7 +962,8 @@ bool AtaInitController(ata_ctrl_t *ctrl)
 		ctrl->drives[i].dev.driver = ctrl->dev.driver;
 		ctrl->drives[i].dev.request = AtaDriveRequest;
 		ctrl->drives[i].ctrl = ctrl;
-		dev = CcInstallBlockCache(&ctrl->drives[i].dev, ctrl->drives[i].is_atapi ? ATAPI_SECTOR_SIZE : SECTOR_SIZE);
+		/*dev = CcInstallBlockCache(&ctrl->drives[i].dev, ctrl->drives[i].is_atapi ? ATAPI_SECTOR_SIZE : SECTOR_SIZE);*/
+		dev = &ctrl->drives[i].dev;
 		DevAddDevice(dev, name, NULL);
 
 		if (!ctrl->drives[i].is_atapi)

@@ -1,3 +1,4 @@
+; $Id: loaderb.asm,v 1.2 2002/01/03 01:24:01 pavlovskii Exp $
 ; I tried dis-assembling the INT 15h AH=89h function in my BIOS.
 ; It doesn't appear to support 32-bit pmode.
 

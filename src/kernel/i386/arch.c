@@ -1,11 +1,10 @@
-/* $Id: arch.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
-#include <kernel/driver.h>
 
 #include <stdio.h>
 
@@ -80,16 +79,16 @@ void ArchStartup(kernel_startup_t* s)
 
 static void i386CpuId(uint32_t level, cpuid_info *cpuid)
 {
-	__asm__("mov %0, %%eax\n"
+	__asm__(/*"mov %0, %%eax\n"*/
 		"cpuid\n"
-		"mov %%eax, %1\n"
+		/*"mov %%eax, %1\n"
 		"mov %%ebx, %2\n"
 		"mov %%edx, %3\n"
-		"mov %%ecx, %4"
-		: "=g" (cpuid->regs.eax), "=g" (cpuid->regs.ebx),
-			"=g" (cpuid->regs.edx), "=g" (cpuid->regs.ecx)
-		: "g" (level)
-		: "eax", "ebx", "edx", "ecx");
+		"mov %%ecx, %4"*/
+		: "=a" (cpuid->regs.eax), "=b" (cpuid->regs.ebx),
+			"=d" (cpuid->regs.edx), "=c" (cpuid->regs.ecx)
+		: "a" (level)
+		/*: "eax", "ebx", "edx", "ecx"*/);
 }
 
 bool ArchInit(void)
@@ -159,7 +158,7 @@ bool ArchInit(void)
 		else
 			memset(&cpuid2, 0, sizeof(cpuid2));
 
-		wprintf(L"Detected %.12s CPU, %u:%u:%u\n",
+		wprintf(L"Detected %.12S CPU, %u:%u:%u\n",
 			cpuid1.eax_0.vendorid, 
 			cpuid2.eax_1.stepping, cpuid2.eax_1.model, cpuid2.eax_1.family);
 		/*break;
@@ -278,8 +277,7 @@ thread_t *ArchAttachToThread(thread_t *thr)
 {
 	thread_t *old = current;
 	context_t *new;
-	asyncio_t *io, *ionext;
-
+	
 	current = thr;
 	if (old->process != thr->process)
 		__asm__("mov %0, %%cr3"

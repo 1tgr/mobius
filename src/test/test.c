@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: test.c,v 1.4 2002/01/03 01:24:02 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -16,9 +16,9 @@ int main(void)
 	process_info_t *info;*/
 	handle_t file;
 	size_t bytes;
-	wchar_t name[] = L"/hd/bochsrc";
+	wchar_t name[] = SYS_DEVICES L"/fdc0";
 	uint8_t buf[512];
-
+	
 	wprintf(L"Hello from tty0!\n");
 	wprintf(L"Here's an escape sequence: \x1b[31mThis should be red!\x1b[37m\n");
 	wprintf(L"And this is \x1b[1;5;32mbright green and flashing!\n\x1b[37m");
@@ -36,6 +36,7 @@ int main(void)
 		bytes = FsRead(file, buf, sizeof(buf));
 		FsClose(file);
 		wprintf(L"Read %u bytes\n", bytes);
+		wprintf(L"The disk says: %02x %02x %02x\n", buf[0], buf[1], buf[2]);
 	}
 
 	/*info = ProcGetProcessInfo();

@@ -1,4 +1,4 @@
-/* $Id: fdc.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fdc.h,v 1.3 2002/01/03 01:24:01 pavlovskii Exp $ */
 
 /*
  * fdc.h
@@ -45,9 +45,9 @@
 
 /* drive geometry */
 typedef struct DrvGeom {
-   byte heads;
-   byte tracks;
-   byte spt;     /* sectors per track */
+   uint8_t heads;
+   uint8_t tracks;
+   uint8_t spt;     /* sectors per track */
 } DrvGeom;
 
 /* drive geometries */
@@ -105,10 +105,10 @@ void fdcMotorOff(Fdc* fdc);
 void fdcRecalibrate(Fdc* fdc);
 bool fdcSeek(Fdc* fdc, int track);
 bool fdcLogDisk(Fdc* fdc, DrvGeom *g);
-bool fdcReadBlock(Fdc* fdc, int block,byte *blockbuff);
-bool fdcWriteBlock(Fdc* fdc, int block,byte *blockbuff);
-bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g);
+bool fdcReadBlock(Fdc* fdc, int block,uint8_t *blockbuff);
+bool fdcWriteBlock(Fdc* fdc, int block,uint8_t *blockbuff);
+bool fdcFormatTrack(Fdc* fdc, uint8_t track,DrvGeom *g);
 
-//@}
+/*!@}*/
 
 #endif /* FDC_H_ */
