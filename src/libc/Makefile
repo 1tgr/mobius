@@ -45,14 +45,15 @@ STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/stdin.o stdio/stdiohk.o stdio/stdio.o stdio/stdout.o \
 	stdio/stdprn.o stdio/swprintf.o stdio/tmpfile.o stdio/tmpnam.o \
 	stdio/ungetc.o \
-	stdio/wprintf.o stdio/wfopen.o
+	stdio/wprintf.o stdio/wfopen.o stdio/fputwc.o stdio/fputws.o \
+	stdio/getwc.o
 STDLIB=	stdlib/abort.o stdlib/abs.o stdlib/atexit.o stdlib/atof.o \
 	stdlib/atoi.o stdlib/atol.o stdlib/atold.o \
 	stdlib/bsearch.o stdlib/cppsup.o stdlib/div.o stdlib/exit.o \
 	stdlib/labs.o stdlib/ldiv.o stdlib/llabs.o \
 	stdlib/qsort.o stdlib/rand.o stdlib/strtod.o stdlib/strtol.o \
 	stdlib/strtold.o stdlib/strtoll.o stdlib/strtoul.o stdlib/strtoull.o \
-	stdlib/wcstol.o 
+	stdlib/wcstol.o stdlib/mbtowc.o stdlib/wctomb.o stdlib/wcstoul.o 
 STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/memset.o string/memcmp.o string/strcat.o string/strchr.o \
 	string/strcmp.o string/strcoll.o string/strcpy.o string/strcspn.o \
@@ -64,7 +65,7 @@ STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/wcschr.o string/wcscmp.o string/wcscpy.o string/wcsdup.o \
 	string/wcserror.o string/wcsicmp.o string/wcsmatch.o string/wcsncmp.o \
 	string/wcsnicmp.o string/wcsncpy.o string/wcspbrk.o string/wcsrchr.o \
-	string/wcslen.o string/wcstombs.o
+	string/wcslen.o string/wcstombs.o string/wcwidth.o
 TIME=	time/localtime.o time/time.o
 
 RTL=	string/djmd.o string/djmdr.o dllmain.o

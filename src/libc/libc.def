@@ -34,7 +34,10 @@ EXPORTS
 	_wcsicmp
 	_wcsmatch
 	_wcsnicmp
+	_wcswidth
+	_wcwidth
 	_wdprintf
+	_wfopen
 	abort
 	abs
 	atexit
@@ -61,6 +64,8 @@ EXPORTS
 	fprintf
 	fputc
 	fputs
+	fputwc
+	fputws
 	fread
 	free
 	freopen
@@ -75,6 +80,7 @@ EXPORTS
 	getenv
 	gets
 	getw
+	getwc
 	isalnum
 	isalpha
 	isascii
@@ -95,6 +101,7 @@ EXPORTS
 	localtime
 	malloc
 	mbstowcs
+	mbtowc
 	memalign
 	memchr
 	memcmp
@@ -172,5 +179,6 @@ EXPORTS
 	wcsrchr
 	wcstol
 	wcstombs
+	wcstoul
+	wctomb
 	wprintf
-	_wfopen

@@ -1,8 +1,12 @@
-/* $Id: mbtowc.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: mbtowc.c,v 1.3 2002/08/04 16:06:05 pavlovskii Exp $ */
 
 #include <stdlib.h>
 
-int mbtowc(wchar_t *_pwc, const char *_s, size_t _n)
+int mbtowc(wchar_t *pwc, const char *s, size_t n)
 {
-	return mbstowcs(_pwc, _s, _n);
+    wchar_t wc[2];
+    int ret;
+    ret = mbstowcs(wc, s, n);
+    *pwc = wc[0];
+    return ret;
 }
