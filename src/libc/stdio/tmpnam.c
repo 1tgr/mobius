@@ -3,13 +3,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <errno.h>
 /*#include <libc/bss.h>*/
+#include <os/syscall.h>
+#include <os/defs.h>
 
 static char *tmp_dir;
 static int tmp_len;
-static int tmp_bss_count = -1;
+/*static int tmp_bss_count = -1;*/
 
 /*static void
 try(const char *var)
@@ -35,8 +36,10 @@ char *
 tmpnam(char *s)
 {
   static char static_buf[L_tmpnam];
+  static wchar_t wcs_buf[L_tmpnam];
   static char tmpcount[] = "dj000000";
   int i;
+  size_t len;
 
   /*if (tmp_bss_count != __bss_count)
   {
@@ -64,8 +67,12 @@ tmpnam(char *s)
       tmpcount[i]++;
 
     strcpy(s+tmp_len, tmpcount);
+    len = mbstowcs(wcs_buf, s, _countof(wcs_buf) - 1);
+    if (len == -1)
+        len = 0;
+    wcs_buf[len] = '\0';
 
-  } while (access(s, F_OK)==0); /* until file doesn't exist */
+  } while (!FsQueryFile(wcs_buf, FILE_QUERY_NONE, NULL, 0)); /* until file doesn't exist */
 
   return s;
 }

@@ -17,6 +17,7 @@ fwrite(const void *vptr, size_t size, size_t count, FILE *f)
       && (f->_flag & (_IOTERM | _IONTERM)) == 0)
   {
     /* first time we see this handle--see if termios hooked it */
+    /* xxx - need to replace isatty somehow */
     if (isatty(f->_file))
       f->_flag |= _IOTERM;
     else
@@ -25,7 +26,7 @@ fwrite(const void *vptr, size_t size, size_t count, FILE *f)
 #endif
 
   s = size * count;
-  if(!__is_text_file(f))
+  /*if(!__is_text_file(f))*/
   {
     if (f->_flag & _IOLBF)
       while (s > 0) {
@@ -55,6 +56,7 @@ fwrite(const void *vptr, size_t size, size_t count, FILE *f)
       }
     }
   }
+#if 0
   else
   {
     if (f->_flag & _IOLBF)
@@ -96,5 +98,6 @@ fwrite(const void *vptr, size_t size, size_t count, FILE *f)
       }
     }
   }
+#endif
   return size != 0 ? count - ((s + size - 1) / size) : 0;
 }

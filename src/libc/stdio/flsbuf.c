@@ -5,9 +5,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <libc/file.h>
-#include <io.h>
+/*#include <io.h>*/
+#include <os/rtl.h>
 
 int
 _flsbuf(int c, FILE *f)
@@ -41,7 +41,9 @@ _flsbuf(int c, FILE *f)
       f->_cnt = f->_bufsiz = size;
       f->_ptr = base;
       rn = 0;
-      if (f == stdout && isatty (fileno (stdout)))
+
+      /* xxx - need to replace isatty somehow */
+      if (f == stdout/* && isatty (fileno (stdout))*/)
 	f->_flag |= _IOLBF;
     }
   }
@@ -89,8 +91,8 @@ _flsbuf(int c, FILE *f)
     /*if ((f->_flag & _IOTERM) == 0
 	|| __libc_write_termios_hook == NULL
 	|| __libc_write_termios_hook(fileno(f), base, rn, &n) == 0)*/
-      n = _write(fileno(f), base, rn);
-    if (n <= 0)
+    if (!FsWriteSync(fileno(f), base, rn, &n) ||
+        n <= 0)
     {
       f->_flag |= _IOERR;
       return EOF;

@@ -4,8 +4,9 @@
 
 #include "defs.h"
 #include "globals.h"
+#include <os/defs.h>
 
-RCSID("$Id: memalign.c,v 1.1 2001/11/05 18:31:45 pavlovskii Exp $")
+RCSID("$Id: memalign.c,v 1.2 2002/05/12 00:13:20 pavlovskii Exp $")
 
 /* 
  * !! memalign may leave small (< _malloc_minchunk) blocks as garbage.
@@ -163,6 +164,6 @@ size_t size;
 	static size_t pagesz = 0;
 
 	if (pagesz == 0)
-		pagesz = (size_t) getpagesize();
+		pagesz = PAGE_SIZE;
 	return(memalign(pagesz, size));
 }

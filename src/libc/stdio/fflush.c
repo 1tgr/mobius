@@ -6,11 +6,12 @@
 #include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+/*#include <sys/stat.h>*/
 #include <stdlib.h>
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <libc/file.h>
-#include <io.h>
+/*#include <io.h>*/
+#include <os/rtl.h>
 
 int
 fflush(FILE *f)
@@ -46,8 +47,8 @@ fflush(FILE *f)
       /*if ((f->_flag & _IOTERM) == 0
 	  || __libc_write_termios_hook == NULL
 	  || __libc_write_termios_hook(fileno(f), base, rn, &n) == 0)*/
-	n = _write(fileno(f), base, rn);
-      if (n <= 0) {
+      if (!FsWriteSync(fileno(f), base, rn, &n) || 
+          n <= 0) {
 	f->_flag |= _IOERR;
 	return EOF;
       }

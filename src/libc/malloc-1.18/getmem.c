@@ -5,7 +5,9 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id: getmem.c,v 1.1 2001/11/05 18:31:43 pavlovskii Exp $")
+void *__morecore(size_t nbytes);
+
+RCSID("$Id: getmem.c,v 1.2 2002/05/12 00:13:20 pavlovskii Exp $")
 
 /* gets memory from the system via the sbrk() system call.  Most Un*xes */
 univptr_t
@@ -15,7 +17,7 @@ size_t nbytes;
 	static char *lastsbrk;
 	char *p;
 
-	p = (char *) sbrk((int) nbytes);
+        p = __morecore(nbytes);
 	/*
 	 * Some old SVR3 apparently have a kernel bug: after several sbrk
 	 * calls, sbrk suddenly starts returning values lower than the ones it

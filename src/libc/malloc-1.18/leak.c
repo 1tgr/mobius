@@ -6,7 +6,7 @@
 #include "globals.h"
 #include "sptree.h"
 
-RCSID("$Id: leak.c,v 1.2 2002/04/20 12:47:28 pavlovskii Exp $")
+RCSID("$Id: leak.c,v 1.3 2002/05/12 00:13:20 pavlovskii Exp $")
 
 /* 
  *  These routines provide an interface for tracing memory leaks. The
@@ -148,8 +148,8 @@ FILE *fp;
 	nbytes = 0;
 	__spscan(__m_count, (SPBLK *) NULL, sp);
 	(void) sprintf(_malloc_statsbuf,
-		       "%% %lu bytes %lu mallocs %lu vm\n",
-		       nbytes, nmallocs, (ulong) sbrk(0));
+		       "%% %lu bytes %lu mallocs\n" /*" %lu vm\n"*/,
+		       nbytes, nmallocs/*, (ulong) sbrk(0)*/);
 	(void) fputs(_malloc_statsbuf, fp);
 	(void) fflush(fp);
 }

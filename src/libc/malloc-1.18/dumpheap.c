@@ -5,7 +5,7 @@
 #include "defs.h"
 #include "globals.h"
 
-RCSID("$Id: dumpheap.c,v 1.1 2001/11/05 18:31:43 pavlovskii Exp $")
+RCSID("$Id: dumpheap.c,v 1.2 2002/05/12 00:13:20 pavlovskii Exp $")
 
 int
 __m_prblock(p, is_end_ptr, fp)
@@ -52,7 +52,10 @@ FILE *fp;
 		return 0;
 	}
 	if (tag == FREE) {
-		int i, n;
+#ifdef DEBUG
+		int i;
+#endif
+                int n;
 		char *cp;
 
 		(void) sprintf(buf, " next=0x%lx, prev=0x%lx\n",
@@ -93,7 +96,7 @@ FILE *fp;
 			(void) fputs("  ** end of block overwritten\n", fp);
 	}
 	if ( ! VALID_START_SIZE_FIELD(blk)) {
-		sprintf(buf, "  ** bad size field: tags = 0x%lx, 0x%lx\n",
+		sprintf(buf, "  ** bad size field: tags = 0x%x, 0x%x\n",
 			SIZEFIELD(blk), SIZEFIELD(blkend));
 		(void) fputs(buf, fp);
 		return 0;

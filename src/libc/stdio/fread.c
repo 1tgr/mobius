@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <libc/file.h>
 
 size_t
@@ -31,6 +31,7 @@ fread(void *vptr, size_t size, size_t count, FILE *iop)
       && (iop->_flag & (_IOTERM | _IONTERM)) == 0)
   {
     /* first time we see this handle--see if termios hooked it */
+    /* xxx - need to replace isatty somehow */
     if (isatty(iop->_file))
       iop->_flag |= _IOTERM;
     else
@@ -39,7 +40,7 @@ fread(void *vptr, size_t size, size_t count, FILE *iop)
 #endif
 
   s = size * count;
-  if(!__is_text_file(iop))
+  /*if(!__is_text_file(iop))*/
   {
     while (s > 0) {
       if (iop->_cnt < s) {
@@ -65,6 +66,7 @@ fread(void *vptr, size_t size, size_t count, FILE *iop)
       }
     }
   }
+#if 0
   else
   {
     while (s > 0) {
@@ -97,5 +99,6 @@ fread(void *vptr, size_t size, size_t count, FILE *iop)
       }
     } /* end while */
   }
+#endif
   return size != 0 ? count - ((s + size - 1) / size) : 0;
 }

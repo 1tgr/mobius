@@ -2,10 +2,11 @@
 #include <libc/stubs.h>
 #include <stdio.h>
 #include <sys/types.h>
-#include <sys/stat.h>
+/*#include <sys/stat.h>*/
 #include <stdlib.h>
-#include <unistd.h>
 #include <libc/file.h>
+#include <os/syscall.h>
+#include <os/defs.h>
 
 int
 fclose(FILE *f)
@@ -15,11 +16,11 @@ fclose(FILE *f)
   r = EOF;
   if (!f)
     return r;
-  if (f->_flag & (_IOREAD|_IOWRT|_IORW)
+  if (f->_flag & (FILE_READ | FILE_WRITE)
       && !(f->_flag&_IOSTRG))
   {
     r = fflush(f);
-    if (close(fileno(f)) < 0)
+    if (!FsClose(fileno(f)))
       r = EOF;
     if (f->_flag&_IOMYBUF)
       free(f->_base);

@@ -9,7 +9,7 @@
 # include <stddef.h>
 # include <stdio.h>
 # include <string.h>
-# include <unistd.h>
+/*# include <unistd.h>*/
 
 #else /* ! STDHEADERS */
 
@@ -68,7 +68,7 @@ extern caddr_t sbrk proto((int));
 #  define getpagesize()	sysconf(_SC_PAGE_SIZE)
 # else /* ! _SC_PAGE_SIZE */
 #  ifndef getpagesize
-    extern int getpagesize proto((void));
+    /*extern int getpagesize proto((void));*/
 #  endif /* getpagesize */
 # endif /* _SC_PAGE_SIZE */
 #endif /* _SC_PAGESIZE */

@@ -1,27 +1,23 @@
 NAME	libc
 EXPORTS
-	__access
 	__builtin_delete
 	__builtin_new
 	__builtin_vec_delete
 	__builtin_vec_new
-	__close
+	__dj_assert
+	__free
 	__get_eh_context
 	__get_stderr
 	__get_stdin
 	__get_stdout
-	__isatty
-	__lseek
 	__main
-	__open
-	__sbrk
+	__malloc
+	__realloc
 	__udivdi3
 	__umoddi3
-	__wopen
 	_atold
 	_cputs
 	_cputws
-	_creatnew
 	_doscan
 	_doscan_low
 	_filbuf
@@ -29,16 +25,16 @@ EXPORTS
 	_fwalk
 	_geterrno
 	_pwerror
-	_read
+	_strdup
 	_stricmp
 	_strtold
-	_towc
+	_vwdprintf
 	_wcsdup
 	_wcserror
 	_wcsicmp
 	_wcsmatch
 	_wcsnicmp
-	_write
+	_wdprintf
 	abort
 	abs
 	atexit
@@ -52,11 +48,9 @@ EXPORTS
 	div
 	doprintf
 	dowprintf
-	ecalloc
-	emalloc
-	erealloc
 	exit
 	fclose
+	fdopen
 	feof
 	ferror
 	fflush
@@ -79,7 +73,6 @@ EXPORTS
 	getc
 	getchar
 	getenv
-	getpagesize
 	gets
 	getw
 	isalnum
@@ -93,23 +86,13 @@ EXPORTS
 	ispunct
 	isspace
 	isupper
+	iswlower
+	iswupper
 	isxdigit
 	labs
 	ldiv
 	llabs
 	localtime
-	mal_contents
-	mal_debug
-	mal_dumpleaktrace
-	mal_heapdump
-	mal_leaktrace
-	mal_mmap
-	mal_sbrkset
-	mal_setstatsfile
-	mal_slopset
-	mal_statsdump
-	mal_trace
-	mal_verify
 	malloc
 	mbstowcs
 	memalign
@@ -145,7 +128,6 @@ EXPORTS
 	strcoll
 	strcpy
 	strcspn
-	strdup
 	strerror
 	strlen
 	strncat
@@ -153,7 +135,6 @@ EXPORTS
 	strncpy
 	strpbrk
 	strrchr
-	strsave
 	strspn
 	strstr
 	strtod
@@ -168,6 +149,8 @@ EXPORTS
 	toascii
 	tolower
 	toupper
+	towlower
+	towupper
 	ungetc
 	valloc
 	vfprintf

@@ -8,11 +8,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <fcntl.h>
+/*#include <fcntl.h>
 #include <unistd.h>
-#include <io.h>
+#include <io.h>*/
 #include <libc/file.h>
 #include <libc/local.h>
+#include <os/syscall.h>
 
 FILE *
 tmpfile(void)
@@ -34,7 +35,7 @@ tmpfile(void)
      to create the file which didn't exist before.  */
   do {
     errno = 0;
-    temp_fd = _creatnew(temp_name, 0, SH_DENYRW);
+    temp_fd = -1;/*_creatnew(temp_name, 0, SH_DENYRW);*/
   } while (temp_fd == -1
 	   && errno != ENOENT && errno != EMFILE
 	   && (temp_name = tmpnam(0)) != 0);
@@ -60,7 +61,7 @@ tmpfile(void)
   }
   else
   {
-    close(temp_fd);
+    FsClose(temp_fd);
     remove(temp_name);
     free(n_t_r);
   }

@@ -4,9 +4,9 @@
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #include <libc/stubs.h>
 #include <stdlib.h>
-#include <unistd.h>
+/*#include <unistd.h>
 #include <fcntl.h>
-#include <io.h>
+#include <io.h>*/
 #include <libc/atexit.h>
 #include <os/syscall.h>
 
@@ -25,7 +25,7 @@ extern FUNC djgpp_last_dtor[] __asm__("djgpp_last_dtor");*/
 void
 exit(int status)
 {
-  int i;
+  /*int i;*/
   struct __atexit *a,*o;
 
   a = __atexit_ptr;
@@ -48,5 +48,6 @@ exit(int status)
   if (__stdio_cleanup_hook)
     __stdio_cleanup_hook();
 
-  ProcExitProcess(status);
+  for (;;)
+    ProcExitProcess(status);
 }

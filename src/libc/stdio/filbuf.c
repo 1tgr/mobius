@@ -6,11 +6,12 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <string.h>
 #include <libc/file.h>
 #include <libc/stdiohk.h>
-#include <io.h>
+/*#include <io.h>*/
+#include <os/rtl.h>
 
 /* Note: We set _fillsize to 512, and use that for reading instead of
    _bufsize, for performance reasons.  We double _fillsize each time
@@ -82,8 +83,10 @@ _filbuf(FILE *f)
       || __libc_read_termios_hook == NULL
       || __libc_read_termios_hook(fileno(f), f->_base, size, &f->_cnt) == 0)*/
   {
-    f->_cnt = _read(fileno(f), f->_base, size);
+    if (!FsReadSync(fileno(f), f->_base, size, &f->_cnt))
+        f->_cnt = 0;
 
+#if 0
     if(__is_text_file(f) && f->_cnt>0)
     {
       /* truncate text file at Ctrl-Z */
@@ -91,10 +94,11 @@ _filbuf(FILE *f)
       if(cz)
       {
 	int newcnt = cz - f->_base;
-	lseek(fileno(f), -(f->_cnt - newcnt), SEEK_CUR);
+	FsSeek(fileno(f), -(f->_cnt - newcnt), SEEK_CUR);
 	f->_cnt = newcnt;
       }
     }
+#endif
   }
 
   /* Read more next time, if we don't seek */

@@ -1,6 +1,8 @@
-/* $Id: towc.c,v 1.3 2002/03/07 16:26:04 pavlovskii Exp $ */
+/* $Id: towc.c,v 1.4 2002/05/12 00:13:20 pavlovskii Exp $ */
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <libc/local.h>
 
 wchar_t *_towc(const char *mb)
 {

@@ -1,7 +1,7 @@
 EXP=	libc.exp
 DEF=	libc.def
 #DEFINES=-D__STRICT_ANSI__
-DEFINES=-D__LIBC_STATIC
+DEFINES=-D__LIBC_STATIC -DSTDHEADERS
 BASE=	libc
 
 include ../make.conf
@@ -11,24 +11,26 @@ TARGET_S=	$(LIB)/libc_s.lib
 IMP=		$(LIB)/libc.lib
 LIBS=		$(LIB)/libsys.lib
 
-ASSERT=	
+ASSERT=	assert/assert.o
 CTYPE=	ctype/ct_flags.o ctype/ct_lower.o ctype/ct_upper.o \
 	ctype/isalpha.o ctype/isalnum.o ctype/isascii.o ctype/iscntrl.o \
 	ctype/isdigit.o ctype/isgraph.o ctype/islower.o ctype/isprint.o \
 	ctype/ispunct.o ctype/isspace.o ctype/isupper.o ctype/isxdigit.o \
-	ctype/toascii.o ctype/tolower.o ctype/toupper.o
+	ctype/toascii.o ctype/tolower.o ctype/toupper.o \
+	ctype/towupper.o ctype/towlower.o ctype/iswupper.o ctype/iswlower.o
 ERRNO=	errno/errno.o
 LOCALE=
-MALLOC=	malloc-1.18/_emalloc.o malloc-1.18/_malloc.o malloc-1.18/_memalign.o \
+#MALLOC=	malloc-1.18/_emalloc.o malloc-1.18/_malloc.o malloc-1.18/_memalign.o \
 	malloc-1.18/_strdup.o malloc-1.18/_strsave.o malloc-1.18/botch.o \
 	malloc-1.18/dumpheap.o malloc-1.18/emalloc.o malloc-1.18/getmem.o malloc-1.18/leak.o \
 	malloc-1.18/malloc.o malloc-1.18/memalign.o malloc-1.18/setopts.o \
 	malloc-1.18/stats.o malloc-1.18/strdup.o malloc-1.18/strsave.o malloc-1.18/verify.o \
 	malloc-1.18/sptree.o
+MALLOC=	stdlib/malloc.o stdlib/maldebug.o
 MATH=	
 STDIO=	stdio/allocfil.o stdio/clearerr.o stdio/doprintf.o stdio/dowprintf.o \
 	stdio/doscan.o \
-	stdio/fclose.o stdio/feof.o stdio/ferror.o stdio/fflush.o \
+	stdio/fclose.o stdio/fdopen.o stdio/feof.o stdio/ferror.o stdio/fflush.o \
 	stdio/fgetc.o stdio/fgetpos.o stdio/fgets.o stdio/filbuf.o \
 	stdio/flsbuf.o stdio/fopen.o stdio/fprintf.o stdio/fputc.o \
 	stdio/fputs.o stdio/fread.o stdio/freopen.o stdio/frlist.o \
@@ -54,7 +56,7 @@ STDLIB=	stdlib/abort.o stdlib/abs.o stdlib/atexit.o stdlib/atof.o \
 STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/memset.o string/memcmp.o string/strcat.o string/strchr.o \
 	string/strcmp.o string/strcoll.o string/strcpy.o string/strcspn.o \
-	string/strerror.o string/stricmp.o string/strlen.o string/strncat.o \
+	string/strdup.o string/strerror.o string/stricmp.o string/strlen.o string/strncat.o \
 	string/strncmp.o string/strncpy.o string/strpbrk.o string/strrchr.o \
 	string/strspn.o string/strstr.o string/strtok.o string/strxfrm.o \
 	string/syserr1.o string/syserr2.o string/syserr3.o  string/syswerr1.o \
@@ -66,11 +68,10 @@ STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 TIME=	time/localtime.o time/time.o
 
 RTL=	string/djmd.o string/djmdr.o dllmain.o
-SYS=	sys/access.o sys/close.o sys/cputs.o sys/cputws.o \
-	sys/creatnew.o sys/float_dx.o sys/fmode.o sys/getenv.o \
-	sys/huge_val.o sys/isatty.o sys/int64.o \
-	sys/lseek.o sys/main.o sys/open.o sys/read.o \
-	sys/sbrk.o sys/towc.o sys/wopen.o sys/write.o 
+SYS=	sys/cputs.o sys/cputws.o sys/float_dx.o sys/fmode.o \
+	sys/getenv.o sys/huge_val.o sys/int64.o sys/main.o \
+	sys/morecore.o sys/towc.o sys/wdprintf.o sys/unicode.o \
+	sys/ucfile.o
 
 OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 	$(MALLOC) $(MATH) $(SETJMP) $(STDARG) \
@@ -78,3 +79,8 @@ OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 	$(RTL) $(SYS)
 
 include ../make.actions
+
+all:	$(BIN)/unicode.dat
+
+$(BIN)/unicode.dat:	ctype/unicode.o
+	objcopy -O binary -j .data $< $@

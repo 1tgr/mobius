@@ -149,6 +149,14 @@ SOURCE=.\ctype\isupper.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ctype\iswlower.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ctype\iswupper.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ctype\isxdigit.c
 # End Source File
 # Begin Source File
@@ -162,6 +170,10 @@ SOURCE=.\ctype\tolower.c
 # Begin Source File
 
 SOURCE=.\ctype\toupper.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ctype\towupper.c
 # End Source File
 # End Group
 # Begin Group "errno"
@@ -214,6 +226,10 @@ SOURCE=.\stdio\dowprintf.c
 # Begin Source File
 
 SOURCE=.\stdio\fclose.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fdopen.c
 # End Source File
 # Begin Source File
 
@@ -294,6 +310,10 @@ SOURCE=.\stdio\ftell.c
 # Begin Source File
 
 SOURCE=.\stdio\fwalk.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fwprintf.c
 # End Source File
 # Begin Source File
 
@@ -438,6 +458,10 @@ SOURCE=.\stdio\vprintf.c
 # Begin Source File
 
 SOURCE=.\stdio\vsprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\wfopen.c
 # End Source File
 # Begin Source File
 
@@ -789,6 +813,10 @@ SOURCE=.\sys\main.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\sys\morecore.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\sys\open.c
 # End Source File
 # Begin Source File
@@ -802,6 +830,14 @@ SOURCE=.\sys\sbrk.c
 # Begin Source File
 
 SOURCE=.\sys\towc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\ucfile.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\unicode.c
 # End Source File
 # Begin Source File
 

@@ -39,12 +39,6 @@ static char _sctab[256] = {
 
 static int nchars = 0;
 
-int 
-_doscan(FILE *iop, const char *fmt, void **argp)
-{
-  return(_doscan_low(iop, fgetc, ungetc, fmt, argp));
-}
-
 int
 _doscan_low(FILE *iop, int (*scan_getc)(FILE *), int (*scan_ungetc)(int, FILE *),
             const char *fmt, void **argp)
@@ -173,6 +167,12 @@ _doscan_low(FILE *iop, int (*scan_getc)(FILE *), int (*scan_ungetc)(int, FILE *)
       return(nmatch);
     }
   }
+}
+
+int 
+_doscan(FILE *iop, const char *fmt, void **argp)
+{
+  return(_doscan_low(iop, fgetc, ungetc, fmt, argp));
 }
 
 static int

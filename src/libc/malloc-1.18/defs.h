@@ -1,5 +1,5 @@
 /*  Author: Mark Moraes <moraes@csri.toronto.edu> */
-/* $Id: defs.h,v 1.1 2001/11/05 18:31:43 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.2 2002/05/12 00:13:20 pavlovskii Exp $ */
 #ifndef __DEFS_H__
 #define __DEFS_H__
 /* 
@@ -406,7 +406,7 @@ typedef union word Word;
  *  be called volatile. Amazing - a use for const volatile...
  */
 #ifndef	RCSID	/* define RCSID(x) to nothing if don't want the rcs headers */
-# if defined(lint) || defined(__STRICT_ANSI__)
+# if defined(lint) || defined(__STRICT_ANSI__) || defined(__MOBIUS__)
 #  define RCSID(x)
 # else
 #  define RCSID(x)		static const volatile char *rcsid = x ;

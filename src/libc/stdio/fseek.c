@@ -3,9 +3,10 @@
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #include <libc/stubs.h>
 #include <stdio.h>
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <libc/file.h>
-#include <fcntl.h>
+/*#include <fcntl.h>*/
+#include <os/syscall.h>
 
 int
 fseek(FILE *f, long offset, int ptrname)
@@ -40,7 +41,7 @@ fseek(FILE *f, long offset, int ptrname)
     if (f->_flag & _IORW)
       f->_flag &= ~_IOREAD;
 
-    p = lseek(fileno(f), offset, ptrname);
+    p = FsSeek(fileno(f), offset, ptrname);
     f->_cnt = 0;
     f->_ptr = f->_base;
     f->_flag &= ~_IOUNGETC;
@@ -48,7 +49,7 @@ fseek(FILE *f, long offset, int ptrname)
   else if (f->_flag & (_IOWRT|_IORW))
   {
     p = fflush(f);
-    return lseek(fileno(f), offset, ptrname) == -1 || p == EOF ?
+    return FsSeek(fileno(f), offset, ptrname) == -1 || p == EOF ?
       -1 : 0;
   }
   return p==-1 ? -1 : 0;

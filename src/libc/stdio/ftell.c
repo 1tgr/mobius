@@ -2,9 +2,10 @@
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #include <libc/stubs.h>
 #include <stdio.h>
-#include <unistd.h>
+/*#include <unistd.h>*/
 #include <libc/file.h>
-#include <fcntl.h>
+/*#include <fcntl.h>*/
+#include <os/syscall.h>
 
 long
 ftell(FILE *f)
@@ -25,7 +26,7 @@ ftell(FILE *f)
   }
   else
     return -1;
-  tres = lseek(fileno(f), 0L, 1);
+  tres = FsSeek(fileno(f), 0L, SEEK_CUR);
   if (tres<0)
     return tres;
   tres += adjust;

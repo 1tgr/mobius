@@ -1,7 +1,7 @@
-/* $Id: fmode.c,v 1.2 2002/03/07 16:26:04 pavlovskii Exp $ */
+/* $Id: fmode.c,v 1.3 2002/05/12 00:13:20 pavlovskii Exp $ */
 
 /* Copyright (C) 1994 DJ Delorie, see COPYING.DJ for details */
-#include <fcntl.h>
-#include <io.h>
+/*#include <fcntl.h>
+#include <io.h>*/
 
-int _fmode = O_TEXT;
+int _fmode = 0;
