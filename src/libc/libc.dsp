@@ -1004,6 +1004,26 @@ SOURCE=..\..\include\libc\stubs.h
 SOURCE=..\..\include\libc\unconst.h
 # End Source File
 # End Group
+# Begin Group "posix"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\posix\fcntl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\posix\io.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\posix\strings.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\posix\unistd.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\include\assert.h
@@ -1018,15 +1038,7 @@ SOURCE=..\..\include\errno.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\fcntl.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\include\float.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\io.h
 # End Source File
 # Begin Source File
 
@@ -1071,10 +1083,6 @@ SOURCE=..\..\include\string.h
 # Begin Source File
 
 SOURCE=..\..\include\time.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\include\unistd.h
 # End Source File
 # Begin Source File
 
