@@ -11,8 +11,16 @@
 <a href="http://www.doxygen.org/">Doxygen</a>). More will be available as I
 write it...</p>
 
+<h2>Kernel Guide</h2>
 <ul>
-<li><a href="kernel/">Kernel Reference</a></li>
-<li><a href="kernel/devicebook.html">Device Driver Book</a></li>
+<li><a href="kernel/device.html">Device Driver Book</a></li>
+<li><a href="kernel/ipc.html">Inter-Process Communication (IPC)</a></li>
+<li><a href="kernel/memory.html">Memory Management</a></li>
+<li><a href="kernel/fsd.html">File System Driver Interface</a></li>
+</ul>
+
+<h2>Function References</h2>
+<ul>
+<li><a href="kernel/">Kernel Internals</a></li>
 <li><a href="user/">User Libraries</a></li>
 </ul>

@@ -30,14 +30,23 @@
 </table>
 <h2>Source Code</h2>
 <h3>TGZ</h3>
-<p>You can download the latest version of the Möbius source as one big tarball 
-(about 7MB):</p>
+
+<p>The compressed source archive has been removed for now, after it was pointed
+out that what I was offering for download didn't contain the M&ouml;bius sources. I will
+now start releasing source archives alongside the binaries. Sorry for any 
+inconvenience. You will still be able to use the SourceForge CVS interface (see below).</p>
+
+<!--
+<p>You can download the latest version of the M&ouml;bius source as one big tarball 
+(about 15MB):</p>
 <p><a href="http://cvs.sourceforge.net/cvstarballs/mobius-cvsroot.tar.gz">http://cvs.sourceforge.net/cvstarballs/mobius-cvsroot.tar.gz</a></p>
 <p>This is a copy of the latest modifications made to the CVS tree on 
 SourceForge. If you just want to download the source and look around then 
 download this. If you want to keep your local copy of the source up-to-date (and 
 you don't mind setting up the <code>cvs</code> program) you can download the
 full tree via the SourceForge CVS interface.</p>
+-->
+
 <h3>CVS</h3>
 <p>The source code is available through SourceForge CVS, and it can be checked 
 out through anonymous (pserver) CVS with the following instruction set. When 

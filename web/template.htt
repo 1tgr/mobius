@@ -6,25 +6,25 @@
 <meta name="generator" content="Microsoft FrontPage 4.0">
 <meta name="ProgId" content="FrontPage.Editor.Document">
 <meta name="preprocessor" content="<% Ver %>">
-<title>The Möbius Operating System: <% Title %></title>
-<link rel="stylesheet" type="text/css" href="styles.css">
+<title>The M&ouml;bius Operating System: <% Title %></title>
+<link rel="stylesheet" type="text/css" href="/styles.css">
 </head>
 
 <body topmargin="0" leftmargin="0">
 
 <table border="0" width="100%" cellpadding="6" cellspacing="0">
   <tr>
-    <td class="button<%b1%>" rowspan="2"><a href="index.html"><img border="0"
-      src="images/logo3.gif" width="30" height="30"></a></td>
+    <td class="button<%b1%>" rowspan="2"><a href="/index.html"><img border="0"
+      src="/images/logo3.gif" width="30" height="30"></a></td>
     <td width="100%" bgcolor="#6F6FB9" colspan="6"><strong><font color="#FFFFFF"
-      face="Trebuchet MS,Arial">The Möbius Operating System: <% Title %></font></strong></td> 
+      face="Trebuchet MS,Arial">The M&ouml;bius Operating System: <% Title %></font></strong></td> 
   </tr> 
   <tr> 
-    <td class="button<%b1%>"><a href="index.html" class="button<%b1%>">HOME</a></td>
-    <td class="button<%b2%>"><a href="download.html" class="button<%b2%>">DOWNLOAD</a></td>
-    <td class="button<%b3%>"><a href="documentation.html" class="button<%b3%>">DOCUMENTATION</a></td>
-    <td class="button<%b4%>"><a href="links.html" class="button<%b4%>">LINKS</a></td>
-    <td class="button<%b5%>"><a href="screenshots.html" class="button<%b5%>">SCREENSHOTS</a></td>
+    <td class="button<%b1%>"><a href="/index.html" class="button<%b1%>">HOME</a></td>
+    <td class="button<%b2%>"><a href="/download.html" class="button<%b2%>">DOWNLOAD</a></td>
+    <td class="button<%b3%>"><a href="/documentation.html" class="button<%b3%>">DOCUMENTATION</a></td>
+    <td class="button<%b4%>"><a href="/links.html" class="button<%b4%>">LINKS</a></td>
+    <td class="button<%b5%>"><a href="/screenshots.html" class="button<%b5%>">SCREENSHOTS</a></td>
     <td class="button" width="100%">&nbsp;</td>
   </tr>
   <tr>
@@ -39,7 +39,7 @@
           <th class="box_head">Go to:</th>
         </tr>
         <tr>
-          <th class="box"><a href="tutes/">OS Tutorials</a></th>
+          <th class="box"><a href="/tutes/">OS Tutorials</a></th>
         </tr>
         <tr>
           <th class="box"><a href="http://sourceforge.net/projects/mobius/">SourceForge</a></th>
@@ -55,6 +55,9 @@
             href="http://lists.sourceforge.net/lists/listinfo/mobius-general">Mailing 
             List</a>
           </th>
+        </tr>
+        <tr>
+          <th class="box"><a href="/irc/">#osdev IRC</a></th>
         </tr>
         <tr>
           <td bgcolor="white" height="3"><!--&nbsp;--></td>

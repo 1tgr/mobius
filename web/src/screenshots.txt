@@ -26,7 +26,7 @@ cellpadding="2">
       <p align="center"><a href="images/screen9.gif"><img border="0"
       src="images/screen9_small.gif" width="100" height="83"></a></p>
       <p align="center"><i><a href="images/screen9.gif">Screenshot 9</a>: Vector
-      icons, drawn in CorelDRAW, loaded in The Möbius</i></td>
+      icons, drawn in CorelDRAW, loaded in The M&ouml;bius</i></td>
     <td width="50%" valign="top">&nbsp;</td>
   </tr>
 </table>
