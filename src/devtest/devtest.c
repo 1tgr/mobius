@@ -243,7 +243,8 @@ int main()
 	_cputws(L"Press any key to test file system\n");
 	_wgetch();
 	//TestFileSystem(L"text/Keyboard Layouts/uk-cap.txt");
-	TestFileSystem(L"/Mobius/windows/bootlog.txt");
+	//TestFileSystem(L"/Mobius/windows/bootlog.txt");
+	TestFileSystem(L"/devices/floppy0");
 
 	_cputws(L"Press any key to test floppy\n");
 	_wgetch();

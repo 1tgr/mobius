@@ -486,6 +486,7 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 	unsigned line;
 	char* file;
 	
+	t->suspend++;
 	enable();
 	fault_addr = addr;
 	dbgSwitchThreads(t, ctx);
@@ -557,10 +558,12 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 		case 6:
 			ctx->eflags |= EFLAG_TF;
 			in_debugger = false;
+			t->suspend--;
 			return true;
 		case 7:
 			ctx->eflags &= ~EFLAG_TF;
 			in_debugger = false;
+			t->suspend--;
 			return true;
 		case 8:
 			if (thr->id == 0)
@@ -568,6 +571,7 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 			else
 				procTerminate(thr->process);
 			in_debugger = false;
+			t->suspend--;
 			return true;
 		}
 	}

@@ -26,11 +26,13 @@ vfs_t vfs =
 	NULL
 };
 
-struct vfs_file_t
+extern device_t vfs_devices;
+
+/*struct vfs_file_t
 {
 	file_t file;
 	device_t* dev;
-};
+};*/
 
 bool vfsRequest(device_t* dev, request_t* req)
 {
@@ -39,7 +41,6 @@ bool vfsRequest(device_t* dev, request_t* req)
 	vfs_t *vfs = (vfs_t*) dev;
 	hashelem_t elem, *found;
 	request_t openreq;
-	struct vfs_file_t* fd;
 	status_t hr;
 
 	switch (req->code)
@@ -84,14 +85,8 @@ bool vfsRequest(device_t* dev, request_t* req)
 		}
 		else
 		{
-			fd = hndAlloc(sizeof(struct vfs_file_t), NULL);
-			fd->file.fsd = dev;
-			fd->dev = (device_t*) found->data;
-			req->params.fs_open.fd = &fd->file;
-			//wprintf(L"%s, %s: %x\n", mount, path, openreq.result);
-			//req->result = openreq.result;
-			hndSignal(req->event, true);
-			return true;
+			req->result = openreq.result;
+			return false;
 		}
 
 	case FS_MOUNT:
@@ -100,16 +95,6 @@ bool vfsRequest(device_t* dev, request_t* req)
 		hashInsert(vfs->mounts, &elem);
 		hndSignal(req->event, true);
 		return true;
-
-	case FS_READ:
-		fd = (struct vfs_file_t*) req->params.fs_read.fd;
-		hr = devReadSync(fd->dev, 
-			fd->file.pos,
-			(void*) req->params.fs_read.buffer,
-			&req->params.fs_read.length);
-		req->result = hr;
-		fd->file.pos += req->params.fs_read.length;
-		return hr == 0;
 	}
 
 	req->result = ENOTIMPL;
@@ -145,7 +130,8 @@ bool fsMount(const wchar_t* name, const wchar_t* fsd, device_t* device)
 bool vfsInit()
 {
 	device_t *floppy, *ide;
-	hashelem_t elem;
+	wchar_t *name;
+	request_t req;
 
 	vfs.mounts = hashCreate(31);
 
@@ -159,9 +145,14 @@ bool vfsInit()
 		!fsMount(L"Mobius", L"fat", ide))
 		return false;
 
-	elem.str = L"keyboard";
-	elem.data = devOpen(L"keyboard", NULL);
-	hashInsert(vfs.mounts, &elem);
+	/* Mount devices directory manually because it's not a real driver */
+	name = L"devices";
+	req.code = FS_MOUNT;
+	req.params.fs_mount.name = name;
+	req.params.fs_mount.name_length = sizeof(wchar_t) * (wcslen(name) + 1);
+	req.params.fs_mount.dev = &vfs_devices;
+	
+	devRequestSync(&vfs.dev, &req);
 	return true;
 }
 

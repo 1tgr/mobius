@@ -216,10 +216,8 @@ bool		devRegister(const wchar_t* name, device_t* dev, device_config_t* cfg);
 
 void		devStartRequest(device_t* dev, request_t* req);
 void		devFinishRequest(device_t* dev, request_t* req);
-status_t	devReadSync(device_t* dev,		// in
-						 qword pos,			// in
-						 void* buffer,		// out
-						 size_t* length);
+status_t	devReadSync(device_t* dev, qword pos, void* buffer, size_t* length);
+status_t	devWriteSync(device_t* dev, qword pos, const void* buffer, size_t* length);
 status_t	devUserRequest(device_t* dev, request_t* req, size_t size);
 status_t	devUserFinishRequest(request_t* req, bool delete_event);
 dword		devFindResource(const device_config_t *cfg, int cls, int index);

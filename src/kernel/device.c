@@ -6,6 +6,7 @@
 #include <kernel/proc.h>
 #include <kernel/config.h>
 #include <kernel/ramdisk.h>
+#include <kernel/fs.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,6 +39,82 @@ devlink_t *dev_first, *dev_last;
 
 static devlookup_t *dlu_first, *dlu_scan;
 static int line_count;
+
+typedef struct devfile_t devfile_t;
+struct devfile_t
+{
+	file_t file;
+	device_t* dev;
+};
+
+bool devFsRequest(device_t* dev, request_t* req);
+
+device_t vfs_devices =
+{
+	NULL,
+	devFsRequest,
+	NULL, NULL,
+	NULL
+};
+
+bool devFsRequest(device_t* dev, request_t* req)
+{
+	devfile_t* fd;
+	const wchar_t* name;
+
+	assert(dev == &vfs_devices);
+	switch (req->code)
+	{
+	case FS_OPEN:
+		assert(req->params.fs_open.name[0] == '/');
+
+		fd = hndAlloc(sizeof(devfile_t), NULL);
+		assert(fd != NULL);
+		fd->file.fsd = dev;
+		fd->file.pos = 0;
+
+		name = req->params.fs_open.name + 1;
+		wprintf(L"devFsRequest: FS_OPEN(%s)\n", name);
+		fd->dev = devOpen(name, NULL);
+		if (fd->dev == NULL)
+		{
+			req->params.fs_open.fd = NULL;
+			hndFree(fd);
+			return false;
+		}
+
+		req->params.fs_open.fd = &fd->file;
+		hndSignal(req->event, true);
+		return true;
+
+	case FS_READ:
+		fd = (devfile_t*) req->params.fs_read.fd;
+		assert(fd != NULL);
+
+		req->result = devReadSync(fd->dev, 
+			fd->file.pos,
+			(void*) req->params.fs_read.buffer,
+			&req->params.fs_read.length);
+		fd->file.pos += req->params.fs_read.length;
+		hndSignal(req->event, true);
+		return req->result == 0;
+
+	case FS_WRITE:
+		fd = (devfile_t*) req->params.fs_write.fd;
+		assert(fd != NULL);
+
+		req->result = devWriteSync(fd->dev, 
+			fd->file.pos,
+			(const void*) req->params.fs_write.buffer,
+			&req->params.fs_write.length);
+		fd->file.pos += req->params.fs_write.length;
+		hndSignal(req->event, true);
+		return req->result == 0;
+	}
+
+	req->result = ENOTIMPL;
+	return false;
+}
 
 void devPrintConfigLine(hashelem_t* elem)
 {
@@ -464,10 +541,7 @@ void devFinishRequest(device_t* dev, request_t* req)
 	req->queued--;
 }
 
-status_t devReadSync(device_t* dev,		// in
-					 qword pos,			// in
-					 void* buffer,		// out
-					 size_t* length)
+status_t devReadSync(device_t* dev, qword pos, void* buffer, size_t* length)
 {
 	request_t req;
 	req.code = DEV_READ;
@@ -478,6 +552,23 @@ status_t devReadSync(device_t* dev,		// in
 	if (devRequestSync(dev, &req) == 0)
 	{
 		*length = req.params.read.length;
+		return 0;
+	}
+	else
+		return req.result;
+}
+
+status_t devWriteSync(device_t* dev, qword pos, const void* buffer, size_t* length)
+{
+	request_t req;
+	req.code = DEV_WRITE;
+	req.params.write.buffer = buffer;
+	req.params.write.length = *length;
+	req.params.write.pos = pos;
+
+	if (devRequestSync(dev, &req) == 0)
+	{
+		*length = req.params.write.length;
 		return 0;
 	}
 	else

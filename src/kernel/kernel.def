@@ -20,6 +20,7 @@ EXPORTS
 	devRequest
 	devRequestSync
 	devStartRequest
+	devWriteSync
 	dowprintf
 	dump_context
 	free
