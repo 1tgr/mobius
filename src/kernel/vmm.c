@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.10 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.11 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -21,44 +21,97 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
              uint32_t flags)
 {
     vm_area_t *area, *collide;
-    process_t *proc = current->process;
+    bool is_kernel;
+    process_t *proc;
 
+    is_kernel = ((flags & 3) == 0) || 
+        (type == VM_AREA_IMAGE && start >= 0x80000000);
+    proc = current->process;
     area = malloc(sizeof(vm_area_t));
     if (!area)
         return NULL;
 
     collide = NULL;
+    start = PAGE_ALIGN(start);
     if (start == NULL && (flags & MEM_LITERAL) == 0)
     {
-        start = proc->vmm_end;
+        for (collide = proc->area_first; collide != NULL; collide = collide->next)
+            if (collide->type == VM_AREA_EMPTY &&
+                collide->num_pages >= pages &&
+                (( is_kernel && collide->start >= 0x80000000) ||
+                 (!is_kernel && collide->start <  0x80000000)))
+                break;
+
+        if (collide == NULL)
+        {
+            wprintf(L"VmmMap(%u, %x): out of address space\n", 
+                pages * PAGE_SIZE, start);
+            free(area);
+            errno = ENOMEM;
+            __asm__("int3");
+            return NULL;
+        }
+
+        start = collide->start;
+        collide->start += pages * PAGE_SIZE;
+        collide->num_pages -= pages;
+    }
+    else
+    {
+        /*wprintf(L"VmmMap(%u, %x): area_first = %p, size = %u, start = %x\n",
+            pages * PAGE_SIZE,
+            start,
+            proc->area_first,
+            proc->area_first->num_pages * PAGE_SIZE,
+            proc->area_first->start);*/
 
         collide = VmmArea(proc, (void*) start);
-        assert(collide == NULL);
-
-        while ((collide = VmmArea(proc, (void*) start)))
+        assert(collide != NULL);
+        if (collide->type != VM_AREA_EMPTY)
         {
-            wprintf(L"vmmAlloc: new block at %08x(%x) collides with block at %08x(%x)\n", 
-                start, pages * PAGE_SIZE, 
-                collide->start, collide->pages->num_pages * PAGE_SIZE);
-            start = collide->start + collide->pages->num_pages * PAGE_SIZE;
+            wprintf(L"VmmMap(%u, %x): collided with page at %x\n", 
+                pages * PAGE_SIZE, start, collide->start);
+            free(area);
+            errno = EACCESS;
+            return NULL;
+        }
+
+        if (collide->start == start)
+        {
+            collide->start += pages * PAGE_SIZE;
+            collide->num_pages -= pages;
+        }
+        else if (collide->start + collide->num_pages * PAGE_SIZE 
+            == start + pages * PAGE_SIZE)
+            collide->num_pages -= pages;
+        else
+        {
+            vm_area_t *collide2;
+
+            assert(collide->start + collide->num_pages * PAGE_SIZE >
+                (start + pages * PAGE_SIZE));
+
+            collide2 = malloc(sizeof(vm_area_t));
+            memset(collide2, 0, sizeof(vm_area_t));
+            collide2->start = start + pages * PAGE_SIZE;
+            collide2->num_pages = 
+                (collide->start + collide->num_pages * PAGE_SIZE -
+                (start + pages * PAGE_SIZE)) / PAGE_SIZE;
+            collide2->type = VM_AREA_EMPTY;
+            collide->num_pages = (start - collide->start) / PAGE_SIZE;
+
+            SemAcquire(&proc->sem_vmm);
+            LIST_ADD(proc->area, collide2);
+            SemRelease(&proc->sem_vmm);
         }
     }
-    else if ((collide = VmmArea(proc, (void*) start)))
-    {
-        wprintf(L"vmmAlloc: block at %08x collides with block at %08x\n", 
-            start, collide->start);
-        return NULL;
-    }
 
-    if (collide)
-        wprintf(L"VmmMap: moved block to %08x\n", start);
-
-    /*wprintf(L"VmmMap: allocating %d page(s) at %x\n", pages, start);*/
     area->start = start;
     area->owner = proc;
     area->pages = MemCopyPageArray(pages, 0, NULL);
     area->name = NULL;
     area->shared_prev = area->shared_next = NULL;
+    area->num_pages = pages;
 
     if (area->pages == NULL)
     {
@@ -89,25 +142,8 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
     }
 
     SemAcquire(&proc->sem_vmm);
-    /*if (proc->last_vm_area)
-    proc->last_vm_area->next = area;
-    if (!proc->first_vm_area)
-    proc->first_vm_area = area;
-
-    proc->last_vm_area = area;*/
     LIST_ADD(proc->area, area);
-
-    /*oldEnd = proc->vmm_end;*/
-    while ((collide = VmmArea(proc, (void*) proc->vmm_end)))
-        proc->vmm_end = collide->start + collide->pages->num_pages * PAGE_SIZE;
-
-        /*if (oldEnd != proc->vmm_end)
-    wprintf(L"vmmAlloc: Vmm_end adjusted from %08x to %08x\n", oldEnd, proc->vmm_end);*/
-
     SemRelease(&proc->sem_vmm);
-
-    /*if (flags & MEM_COMMIT)
-    VmmCommit(area, NULL, (size_t) -1, (flags & MEM_WRITE) == MEM_WRITE);*/
 
     return (void*) start;
 }
@@ -164,7 +200,7 @@ vm_area_t *new_area, *collide;
       }
 */
 
-void* VmmMapFile(addr_t start, size_t pages, handle_t file, uint32_t flags)
+void *VmmMapFile(handle_t file, addr_t start, size_t pages, uint32_t flags)
 {
     flags &= ~(MEM_COMMIT | MEM_ZERO);
     return VmmMap(pages, start, (void*) file, VM_AREA_FILE, flags);
@@ -241,19 +277,25 @@ void VmmFree(vm_area_t* area)
         VmmUncommit(area);
 
     SemAcquire(&area->owner->sem_vmm);
-    if (area->prev)
+    /*if (area->prev)
         area->prev->next = area->next;
     if (area->next)
         area->next->prev = area->prev;
     if (area->owner->area_first == area)
         area->owner->area_first = NULL;
     if (area->owner->area_last == area)
-        area->owner->area_last = NULL;
-    SemRelease(&area->owner->sem_vmm);
+        area->owner->area_last = NULL;*/
 
     MemDeletePageArray(area->pages);
+    area->pages = NULL;
     free(area->name);
-    free(area);
+    area->name = NULL;
+
+    area->type = VM_AREA_EMPTY;
+
+    SemRelease(&area->owner->sem_vmm);
+
+    /*free(area);*/
     /*wprintf(L"done\n");*/
 }
 
@@ -313,8 +355,8 @@ tryagain:
         MemLockPages(phys, 1, true);
         area->pages->pages[voff / PAGE_SIZE] = phys;
 
-        area->flags = (area->flags & ~(MEM_READ | MEM_WRITE | MEM_ZERO)) 
-            | (flags & (MEM_READ | MEM_WRITE | MEM_ZERO));
+        area->flags = (area->flags & ~(3 | MEM_READ | MEM_WRITE | MEM_ZERO)) 
+            | (flags & (3 | MEM_READ | MEM_WRITE | MEM_ZERO));
 
         if (off == (uint64_t) -1 ||
             bytes == (size_t) -1)
@@ -615,6 +657,11 @@ bool VmmPageFault(vm_area_t *area, addr_t page, bool is_writing)
     case VM_AREA_FILE:
     case VM_AREA_IMAGE:
         return VmmDoMapFile(area, page, is_writing);
+
+    case VM_AREA_EMPTY:
+        wprintf(L"VmmPageFault(%x): %s of empty area at %x\n",
+            page, is_writing ? L"write" : L"read", area->start);
+        break;
     }
 
     return false;
@@ -640,10 +687,11 @@ void VmmUncommit(vm_area_t* area)
     virt = area->start;
     for (i = 0; i < area->pages->num_pages; i++)
     {
-        if ((area->flags & MEM_LITERAL) == 0)
+        phys = area->pages->pages[i];
+        if (phys)
         {
-            phys = MemTranslate((const void*) virt) & -PAGE_SIZE;
-            if (phys)
+            MemLockPages(phys, 1, false);
+            if (!MemIsPageLocked(phys))
                 MemFree(phys);
         }
 
@@ -686,11 +734,17 @@ addr_t virt;
 vm_area_t* VmmArea(process_t* proc, const void* ptr)
 {
     vm_area_t* area;
+    addr_t p;
 
+    p = PAGE_ALIGN((addr_t) ptr) / PAGE_SIZE;
     FOREACH (area, proc->area)
-        if ((addr_t) ptr >= area->start && 
-            (addr_t) ptr < area->start + area->pages->num_pages * PAGE_SIZE)
-            return area;
+        if (p >= area->start / PAGE_SIZE && 
+            /*
+             * xxx - byte-granular address arithmetic overflows with 32-bit 
+             *  pointers
+             */
+            p < area->start / PAGE_SIZE + area->num_pages)
+        return area;
 
     return NULL;
 }

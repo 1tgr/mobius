@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.9 2002/05/05 13:42:59 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.10 2002/05/19 13:04:36 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -101,10 +101,10 @@ void CcDeleteFileCache(cache_t *cc)
  */
 page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
 {
-    unsigned block, page_start, old, i, pages_per_block, mod;
+    unsigned block, page_start, old, i, pages_per_block;
 
     SemAcquire(&cc->lock);
-    mod = offset & ((1 << cc->block_shift) - 1);
+    //mod = offset & ((1 << cc->block_shift) - 1);
     offset = ALIGN(offset, cc->block_size);
     block = offset >> cc->block_shift;
     page_start = (block * cc->block_size) / PAGE_SIZE;
@@ -114,7 +114,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
         block, cc->num_blocks, mod,
         page_start, cc->num_pages,
         pages_per_block);*/
-    wprintf(L"CcRequestBlock(%u/%u): ", block, cc->num_blocks);
+    //wprintf(L"CcRequestBlock(%u/%u): ", block, cc->num_blocks);
     if (block >= cc->num_blocks)
     {
         old = cc->num_blocks;
@@ -122,7 +122,7 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
         cc->blocks = realloc(cc->blocks, sizeof(cache_block_t) * cc->num_blocks);
         assert(cc->blocks != NULL);
         for (i = old; i < cc->num_blocks; i++)
-            cc->blocks[block].is_valid = cc->blocks[block].is_dirty = false;
+            cc->blocks[i].is_valid = cc->blocks[i].is_dirty = false;
 
         old = cc->num_pages;
         cc->num_pages = PAGE_ALIGN_UP(cc->num_blocks * cc->block_size) / PAGE_SIZE;
@@ -140,13 +140,13 @@ page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
         if (cc->pages[i] == -1)
         {
             cc->pages[i] = MemAlloc();
-            wprintf(L"+");
+            //wprintf(L"+");
         }
 
-        wprintf(L"%x ", cc->pages[i]);
+        //wprintf(L"%x ", cc->pages[i]);
     }
 
-    wprintf(L"\n");
+    //wprintf(L"\n");
     /*assert(page_start + pages_per_block <= cc->num_pages);
     for (i = page_start; i < page_start + pages_per_block; i++)
     {

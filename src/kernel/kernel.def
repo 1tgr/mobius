@@ -45,6 +45,7 @@ EXPORTS
 	FsCreateFileHandle
 	FsCreateVirtualDir
 	FsFullPath
+	FsGuessMimeType
 	FsMount
 	FsNotifyCompletion
 	FsOpen
@@ -70,6 +71,7 @@ EXPORTS
 	IoCloseDevice
 	IoOpenDevice
 	IoNotifyCompletion
+	IoReadPhysicalSync
 	IoReadSync
 	IoRequest
 	IoRequestSync
@@ -171,17 +173,8 @@ EXPORTS
 	edata
 	end
 	exit
-	i386CreateV86Thread
-	i386DispatchSysCall
-	i386DoCall
-	i386IdentifyCpu
-	i386Isr
-	i386PicInit
-	i386PitInit
-	i386SetDescriptor
-	i386SetDescriptorInt
-	i386_lpeek32
-	i386_lpoke32
+	iswlower
+	iswupper
 	mbstowcs
 	memcpy
 	memmove
@@ -195,10 +188,11 @@ EXPORTS
 	strlen
 	strncmp
 	strncpy
-	strsave
 	swprintf
 	tolower
 	toupper
+	towlower
+	towupper
 	vsprintf
 	vswprintf
 	vwprintf

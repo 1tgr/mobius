@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.9 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.10 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -57,34 +57,54 @@ status_t RdLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **
 status_t RdGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
 {
     const char *ch;
-    dirent_standard_t* di;
+    dirent_all_t* di;
     size_t len;
     multiboot_module_t *mod;
+    wchar_t *name;
 
-    di = buf;
     mod = cookie;
+    di = buf;
+
+    ch = strrchr(PHYSICAL(mod->string), '/');
+    if (ch == NULL)
+        ch = PHYSICAL(mod->string);
+    else
+        ch++;
+
     switch (type)
     {
     case FILE_QUERY_NONE:
         return 0;
 
-    case FILE_QUERY_STANDARD:
-        ch = strrchr(PHYSICAL(mod->string), '/');
-        if (ch == NULL)
-            ch = PHYSICAL(mod->string);
-        else
-            ch++;
-
-        len = mbstowcs(di->di.name, ch, _countof(di->di.name));
+    case FILE_QUERY_DIRENT:
+        len = mbstowcs(di->dirent.name, ch, _countof(di->dirent.name));
         if (len == -1)
-            wcscpy(di->di.name, L"?");
+            wcscpy(di->dirent.name, L"?");
         else
-            di->di.name[len] = '\0';
+            di->dirent.name[len] = '\0';
 
-        di->di.vnode = mod 
+        di->dirent.vnode = mod 
             - (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
-        di->length = mod->mod_end - mod->mod_start;
-        di->attributes = FILE_ATTR_READ_ONLY;
+        return 0;
+
+    case FILE_QUERY_STANDARD:
+        len = strlen(ch);
+        name = malloc(sizeof(wchar_t) * (len + 1));
+        if (name == NULL)
+            return errno;
+
+        len = mbstowcs(name, ch, len);
+        if (len == -1)
+            wcscpy(name, L"?");
+        else
+            name[len] = '\0';
+
+        di->standard.length = mod->mod_end - mod->mod_start;
+        di->standard.attributes = FILE_ATTR_READ_ONLY;
+        FsGuessMimeType(wcsrchr(name, '.'), 
+            di->standard.mimetype, 
+            _countof(di->standard.mimetype) - 1);
+        free(name);
         return 0;
     }
 
@@ -164,192 +184,6 @@ void RdFreeDirCookie(fsd_t *fsd, void *dir_cookie)
 {
     free(dir_cookie);
 }
-
-#if 0
-bool RdFsRequest(device_t* dev, request_t* req)
-{
-    request_fs_t *req_fs = (request_fs_t*) req;
-
-    ramfd_t *fd;
-    uint8_t *ptr;
-    size_t len;
-    dirent_t *buf;
-    multiboot_module_t *mods, *mod;
-    char *ch;
-
-    mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
-    switch (req->code)
-    {
-    case FS_OPEN:
-        if (req_fs->params.fs_open.flags & FILE_WRITE)
-        {
-            req->result = EACCESS;
-            return false;
-        }
-
-        mod = RdLookupFile(req_fs->params.fs_open.name);
-        if (mod == NULL)
-        {
-            req_fs->header.result = ENOTFOUND;
-            req_fs->params.fs_open.file = NULL;
-            /*wprintf(L"%s: not found on ram disk\n", 
-                req_fs->params.fs_open.name);*/
-            return false;
-        }
-
-        req_fs->params.fs_open.file = HndAlloc(NULL, sizeof(ramfd_t), 'file');
-        fd = HndLock(NULL, req_fs->params.fs_open.file, 'file');
-        assert(fd != NULL);
-        fd->file.fsd = dev;
-        fd->file.pos = 0;
-        fd->file.flags = req_fs->params.fs_open.flags;
-        fd->mod = mod;
-        HndUnlock(NULL, req_fs->params.fs_open.file, 'file');
-        
-        /*wprintf(L"RdFsRequest: FS_OPEN(%s), file = %p = %x, %d bytes\n", 
-            name, 
-            file, 
-            *(uint32_t*) ((uint8_t*) ramdisk_header + fd->ram->offset),
-            fd->ram->length);*/
-        return true;
-
-    case FS_OPENSEARCH:
-        assert(req_fs->params.fs_opensearch.name[0] == '/');
-        req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(ramfd_t), 'file');
-        fd = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
-        if (fd == NULL)
-        {
-            req->result = errno;
-            return false;
-        }
-
-        fd->file.fsd = dev;
-        fd->file.pos = 0;
-        fd->file.flags = FILE_READ;
-        fd->mod = NULL;
-        HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
-        return true;
-
-    case FS_QUERYFILE:
-        mod = RdLookupFile(req_fs->params.fs_queryfile.name);
-        if (mod == NULL)
-        {
-            req->result = ENOTFOUND;
-            return false;
-        }
-
-        buf = req_fs->params.fs_queryfile.buffer;
-        switch (req_fs->params.fs_queryfile.query_class)
-        {
-        case FILE_QUERY_NONE:
-            break;
-
-        case FILE_QUERY_STANDARD:
-            ch = strrchr(PHYSICAL(mod->string), '/');
-            if (ch == NULL)
-                ch = PHYSICAL(mod->string);
-            else
-                ch++;
-
-            len = mbstowcs(buf->name, ch, _countof(buf->name));
-            if (len == -1)
-                wcscpy(buf->name, L"?");
-            else
-                buf->name[len] = '\0';
-
-            buf->length = mod->mod_end - mod->mod_start;
-            buf->standard_attributes = FILE_ATTR_READ_ONLY;
-            break;
-        }
-
-        return true;
-
-    case FS_CLOSE:
-        HndClose(NULL, req_fs->params.fs_close.file, 'file');
-        return true;
-
-    case FS_READ:
-        fd = HndLock(NULL, req_fs->params.fs_read.file, 'file');
-        assert(fd != NULL);
-
-        if (fd->mod != NULL)
-        {
-            /* Normal file */
-            if (fd->file.pos + req_fs->params.fs_read.length >= 
-                fd->mod->mod_end - fd->mod->mod_start)
-                req_fs->params.fs_read.length = 
-                    fd->mod->mod_end - fd->mod->mod_start - fd->file.pos;
-
-            ptr = (uint8_t*) PHYSICAL(fd->mod->mod_start) + (uint32_t) fd->file.pos;
-            /*wprintf(L"RdFsRequest: read %x (%S) at %x => %x = %08x\n",
-                fd->mod->mod_start,
-                PHYSICAL(fd->mod->string),
-                (uint32_t) fd->file.pos, 
-                (addr_t) ptr,
-                *(uint32_t*) ptr);*/
-
-            memcpy(MemMapPageArray(req_fs->params.fs_read.pages, 
-                    PRIV_PRES | PRIV_KERN | PRIV_WR), 
-                ptr,
-                req_fs->params.fs_read.length);
-            MemUnmapTemp();
-            fd->file.pos += req_fs->params.fs_read.length;
-        }
-        else
-        {
-            /* Search */
-            if (fd->file.pos >= kernel_startup.multiboot_info->mods_count)
-            {
-                req->result = EEOF;
-                HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-                return false;
-            }
-            
-            mod = mods + fd->file.pos;
-            len = req_fs->params.fs_read.length;
-
-            req_fs->params.fs_read.length = 0;
-            buf = MemMapPageArray(req_fs->params.fs_read.pages, 
-                PRIV_PRES | PRIV_KERN | PRIV_WR);
-            while (req_fs->params.fs_read.length < len)
-            {
-                size_t temp;
-
-                ch = strrchr(PHYSICAL(mod->string), '/');
-                if (ch == NULL)
-                    ch = PHYSICAL(mod->string);
-                else
-                    ch++;
-
-                temp = mbstowcs(buf->name, ch, _countof(buf->name));
-                if (temp == -1)
-                    wcscpy(buf->name, L"?");
-                else
-                    buf->name[temp] = '\0';
-
-                buf->length = mod->mod_end - mod->mod_start;
-                buf->standard_attributes = FILE_ATTR_READ_ONLY;
-
-                buf++;
-                mod++;
-                req_fs->params.fs_read.length += sizeof(dirent_t);
-
-                fd->file.pos++;
-                if (fd->file.pos >= kernel_startup.multiboot_info->mods_count)
-                    break;
-            }
-
-            MemUnmapTemp();
-        }
-
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-        return true;
-    }
-
-    req->result = ENOTIMPL;
-    return false;
-}
-#endif
 
 /*!    \brief Initializes the ramdisk during kernel startup.
  *

@@ -1,5 +1,6 @@
 TARGET=	libi386.lib
-OBJS=	isr.o i386.o memory.o arch.o scdsptch.o gdb-stub.o gdb.o
+OBJS=	isr.o i386.o memory.o arch.o \
+	scdsptch.o gdb-stub.o gdb.o poweroff.o
 DEFINES=-Di386 -DKERNEL
 
 include ../../make.conf

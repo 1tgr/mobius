@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.24 2002/04/20 12:30:04 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.25 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -189,8 +189,8 @@ uint32_t i386Isr(context_t ctx)
             uint32_t dr6;
             __asm__("mov %%dr6, %0" : "=r" (dr6));
             if (dr6 & DR6_BS)
-                i386TrapToDebugger(&ctx);
-                /*wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);*/
+                /*i386TrapToDebugger(&ctx);*/
+                wprintf(L"debug: %lx:%08lx\n", ctx.cs, ctx.eip);
             handled = true;
         }
         else if (ctx.intr == 13 &&

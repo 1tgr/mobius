@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.16 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.17 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -32,28 +32,29 @@ thread_queue_t thr_apc;
 
 thread_t thr_idle =
 {
-    NULL,                         /* ctx_last */
+    NULL,                           /* ctx_last */
     {
         0,                          /* hdr.locks */
-        'thrd',                    /* hdr.tag */
-        NULL,                         /* hdr.locked_by */
+        'thrd',                     /* hdr.tag */
+        NULL,                       /* hdr.locked_by */
         0,                          /* hdr.signal */
         {
-            NULL,                 /* hdr.waiting.first */
-            NULL,                 /* hdr.waiting.last */
-            NULL,                 /* hdr.current */
+            NULL,                   /* hdr.waiting.first */
+            NULL,                   /* hdr.waiting.last */
+            NULL,                   /* hdr.current */
         },
-        __FILE__,                 /* hdr.file */
-        __LINE__,                 /* hdr.line */
+        __FILE__,                   /* hdr.file */
+        __LINE__,                   /* hdr.line */
         0,
     },
-    NULL,                         /* prev */
-    NULL,                         /* next */
-    NULL,                         /* kernel_stack */
-    0,                                  /* kernel_stack_phys */
-    &idle_thread_info,                  /* info */
-    0xdeadbeef,                    /* kernel_esp */
-    &proc_idle
+    NULL,                           /* prev */
+    NULL,                           /* next */
+    NULL,                           /* kernel_stack */
+    0,                              /* kernel_stack_phys */
+    &idle_thread_info,              /* info */
+    0xdeadbeef,                     /* kernel_esp */
+    &proc_idle,
+    true,
 };
 
 thread_t *current = &thr_idle, 
@@ -297,9 +298,13 @@ bool ThrAllocateThreadInfo(thread_t *thr)
 {
     assert(thr->process == current->process);
 
-    thr->info = VmmAlloc(PAGE_ALIGN_UP(sizeof(thread_info_t)) / PAGE_SIZE,
-        NULL,
-        3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
+    if (thr->is_kernel)
+        thr->info = malloc(sizeof(thread_info_t));
+    else
+        thr->info = VmmAlloc(PAGE_ALIGN_UP(sizeof(thread_info_t)) / PAGE_SIZE,
+            NULL,
+            3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
+
     TRACE1("ThrAllocateThreadInfo: %p\n", thr->info);
     if (thr->info == NULL)
         return false;
@@ -421,6 +426,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     thr->priority = priority;
     thr->id = ++thr_last_id;
     thr->param = param;
+    thr->is_kernel = isKernel;
 
     TRACE3("thread %u: kernel stack at %p = %x\n",
         thr->id, thr->kernel_stack, thr->kernel_stack_phys);

@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.24 2002/05/05 13:42:59 pavlovskii Exp $ */
+/* $Id: device.c,v 1.25 2002/05/19 13:04:36 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -56,7 +56,7 @@ status_t DfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
 status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
 {
     device_info_t *info;
-    dirent_standard_t *di;
+    dirent_all_t *di;
 
     info = cookie;
     di = buf;
@@ -65,10 +65,15 @@ status_t DfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
     case FILE_QUERY_NONE:
         return 0;
 
+    case FILE_QUERY_DIRENT:
+        wcsncpy(di->dirent.name, info->name, _countof(di->dirent.name) - 1);
+        di->dirent.vnode = 0;
+	return 0;
+
     case FILE_QUERY_STANDARD:
-        wcsncpy(di->di.name, info->name, _countof(di->di.name) - 1);
-	di->length = 0;
-	di->attributes = FILE_ATTR_DEVICE;
+        di->standard.length = 0;
+	di->standard.attributes = FILE_ATTR_DEVICE;
+        wcscpy(di->standard.mimetype, L"");
         return 0;
     }
 
@@ -635,7 +640,8 @@ driver_t *DevInstallNewDriver(const wchar_t *name)
 	driver_t *drv;
 	bool (*DrvInit)(driver_t *drv);
 
-	swprintf(temp, SYS_BOOT L"/%s.drv", name);
+	/*swprintf(temp, SYS_BOOT L"/%s.drv", name);*/
+        swprintf(temp, L"%s.drv", name);
 	/*wprintf(L"DevInstallNewDriver: loading %s\n", temp);*/
 
 	mod = PeLoad(&proc_idle, temp, 0);
@@ -738,21 +744,27 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 	return dev;
 
     drv = DevInstallNewDriver(driver);
-    if (drv != NULL &&
-	drv->add_device != NULL)
+    if (drv != NULL)
     {
-	dev = drv->add_device(drv, name, cfg);
-	if (dev != NULL)
-	{
-	    assert(dev->vtbl != NULL);
-	    DevAddDevice(dev, name, cfg);
-	}
-        else
-            wprintf(L"%s.%s: failed to initialise\n", driver, name);
+        if (drv->add_device != NULL)
+        {
+	    dev = drv->add_device(drv, name, cfg);
+	    if (dev != NULL)
+	    {
+	        assert(dev->vtbl != NULL);
+	        DevAddDevice(dev, name, cfg);
+	    }
+            else
+                wprintf(L"%s.%s: failed to initialise\n", driver, name);
+        }
+
 	return dev;
     }
     else
+    {
+        wprintf(L"%s.%s: driver not loaded\n", driver, name);
 	return NULL;
+    }
 }
 
 /*!

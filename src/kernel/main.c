@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.18 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: main.c,v 1.19 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -29,59 +29,49 @@ void SemInit(semaphore_t *sem)
     sem->owner = NULL;
 }
 
-/*static bool KernelEnumDevices(void *param, const wchar_t *name, const wchar_t *value)
+void TextUpdateProgress(int min, int progress, int max);
+extern unsigned sc_uptime;
+
+static void KernelCpuMeter(void)
 {
-    if (value != NULL)
-	DevInstallDevice(value, name, NULL);
-    return true;
+    unsigned up_last, up_cur, up_own;
+
+    up_last = sc_uptime;
+    for (;;)
+    {
+        up_cur = sc_uptime;
+        up_own = thr_idle.cputime;
+        thr_idle.cputime = 0;
+        TextUpdateProgress(0, up_cur - up_last - up_own, up_cur - up_last);
+        up_last = up_cur;
+
+        ThrSleep(current, 100);
+        KeYield();
+    }
 }
 
-static bool KernelEnumMounts(void *param, const wchar_t *name, const wchar_t *value)
+static void KeInstallDevices(void)
 {
-    wchar_t *dest, *type;
-
-    if (value != NULL)
-    {
-        dest = wcschr(value, ',');
-        if (dest == NULL)
-        {
-            wprintf(L"KernelEnumMounts: mounting %s as %s\n",
-                name, value);
-            type = (wchar_t*) value;
-        }
-        else
-        {
-            type = malloc(sizeof(wchar_t) * (dest - value));
-            wcsncpy(type, value, dest - value);
-            type[dest - value] = '\0';
-            dest++;
-
-            wprintf(L"KernelEnumMounts: mounting %s on %s as %s\n",
-                name, dest, type);
-        }
-
-        FsMount(name, type, dest);
-
-        if (dest != NULL)
-            free(type);
-    }
-
-    return true;
-}*/
-
-void KeInstallDevices(void)
-{
-    unsigned i, j;
+    unsigned i, j, count;
     wchar_t value[10], line[256], *tok, *comma;
     const wchar_t *ptr, *driver, *device_path, *dest;
     bool is_mount;
 
     wcscpy(value, L"0");
-    for (i = 0; 
-        (ptr = ProGetString(L"Devices", value, NULL)) != NULL; 
-        i++)
+    for (count = 0; (ptr = ProGetString(L"Devices", value, NULL)) != NULL; count++)
+        swprintf(value, L"%u", count + 1);
+
+    TextUpdateProgress(0, 0, count - 1);
+
+    wcscpy(value, L"0");
+    for (i = 0; i < count; i++)
     {
         memset(line, 0, sizeof(line));
+
+        ptr = ProGetString(L"Devices", value, NULL);
+        if (ptr == NULL)
+            break;
+
         wcsncpy(line, ptr, _countof(line) - 1);
 
         j = 0;
@@ -149,8 +139,18 @@ void KeInstallDevices(void)
             DevInstallDevice(driver, device_path, NULL);
         }
 
+        TextUpdateProgress(0, i, count - 1);
         swprintf(value, L"%u", i + 1);
     }
+
+    wcscpy(proc_idle.info->cwd, L"/");
+    ProcSpawnProcess(ProGetString(L"", L"Shell", SYS_BOOT L"/shell.exe"), 
+        proc_idle.info);
+
+    TextUpdateProgress(0, 0, 0);
+    ThrCreateThread(&proc_idle, true, KernelCpuMeter, false, NULL, 20);
+    ThrExitThread(0);
+    KeYield();
 }
 
 void KernelMain(void)
@@ -168,14 +168,9 @@ void KernelMain(void)
     ProLoadProfile(L"/System/Boot/system.pro", L"/");
     i386InitSerialDebug();
 
-    KeInstallDevices();
-
-    wcscpy(proc_idle.info->cwd, L"/hd/boot");
-    ProcSpawnProcess(ProGetString(L"", L"Shell", SYS_BOOT L"/shell.exe"), 
-        proc_idle.info);
     ScEnableSwitch(true);
-
-    wprintf(L"Idle\n");
+    ThrCreateThread(&proc_idle, true, KeInstallDevices, false, NULL, 16);
+    TRACE0("Idle\n");
 
     for (;;)
 	ArchProcessorIdle();

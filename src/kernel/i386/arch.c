@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.17 2002/04/20 12:30:04 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.18 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -27,68 +27,6 @@ struct tss0_t arch_df_tss;
 
 void i386PitInit(unsigned hz);
 void i386PicInit(uint8_t master_vector, uint8_t slave_vector);
-
-#if 0
-
-/*!    \brief Adjusts the value of a pointer so that it can be used before the 
- *    initial kernel GDT is set up.
- */
-#define MANGLE_PTR(type, ptr)    ((type) ((char*) ptr - scode))
-
-void ArchStartup(kernel_startup_t* s)
-{
-    descriptor_t *gdt = MANGLE_PTR(descriptor_t*, arch_gdt);
-    gdtr_t *gdtr = MANGLE_PTR(gdtr_t*, &arch_gdtr);
-    kernel_startup_t *startup = MANGLE_PTR(kernel_startup_t*, &kernel_startup);
-
-    i386SetDescriptor(gdt + 0, 0, 0, 0, 0);
-    /* Based kernel code = 0x8 */
-    i386SetDescriptor(gdt + 1, startup->kernel_phys - (addr_t) scode, 
-        0xfffff, ACS_CODE | ACS_DPL_0, ATTR_GRANULARITY | ATTR_DEFAULT);
-    /* Based kernel data/stack = 0x10 */
-    i386SetDescriptor(gdt + 2, startup->kernel_phys - (addr_t) scode, 
-        0xfffff, ACS_DATA | ACS_DPL_0, ATTR_GRANULARITY | ATTR_BIG);
-    /* Flat kernel code = 0x18 */
-    i386SetDescriptor(gdt + 3, 0, 
-        0xfffff, ACS_CODE | ACS_DPL_0, ATTR_DEFAULT | ATTR_GRANULARITY);
-    /* Flat kernel data = 0x20 */
-    i386SetDescriptor(gdt + 4, 0, 
-        0xfffff, ACS_DATA | ACS_DPL_0, ATTR_BIG | ATTR_GRANULARITY);
-    /* Flat user code = 0x28 */
-    i386SetDescriptor(gdt + 5, 0, 
-        0xfffff, ACS_CODE | ACS_DPL_3, ATTR_GRANULARITY | ATTR_DEFAULT);
-    /* Flat user data = 0x30 */
-    i386SetDescriptor(gdt + 6, 0, 
-        0xfffff, ACS_DATA | ACS_DPL_3, ATTR_GRANULARITY | ATTR_BIG);
-    /* TSS = 0x38 */
-    i386SetDescriptor(gdt + 7, 0, 0, 0, 0);
-    /* Thread info struct = 0x40 */
-    i386SetDescriptor(gdt + 8, (addr_t) &idle_thread_info, 
-        sizeof(idle_thread_info) - 1, ACS_DATA | ACS_DPL_3, ATTR_BIG);
-    /* Double fault TSS = 0x48 */
-    i386SetDescriptor(gdt + 9, 
-        (addr_t) &arch_df_tss, 
-        sizeof(arch_df_tss) - 1, 
-        ACS_TSS, 
-        ATTR_BIG);
-    
-    gdtr->base = (addr_t) gdt + startup->kernel_phys;
-    gdtr->limit = sizeof(arch_gdt) - 1;
-    __asm__("lgdt (%0)" : : "r" (gdtr));
-
-    __asm__("mov %0,%%ds\n"
-        "mov %0,%%ss\n" : : "r" (KERNEL_BASED_DATA));
-
-    __asm__("mov %0,%%es\n"
-        "mov %0,%%gs\n"
-        "mov %0,%%fs" : : "r" (KERNEL_FLAT_DATA));
-    __asm__("add $_scode, %%esp" : : : "esp");
-    
-    __asm__("ljmp %0,$_KernelMain"
-        :
-        : "i" (KERNEL_BASED_CODE));
-}
-#endif
 
 void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
 {
@@ -153,16 +91,10 @@ void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
 
 static void i386CpuId(uint32_t level, cpuid_info *cpuid)
 {
-    __asm__(/*"mov %0, %%eax\n"*/
-        "cpuid\n"
-        /*"mov %%eax, %1\n"
-        "mov %%ebx, %2\n"
-        "mov %%edx, %3\n"
-        "mov %%ecx, %4"*/
+    __asm__("cpuid\n"
         : "=a" (cpuid->regs.eax), "=b" (cpuid->regs.ebx),
             "=d" (cpuid->regs.edx), "=c" (cpuid->regs.ecx)
-        : "a" (level)
-        /*: "eax", "ebx", "edx", "ecx"*/);
+        : "a" (level));
 }
 
 /*!
@@ -291,7 +223,7 @@ void ArchSetupContext(thread_t *thr, addr_t entry, bool isKernel,
     
     thr->kernel_esp = 
         (addr_t) thr->kernel_stack + PAGE_SIZE * 2 - sizeof(context_t);
-    thr->user_stack_top = stack - 4;
+    thr->user_stack_top = stack;
 
     ctx = ThrGetContext(thr);
     ctx->kernel_esp = thr->kernel_esp;
@@ -442,15 +374,13 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
             : "r" (thr->process->page_dir_phys));
     
     new = ThrGetContext(thr);
-    
+
     if (new->eflags & EFLAG_VM)
         arch_tss.esp0 = (uint32_t) ((context_v86_t*) new + 1);
     else
         arch_tss.esp0 = (uint32_t) (new + 1);
-    
+
     new->kernel_esp = thr->kernel_esp;
-    /*wprintf(L"(%u) %02lx:%08lx %08lx\r", 
-        current->id, new->cs, new->eip, current->kernel_esp);*/
 
     i386SetDescriptor(arch_gdt + 8, 
         (uint32_t) thr->info, 
@@ -458,7 +388,6 @@ bool ArchAttachToThread(thread_t *thr, bool isNewAddressSpace)
         ACS_DATA | ACS_DPL_3, 
         0);
 
-    /*DevRunHandlers();*/
     if (thr->apc_first)
     {
         for (a = thr->apc_first; a; a = next)
@@ -493,6 +422,45 @@ void ArchReboot(void)
     out(0x64, 0xFE);
 
     ArchProcessorIdle();
+}
+
+extern uint8_t i386PowerOff[], i386PowerOffEnd[];
+
+static void ArchPowerOffThread(void)
+{
+    uint16_t *code, *stack, *stack_top;
+    FARPTR fpcode, fpstack_top;
+    handle_t thr;
+    
+    code = VmmAlloc(1, NULL, 3 | MEM_READ | MEM_WRITE);
+    stack = VmmAlloc(1, NULL, 3 | MEM_READ | MEM_WRITE);
+    stack_top = stack + 0x800;
+    memcpy(code, i386PowerOff, i386PowerOffEnd - i386PowerOff);
+    fpcode = MK_FP((uint16_t) ((addr_t) code >> 4), 0);
+    fpstack_top = MK_FP((uint16_t) ((addr_t) stack >> 4), 0x1000);
+    wprintf(L"ArchPowerOffThread: code = %p (%04x:%04x), stack = %p (%04x:%04x)\n",
+        code, FP_SEG(fpcode), FP_OFF(fpcode),
+        stack_top, FP_SEG(fpstack_top), FP_OFF(fpstack_top));
+    thr = ThrCreateV86Thread(fpcode,
+        fpstack_top,
+        16,
+        NULL);
+    ThrWaitHandle(current, thr, 0);
+    KeYield();
+    ThrExitThread(0);
+    KeYield();
+}
+
+void ArchPowerOff(void)
+{
+    thread_t *thr;
+    handle_t hnd;
+    thr = ThrCreateThread(&proc_idle, true, ArchPowerOffThread, false, NULL, 16);
+    hnd = HndDuplicate(current->process, &thr->hdr);
+    ThrWaitHandle(current, hnd, 0);
+    KeYield();
+    /* xxx -- usual HndClose problem with exited threads */
+    /*HndClose(current->process, hnd, 0);*/
 }
 
 static unsigned short ctc(void)

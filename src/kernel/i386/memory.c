@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.14 2002/05/05 13:43:25 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.15 2002/05/19 13:05:00 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -385,6 +385,11 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
     }
 
     return true;
+}
+
+bool MemIsPageLocked(addr_t phys)
+{
+    return locked_pages[PAGE_ALIGN_UP(phys) / PAGE_SIZE] > 0;
 }
 
 page_array_t *MemCopyPageArray(unsigned num_pages, size_t mod_first_page, 

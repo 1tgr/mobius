@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.6 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.7 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include <kernel/profile.h>
@@ -19,7 +19,9 @@ void i386InitSerialDebug(void)
 {
     uint16_t divisor;
     unsigned speed;
-    dbg_combase = wcstol(ProGetString(L"KernelDebug", L"Port", L"0"), NULL, 0);
+    const wchar_t *port;
+    port = ProGetString(L"KernelDebug", L"Port", L"0");
+    dbg_combase = wcstol(port, NULL, 0);
     dbg_hasgdb = ProGetBoolean(L"KernelDebug", L"SyncGdb", false);
     if (dbg_combase != 0)
     {

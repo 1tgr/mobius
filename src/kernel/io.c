@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.9 2002/05/05 13:42:59 pavlovskii Exp $ */
+/* $Id: io.c,v 1.10 2002/05/19 13:04:36 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -20,9 +20,11 @@
 
 void IoNotifyCompletion(request_t *req)
 {
+    io_callback_t cb;
     /*request_t temp;*/
 
-    switch (req->callback.type)
+    cb = req->callback;
+    switch (cb.type)
     {
     case IO_CALLBACK_NONE:
         break;
@@ -30,27 +32,27 @@ void IoNotifyCompletion(request_t *req)
     case IO_CALLBACK_DEVICE:
         assert(req->callback.u.dev != (void*) 0x31337);
         assert(req->callback.u.dev->vtbl->finishio != NULL);
-        req->callback.u.dev->vtbl->finishio(req->callback.u.dev, 
-            (req->original == NULL) ? req : req->original);
         req->callback.u.dev = (void*) 0x31337;
         req->callback.type = IO_CALLBACK_NONE;
+        cb.u.dev->vtbl->finishio(cb.u.dev, 
+            (req->original == NULL) ? req : req->original);
         break;
 
     case IO_CALLBACK_FSD:
         assert(req->callback.u.fsd != (void*) 0xdeadbeef);
         assert(req->callback.u.fsd->vtbl->finishio != NULL);
-        req->callback.u.fsd->vtbl->finishio(req->callback.u.fsd, 
-            (req->original == NULL) ? req : req->original);
         req->callback.u.fsd = (void*) 0xdeadbeef;
         req->callback.type = IO_CALLBACK_NONE;
+        cb.u.fsd->vtbl->finishio(cb.u.fsd, 
+            (req->original == NULL) ? req : req->original);
         break;
 
     case IO_CALLBACK_FUNCTION:
         assert(req->callback.u.function != (void*) 0xcafebabe);
         assert(req->callback.u.function != NULL);
-        req->callback.u.function((req->original == NULL) ? req : req->original);
         req->callback.u.function = (void*) 0xcafebabe;
         req->callback.type = IO_CALLBACK_NONE;
+        cb.u.function((req->original == NULL) ? req : req->original);
         break;
     }
 }
@@ -162,7 +164,8 @@ bool IoRequestSync(device_t *dev, request_t *req)
                 {
                     TRACE0("IoRequestSync: busy-waiting\n");
                     while (!sync.is_completed)
-                        ArchProcessorIdle();
+                        /*ArchProcessorIdle();*/
+                        KeYield();
                 }
 #if 0
                 else
@@ -195,15 +198,10 @@ bool IoRequestSync(device_t *dev, request_t *req)
         return false;
 }
 
-size_t IoReadSync(device_t *dev, uint64_t ofs, void *buf, size_t size)
+size_t IoReadPhysicalSync(device_t *dev, uint64_t ofs, page_array_t *array, size_t size)
 {
     request_dev_t req;
-    page_array_t *array;
     size_t ret;
-
-    array = MemCreatePageArray(buf, size);
-    if (array == NULL)
-        return (size_t) -1;
 
     req.header.code = DEV_READ;
     req.params.dev_read.offset = ofs;
@@ -215,6 +213,20 @@ size_t IoReadSync(device_t *dev, uint64_t ofs, void *buf, size_t size)
         ret = req.params.dev_read.length;
     else
         ret = (size_t) -1;
+
+    return ret;
+}
+
+size_t IoReadSync(device_t *dev, uint64_t ofs, void *buf, size_t size)
+{
+    page_array_t *array;
+    size_t ret;
+
+    array = MemCreatePageArray(buf, size);
+    if (array == NULL)
+        return (size_t) -1;
+
+    ret = IoReadPhysicalSync(dev, ofs, array, size);
 
     MemDeletePageArray(array);
     return ret;

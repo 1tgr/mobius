@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.10 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.11 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -6,6 +6,7 @@
 #include <kernel/fs.h>
 #include <kernel/vmm.h>
 #include <kernel/arch.h>
+#include <kernel/profile.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
@@ -18,6 +19,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+extern module_t mod_kernel;
 
 static IMAGE_PE_HEADERS* PeGetHeaders(addr_t base)
 {
@@ -34,7 +37,7 @@ bool PeFindFile(const wchar_t *relative, wchar_t *full, const wchar_t *search)
     if (_wcsicmp(relative, L"kernel.exe") == 0)
     {
         /* kernel.exe doesn't appear in the ramdisk */
-        wcscpy(full, L"/System/Boot/kernel.exe");
+        wcscpy(full, mod_kernel.name);
         return true;
     }
 
@@ -60,7 +63,7 @@ bool PeFindFile(const wchar_t *relative, wchar_t *full, const wchar_t *search)
         free(buf);
     }
 
-    wprintf(L"PeFindFile: unable to find %s\n", relative);
+    //wprintf(L"PeFindFile: unable to find %s\n", relative);
     return false;
 }
 
@@ -77,26 +80,49 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     IMAGE_PE_HEADERS pe;
     addr_t new_base;
     size_t size;
+    const wchar_t *temp;
+    wchar_t *search_path, *ch;
 
     nesting++;
+
+    temp = ProGetString(L"", L"LibrarySearchPath", L"/hd/boot,/System/Boot,.");
+    search_path = malloc(sizeof(wchar_t) * (wcslen(temp) + 2));
+    if (search_path == NULL)
+        return false;
+
+    wcscpy(search_path, temp);
+    wcscat(search_path, L",");
+    for (ch = search_path; *ch != '\0'; ch++)
+        if (*ch == ',')
+            *ch = '\0';
+
     if (file[0] == '/')
         wcsncpy(full_file, file, _countof(full_file) - 1);
-    else if (!PeFindFile(file, full_file, L"/hd/boot\0/System/Boot\0.\0"))
+    else if (!PeFindFile(file, full_file, search_path))
     {
+        free(search_path);
         nesting--;
         return NULL;
     }
 
+    free(search_path);
     /*FsFullPath(file, full_file);*/
-    FOREACH (mod, proc->mod)
-        if (_wcsicmp(mod->name, full_file) == 0)
-        {
-            mod->refs++;
-            nesting--;
-            return mod;
-        }
 
-    wprintf(L"%*sPeLoad: %s\n", nesting * 2, L"", full_file);
+    /*if (_wcsicmp(full_file, mod_kernel.name) == 0)
+    {
+        mod_kernel.refs++;
+        return &mod_kernel;
+    }
+    else*/
+        FOREACH (mod, proc->mod)
+            if (_wcsicmp(mod->name, full_file) == 0)
+            {
+                mod->refs++;
+                nesting--;
+                return mod;
+            }
+
+    //wprintf(L"%*sPeLoad: %s\n", nesting * 2, L"", full_file);
     fd = FsOpen(full_file, FILE_READ);
     if (!fd)
     {
@@ -144,14 +170,6 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 
     if (base == NULL)
         base = pe.OptionalHeader.ImageBase;
-
-    /*new_base = base;
-    while ((area = VmmArea(proc, (const void*) new_base)))
-    {
-        new_base = area->start + area->pages->num_pages * PAGE_SIZE;
-        wprintf(L"%s: clashed with %08x, adjusting base to %08x\n", 
-            file, area->start, new_base);
-    }*/
 
     mod->refs = 1;
     mod->base = base;
@@ -291,7 +309,7 @@ static bool PeDoImports(process_t* proc,
         other = PeLoad(proc, name_wide, 0);
         if (other == NULL)
         {
-            wprintf(L"%s: failed to load %s\n", mod->name, name_wide);
+            //wprintf(L"%s: failed to load %s\n", mod->name, name_wide);
             return false;
         }
 
@@ -319,7 +337,8 @@ void PeInitImage(module_t *mod)
     pe = PeGetHeaders(mod->base);
     if (!mod->imported &&
         !PeDoImports(current->process, mod, pe->OptionalHeader.DataDirectory))
-        wprintf(L"%s: imports failed\n", mod->name);
+        ;
+        //wprintf(L"%s: imports failed\n", mod->name);
 }
 
 bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
@@ -367,7 +386,7 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
         /*size = (scn->Misc.VirtualSize + PAGE_SIZE - 1) & -PAGE_SIZE;*/
         /*wprintf(L"%x: section %d: %.8S %d bytes\n", addr, i, scn->Name, size);*/
 
-        *flags = 3 | MEM_ZERO;
+        *flags = MEM_ZERO;
         if (scn->Characteristics & IMAGE_SCN_MEM_READ)
             *flags |= MEM_READ;
         if (scn->Characteristics & IMAGE_SCN_MEM_WRITE)
@@ -385,6 +404,9 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
             *flags |= MEM_ZERO;
             *bytes = -1;
         }
+
+        if (mod->base < 0x80000000)
+            *flags |= 3;
     }
 
     return true;

@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.14 2002/05/05 13:43:24 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.15 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -10,8 +10,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
+#include <wchar.h>
 
-/*#include <unistd.h>*/    /* to give sbrk the right name */
 #include <libc/local.h>
 #include <libc/file.h>
 #include <libc/stdiohk.h>
@@ -22,6 +22,8 @@ uint16_t con_attribs = 0x0700;
 
 extern uint16_t dbg_combase;
 int putDebugChar(int ch);
+
+/*wchar_t __uc_map_file[] = L"/System/Boot/unicode.dat";*/
 
 #define VGA_AC_INDEX        0x3C0
 #define VGA_AC_WRITE        0x3C0
@@ -61,6 +63,23 @@ void TextSwitchToKernel(void)
     out(VGA_CRTC_INDEX, 13);
     out(VGA_CRTC_DATA, 0);
     /*TextUpdateCursor();*/
+}
+
+void TextUpdateProgress(int min, int progress, int max)
+{
+    uint16_t *mem;
+    unsigned chars, i;
+
+    if (min == max)
+        chars = 0;
+    else
+        chars = ((progress - min) * 80) / (max - min);
+
+    mem = (uint16_t*) PHYSICAL(0xb8000) + 80 * 24;
+    for (i = 0; i < chars; i++)
+        mem[i] = 0x71fe;
+    for (; i < 80; i++)
+        mem[i] = 0x7120;
 }
 
 void __dj_assert(const char *test, const char *file, int line)
@@ -120,13 +139,13 @@ int name(const ct *str, size_t count) \
             con_y++; \
         } \
  \
-        while (con_y >= 25) \
+        while (con_y >= 24) \
         { \
             unsigned i; \
  \
-            memmove(mem, mem + 80, 80 * 24 * 2); \
+            memmove(mem, mem + 80, 80 * 23 * 2); \
             for (i = 0; i < 80; i++) \
-                mem[80 * 24 + i] = ' ' | con_attribs; \
+                mem[80 * 23 + i] = ' ' | con_attribs; \
  \
             con_y--; \
         } \
@@ -241,4 +260,9 @@ ssize_t _write(int fd, const void *buf, size_t nbyte)
         _cputs(buf, nbyte);
 
     return nbyte;
+}
+
+const __wchar_info_t *__lookup_unicode(wchar_t cp)
+{
+    return NULL;
 }

@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.14 2002/04/20 12:30:04 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.15 2002/05/19 13:04:59 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
@@ -240,26 +240,43 @@ bool SysShutdown(unsigned type)
         ArchReboot();
         return true;
 
+    case SHUTDOWN_POWEROFF:
+        ArchPowerOff();
+        return true;
+
     default:
         errno = ENOTIMPL;
         return false;
     }
 }
 
+void __malloc_leak(int tag);
+void __malloc_leak_dump();
+
 void KeLeakBegin(void)
 {
-    mal_leaktrace(1);
+    __malloc_leak(1);
     wprintf(L"/");
 }
 
 void KeLeakEnd(void)
 {
-    mal_dumpleaktrace(stderr);
+    __malloc_leak_dump();
     wprintf(L"\\");
-    mal_leaktrace(0);
+    __malloc_leak(0);
 }
 
 void SysYield(void)
 {
     ScNeedSchedule(true);
+}
+
+void KeSetSingleStep(bool set)
+{
+    context_t *ctx;
+    ctx = ThrGetUserContext(current);
+    if (set)
+        ctx->eflags |= EFLAG_TF;
+    else
+        ctx->eflags &= ~EFLAG_TF;
 }

@@ -1,4 +1,4 @@
-/* $Id: vfs.c,v 1.1 2002/05/05 13:44:45 pavlovskii Exp $ */
+/* $Id: vfs.c,v 1.2 2002/05/19 13:04:59 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 
@@ -56,7 +56,6 @@ vfs_mount_t *VfsLookupMount(vfs_dir_t *dir, const wchar_t **path, bool *do_redir
             return mount;
         }
 
-    wprintf(L"%s not found: Path = %s Name = %s Len = %d\n", *path, p, ch, len);
     return NULL;
 }
 
@@ -126,8 +125,9 @@ status_t VfsLookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void *
 status_t VfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
 {
     vfs_mount_t *mount;
-    dirent_standard_t *di;
+    dirent_all_t *di;
 
+    di = buf;
     mount = cookie;
     /*wprintf(L"VfsGetFileInfo(%p) = %s\n", cookie, mount->name);*/
     di = buf;
@@ -136,11 +136,15 @@ status_t VfsGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
     case FILE_QUERY_NONE:
         return 0;
 
+    case FILE_QUERY_DIRENT:
+        wcsncpy(di->dirent.name, mount->name, _countof(di->dirent.name) - 1);
+        di->dirent.vnode = 0;
+        return 0;
+
     case FILE_QUERY_STANDARD:
-        wcsncpy(di->di.name, mount->name, _countof(di->di.name) - 1);
-        di->di.vnode = 0;
-        di->length = 0;
-        di->attributes = FILE_ATTR_DIRECTORY;
+        di->standard.length = 0;
+        di->standard.attributes = FILE_ATTR_DIRECTORY;
+        wcscpy(di->standard.mimetype, L"");
         return 0;
     }
 
@@ -336,266 +340,6 @@ static const fsd_vtbl_t vfs_vtbl =
     NULL,           /* finishio */
     NULL,           /* flush_cache */
 };
-
-#if 0
-static bool VfsRequest(device_t *dev, request_t *req)
-{
-    vfs_dir_t *dir = (vfs_dir_t*) dev;
-    request_fs_t *req_fs = (request_fs_t*) req;
-    const wchar_t *ch;
-    size_t len;
-    vfs_mount_t *mount;
-    vfs_search_t *search;
-    dirent_t *buf;
-
-    switch (req->code)
-    {
-    /* Assumes params_fs_t.fs_create <=> params_fs_t.fs_open */
-    case FS_CREATE:
-    case FS_OPEN:
-        if (req_fs->params.fs_open.name[0] == '/')
-            req_fs->params.fs_open.name++;
-
-        ch = wcschr(req_fs->params.fs_open.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_open.name);
-        else
-            len = ch - req_fs->params.fs_open.name;
-
-        /*TRACE3("Path: %s Name: %s Len: %d\n", 
-            req_fs->params.fs_open.name, ch, len);*/
-
-        FOREACH (mount, dir->vfs_mount)
-            if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
-            {
-                /*TRACE1("=> %p\n", mount->fsd);*/
-                req_fs->params.fs_open.name += len;
-                return mount->fsd->vtbl->request(mount->fsd, req);
-            }
-        
-        wprintf(L"%s: not found in root\n", req_fs->params.fs_open.name);
-        req->result = ENOTFOUND;
-        return false;
-        
-    case FS_MOUNT:
-        if (req_fs->params.fs_mount.name[0] == '/')
-            req_fs->params.fs_mount.name++;
-
-        ch = wcschr(req_fs->params.fs_mount.name, '/');
-        if (ch == NULL)
-        {
-            len = wcslen(req_fs->params.fs_mount.name);
-            ch = req_fs->params.fs_mount.name + len;
-        }
-        else
-            len = ch - req_fs->params.fs_mount.name;
-        
-        if (*ch == '\0')
-        {
-            /* Mounting on this directory */
-            /*TRACE3("VfsRequest(FS_MOUNT): mounting %p as %*s\n",
-                req_fs->params.fs_mount.fsd, 
-                len,
-                req_fs->params.fs_mount.name);*/
-
-            mount = malloc(sizeof(vfs_mount_t));
-            mount->name = malloc(sizeof(wchar_t) * (len + 1));
-            mount->name[len] = '\0';
-            memcpy(mount->name, req_fs->params.fs_mount.name, 
-                sizeof(wchar_t) * len);
-            mount->fsd = req_fs->params.fs_mount.fsd;
-            LIST_ADD(dir->vfs_mount, mount);
-
-            return true;
-        }
-        else
-        {
-            /* Mounting on a subdirectory */
-            /*TRACE1("VfsRequest(FS_MOUNT): mounting on subdirectory %s\n", ch);*/
-
-            FOREACH (mount, dir->vfs_mount)
-                if (_wcsnicmp(mount->name, req_fs->params.fs_open.name, len) == 0)
-                {
-                    /*TRACE1("=> %p\n", mount->fsd);*/
-                    req_fs->params.fs_mount.name += len;
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-                }
-
-            req->result = ENOTFOUND;
-            return false;
-        }
-
-    case FS_OPENSEARCH:
-        if (req_fs->params.fs_opensearch.name[0] == '/')
-            req_fs->params.fs_opensearch.name++;
-
-        ch = wcschr(req_fs->params.fs_opensearch.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_opensearch.name);
-        else
-            len = ch - req_fs->params.fs_opensearch.name;
-
-        TRACE3("Search: Path: %s Name: %s Len: %d\n", 
-            req_fs->params.fs_open.name, ch, len);
-
-        if (ch != NULL)
-        {
-            FOREACH (mount, dir->vfs_mount)
-                if (_wcsnicmp(mount->name, req_fs->params.fs_opensearch.name, len) == 0)
-                {
-                    /*TRACE1("=> %p\n", mount->fsd);*/
-                    req_fs->params.fs_opensearch.name += len;
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-                }
-
-            req->result = ENOTFOUND;
-            return false;
-        }
-        else
-        {        
-            /* It's a search in our directory */
-            req_fs->params.fs_opensearch.file = HndAlloc(NULL, sizeof(vfs_search_t), 'file');
-            search = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
-            if (search == NULL)
-            {
-                req->result = errno;
-                return false;
-            }
-
-            search->fsd = dev;
-            search->pos = (uint64_t) (addr_t) dir->vfs_mount_first;
-            search->flags = FILE_READ;
-            return true;
-        }
-
-    case FS_CLOSE:
-        if (HndClose(NULL, req_fs->params.fs_close.file, 'file'))
-            return true;
-        else
-        {
-            req->result = errno;
-            return false;
-        }
-
-    case FS_READ:
-        search = HndLock(NULL, req_fs->params.fs_read.file, 'file');
-        if (search == NULL)
-        {
-            req->result = errno;
-            HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-            return false;
-        }
-
-        mount = (vfs_mount_t*) (addr_t) search->pos;
-        if (mount == NULL)
-        {
-            req->result = EEOF;
-            req_fs->params.fs_read.length = 0;
-            HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-            return false;
-        }
-
-        buf = MemMapPageArray(req_fs->params.fs_read.pages, 
-            PRIV_KERN | PRIV_PRES | PRIV_WR);
-        len = req_fs->params.fs_read.length;
-        req_fs->params.fs_read.length = 0;
-        while (req_fs->params.fs_read.length < len)
-        {
-            wcscpy(buf->name, mount->name);
-            buf->length = 0;
-            buf->standard_attributes = FILE_ATTR_DIRECTORY;
-
-            buf++;
-            req_fs->params.fs_read.length += sizeof(dirent_t);
-
-            mount = mount->next;
-            search->pos = (uint64_t) (addr_t) mount;
-
-            if (mount == NULL)
-                break;
-        }
-
-        MemUnmapTemp();
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-        return true;
-        
-    case FS_QUERYFILE:
-        if (req_fs->params.fs_queryfile.name[0] == '/')
-            req_fs->params.fs_queryfile.name++;
-
-        ch = wcschr(req_fs->params.fs_queryfile.name, '/');
-        if (ch == NULL)
-            len = wcslen(req_fs->params.fs_queryfile.name);
-        else
-            len = ch - req_fs->params.fs_queryfile.name;
-
-        FOREACH (mount, dir->vfs_mount)
-            if (_wcsnicmp(mount->name, req_fs->params.fs_queryfile.name, len) == 0)
-            {
-                req_fs->params.fs_queryfile.name += len;
-                if (*req_fs->params.fs_queryfile.name == '\0' ||
-                    wcscmp(req_fs->params.fs_queryfile.name, L"/") == 0)
-                {
-                    switch (req_fs->params.fs_queryfile.query_class)
-                    {
-                    case FILE_QUERY_NONE:
-                        return true;
-
-                    case FILE_QUERY_STANDARD:
-                        if (req_fs->params.fs_queryfile.buffer_size < sizeof(dirent_t))
-                        {
-                            req->result = EBUFFER;
-                            return false;
-                        }
-
-                        buf = (dirent_t*) req_fs->params.fs_queryfile.buffer;
-                        wcscpy(buf->name, mount->name);
-                        buf->length = 0;
-                        buf->standard_attributes = FILE_ATTR_DIRECTORY;
-                        return true;
-
-                    default:
-                        req->result = ENOTIMPL;
-                        return false;
-                    }
-                }
-                else
-                    return mount->fsd->vtbl->request(mount->fsd, req);
-            }
-
-        wprintf(L"%s: not found in root\n", req_fs->params.fs_queryfile.name);
-        req->result = ENOTFOUND;
-        return false;
-    }
-
-    req->result = ENOTIMPL;
-    return false;
-}
-
-static void VfsFinishIo(device_t *dev, request_t *req)
-{
-    fileop_t *op;
-    request_fs_t *req_fs;
-
-    /*if (req->code == FS_READ)
-        TRACE3("VfsFinishIo: req = %p op = %p code = %x: ", 
-            req, req->param, req->code);*/
-
-    assert(req->code == FS_READ || req->code == FS_WRITE);
-    op = req->param;
-    op->result = req->result;
-    req_fs = (request_fs_t*) req;
-    if (req->code == FS_READ || req->code == FS_WRITE)
-        op->bytes = req_fs->params.buffered.length;
-
-    /*if (req->code == FS_READ)
-        TRACE3("finished io: event = %u bytes = %u result = %u\n",
-            op->event, op->bytes, op->result);*/
-
-    EvtSignal(NULL, op->event);
-    free(req);
-}
-#endif
 
 bool FsMountDevice(const wchar_t *path, fsd_t *newfsd);
 

@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.24 2002/05/05 13:42:59 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.25 2002/05/19 13:04:36 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -822,6 +822,101 @@ bool FsQueryHandle(handle_t file, uint32_t query_class, void *buffer, size_t buf
     }
 
     return true;
+}
+
+static const struct
+{
+    const wchar_t *ext;
+    const wchar_t *mimetype;
+} mimetypes[] =
+{
+    { L"dll", L"application/x-pe-library" },
+    { L"drv", L"application/x-pe-driver" },
+    { L"exe", L"application/x-pe-program" },
+    { L"gz", L"application/x-gzip" },
+    { L"hqx", L"application/x-binhex40" },
+    { L"lha", L"application/x-lharc" },
+    { L"pcl", L"application/x-pcl" },
+    { L"pdf", L"application/pdf" },
+    { L"ps", L"application/postscript" },
+    { L"sit", L"application/x-stuff-it" },
+    { L"tar", L"application/x-tar" },
+    { L"tgz", L"application/x-gzip" },
+    { L"uue", L"application/x-uuencode" },
+    { L"z", L"application/x-compress" },
+    { L"zip", L"application/zip" },
+    { L"zoo", L"application/x-zoo" },
+
+    { L"aif", L"audio/x-aiff" },
+    { L"aiff", L"audio/x-aiff" },
+    { L"au", L"audio/basic" },
+    { L"mid", L"audio/x-midi" },
+    { L"midi", L"audio/x-midi" },
+    { L"mod", L"audio/mod" },
+    { L"ra", L"audio/x-real-audio" },
+    { L"wav", L"audio/x-wav" },
+
+    { L"bmp", L"image/x-bmp" },
+    { L"fax", L"image/g3fax" },
+    { L"gif", L"image/gif" },
+    { L"iff", L"image/x-iff" },
+    { L"jpg", L"image/jpeg" },
+    { L"jpeg", L"image/jpeg" },
+    { L"pbm", L"image/x-portable-bitmap" },
+    { L"pcx", L"image/x-pcx" },
+    { L"pgm", L"image/x-portable-graymap" },
+    { L"png", L"image/png" },
+    { L"ppm", L"image/x-portable-pixmap" },
+    { L"rgb", L"image/x-rgb" },
+    { L"tga", L"image/x-targa" },
+    { L"tif", L"image/tiff" },
+    { L"tiff", L"image/tiff" },
+    { L"wmf", L"image/x-wmf" },
+    { L"xbm", L"image/x-xbitmap" },
+
+    { L"txt", L"text/plain" },
+    { L"doc", L"text/plain" },
+    { L"htm", L"text/html" },
+    { L"html", L"text/html" },
+    { L"rtf", L"text/rtf" },
+    { L"asm", L"text/x-source-code" },
+    { L"c", L"text/x-source-code" },
+    { L"cc", L"text/x-source-code" },
+    { L"c++", L"text/x-source-code" },
+    { L"h", L"text/x-source-code" },
+    { L"hh", L"text/x-source-code" },
+    { L"cxx", L"text/x-source-code" },
+    { L"cpp", L"text/x-source-code" },
+    { L"S", L"text/x-source-code" },
+    { L"java", L"text/x-source-code" },
+
+    { L"avi", L"video/x-msvideo" },
+    { L"mov", L"video/quicktime" },
+    { L"mpg", L"video/mpeg" },
+    { L"mpeg", L"video/mpeg" },
+
+    { 0, 0 }
+};
+
+bool FsGuessMimeType(const wchar_t *ext, wchar_t *mimetype, size_t length)
+{
+    unsigned i;
+
+    memset(mimetype, 0, sizeof(wchar_t) * length);
+    if (ext != NULL)
+    {
+        if (ext[0] == '.')
+            ext++;
+
+        for (i = 0; mimetypes[i].ext != NULL; i++)
+            if (_wcsicmp(ext, mimetypes[i].ext) == 0)
+            {
+                wcsncpy(mimetype, mimetypes[i].mimetype, length);
+                return true;
+            }
+    }
+
+    return false;
 }
 
 bool FsMountDevice(const wchar_t *path, fsd_t *newfsd)
