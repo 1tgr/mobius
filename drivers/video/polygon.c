@@ -1,4 +1,4 @@
-/* $Id: polygon.c,v 1.1 2002/12/21 09:49:05 pavlovskii Exp $ */
+/* $Id: polygon.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 #include "vidfuncs.h"
 #include <limits.h>
@@ -129,8 +129,8 @@ static void _grow_scratch_mem(int size)
  *  number of vertices, then an array containing a series of x, y points 
  *  (a total of vertices*2 values).
  */
-void vidFillPolygon(video_t *vid, const clip_t *clip, const point_t *points, 
-                    unsigned vertices, colour_t colour)
+void vidFillPolygon(video_t *vid, const point_t *points, unsigned vertices, 
+                    colour_t colour)
 {
     int c;
     int top = INT_MAX;
@@ -186,7 +186,6 @@ void vidFillPolygon(video_t *vid, const clip_t *clip, const point_t *points,
         edge = active_edges;
         while ((edge) && (edge->next)) {
             vid->vidHLine(vid, 
-                clip, 
                 edge->x>>POLYGON_FIX_SHIFT,
                 (edge->next->x+edge->next->w)>>POLYGON_FIX_SHIFT, 
                 c, 

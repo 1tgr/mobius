@@ -1,4 +1,4 @@
-ROOT=		/cygdrive/h/mobius
+ROOT=		/mobius
 BIN=		$(ROOT)/distrib
 LIB=		$(ROOT)/lib
 CFLAGS+=	-g -O2 -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -I$(ROOT)/include -Iinclude

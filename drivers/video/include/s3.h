@@ -1,4 +1,4 @@
-/* $Id: s3.h,v 1.1 2002/12/21 09:49:08 pavlovskii Exp $ */
+/* $Id: s3.h,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 #ifndef S3_H__
 #define S3_H__

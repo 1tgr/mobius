@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.1 2002/12/21 09:49:07 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -10,7 +10,7 @@
 #include "vgamodes.h"
 #include "bpp8.h"
 
-static uint8_t *video_base;
+extern uint8_t *vga_base;
 
 void swap_int(int *a, int *b);
 
@@ -45,8 +45,8 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
 {
     const uint8_t *regs;
     unsigned i;
-    clip_t clip;
-    rect_t rect;
+    //clip_t clip;
+    //rect_t rect;
 
     regs = NULL;
     for (i = 0; i < _countof(vga8_modes); i++)
@@ -83,54 +83,32 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
     return true;
 }
 
-static void vga8PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
-                         colour_t clr)
+static void vga8PutPixel(video_t *vid, int x, int y, colour_t clr)
 {
-    unsigned i;
-
-    for (i = 0; i < clip->num_rects; i++)
-        if (x >= clip->rects[i].left &&
-            y >= clip->rects[i].top &&
-            x <  clip->rects[i].right &&
-            y <  clip->rects[i].bottom)
-        {
-            video_base[x + y * video_mode.bytesPerLine] = 
-                bpp8Dither(x, y, clr);
-            break;
-        }
+    vga_base[x + y * video_mode.bytesPerLine] = 
+        bpp8Dither(x, y, clr);
 }
 
 static colour_t vga8GetPixel(video_t *vid, int x, int y)
 {
     uint8_t index;
-    index = video_base[x + y * video_mode.bytesPerLine];
+    index = vga_base[x + y * video_mode.bytesPerLine];
     return MAKE_COLOUR(bpp8_palette[index].red, 
         bpp8_palette[index].green, 
         bpp8_palette[index].blue);
 }
 
-static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                      colour_t clr)
+static void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
     uint8_t *ptr;
-    unsigned i;
-    int ax1, ax2;
 
     if (x2 < x1)
         swap_int(&x1, &x2);
 
-    for (i = 0; i < clip->num_rects; i++)
-    {
-        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
-        {
-            ax1 = max(clip->rects[i].left, x1);
-            ax2 = min(clip->rects[i].right, x2);
-            for (ptr = video_base + ax1 + y * video_mode.bytesPerLine;
-            ax1 < ax2;
-            ax1++, ptr++)
-                *ptr = bpp8Dither(ax1, y, clr);
-        }
-    }
+    for (ptr = vga_base + x1 + y * video_mode.bytesPerLine;
+        x1 < x2;
+        x1++, ptr++)
+        *ptr = bpp8Dither(x1, y, clr);
 }
 
 #if 0
@@ -157,7 +135,7 @@ static void vga8TextOut(video_t *vid,
             ch[0] = '?';
 
         data = font->Bitmaps + font->Height * (ch[0] - font->First);
-        offset = video_base + *x + *y * video_mode.bytesPerLine;
+        offset = vga_base + *x + *y * video_mode.bytesPerLine;
 
         for (ay = 0; ay < font->Height; ay++)
         {
@@ -201,12 +179,12 @@ static video_t vga8 =
 
 video_t *vga8Init(device_config_t *cfg)
 {
-    if (video_base == NULL)
+    if (vga_base == NULL)
     {
-        video_base = VmmMap(0x20000 / PAGE_SIZE, NULL, (void*) 0xa0000,
+        vga_base = VmmMap(0x20000 / PAGE_SIZE, NULL, (void*) 0xa0000,
             NULL, VM_AREA_MAP, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
-        VmmShare(video_base, L"fb_vga");
-        wprintf(L"vga8: VGA frame buffer at %p\n", video_base);
+        VmmShare(vga_base, L"fb_vga");
+        wprintf(L"vga8: VGA frame buffer at %p\n", vga_base);
     }
 
     return &vga8;

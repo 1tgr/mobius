@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.1 2002/12/21 09:49:08 pavlovskii Exp $ */
+/* $Id: video.h,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -58,21 +58,14 @@ struct video_t
         unsigned count);
     void (*vidMoveCursor)(video_t *vid, point_t pt);
 
-    void (*vidPutPixel)(video_t *vid, const clip_t *clip, int x, int y, 
-        colour_t c);
+    void (*vidPutPixel)(video_t *vid, int x, int y, colour_t c);
     colour_t (*vidGetPixel)(video_t *vid, int x, int y);
-    void (*vidHLine)(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-        colour_t c);
-    void (*vidVLine)(video_t *vid, const clip_t *clip, int x, int y1, int y2, 
-        colour_t c);
-    void (*vidLine)(video_t *vid, const clip_t *clip, int x1, int y1, int x2, int y2, 
-        colour_t d);
-    void (*vidFillRect)(video_t *vid, const clip_t *clip, int x1, int y1, int x2, int y2, 
-        colour_t c);
-    void (*vidTextOut)(video_t *vid, const clip_t *clip, rect_t *rect, 
-        const wchar_t *str, size_t len, colour_t fg, colour_t bg);
-    void (*vidFillPolygon)(video_t *vid, const clip_t *clip, 
-        const point_t *points, unsigned num_points, colour_t colour);
+    void (*vidHLine)(video_t *vid, int x1, int x2, int y, colour_t c);
+    void (*vidVLine)(video_t *vid, int x, int y1, int y2, colour_t c);
+    void (*vidLine)(video_t *vid, int x1, int y1, int x2, int y2, colour_t d);
+    void (*vidFillRect)(video_t *vid, int x1, int y1, int x2, int y2, colour_t c);
+    void (*vidFillPolygon)(video_t *vid, const point_t *points, 
+        unsigned num_points, colour_t colour);
 };
 
 #define VID_ENUM_CONTINUE	1

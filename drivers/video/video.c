@@ -1,4 +1,4 @@
-/* $Id: video.c,v 1.1 2002/12/21 09:49:08 pavlovskii Exp $ */
+/* $Id: video.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -10,6 +10,7 @@
 
 #include <os/syscall.h>
 #include <kernel/fs.h>
+#include <kernel/profile.h>
 
 #include "video.h"
 #include "vidfuncs.h"
@@ -22,6 +23,7 @@ void swap_int(int *a, int *b)
 }
 
 videomode_t video_mode = { 0, 80, 25, 4, 0, VIDEO_MODE_TEXT };
+bool video_suppress_mode_switch = false;
 
 typedef struct request_vid_t request_vid_t;
 struct request_vid_t
@@ -50,11 +52,11 @@ struct
     video_t *vid;
 } drivers[] =
 {
-    //{ L"vga4",     vga4Init, NULL },
-    { L"vga8",      vga8Init, NULL },
+    { L"vga4",     vga4Init, NULL },
+    //{ L"vga8",      vga8Init, NULL },
     //{ L"vgaplane",  VgapInit, NULL },
-    { L"s3_8",      s3Init8,  NULL },
-    { L"s3_16",     s3Init16, NULL },
+    //{ L"s3_8",      s3Init8,  NULL },
+    //{ L"s3_16",     s3Init16, NULL },
     { NULL,         NULL,     NULL },
 };
 
@@ -70,14 +72,14 @@ unsigned numModes;
 
 void vidMoveCursor(video_t *vid, point_t pt)
 {
-    rect_t rect;
-    clip_t clip;
-    rect.left = rect.top = 0;
-    rect.right = video_mode.width;
-    rect.bottom = video_mode.height;
-    clip.rects = &rect;
-    clip.num_rects = 1;
-    vid->vidPutPixel(vid, &clip, pt.x, pt.y, 0xffffff);
+    //rect_t rect;
+    //clip_t clip;
+    //rect.left = rect.top = 0;
+    //rect.right = video_mode.width;
+    //rect.bottom = video_mode.height;
+    //clip.rects = &rect;
+    //clip.num_rects = 1;
+    vid->vidPutPixel(vid, pt.x, pt.y, 0xffffff);
 }
 
 int vidMatchMode(const videomode_t *a, const videomode_t *b)
@@ -130,7 +132,18 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     assert(vid->vidClose != NULL);
     assert(vid->vidEnumModes != NULL);
     assert(vid->vidSetMode != NULL);
+    assert(vid->vidPutPixel != NULL);
 
+    if (vid->vidHLine == NULL)
+        vid->vidHLine = vidHLine;
+    if (vid->vidVLine == NULL)
+        vid->vidVLine = vidVLine;
+    if (vid->vidFillRect == NULL)
+        vid->vidFillRect = vidFillRect;
+    if (vid->vidLine == NULL)
+        vid->vidLine = vidLine;
+    if (vid->vidFillPolygon == NULL)
+        vid->vidFillPolygon = vidFillPolygon;
     if (vid->vidMoveCursor == NULL)
         vid->vidMoveCursor = vidMoveCursor;
     
@@ -144,6 +157,17 @@ bool vidSetMode(video_drv_t *video, videomode_t *mode)
     return true;
 }
 
+#define VID_OP(code, type) \
+    case code: \
+    { \
+        type *shape; \
+        shape = (type*) &buf->s; \
+        \
+        
+#define VID_END_OP \
+        break; \
+    }
+
 bool vidRequest(device_t* dev, request_t* req)
 {
     video_drv_t *video = (video_drv_t*) dev;
@@ -153,7 +177,7 @@ bool vidRequest(device_t* dev, request_t* req)
     {
     case DEV_REMOVE:
         free(dev);
-            return true;
+        return true;
 
     case VID_SETMODE:
         if (!vidSetMode(video, &params->vid_setmode))
@@ -163,24 +187,117 @@ bool vidRequest(device_t* dev, request_t* req)
         }
         else
             return true;
-        
+
     case VID_GETMODE:
         params->vid_getmode = video_mode;
         return true;
 
     case VID_STOREPALETTE:
-    {
-        vid_palette_t *p = &params->vid_storepalette;
-        if (video->vid->vidStorePalette)
         {
-            video->vid->vidStorePalette(video->vid, 
-                p->entries,
-                p->first_index,
-                p->length / sizeof(rgb_t));
+            vid_palette_t *p = &params->vid_storepalette;
+            if (video->vid->vidStorePalette)
+            {
+                video->vid->vidStorePalette(video->vid, 
+                    p->entries,
+                    p->first_index,
+                    p->length / sizeof(rgb_t));
+                return true;
+            }
+            break;
+        }
+
+    case VID_DRAW:
+        {
+            vid_shape_t *buf;
+            size_t user_length;
+
+            user_length = params->vid_draw.length;
+            params->vid_draw.length = 0;
+            buf = params->vid_draw.shapes;
+
+            while (params->vid_draw.length < user_length)
+            {
+                switch (buf->shape)
+                {
+                VID_OP(VID_SHAPE_FILLRECT, vid_rect_t)
+                    video->vid->vidFillRect(video->vid, 
+                        shape->rect.left, shape->rect.top, 
+                        shape->rect.right, shape->rect.bottom, 
+                        shape->colour);
+                VID_END_OP
+
+                VID_OP(VID_SHAPE_HLINE, vid_line_t)
+                    if (shape->a.x != shape->b.x)
+                    {
+                        if (shape->b.x < shape->a.x)
+                            swap_int(&shape->a.x, &shape->b.x);
+                        video->vid->vidHLine(video->vid, 
+                            shape->a.x, shape->b.x, 
+                            shape->a.y, 
+                            shape->colour);
+                    }
+                VID_END_OP
+
+                VID_OP(VID_SHAPE_VLINE, vid_line_t)
+                    if (shape->a.y != shape->b.y)
+                    {
+                        if (shape->b.y < shape->a.y)
+                            swap_int(&shape->a.y, &shape->b.y);
+                        video->vid->vidVLine(video->vid, 
+                            shape->a.x, 
+                            shape->a.y, shape->b.y, 
+                            shape->colour);
+                    }
+                VID_END_OP
+
+                VID_OP(VID_SHAPE_LINE, vid_line_t)
+                    /*if (shape->b.x < shape->a.x)
+                        swap_int(&shape->a.x, &shape->b.x);
+                    if (shape->b.y < shape->a.y)
+                        swap_int(&shape->a.y, &shape->b.y);*/
+
+                    video->vid->vidLine(video->vid,
+                        shape->a.x, shape->a.y, 
+                        shape->b.x, shape->b.y, 
+                        shape->colour);
+                VID_END_OP
+
+                VID_OP(VID_SHAPE_PUTPIXEL, vid_pixel_t)
+                    video->vid->vidPutPixel(video->vid, 
+                        shape->point.x, shape->point.y,
+                        shape->colour);
+                VID_END_OP
+
+                VID_OP(VID_SHAPE_GETPIXEL, vid_pixel_t)
+                    shape->colour = video->vid->vidGetPixel(video->vid, 
+                        shape->point.x, shape->point.y);
+                VID_END_OP
+                }
+
+                buf++;
+                params->vid_draw.length += sizeof(*buf);
+            }
+
             return true;
         }
-        break;
-    }
+
+    /*case VID_TEXTOUT:
+    {
+        vid_text_t *p = &params->vid_textout;
+        video->vid->vidTextOut(video->vid, 
+            &p->clip,
+            &p->rect, 
+            p->buffer, p->length / sizeof(wchar_t), 
+            p->foreColour, p->backColour);
+        return true;
+    }*/
+
+    case VID_FILLPOLYGON:
+        video->vid->vidFillPolygon(video->vid,
+            params->vid_fillpolygon.points, 
+            params->vid_fillpolygon.length / sizeof(point_t),
+            params->vid_fillpolygon.colour);
+        return true;
 
     case VID_MOVECURSOR:
         if (video->vid->vidMoveCursor)
@@ -202,6 +319,7 @@ static const device_vtbl_t vid_vtbl =
     NULL,
 };
 
+#if 0
 /*
  * Support routines for FreeType
  */
@@ -263,6 +381,7 @@ size_t fread(void *buffer, size_t size, size_t count, FILE *stream)
     else
         return 0;
 }
+#endif
 
 void vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
@@ -270,7 +389,11 @@ void vidAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     int i, j, code;
     videomode_t mode;
     video_t *vid;
+    const wchar_t *sms;
     
+    sms = ProGetString(drv->profile_key, L"SuppressModeSwitch", L"no");
+    video_suppress_mode_switch = _wcsicmp(sms, L"yes") == 0;
+
     for (i = 0; drivers[i].name; i++)
     {
         vid = drivers[i].vid = drivers[i].init(cfg);

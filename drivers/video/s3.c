@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.1 2002/12/21 09:49:07 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.2 2003/06/05 21:59:53 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -592,7 +592,7 @@ void _swab(char *src, char *dest, int nbytes)
 
 void s3InitHardware(void)
 {
-    int i, j;
+    int i;
     unsigned char test;
     unsigned int clockpar;
     volatile uint16_t *CursorBase;
@@ -822,29 +822,18 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
     return true;
 }
 
-static void s3PutPixel8(video_t *vid, const clip_t *clip, int x, int y, 
-                       colour_t clr)
+static void s3PutPixel8(video_t *vid, int x, int y, colour_t clr)
 {
-    unsigned i;
-
 #ifdef TRIO_ACCEL
     Trio_WaitIdle();
 #endif
 
-    for (i = 0; i < clip->num_rects; i++)
-        if (x >= clip->rects[i].left &&
-            y >= clip->rects[i].top &&
-            x <  clip->rects[i].right &&
-            y <  clip->rects[i].bottom)
-        {
-            if (clr == 0xffffffff)
-                ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
-                ~((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine];
-            else
-                ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
-                    bpp8Dither(x, y, clr);
-            break;
-        }
+    if (clr == 0xffffffff)
+        ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
+        ~((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine];
+    else
+        ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
+            bpp8Dither(x, y, clr);
 }
 
 static colour_t s3GetPixel8(video_t *vid, int x, int y)
@@ -861,44 +850,31 @@ static colour_t s3GetPixel8(video_t *vid, int x, int y)
         bpp8_palette[index].blue);
 }
 
-static void s3HLine8(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                     colour_t clr)
+static void s3HLine8(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
     uint8_t *ptr;
-    unsigned i;
-    int ax1, ax2;
 
     if (x2 < x1)
-	swap_int(&x1, &x2);
+        swap_int(&x1, &x2);
 
 #ifdef TRIO_ACCEL
     Trio_WaitIdle();
 #endif
 
-    for (i = 0; i < clip->num_rects; i++)
-    {
-        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
-        {
-            ax1 = max(clip->rects[i].left, x1);
-            ax2 = min(clip->rects[i].right, x2);
-            if (clr == 0xffffffff)
-                for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
-                    ax1 < ax2;
-                    ax1++, ptr++)
-                    *ptr = ~*ptr;
-            else
-                for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
-                    ax1 < ax2;
-                    ax1++, ptr++)
-                    *ptr = bpp8Dither(ax1, y, clr);
-        }
-    }
+    if (clr == 0xffffffff)
+        for (ptr = ((uint8_t*) TrioMem) + x1 + y * video_mode.bytesPerLine;
+            x1 < x2;
+            x1++, ptr++)
+            *ptr = ~*ptr;
+    else
+        for (ptr = ((uint8_t*) TrioMem) + x1 + y * video_mode.bytesPerLine;
+            x1 < x2;
+            x1++, ptr++)
+            *ptr = bpp8Dither(x1, y, clr);
 }
 
-static void s3PutPixel16(video_t *vid, const clip_t *clip, int x, int y, 
-                         colour_t clr)
+static void s3PutPixel16(video_t *vid, int x, int y, colour_t clr)
 {
-    unsigned i;
     uint16_t pix;
 
 #ifdef TRIO_ACCEL
@@ -906,19 +882,11 @@ static void s3PutPixel16(video_t *vid, const clip_t *clip, int x, int y,
 #endif
 
     pix = s3ColourToPixel16(clr);
-    for (i = 0; i < clip->num_rects; i++)
-        if (x >= clip->rects[i].left &&
-            y >= clip->rects[i].top &&
-            x <  clip->rects[i].right &&
-            y <  clip->rects[i].bottom)
-        {
-            if (clr == 0xffffffff)
-                ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = 
-                ~((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x];
-            else
-                ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = pix;
-            break;
-        }
+    if (clr == 0xffffffff)
+        ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = 
+        ~((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x];
+    else
+        ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine))[x] = pix;
 }
 
 static colour_t s3GetPixel16(video_t *vid, int x, int y)
@@ -931,38 +899,27 @@ static colour_t s3GetPixel16(video_t *vid, int x, int y)
     return s3Pixel16ToColour(pix);
 }
 
-static void s3HLine16(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
-                    colour_t clr)
+static void s3HLine16(video_t *vid, int x1, int x2, int y, colour_t clr)
 {
     uint16_t *ptr, pix;
-    unsigned i;
-    int ax1, ax2;
-    
+
     if (x2 < x1)
-	swap_int(&x1, &x2);
+        swap_int(&x1, &x2);
 
 #ifdef TRIO_ACCEL
     Trio_WaitIdle();
 #endif
     pix = s3ColourToPixel16(clr);
-    for (i = 0; i < clip->num_rects; i++)
-    {
-        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
-        {
-            ax1 = max(clip->rects[i].left, x1);
-            ax2 = min(clip->rects[i].right, x2);
-            if (clr == 0xffffffff)
-                for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + ax1;
-                    ax1 < ax2;
-                    ax1++, ptr++)
-                    *ptr = ~*ptr;
-            else
-                for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + ax1;
-                    ax1 < ax2;
-                    ax1++, ptr++)
-                    *ptr = pix;
-        }
-    }
+    if (clr == 0xffffffff)
+        for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + x1;
+            x1 < x2;
+            x1++, ptr++)
+            *ptr = ~*ptr;
+    else
+        for (ptr = ((uint16_t*) (TrioMem + y * video_mode.bytesPerLine)) + x1;
+            x1 < x2;
+            x1++, ptr++)
+            *ptr = pix;
 }
 
 #ifdef TRIO_ACCEL
@@ -1086,7 +1043,7 @@ static video_t s3_8 =
     NULL,           /* vline */
     NULL,           /* line */
     NULL,           /* fillrect */
-    NULL,           /* textout */
+    //NULL,           /* textout */
     NULL,           /* fillpolygon */
 };
 
@@ -1107,7 +1064,7 @@ static video_t s3_16 =
 #else
     NULL,           /* fillrect */
 #endif
-    NULL,           /* textout */
+    //NULL,           /* textout */
     NULL,           /* fillpolygon */
 };
 
