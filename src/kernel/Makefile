@@ -7,7 +7,7 @@ TARGET=	$(BIN)/kernel.exe
 DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
 
 # Uncomment this and do 'make clean all' for a text-mode kernel
-#DEFINES+=	-DMODE_TEXT
+DEFINES+=	-DMODE_TEXT
 
 ARCH=	i386/isr.o i386/i386.o i386/memory.o i386/arch.o \
 	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o \

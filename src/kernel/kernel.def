@@ -25,6 +25,7 @@ EXPORTS
 	DbgLookupSymbol
 	DbgWrite
 	DevAddDevice
+	DevCancelIo
 	DevCfgFindIrq
 	DevCfgFindMemory
 	DevFinishIo

@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.13 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.14 2002/08/19 19:56:37 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -345,7 +345,7 @@ static void DbgCmdThreads(wchar_t *cmd, wchar_t *params)
 #else
 		    c = ThrGetContext(t);
 
-            if ((addr_t) c >= PAGE_SIZE)
+            if ((addr_t) c < PAGE_SIZE)
                 addr = L"(unknown)";
             else
                 addr = DbgFormatAddress(c->eflags, c->cs, c->eip);
@@ -769,6 +769,57 @@ static void DbgCmdShutdown(wchar_t *cmd, wchar_t *params)
     SysShutdown(type);
 }
 
+static void DbgCmdMalloc(wchar_t *cmd, wchar_t *params)
+{
+    void *ptr;
+    __maldbg_header_t *header;
+
+    if (*params == '\0')
+    {
+        wprintf(L"Please specify the address of a malloc block\n");
+        return;
+    }
+
+    ptr = (void*) wcstoul(params, NULL, 16);
+    header = __malloc_find_block(ptr);
+    if (header == NULL)
+        wprintf(L"%p: block not found\n", ptr);
+    else
+    {
+        wprintf(L"%p: block at %p\n", ptr, header);
+        wprintf(L"%u+%u bytes, allocated at %S(%d), tag = %08x\n", 
+            sizeof(__maldbg_header_t), header->size - sizeof(__maldbg_header_t),
+            header->file, header->line,
+            header->tag);
+        wprintf(L"prev = %p, next = %p\n",
+            header->prev, header->next);
+    }
+}
+
+static void DbgCmdLeak(wchar_t *cmd, wchar_t *params)
+{
+    if (*params == '\0')
+    {
+        wprintf(L"%s options:\n"
+            L"dump      Dump memory leaks\n"
+            L"off       Stop tracking memory allocations\n"
+            L"<hex tag> Start tracking memory allocations and assign a tag\n",
+            cmd);
+    }
+    else if (_wcsicmp(params, L"dump") == 0)
+        __malloc_leak_dump();
+    else if (_wcsicmp(params, L"off") == 0)
+        __malloc_leak(0);
+    else
+    {
+        uint32_t tag;
+        tag = wcstoul(params, NULL, 16);
+        __malloc_leak(tag);
+        wprintf(L"Leak tracing on with tag %08x; type \"leak dump\" to dump\n",
+            tag);
+    }
+}
+
 static void DbgCmdExit(wchar_t *cmd, wchar_t *params)
 {
     dbg_exit = true;
@@ -805,6 +856,9 @@ static struct
     { L"sym",       DbgCmdSymbol },
     { L"handles",   DbgCmdHandles },
     { L"hnd",       DbgCmdHandles },
+    { L"malloc",    DbgCmdMalloc },
+    { L"mal",       DbgCmdMalloc },
+    { L"leak",      DbgCmdLeak },
 };
 
 void DbgCmdHelp(wchar_t *cmd, wchar_t *params)

@@ -1,4 +1,4 @@
-; $Id: isr.asm,v 1.10 2002/08/17 19:13:33 pavlovskii Exp $
+; $Id: isr.asm,v 1.11 2002/08/19 19:56:39 pavlovskii Exp $
 
 [bits           32]
 
@@ -66,15 +66,23 @@ _SpinRelease:
     align   8
 
 _KeAtomicInc:
-    mov     edx, [esp+4]
+    push    ebp
+    mov     ebp, esp
+    mov     edx, [ebp+8]
     lock inc dword [edx]
+    mov     esp, ebp
+    pop     ebp
     ret
 
     align   8
 
 _KeAtomicDec:
-    mov     edx, [esp+4]
+    push    ebp
+    mov     ebp, esp
+    mov     edx, [esp+8]
     lock dec dword [edx]
+    mov     esp, ebp
+    pop     ebp
     ret
 
     align   8

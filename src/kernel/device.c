@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.30 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: device.c,v 1.31 2002/08/19 19:56:37 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -684,6 +684,7 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
                            size_t user_buffer_length)
 {
     asyncio_t *io;
+    thread_t *thr;
 
     if (req != NULL)
     {
@@ -706,7 +707,8 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
         return NULL;
     }
 
-    io->owner = current();
+    thr = current();
+    io->owner = thr;
 
     if (true || (addr_t) req < 0x80000000)
     {
@@ -727,7 +729,19 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
     io->dev = dev;
     io->length = user_buffer_length;
     io->extra = NULL;
+
+    /* xxx -- SpinAcquire(&thr->sem); */
+    io->thread_next = NULL;
+    io->thread_prev = thr->aio_last;
+    if (thr->aio_last != NULL)
+        thr->aio_last->thread_next = io;
+    if (thr->aio_first == NULL)
+        thr->aio_first = io;
+    /* xxx -- SpinRelease(&thr->sem); */
+
+    /* xxx -- SpinAcquire(&dev->sem); */
     LIST_ADD(dev->io, io);
+    /* xxx -- SpinRelease(&dev->sem); */
     return io;
 }
 
@@ -754,11 +768,8 @@ static void DevFinishIoApc(void *ptr)
     }
 
     IoNotifyCompletion(io->req);
-    /*EvtSignal(io->owner->process, io->req->event);*/
 
     free(io);
-    /* Need to free io->req->event */
-    /* No we don't, that's left to the caller */
 }
 
 /*!
@@ -788,15 +799,27 @@ static void DevFinishIoApc(void *ptr)
 */
 void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 {
-/*ptr = (addr_t*) (io + 1);
-for (i = 0; i < io->length_pages; i++, ptr++)
-    MemLockPages(*ptr, 1, false);*/
+    thread_t *thr;
+
     MemDeletePageArray(io->pages);
     io->pages = NULL;
 
+    /* xxx -- SpinAcquire(&dev->sem); */
     LIST_REMOVE(dev->io, io);
-    /*LIST_ADD(io->owner->fio, io);*/
-    /*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
+    /* xxx -- SpinRelease(&dev->sem); */
+
+    thr = io->owner;
+    /* xxx -- SpinAcquire(&thr->sem); */
+    if (io->thread_next != NULL)
+        io->thread_next->thread_prev = io->thread_prev;
+    if (io->thread_prev != NULL)
+        io->thread_prev->thread_next = io->thread_next;
+    if (thr->aio_first == io)
+        thr->aio_first = io->thread_next;
+    if (thr->aio_last == io)
+        thr->aio_last = io->thread_prev;
+    io->thread_next = io->thread_prev = NULL;
+    /* xxx -- SpinRelease(&thr->sem); */
 
     io->req->result = result;
 
@@ -810,6 +833,20 @@ for (i = 0; i < io->length_pages; i++, ptr++)
         TRACE0("Queueing APC\n");
         ThrQueueKernelApc(io->owner, DevFinishIoApc, io);
     }
+}
+
+bool DevCancelIo(asyncio_t *io)
+{
+    device_t *dev;
+
+    dev = io->dev;
+    if (dev->vtbl->cancelio == NULL)
+    {
+        DevFinishIo(dev, io, ECANCELLED);
+        return true;
+    }
+    else
+        return dev->vtbl->cancelio(dev, io);
 }
 
 /*!

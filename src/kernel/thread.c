@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.22 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.23 2002/08/19 19:56:39 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -164,7 +164,11 @@ void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 
     SpinAcquire(&queue->sem);
     ent = ThrFindInQueue(queue, thr);
-    assert(ent != NULL);
+    if (ent == NULL)
+    {
+        SpinRelease(&queue->sem);
+        return;
+    }
 
     if (ent->prev)
         ent->prev->next = ent->next;
@@ -477,6 +481,18 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
 
 void ThrDeleteThread(thread_t *thr)
 {
+    asyncio_t *aio, *next;
+
+    for (aio = thr->aio_first; aio != NULL; aio = next)
+    {
+        next = aio->thread_next;
+        wprintf(L"ThrDeleteThread(%u): request %p (aio = %p) still queued\n",
+            thr->id, aio->req, aio);
+        DevCancelIo(aio);
+    }
+
+    ThrRemoveQueue(thr, &thr_apc);
+    ThrRemoveQueue(thr, &thr_sleeping);
     /*if (thr->queue)
         ThrRemoveQueue(thr, thr->queue);*/
     if (ThrFindInQueue(thr_priority + thr->priority, thr))
@@ -484,10 +500,14 @@ void ThrDeleteThread(thread_t *thr)
         TRACE0("ThrDeleteThread: dequeuing running thread\n");
         ThrPause(thr);
     }
-    
-    TRACE2("ThrDeleteThread: thread %u queued %u times\n",
+
+    /*
+     * xxx -- should be OK to ignore this since we have cancelled any pending
+     *  I/O on the thread
+     */
+    /*TRACE2("ThrDeleteThread: thread %u queued %u times\n",
         thr->id, thr->queued);
-    assert(thr->queued == 0);
+    assert(thr->queued == 0);*/
 
     if (thr_priority[thr->priority].first == NULL)
         thr_queue_ready &= ~(1 << thr->priority);

@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.15 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.16 2002/08/19 19:56:38 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -169,29 +169,29 @@ void HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr)
 
 handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 {
-	if (proc == NULL)
-		proc = current()->process;
+    if (proc == NULL)
+        proc = current()->process;
 
-	/*wprintf(L"HndDuplicate: handles = %p handle_count = %u\n", 
-		proc->handles, proc->handle_count);*/
+    /*wprintf(L"HndDuplicate: handles = %p handle_count = %u\n", 
+        proc->handles, proc->handle_count);*/
 
-	KeAtomicInc(&proc->handle_count);
-	if (proc->handle_count > proc->handle_allocated)
-	{
-		proc->handle_allocated += 16;
-		proc->handles = realloc(proc->handles, proc->handle_allocated * sizeof(void*));
-		if (proc->handles == NULL)
-		{
-			wprintf(L"handle_count = %u, handle_allocated = %u\n", 
-				proc->handle_count, proc->handle_allocated);
-			assert(proc->handles != NULL);
-		}
-	}
+    KeAtomicInc(&proc->handle_count);
+    if (proc->handle_count > proc->handle_allocated)
+    {
+        proc->handle_allocated += 16;
+        proc->handles = realloc(proc->handles, proc->handle_allocated * sizeof(void*));
+        if (proc->handles == NULL)
+        {
+            wprintf(L"handle_count = %u, handle_allocated = %u\n", 
+                proc->handle_count, proc->handle_allocated);
+               assert(proc->handles != NULL);
+           }
+    }
 
-	proc->handles[proc->handle_count - 1] = ptr;
-	KeAtomicInc((unsigned*) &ptr->copies);
+    proc->handles[proc->handle_count - 1] = ptr;
+    KeAtomicInc((unsigned*) &ptr->copies);
 
-	return proc->handle_count - 1;
+    return proc->handle_count - 1;
 }
 
 void HndSignalPtr(handle_hdr_t *ptr, bool sig)

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.19 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.20 2002/08/19 19:56:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -225,7 +225,7 @@ bool ProcFirstTimeInit(process_t *proc)
     {
         handle_hdr_t *ptr;
         memcpy(info, proc->info, sizeof(*info));
-        
+
         ptr = HndGetPtr(proc->creator, info->std_in, 0);
         if (ptr)
             info->std_in = HndDuplicate(proc, ptr);

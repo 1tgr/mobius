@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.21 2002/08/17 22:52:12 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.22 2002/08/19 19:56:39 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -20,6 +20,7 @@
 addr_t kernel_sbrk = 0xe0000000;
 unsigned con_x, con_y, con_width = 80, con_height = 25, con_top;
 uint16_t con_attribs = 0x0700;
+spinlock_t spin_puts;
 
 extern uint16_t dbg_combase;
 int putDebugChar(int ch);
@@ -34,6 +35,11 @@ void vga4ScrollUp(int pixels, unsigned y, unsigned height);
 extern uint8_t font8x8[];
 
 #ifdef MODE_TEXT
+
+/*
+ *  Text mode console
+ */
+
 #define VGA_AC_INDEX        0x3C0
 #define VGA_AC_WRITE        0x3C0
 #define VGA_AC_READ         0x3C1
@@ -51,17 +57,18 @@ extern uint8_t font8x8[];
 #define VGA_CRTC_DATA       0x3D5
 #define VGA_INSTAT_READ     0x3DA
 
-static const uint8_t modeK[62] = {
-// MISC reg,  STATUS reg,    SEQ regs
-   0x63,      0x00,          0x03,0x01,0x03,0x00,0x02,
-// CRTC regs
-0x5F,0x4F,0x50,0x82,0x55,0x81,0xBF,0x1F,0x00,0x47,0x0E,0x0F,0x00,0x00,0x00,
-0x00,0x9C,0x8E,0x8F,0x28,0x1F,0x96,0xB9,0xA3,0xFF,
-// GRAPHICS regs
-0x00,0x00,0x00,0x00,0x00,0x10,0x0E,0x00,0xFF,
-// ATTRIBUTE CONTROLLER regs
-0x00,0x01,0x02,0x03,0x04,0x05,0x14,0x07,0x10,0x11,0x3A,0x3B,0x3C,0x3D,0x3E,0x3F,
-0x0C,0x00,0x0F,0x00,0x00
+static const uint8_t modeK[62] =
+{
+    /* MISC reg,    STATUS reg,     SEQ regs */
+    0x63,           0x00,           0x03, 0x01, 0x03, 0x00, 0x02,
+    /* CRTC regs */
+    0x5F, 0x4F, 0x50, 0x82, 0x55, 0x81, 0xBF, 0x1F, 0x00, 0x47, 0x0E, 0x0F, 0x00, 0x00, 0x00, 
+    0x00, 0x9C, 0x8E, 0x8F, 0x28, 0x1F, 0x96, 0xB9, 0xA3, 0xFF, 
+    /* GRAPHICS regs */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0E, 0x00, 0xFF, 
+    /* ATTRIBUTE CONTROLLER regs */
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x14, 0x07, 0x10, 0x11, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 
+    0x0C, 0x00, 0x0F, 0x00, 0x00
 };
 
 static void TextWriteRegs(const uint8_t *regs)
@@ -220,6 +227,7 @@ int name(const ct *str, size_t count) \
 { \
     uint16_t *mem = (uint16_t*) PHYSICAL(0xb8000); \
 \
+    SpinAcquire(&spin_puts); \
     for (; *str && count > 0; count--, str++) \
     { \
         if (dbg_combase != 0) \
@@ -272,10 +280,15 @@ int name(const ct *str, size_t count) \
     } \
  \
     /*TextUpdateCursor();*/ \
+    SpinRelease(&spin_puts); \
     return 0; \
 }
 
 #else
+
+/*
+ *  Graphical console
+ */
 
 #include "../drivers/video/include/video.h"
 
@@ -307,12 +320,82 @@ static const rgb_t vga_palette[3 * 16] =
     { 255,  255,  255,  },
 };
 
+void TextUpdateProgress(int min, int progress, int max)
+{
+    unsigned x, y, top, bottom;
+
+    if (max == min)
+        x = 0;
+    else
+        x = (progress * 640) / (max - min);
+
+    top = (con_top + con_height - 1) * 8 + 2;
+    bottom = (con_top + con_height) * 8 - 2;
+    for (y = top; y < bottom; y++)
+    {
+        con_vga4->vidHLine(con_vga4, NULL, 2, x, y, 4);
+        con_vga4->vidHLine(con_vga4, NULL, x, 638, y, 7);
+    }
+}
+
+static wchar_t *con_buffer[4];
+static unsigned con_page;
+
+void TextWrite(unsigned page, unsigned row, unsigned col, const wchar_t *str, 
+               size_t length, uint16_t attribs)
+{
+    int x, y;
+
+    //assert(page < _countof(con_buffer));
+    if (con_buffer[page] == NULL)
+        con_buffer[page] = malloc(sizeof(wchar_t) * con_width * con_height);
+    //assert(con_buffer[page] != NULL);
+
+    memcpy(con_buffer[page] + row * con_width + col, str, 
+        length * sizeof(wchar_t));
+    if (page == con_page)
+    {
+        x = col * 8;
+        y = row * 8;
+        vga4TextOut(&x, &y, 256U, font8x8, 8, str, length, 
+            (attribs >> 0) & 0xf, (attribs >> 4) & 0xf);
+    }
+}
+
+void TextSetVisiblePage(unsigned page)
+{
+    unsigned row;
+    int x, y;
+
+    if (page != con_page)
+        con_page = page;
+
+    if (con_buffer[page] != NULL)
+    {
+        x = 0;
+        for (row = 0; row < con_height; row++)
+        {
+            y = (row + con_top) * 8;
+            vga4TextOut(&x, &y, 256U, font8x8, 8, 
+                con_buffer[page] + row * con_width,
+                con_width,
+                7, 0);
+        }
+    }
+}
+
+void TextSwitchToKernel(void)
+{
+    TextSetVisiblePage(0);
+}
+
 #define DEFINE_PUTS(name, ct) \
 int name(const ct *str, size_t count) \
 { \
-    int x, y; \
+    int y; \
     wchar_t temp[2] = { 0 }; \
 \
+    SpinAcquire(&spin_puts); \
     for (; *str && count > 0; count--, str++) \
     { \
         if (dbg_combase != 0) \
@@ -341,12 +424,8 @@ int name(const ct *str, size_t count) \
             break; \
 \
         default: \
-            x = con_x * 8; \
-            y = (con_y + con_top) * 8; \
-            temp[0] = (ct) *str; \
-            vga4TextOut(&x, &y, 256U, font8x8, 8, temp, 1, \
-                (con_attribs >>  8) & 0xf, \
-                (con_attribs >> 12) & 0xf); \
+            temp[0] = (wchar_t) *str; \
+            TextWrite(0, con_y + con_top, con_x, temp, 1, con_attribs >> 8); \
             KeAtomicInc(&con_x); \
         } \
 \
@@ -366,29 +445,8 @@ int name(const ct *str, size_t count) \
         } \
     } \
 \
+    SpinRelease(&spin_puts); \
     return 0; \
-}
-
-void TextSwitchToKernel(void)
-{
-}
-
-void TextUpdateProgress(int min, int progress, int max)
-{
-    unsigned x, y, top, bottom;
-
-    if (max == min)
-        x = 0;
-    else
-        x = (progress * 640) / (max - min);
-
-    top = (con_top + con_height - 1) * 8 + 2;
-    bottom = (con_top + con_height) * 8 - 2;
-    for (y = top; y < bottom; y++)
-    {
-        con_vga4->vidHLine(con_vga4, NULL, 2, x, y, 4);
-        con_vga4->vidHLine(con_vga4, NULL, x, 638, y, 7);
-    }
 }
 
 #endif
@@ -466,16 +524,6 @@ int *_geterrno()
     assert(current()->info != NULL);
     return &current()->info->status;
 }
-
-/*FILE *__get_stdin(void)
-{
-    return NULL;
-}
-
-FILE *__get_stdout(void)
-{
-    return NULL;
-}*/
 
 /*
  * Using the default libc stdin.c, stdout.c and stderr.c causes all kinds of 
@@ -556,6 +604,10 @@ int _cputws(const wchar_t *s, size_t count)
         return kernel_cputws(s, count);
 }
 
+#ifndef MODE_TEXT
+static wchar_t con_buffer0[80 * 25];
+#endif
+
 bool RtlInit(void)
 {
     unsigned i;
@@ -578,6 +630,7 @@ bool RtlInit(void)
     con_width = 80;
     con_height = 25;
     con_top = 35;
+    con_buffer[0] = con_buffer0;
 
     con_vga4 = vga4Init(NULL);
     con_vga4->vidSetMode(con_vga4, &video_mode);
