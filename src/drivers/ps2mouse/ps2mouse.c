@@ -130,7 +130,7 @@ void ps2StartIo(Ps2Mouse* ctx)
     int but, dx, dy, dw;
     asyncio_t *io, *next;
     mouse_packet_t* pkt;
-    
+
     /* Extract the data from the bytes read.
        From svgalib ms.c. */
     but = (ctx->data[0] & 0x04) >> 1 |    /* Middle */
@@ -254,6 +254,9 @@ void ps2AddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
     Ps2Mouse* ctx;
     const uint8_t* ch;
     uint8_t id;
+
+    if (cfg->device_class == 0)
+        cfg->device_class = 0x0902;
 
     ctx = malloc(sizeof(Ps2Mouse));
     memset(ctx, 0, sizeof(Ps2Mouse));

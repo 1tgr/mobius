@@ -1,4 +1,4 @@
-/* $Id: tty.cpp,v 1.14 2002/08/17 17:45:39 pavlovskii Exp $ */
+/* $Id: tty.cpp,v 1.15 2002/08/20 16:10:13 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
 
@@ -27,6 +27,7 @@ public:
 
     bool isr(uint8_t irq);
     void finishio(request_t *req);
+    bool cancelio(asyncio_t *io);
 
     tty();
     void switchTo();
@@ -429,6 +430,15 @@ bool tty::isr(uint8_t irq)
 
 void tty::finishio(request_t *req)
 {
+    /* TTY doesn't issue any requests to other devices */
+    assert(false && "Invalid call to tty::finishio");
+}
+
+bool tty::cancelio(asyncio_t *io)
+{
+    /* TTY doesn't queue any requests */
+    assert(false && "Invalid call to tty::cancelio");
+    return true;
 }
 
 bool tty::onWriteDirect(request_dev_t *req)

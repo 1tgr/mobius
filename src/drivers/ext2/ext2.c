@@ -1,4 +1,4 @@
-/* $Id: ext2.c,v 1.4 2002/08/17 17:37:08 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.5 2002/08/20 16:10:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -190,8 +190,8 @@ again:
 
     di = (ext2_dir_entry_t*) 
         (ptr + (pos & ((1 << (10 + ext2->super_block.s_log_block_size)) - 1)));
-    if (di->rec_len == 0 ||
-        di->name_len == 0)
+    if (di->rec_len == 0/* ||
+        di->name_len == 0*/)
     {
         MemDeletePageArray(array);
         return EEOF;
