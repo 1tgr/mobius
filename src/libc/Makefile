@@ -74,6 +74,8 @@ SYS=	sys/cputs.o sys/cputws.o sys/float_dx.o sys/fmode.o \
 	sys/morecore.o sys/towc.o sys/wdprintf.o sys/unicode.o \
 	sys/ucfile.o
 
+CRT0=	$(LIB)/crt0.o $(LIB)/wcrt0.o
+
 OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 	$(MALLOC) $(MATH) $(SETJMP) $(STDARG) \
 	$(STDIO) $(STDLIB) $(STRING) $(TIME) \
@@ -81,7 +83,13 @@ OBJS=	$(ASSERT) $(CTYPE) $(ERRNO) $(LOCALE) \
 
 include ../make.actions
 
-all:	$(BIN)/unicode.dat
+all:	$(BIN)/unicode.dat $(CRT0)
+
+$(LIB)/crt0.o:	crt0/crt0.c
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
+
+$(LIB)/wcrt0.o:	crt0/crt0.c
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include -DWIDE $(CFLAGS)
 
 $(BIN)/unicode.dat:	ctype/unicode.o
 	objcopy -O binary -j .data $< $@
