@@ -1,10 +1,17 @@
-$Id: changelog.txt,v 1.3 2002/08/19 20:02:11 pavlovskii Exp $
+$Id: changelog.txt,v 1.4 2002/08/29 14:03:47 pavlovskii Exp $
 
 Changelog for the Möbius Operating System
 =========================================
 
 SDK release 4, ??
 =================
+-- Fixed a bug in the DevCfgXXX functions; they were looking in the wrong
+	place for the resource array
+-- *Maybe* fixed a bug in APC delivery which was stopping pipes and ports 
+	working (i386Isr wasn't switching to the address space of the new
+	thread, which meant that the APC was running in the wrong process)
+-- Started a pipes implementation
+-- Tidied up the text output on the boot screen
 -- Added HELP, GO and KILL commands to kernel debugger
 -- Renamed semaphore_t, SemInit, SemAcquire and SemRelease to spinlock_t,
 	SpinInit, SpinAcquire and SpinRelease
@@ -14,6 +21,7 @@ SDK release 4, ??
 -- Added document describing the kernel debugger
 -- Implemented DevCancelIo, which allows the kernel to cancel pending I/O 
 	requests (e.g. when a thread exits)
+-- Brought sermouse driver up to date
 
 To do before the next kernel release
 ====================================

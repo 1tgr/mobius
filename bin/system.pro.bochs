@@ -1,4 +1,4 @@
-# $Id: system.pro.bochs,v 1.3 2002/08/21 12:05:54 pavlovskii Exp $
+# $Id: system.pro.bochs,v 1.4 2002/08/29 14:03:47 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
@@ -35,7 +35,7 @@ key Devices
     13=device,ne2000,ne2000
     14=mount,ext2,/ext2,classes/floppy0
 #    14=mount,ext2,/e2,ide0b
-#    14=device,video,video
+    15=device,video,video
 end
 
 key ISA

@@ -8,10 +8,7 @@
     <td><img border="0" src="images/banner1.jpg" alt="The M&ouml;bius" width="400" height="100"></td>
   </tr>
 </table>
-<p>Tim will be away for four weeks so he will be uncontactable until the middle of July.
-Please direct any questions to one of the other developers or project admins (listed on
-the <a href="http://sourceforge.net/projects/mobius/">SourceForge project page</a>).</p>
-<p>Read the <a href="documentation/?todo">Todo List</a> if you're interested in 
+<p>Read the <a href="documentation/">Todo List</a> if you're interested in 
 developing for The M&ouml;bius but don't know what to work on.</b>
 <p>The M&ouml;bius is an open-source operating system for the IA-32 platform (Intel
 i386 and compatibles).</p>

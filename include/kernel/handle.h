@@ -1,4 +1,4 @@
-/* $Id: handle.h,v 1.6 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: handle.h,v 1.7 2002/08/29 14:03:47 pavlovskii Exp $ */
 #ifndef __KERNEL_HANDLE_H
 #define __KERNEL_HANDLE_H
 
@@ -39,6 +39,7 @@ struct handle_hdr_t
 {
 	unsigned locks;
 	uint32_t tag;
+        uint32_t flags;
 	struct thread_t *locked_by;
 	uint32_t signals;
 	thread_queue_t waiting;
@@ -47,6 +48,8 @@ struct handle_hdr_t
 	uint32_t copies;
 	void (*free_callback)(void *);
 };
+
+#define HND_FLAG_INHERITABLE    1
 
 handle_t	_HndAlloc(struct process_t *proc, size_t size, uint32_t tag,
 					  const char *file, unsigned line);
@@ -66,6 +69,7 @@ void	_HndInit(handle_hdr_t *ptr, uint32_t tag, const char *file,
 #define	HndInit(ptr, tag)	_HndInit(ptr, tag, __FILE__, __LINE__)
 void	HndSignalPtr(handle_hdr_t *ptr, bool sig);
 void	HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr);
+void    HndInheritHandles(struct process_t *src, struct process_t *dest);
 
 handle_t	EvtAlloc(struct process_t *proc);
 void	EvtSignal(struct process_t *proc, handle_t evt);

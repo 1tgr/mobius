@@ -1,4 +1,4 @@
-# $Id: system.pro,v 1.7 2002/08/21 12:05:54 pavlovskii Exp $
+# $Id: system.pro,v 1.8 2002/08/29 14:03:47 pavlovskii Exp $
 
 key KernelDebug
     # Serial port to use for the kernel debugger
@@ -31,7 +31,7 @@ key Devices
     11=mount,ext2,/,classes/volume1
     12=mount,devfs,/System/Devices,
     13=mount,ramfs,/System/Boot,
-    14=mount,ext2,/mnb,classes/volume2
+    14=mount,ext2,/mnt,classes/volume2
     15=device,pci,pci
 #    14=mount,fat,/Linux/mnt,classes/volume0
 #    13=mount,ext2,/,classes/volume1
@@ -112,6 +112,5 @@ key Network
 end
 
 # Program to use as the OS shell
-#Shell=/System/Boot/desktop.exe
-Shell=/Mobius/shell.exe
+Shell=/System/Boot/shell.exe
 LibrarySearchPath=/System/Boot,/Mobius,.

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.19 2002/08/19 20:00:55 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.20 2002/08/29 14:03:47 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -10,6 +10,7 @@ extern "C"
 #include <sys/types.h>
 #include <kernel/handle.h>
 #include <os/device.h>
+#include <os/comdef.h>
 #include <kernel/memory.h>
 #include <kernel/io.h>
 
@@ -342,8 +343,6 @@ struct device_config_t
     } location;
 };
 
-#define DEV_CFG_RESOURCES(cfg)    ((device_resource_t*) ((cfg) + 1))
-
 struct fsd_t;
 
 typedef struct driver_t driver_t;
@@ -357,6 +356,7 @@ struct driver_t
 {
     struct module_t *mod;
     driver_t *prev, *next;
+    wchar_t *profile_key;
 
     /*!
      *    \brief    Called when a device supported by the driver is added
@@ -409,22 +409,6 @@ struct device_vtbl_t
 #define DEVICE_IO_PAGED     0
 #define DEVICE_IO_DIRECT    1
 
-#ifndef __cominterface
-#ifdef _MSC_VER
-#define __cominterface
-#else
-#define __cominterface  __attribute__((com_interface))
-#endif
-#endif
-
-#ifndef __comcall
-#ifdef _MSC_VER
-#define __comcall       __cdecl
-#else
-#define __comcall
-#endif
-#endif
-
 #ifdef __cplusplus
 /*!    \brief    Device object (C++ definition) */
 struct __cominterface device_t
@@ -438,7 +422,7 @@ struct __cominterface device_t
     device_config_t *cfg;
     asyncio_t *io_first, *io_last;
     struct device_info_t *info;
-    uint32_t flags;
+    uint32_t flags;   
 };
 #else
 /*!    \brief    Device object (C definition) */
@@ -461,8 +445,9 @@ struct irq_t
 };
 
 /* Kernel device driver helper routines */
-driver_t *  DevInstallNewDriver(const wchar_t *name);
-bool        DevInstallDevice(const wchar_t *driver, const wchar_t *name, device_config_t *cfg);
+driver_t *  DevInstallNewDriver(const wchar_t *name, const wchar_t *profile_key);
+bool        DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
+                             device_config_t *cfg, const wchar_t *profile_key);
 void	    DevUnloadDriver(driver_t *driver);
 
 bool	    DevRegisterIrq(uint8_t irq, device_t *dev);

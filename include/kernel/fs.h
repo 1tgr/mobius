@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.11 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.12 2002/08/29 14:03:47 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -11,6 +11,7 @@ extern "C"
 
 /* Normal FS functions are defined in <os/syscall.h> */
 #include <os/syscall.h>
+#include <os/comdef.h>
 
 #include <kernel/driver.h>
 #include <kernel/handle.h>
@@ -80,102 +81,42 @@ struct vnode_t
 #define VNODE_NONE  0
 #define VNODE_ROOT  1
 
-#ifndef __cominterface
-#ifdef _MSC_VER
-#define __cominterface
-#else
-#define __cominterface __attribute__((com_interface))
-#endif
-#endif
-
-#ifndef __comcall
-#ifdef _MSC_VER
-#define __comcall       __cdecl
-#else
-#define __comcall
-#endif
-#endif
-
-#ifdef __cplusplus
-
-struct __cominterface fsd_t
+#undef __interface_name
+#define __interface_name        fsd_t
+INTERFACE(fsd_t)
 {
-    virtual void __comcall dismount() = 0;
-	virtual void __comcall get_fs_info(fs_info_t *info) = 0;
+    METHOD(void, dismount)(THIS) PURE;
+    METHOD(void, get_fs_info)(THIS_ fs_info_t *info) PURE;
 
-	virtual status_t __comcall parse_element(const wchar_t *name, 
-        wchar_t **new_path, vnode_t *node) = 0;
-	virtual status_t __comcall create_file(vnode_id_t dir, 
-        const wchar_t *name, void **cookie) = 0;
-	virtual status_t __comcall lookup_file(vnode_id_t node, void **cookie) = 0;
-	virtual status_t __comcall get_file_info(void *cookie, uint32_t type, 
-        void *buf) = 0;
-	virtual status_t __comcall set_file_info(void *cookie, uint32_t type, 
-        const void *buf) = 0;
-	virtual void __comcall free_cookie(void *cookie) = 0;
+    METHOD(status_t, parse_element)(THIS_ const wchar_t *name, 
+        wchar_t **new_path, vnode_t *node) PURE;
+    METHOD(status_t, create_file)(THIS_ vnode_id_t dir, const wchar_t *name, 
+        void **cookie) PURE;
+    METHOD(status_t, lookup_file)(THIS_ vnode_id_t node, void **cookie) PURE;
+    METHOD(status_t, get_file_info)(THIS_ void *cookie, uint32_t type, 
+        void *buf) PURE;
+    METHOD(status_t, set_file_info)(THIS_ void *cookie, uint32_t type, 
+        const void *buf) PURE;
+    METHOD(void, free_cookie)(THIS_ void *cookie) PURE;
 
-	virtual bool __comcall read_file(file_t *file, page_array_t *pages, 
-        size_t length, fs_asyncio_t *io) = 0;
-	virtual bool __comcall write_file(file_t *file, page_array_t *pages, 
-        size_t length, fs_asyncio_t *io) = 0;
-	virtual bool __comcall ioctl_file(file_t *file, uint32_t code, void *buf, 
-        size_t length, fs_asyncio_t *io) = 0;
-	virtual bool __comcall passthrough(file_t *file, uint32_t code, void *buf, 
-        size_t length, fs_asyncio_t *io) = 0;
+    METHOD(bool, read_file)(THIS_ file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io) PURE;
+    METHOD(bool, write_file)(THIS_ file_t *file, page_array_t *pages, 
+        size_t length, fs_asyncio_t *io) PURE;
+    METHOD(bool, ioctl_file)(THIS_ file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io) PURE;
+    METHOD(bool, passthrough)(THIS_ file_t *file, uint32_t code, void *buf, 
+        size_t length, fs_asyncio_t *io) PURE;
 
-    virtual status_t __comcall mkdir(vnode_id_t dir, const wchar_t *name, void **dir_cookie) = 0;
-	virtual status_t __comcall opendir(vnode_id_t node, void **dir_cookie) = 0;
-	virtual status_t __comcall readdir(void *dir_cookie, dirent_t *buf) = 0;
-	virtual void __comcall free_dir_cookie(void *dir_cookie) = 0;
+    METHOD(status_t, mkdir)(THIS_ vnode_id_t dir, const wchar_t *name, 
+        void **dir_cookie) PURE;
+    METHOD(status_t, opendir)(THIS_ vnode_id_t node, void **dir_cookie) PURE;
+    METHOD(status_t, readdir)(THIS_ void *dir_cookie, dirent_t *buf) PURE;
+    METHOD(void, free_dir_cookie)(THIS_ void *dir_cookie) PURE;
 
-	virtual void __comcall finishio(request_t *req) = 0;
-	virtual void __comcall flush_cache(file_t *fd) = 0;
+    METHOD(void, finishio)(THIS_ request_t *req) PURE;
+    METHOD(void, flush_cache)(THIS_ file_t *fd) PURE;
 };
-
-#else
-
-typedef struct fsd_t fsd_t;
-struct fsd_t
-{
-    const struct fsd_vtbl_t *vtbl;
-};
-
-typedef struct fsd_vtbl_t fsd_vtbl_t;
-struct fsd_vtbl_t
-{
-    void (*dismount)(fsd_t *fsd);
-	void (*get_fs_info)(fsd_t *fsd, fs_info_t *info);
-
-	status_t (*parse_element)(fsd_t *fsd, const wchar_t *name, 
-        wchar_t **new_path, vnode_t *node);
-	status_t (*create_file)(fsd_t *fsd, vnode_id_t dir, 
-        const wchar_t *name, void **cookie);
-	status_t (*lookup_file)(fsd_t *fsd, vnode_id_t node, void **cookie);
-	status_t (*get_file_info)(fsd_t *fsd, void *cookie, uint32_t type, 
-        void *buf);
-	status_t (*set_file_info)(fsd_t *fsd, void *cookie, uint32_t type, 
-        const void *buf);
-	void (*free_cookie)(fsd_t *fsd, void *cookie);
-
-	bool (*read_file)(fsd_t *fsd, file_t *file, page_array_t *pages, 
-        size_t length, fs_asyncio_t *io);
-	bool (*write_file)(fsd_t *fsd, file_t *file, page_array_t *pages, 
-        size_t length, fs_asyncio_t *io);
-	bool (*ioctl_file)(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
-        size_t length, fs_asyncio_t *io);
-	bool (*passthrough)(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
-        size_t length, fs_asyncio_t *io);
-
-    status_t (*mkdir)(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **dir_cookie);
-	status_t (*opendir)(fsd_t *fsd, vnode_id_t node, void **dir_cookie);
-	status_t (*readdir)(fsd_t *fsd, void *dir_cookie, dirent_t *buf);
-	void (*free_dir_cookie)(fsd_t *fsd, void *dir_cookie);
-
-	void (*finishio)(fsd_t *fsd, request_t *req);
-	void (*flush_cache)(fsd_t *fsd, file_t *fd);
-};
-
-#endif
 
 typedef union dirent_all_t dirent_all_t;
 union dirent_all_t

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.17 2002/08/21 12:09:38 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.18 2002/08/29 14:03:47 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -66,6 +66,7 @@
 #define SYS_FsChangeDir         0x40d
 #define SYS_FsMount             0x40e
 #define SYS_FsDismount          0x40f
+#define SYS_FsCreatePipe        0x410
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
@@ -77,6 +78,7 @@
 #define SYS_HndClose            0x601
 #define SYS_EvtSignal           0x602
 #define SYS_EvtIsSignalled      0x603
+#define SYS_HndSetInheritable   0x604
 
 #define SYS_WndCreate           0x700
 #define SYS_WndClose            0x701
@@ -147,6 +149,7 @@ SYSCALL(bool, FsCreateDir, 4, (const wchar_t*))
 SYSCALL(bool, FsChangeDir, 4, (const wchar_t*))
 SYSCALL(bool, FsMount, 12, (const wchar_t *, const wchar_t *, const wchar_t *))
 SYSCALL(bool, FsDismount, 4, (const wchar_t *))
+SYSCALL(bool, FsCreatePipe, 4, (handle_t *))
 SYS_END_GROUP(4)
 
 /* 5 */
@@ -164,6 +167,7 @@ SYSCALL(handle_t, EvtAlloc, 0, (void))
 SYSCALL(bool, HndClose, 4, (handle_t))
 SYSCALL(void, EvtSignal, 4, (handle_t))
 SYSCALL(bool, EvtIsSignalled, 4, (handle_t))
+SYSCALL(bool, HndSetInheritable, 8, (handle_t, bool))
 SYS_END_GROUP(6)
 
 /* 7 */

@@ -47,4 +47,9 @@
       12</b></a>: Just showing off the FreeType text renderer. This has been
       working for a while; it's only now that I've got a screenshot of it.
   </tr>
+  <tr>
+    <td><a href="images/screen13.png"><img border="0"
+      src="images/screen13_small.png" align="left" width="100" height="83"><b>Screenshot
+      13</b></a>: More graphical kernel malarkey.
+  </tr>
 </table>
