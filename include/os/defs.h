@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.5 2002/02/25 18:41:58 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -37,6 +37,12 @@
 #define FILE_READ	1
 /*! Allows a file to be written to */
 #define FILE_WRITE	2
+
+/* Flags for FsQueryFile() */
+/*! Tests for the file's presence; does not return any other information */
+#define FILE_QUERY_NONE		0
+/*! Returns \p dirent_t information for the file */
+#define FILE_QUERY_STANDARD	1
 
 typedef struct process_info_t process_info_t;
 /*!	\brief	User-mode process information structure */
@@ -105,9 +111,7 @@ struct fileop_t
 #define FILE_ATTR_LINK			0x2000
 
 typedef struct dirent_t dirent_t;
-/*!
- *	\brief	Contains information on an entry in a directory
- */
+/*! \brief	Contains information on an entry in a directory */
 struct dirent_t
 {
 	wchar_t name[256];
@@ -127,6 +131,26 @@ struct dirent_t
 #define RT_ACCELERATOR      9
 #define RT_RCDATA           10
 #define RT_MESSAGETABLE     11
+
+typedef struct sysinfo_t sysinfo_t;
+/*! \brief	Information structure for \p SysGetInfo() */
+struct sysinfo_t
+{
+	size_t page_size;
+	size_t pages_total;
+	size_t pages_free;
+	size_t pages_physical;
+	size_t pages_kernel;
+};
+
+typedef struct systimes_t systimes_t;
+/*! \brief	Information structure for \p SysGetTimes() */
+struct systimes_t
+{
+	unsigned quantum;
+	unsigned uptime;
+	unsigned current_cputime;
+};
 
 /*! @} */
 

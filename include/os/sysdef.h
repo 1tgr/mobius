@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.5 2002/02/25 01:28:12 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.6 2002/02/25 18:41:58 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -27,6 +27,8 @@
 #define SYS_DbgWrite			0x100
 #define SYS_Hello				0x101
 #define SYS_SysUpTime			0x102
+#define SYS_SysGetInfo			0x103
+#define SYS_SysGetTimes			0x104
 
 #define SYS_ThrExitThread		0x200
 #define SYS_ThrWaitHandle		0x201
@@ -43,6 +45,7 @@
 #define SYS_FsSeek				0x405
 /*#define SYS_FsRequestSync		0x406*/
 #define SYS_FsOpenSearch		0x406
+#define SYS_FsQueryFile			0x407
 
 #define SYS_VmmAlloc			0x500
 
@@ -60,6 +63,8 @@ SYS_BEGIN_GROUP(1)
 SYSCALL(int, DbgWrite, 8, const wchar_t*, size_t)
 SYSCALL(int, Hello, 8, int, int)
 SYSCALL(unsigned, SysUpTime, 0, void)
+SYSCALL(bool, SysGetInfo, 4, struct sysinfo_t *)
+SYSCALL(bool, SysGetTimes, 4, struct systimes_t *)
 SYS_END_GROUP(1)
 
 /* 2 */
@@ -85,6 +90,7 @@ SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
 SYSCALL(addr_t, FsSeek, 8, handle_t, addr_t)
 /*SYSCALL(bool, FsRequestSync, 8, handle_t, struct request_t*)*/
 SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
+SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)
 SYS_END_GROUP(4)
 
 /* 5 */

@@ -1,11 +1,12 @@
-/* $Id: errno.c,v 1.3 2002/02/24 19:13:30 pavlovskii Exp $ */
+/* $Id: errno.c,v 1.4 2002/02/25 18:42:09 pavlovskii Exp $ */
 
 /* Copyright (C) 1994 DJ Delorie, see COPYING.DJ for details */
 #include <errno.h>
+#include <os/rtl.h>
 
-static int _errno;
+/*static int _errno;*/
 
 int *_geterrno()
 {
-	return &_errno;
+	return &ThrGetThreadInfo()->status;
 }

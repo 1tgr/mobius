@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.13 2002/02/22 15:31:20 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.14 2002/02/25 18:41:59 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -206,6 +206,54 @@ static bool VfsRequest(device_t *dev, request_t *req)
 
 		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 		return true;
+		
+	case FS_QUERYFILE:
+		if (req_fs->params.fs_queryfile.name[0] == '/')
+			req_fs->params.fs_queryfile.name++;
+
+		ch = wcschr(req_fs->params.fs_queryfile.name, '/');
+		if (ch == NULL)
+			len = wcslen(req_fs->params.fs_queryfile.name);
+		else
+			len = ch - req_fs->params.fs_queryfile.name;
+
+		FOREACH (mount, dir->vfs_mount)
+			if (_wcsnicmp(mount->name, req_fs->params.fs_queryfile.name, len) == 0)
+			{
+				req_fs->params.fs_queryfile.name += len;
+				if (*req_fs->params.fs_queryfile.name == '\0' ||
+					wcscmp(req_fs->params.fs_queryfile.name, L"/") == 0)
+				{
+					switch (req_fs->params.fs_queryfile.query_class)
+					{
+					case FILE_QUERY_NONE:
+						return true;
+
+					case FILE_QUERY_STANDARD:
+						if (req_fs->params.fs_queryfile.buffer_size < sizeof(dirent_t))
+						{
+							req->result = EBUFFER;
+							return false;
+						}
+
+						buf = (dirent_t*) req_fs->params.fs_queryfile.buffer;
+						wcscpy(buf->name, mount->name);
+						buf->length = 0;
+						buf->standard_attributes = FILE_ATTR_DIRECTORY;
+						return true;
+
+					default:
+						req->result = ENOTIMPL;
+						return false;
+					}
+				}
+				else
+					return mount->fsd->vtbl->request(mount->fsd, req);
+			}
+		
+		wprintf(L"%s: not found in root\n", req_fs->params.fs_queryfile.name);
+		req->result = ENOTFOUND;
+		return false;
 	}
 
 	req->result = ENOTIMPL;
@@ -595,6 +643,28 @@ bool FsRequestSync(handle_t file, request_t *req)
 	wprintf(L"FsRequestSync(%u): %p:%p at %S(%d)\n",
 		file, fd, fd->fsd, ptr->file, ptr->line);*/
 	return IoRequestSync(fsd, req);
+}
+
+bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t buffer_size)
+{
+	request_fs_t req;
+	wchar_t fullname[256];
+
+	if (!FsFullPath(name, fullname))
+		return NULL;
+
+	req.header.code = FS_QUERYFILE;
+	req.params.fs_queryfile.name = fullname;
+	req.params.fs_queryfile.buffer_size = buffer_size;
+	req.params.fs_queryfile.buffer = buffer;
+	req.params.fs_queryfile.query_class = query_class;
+	if (IoRequestSync(root, (request_t*) &req))
+		return true;
+	else
+	{
+		errno = req.header.result;
+		return false;
+	}
 }
 
 static bool FsMountDevice(const wchar_t *path, device_t *dev)

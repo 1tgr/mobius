@@ -1,4 +1,4 @@
-/* $Id: shell.rc,v 1.3 2002/02/25 01:28:14 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.4 2002/02/25 18:42:09 pavlovskii Exp $ */
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -11,8 +11,27 @@ BEGIN
     7                       "Writes the string ""Hello, world!"" to a file or device"
     8                       "Displays the contents of a file as hex"
     9                       "Executes a program"
-    10                      "Executes a program on a different console\nOptions: +in=file      Use file for standard input\n         +out=file     Use file for standard output\n         +wait         Wait for the program to finish before continuing"
+    10                      "Executes a program on a different console\nOptions: \\in=file      Use file for standard input\n         \\out=file     Use file for standard output\n         \\wait         Wait for the program to finish before continuing"
     11                      "Demonstrates the shell's parser"
+    12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
+
+    1024                    "No error"
+    1025                    "Domain error"
+    1026                    "Invalid multibyte sequence"
+    1027                    "Range error"
+    1028                    "Command not implemented"
+    1029                    "Invalid buffer"
+    1030                    "File not found"
+    1031                    "Invalid operation"
+    1032                    "Too many open files"
+    1033                    "Out of memory"
+    1034                    "Invalid handle"
+    1035                    "Hardware fault"
+    1036                    "Access denied"
+    1037                    "End of file"
+    1038                    "Argument list too long"
+    1039                    "Not a directory"
+
     4096                    "The Möbius: command-line shell\n"
 END
 
@@ -29,15 +48,15 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "Command-line shell\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "shell\0"
-            VALUE "LegalCopyright", "Copyright © 2002\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "shell.exe\0"
-            VALUE "ProductName", "The Möbius Operating System\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "CompanyName", "\\0"
+            VALUE "FileDescription", "Command-line shell\\0"
+            VALUE "FileVersion", "1, 0, 0, 1\\0"
+            VALUE "InternalName", "shell\\0"
+            VALUE "LegalCopyright", "Copyright © 2002\\0"
+            VALUE "LegalTrademarks", "\\0"
+            VALUE "OriginalFilename", "shell.exe\\0"
+            VALUE "ProductName", "The Möbius Operating System\\0"
+            VALUE "ProductVersion", "1, 0, 0, 1\\0"
         END
     END
     BLOCK "VarFileInfo"

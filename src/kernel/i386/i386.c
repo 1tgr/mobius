@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.15 2002/02/25 01:28:14 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.16 2002/02/25 18:42:09 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -124,6 +124,7 @@ uint32_t i386Isr(context_t ctx)
 		if (ctx.intr == 0)
 		{
 			sc_uptime += SCHED_QUANTUM;
+			current->cputime += SCHED_QUANTUM;
 			ScNeedSchedule(true);
 		}
 		

@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.7 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.8 2002/02/25 18:41:58 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -51,6 +51,7 @@ struct thread_t
 	unsigned id;
 	unsigned sleep_end;
 	thread_apc_t *apc_first, *apc_last;
+	unsigned cputime;
 };
 
 extern thread_t *thr_first, *thr_last, *current;

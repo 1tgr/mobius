@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.10 2002/02/24 19:13:29 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.11 2002/02/25 18:42:09 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -322,11 +322,18 @@ bool MemInit(void)
 	/* Page address stack goes after the bss */
 	/*pages = (addr_t*) ebss;*/
 	pages = DEMANGLE_PTR(addr_t*, 0x5000);
-	memset(pages, 0, num_pages * sizeof(addr_t));
-	
+	/*memset(pages, 0, num_pages * sizeof(addr_t));*/
+		
 	/* Page lock counts go after the stack */
 	locked_pages = (uint8_t*) (pages + num_pages);
-	memset(locked_pages, 0, num_pages);
+
+	/* xxx - why does memset not work here? */
+	/*memset(locked_pages, 0, num_pages);*/
+	for (i = 0; i < num_pages; i++)
+	{
+		pages[i] = 0;
+		locked_pages[i] = 0;
+	}
 	
 	pool_all.num_pages = num_pages - NUM_LOW_PAGES;
 	pool_all.pages = pages + NUM_LOW_PAGES;
@@ -368,9 +375,12 @@ bool MemInit(void)
 		}
 	}*/
 
-	for (i = LOW_MEMORY / PAGE_SIZE; i < num_pages; i++)
+	for (i = NUM_LOW_PAGES; i < num_pages; i++)
 		if (locked_pages[i] == 0)
 			MemFreePool(&pool_all, i * PAGE_SIZE);
+
+	pool_low.num_pages = pool_low.free_pages;
+	pool_all.num_pages = pool_all.free_pages;
 	
 	/*
 	 * Allocate one page table and patch the entries in the page directory:

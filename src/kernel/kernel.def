@@ -45,6 +45,7 @@ EXPORTS
 	FsMount
 	FsOpen
 	FsOpenSearch
+	FsQueryFile
 	FsRead
 	FsReadSync
 	FsRequestSync
@@ -98,6 +99,8 @@ EXPORTS
 	SemAcquire
 	SemInit
 	SemRelease
+	SysGetInfo
+	SysGetTimes
 	SysThrSleep
 	SysThrWaitHandle
 	SysUpTime

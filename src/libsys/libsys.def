@@ -1,6 +1,8 @@
 EXPORTS
 	DbgWrite
 	Hello
+	SysGetInfo
+	SysGetTimes
 	SysUpTime
 	ThrExitThread
 	ThrGetThreadInfo
@@ -20,6 +22,7 @@ EXPORTS
 	FsOpen
 	FsOpenSearch
 	FsClose
+	FsQueryFile
 	FsRead
 	FsWrite
 	FsSeek

@@ -1,8 +1,9 @@
-/* $Id: syscall.c,v 1.6 2002/02/24 19:13:29 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.7 2002/02/25 18:42:09 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
 #include <kernel/arch.h>
+#include <kernel/memory.h>
 
 #include <os/syscall.h>
 
@@ -54,6 +55,24 @@ bool SysThrWaitHandle(handle_t hnd)
 void SysThrSleep(unsigned ms)
 {
 	ThrSleep(current, ms);
+}
+
+bool SysGetInfo(sysinfo_t *info)
+{
+	info->page_size = PAGE_SIZE;
+	info->pages_total = pool_all.num_pages + pool_low.num_pages;
+	info->pages_free = pool_all.free_pages + pool_low.free_pages;
+	info->pages_physical = PAGE_ALIGN_UP(kernel_startup.memory_size) / PAGE_SIZE;
+	info->pages_kernel = PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE;
+	return true;
+}
+
+bool SysGetTimes(systimes_t *times)
+{
+	times->quantum = SCHED_QUANTUM;
+	times->uptime = sc_uptime;
+	times->current_cputime = current->cputime;
+	return true;
 }
 
 /*

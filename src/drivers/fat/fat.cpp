@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.7 2002/02/25 01:28:12 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.8 2002/02/25 18:41:58 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -10,7 +10,7 @@
 
 #include <kernel/device>
 
-#define DEBUG
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <errno.h>
@@ -58,6 +58,7 @@ protected:
 	void		StartIo(asyncio_t *io);
 	bool		ReadDir(FatDirectory *dir, request_fs_t *req_fs);
 	bool		ReadWriteFile(FatFile *file, request_fs_t *req_fs);
+	bool		QueryFile(request_fs_t *req_fs);
 
 	static unsigned AssembleName(fat_dirent_t *entries, wchar_t *name);
 	size_t SizeOfDir(const fat_dirent_t *di);
@@ -701,6 +702,44 @@ bool Fat::ReadWriteFile(FatFile *file, request_fs_t *req_fs)
 	return true;
 }
 
+bool Fat::QueryFile(request_fs_t *req_fs)
+{
+	wchar_t *path;
+	dirent_t *buf;
+	fat_dirent_t di;
+
+	path = _wcsdup(req_fs->params.fs_queryfile.name);
+	if (!LookupFile(m_root, path + 1, &di))
+	{
+		req_fs->header.code = ENOTFOUND;
+		return false;
+	}
+
+	free(path);
+
+	switch (req_fs->params.fs_queryfile.query_class)
+	{
+	case FILE_QUERY_NONE:
+		return true;
+
+	case FILE_QUERY_STANDARD:
+		if (req_fs->params.fs_queryfile.buffer_size < sizeof(dirent_t))
+		{
+			req_fs->header.code = EBUFFER;
+			return false;
+		}
+
+		buf = (dirent_t*) req_fs->params.fs_queryfile.buffer;
+		/* xxx - need to do something about this */
+		AssembleName(&di, buf->name);
+		buf->length = di.file_length;
+		buf->standard_attributes = di.attribs;
+		return true;
+	}
+	
+	return true;
+}
+
 bool Fat::request(request_t *req)
 {
 	request_fs_t *req_fs;
@@ -727,6 +766,9 @@ bool Fat::request(request_t *req)
 			req_fs->params.fs_open.flags);
 		return req_fs->params.fs_open.file == NULL ? false : true;
 
+	case FS_QUERYFILE:
+		return QueryFile(req_fs);
+
 	case FS_OPENSEARCH:
 		path = _wcsdup(req_fs->params.fs_opensearch.name);
 		wildcard = wcsrchr(path + 1, '/');
@@ -734,7 +776,7 @@ bool Fat::request(request_t *req)
 		{
 			*wildcard = '\0';
 			wildcard++;
-			wprintf(L"fat: open search: path = %s, wildcard = %s\n",
+			TRACE2("fat: open search: path = %s, wildcard = %s\n",
 				path + 1, wildcard);
 			if (!LookupFile(m_root, path + 1, &di))
 			{
@@ -750,10 +792,10 @@ bool Fat::request(request_t *req)
 			/*root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);*/
 			di.file_length = m_root->num_entries * sizeof(fat_dirent_t);
 			di.first_cluster = FAT_CLUSTER_ROOT;
-			wprintf(L"fat: opening search for root directory\n");
+			TRACE0("fat: opening search for root directory\n");
 		}
 
-		wprintf(L"fat: opening search %s at cluster %u\n", path, di.first_cluster);
+		TRACE2("fat: opening search %s at cluster %u\n", path, di.first_cluster);
 		free(path);
 
 		req_fs->params.fs_opensearch.file = HndAlloc(NULL, SizeOfDir(&di), 'file');

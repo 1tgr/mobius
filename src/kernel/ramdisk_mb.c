@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.1 2002/02/24 19:14:55 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.2 2002/02/25 18:42:09 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -208,10 +208,10 @@ bool RdInit(void)
 	multiboot_module_t *mods;
 	wprintf(L"ramdisk: number of modules = %u\n",
 		kernel_startup.multiboot_info->mods_count);
-	mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+	/*mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
 	for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
 		wprintf(L"module %u: %S: %x=>%x\n", i, PHYSICAL(mods[i].string), 
-			mods[i].mod_start, mods[i].mod_end);
+			mods[i].mod_start, mods[i].mod_end);*/
 	/*halt(0);*/
 	return true;
 }

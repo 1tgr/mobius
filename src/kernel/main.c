@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.10 2002/02/25 01:28:14 pavlovskii Exp $ */
+/* $Id: main.c,v 1.11 2002/02/25 18:42:09 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -55,7 +55,6 @@ void KernelMain(void)
 	DevInstallDevice(L"tty", L"tty4", NULL);
 	DevInstallDevice(L"tty", L"tty5", NULL);
 	DevInstallDevice(L"tty", L"tty6", NULL);
-	DevInstallDevice(L"tty", L"tty7", NULL);
 	DevInstallDevice(L"cmos", L"cmos", NULL);
 	
 	dev = IoOpenDevice(L"fdc0");

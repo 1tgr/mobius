@@ -1,4 +1,4 @@
-/* $Id: syscall.h,v 1.4 2002/02/25 01:28:12 pavlovskii Exp $ */
+/* $Id: syscall.h,v 1.5 2002/02/25 18:41:58 pavlovskii Exp $ */
 #ifndef __OS_SYSCALL_H
 #define __OS_SYSCALL_H
 
@@ -13,6 +13,8 @@ extern "C"
 
 struct fileop_t;
 struct process_info_t;
+struct sysinfo_t;
+struct systimes_t;
 
 #include <os/sysdef.h>
 
