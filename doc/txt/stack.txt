@@ -1,0 +1,15 @@
+=== high address ===
+	param2
+	param1
+	param0
+	rtn		<- esp on entry
++->	old ebp2<- esp after prologue, old ebp
+|	local0
+|	local1
+|	local2
+|	bparam1
+|	bparam0
+|	rtn
++--	old ebp	<- current ebp
+	local0
+=== low address ===
