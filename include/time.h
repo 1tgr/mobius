@@ -1,4 +1,4 @@
-/* $Id: time.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: time.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -16,21 +16,12 @@ extern "C" {
    floating point ops aren't required to use it. */
 #define CLOCKS_PER_SEC	91
 
-#include <sys/djtypes.h>
+#include <sys/types.h>
   
 /* Some programs think they know better... */
 #undef NULL
 
 #define NULL 0
-__DJ_clock_t
-#undef __DJ_clock_t
-#define __DJ_clock_t
-__DJ_size_t
-#undef __DJ_size_t
-#define __DJ_size_t
-__DJ_time_t
-#undef __DJ_time_t
-#define __DJ_time_t
 
 struct tm {
   int tm_sec;
@@ -45,6 +36,8 @@ struct tm {
   char *__tm_zone;
   int __tm_gmtoff;
 };
+
+typedef uint64_t clock_t;
 
 char *		asctime(const struct tm *_tptr);
 clock_t		clock(void);
@@ -86,7 +79,6 @@ typedef long long uclock_t;
 
 int		gettimeofday(struct timeval *_tp, struct timezone *_tzp);
 unsigned long	rawclock(void);
-int		select(int _nfds, fd_set *_readfds, fd_set *_writefds, fd_set *_exceptfds, struct timeval *_timeout);
 int		settimeofday(struct timeval *_tp, ...);
 void		tzsetwall(void);
 uclock_t	uclock(void);

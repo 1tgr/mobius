@@ -1,4 +1,4 @@
-/* $Id: errno.h,v 1.6 2002/02/25 18:41:58 pavlovskii Exp $ */
+/* $Id: errno.h,v 1.7 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_errno_h_
@@ -28,6 +28,7 @@ int *_geterrno(void);
 #define EEOF		13
 #define E2BIG		14
 #define ENOTADIR	15
+#define EFAULT		16
 
 #define EACCES		EACCESS
 #define EINVAL		EINVALID

@@ -1,4 +1,4 @@
-/* $Id: stdlib.h,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: stdlib.h,v 1.6 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -30,6 +30,11 @@ typedef struct {
   long quot;
   long rem;
 } ldiv_t;
+
+typedef struct {
+  long long quot;
+  long long rem;
+} lldiv_t;
 
 #include <sys/types.h>
 

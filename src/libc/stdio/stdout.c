@@ -13,7 +13,7 @@ FILE __dj_stdout = {
 
 FILE *__get_stdout(void)
 {
-	if (__dj_stdout._file == 0)
-		__dj_stdout._file = ProcGetProcessInfo()->std_out;
-	return &__dj_stdout;
+    if (__dj_stdout._file == 0)
+	__dj_stdout._file = ProcGetProcessInfo()->std_out;
+    return &__dj_stdout;
 }

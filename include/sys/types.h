@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: types.h,v 1.5 2002/03/04 18:56:08 pavlovskii Exp $ */
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 
@@ -27,7 +27,11 @@ typedef unsigned long long uint64_t;
 
 typedef uint32_t addr_t;
 typedef unsigned int size_t;
+typedef int ssize_t;
 typedef long ptrdiff_t;
+
+typedef addr_t off_t;
+typedef uint64_t time_t;
 
 #ifndef __cplusplus
 typedef unsigned short wchar_t;

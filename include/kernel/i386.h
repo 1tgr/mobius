@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.8 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.9 2002/03/04 18:56:07 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -150,6 +150,8 @@ struct descriptor_int_t
 
 typedef struct descriptor_int_t descriptor_int_t;
 
+#ifndef __CONTEXT_DEFINED
+#define __CONTEXT_DEFINED
 typedef struct pusha_t pusha_t;
 struct pusha_t
 {
@@ -173,6 +175,21 @@ struct context_t
 	uint32_t intr, error;
 	uint32_t eip, cs, eflags, esp, ss;
 };
+
+typedef struct context_v86_t context_v86_t;
+struct context_v86_t
+{
+	uint32_t kernel_esp;
+	context_t *ctx_prev;
+	pusha_t regs;
+	uint32_t gs, fs, es, ds;
+	uint32_t intr, error;
+	uint32_t eip, cs, eflags, esp, ss;
+
+	/* extra fields for V86 mode */
+	uint32_t v86_es, v86_ds, v86_fs, v86_gs;
+};
+#endif
 
 /* TSS definition */
 struct tss_t     /* TSS for 386+ */
@@ -281,12 +298,18 @@ typedef union {
 
 #pragma pack (pop)      /* align structures to default boundary */
 
+struct thread_t;
+
 void	i386SetDescriptor(descriptor_t *item, uint32_t base, uint32_t limit, 
 						  uint8_t access, uint8_t attribs);
 void	i386SetDescriptorInt(descriptor_int_t *item, uint16_t selector, 
 							 uint32_t offset, uint8_t access, uint8_t param_cnt);
-uint32_t	i386DoCall(void *routine, void *args, uint32_t argbytes);
+uint32_t
+		i386DoCall(void *routine, void *args, uint32_t argbytes);
 void	i386DispatchSysCall(context_t *ctx);
+struct thread_t *
+		i386CreateV86Thread(uint32_t entry, uint32_t stack_top, 
+		unsigned priority, void (*handler)(void));
 
 /*
  * Remote debugging in gdb_stub.c

@@ -1,4 +1,4 @@
-/* $Id: fcntl.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: fcntl.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_fcntl_h_
@@ -45,18 +45,18 @@ extern "C" {
 
 #include <sys/types.h>
 
-struct flock {
+/*struct flock {
   off_t	l_len;
   pid_t	l_pid;
   off_t	l_start;
   short	l_type;
   short	l_whence;
-};
+};*/
 
 extern int _fmode; /* O_TEXT or O_BINARY */
 
 int	open(const char *_path, int _oflag, ...);
-int	creat(const char *_path, mode_t _mode);
+int	creat(const char *_path, unsigned _mode);
 int	fcntl(int _fildes, int _cmd, ...);
 
 #ifndef _POSIX_SOURCE

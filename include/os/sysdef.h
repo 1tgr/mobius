@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.6 2002/02/25 18:41:58 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.7 2002/03/04 18:56:07 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -33,6 +33,10 @@
 #define SYS_ThrExitThread		0x200
 #define SYS_ThrWaitHandle		0x201
 #define SYS_ThrSleep			0x202
+#define SYS_ThrCreateV86Thread	0x203
+#define SYS_ThrGetV86Context	0x204
+#define SYS_ThrSetV86Context	0x205
+#define SYS_ThrContinueV86		0x206
 
 #define SYS_ProcExitProcess		0x300
 #define SYS_ProcSpawnProcess	0x301
@@ -72,6 +76,10 @@ SYS_BEGIN_GROUP(2)
 SYSCALL(void, ThrExitThread, 4, int)
 SYSCALL(bool, ThrWaitHandle, 4, handle_t)
 SYSCALL(void, ThrSleep, 4, unsigned)
+SYSCALL(handle_t, ThrCreateV86Thread, 16, uint32_t, uint32_t, unsigned, void (*)(void))
+SYSCALL(bool, ThrGetV86Context, 4, struct context_v86_t*)
+SYSCALL(bool, ThrSetV86Context, 4, const struct context_v86_t*)
+SYSCALL(bool, ThrContinueV86, 0, void)
 SYS_END_GROUP(2)
 
 /* 3 */
@@ -87,7 +95,7 @@ SYSCALL(handle_t, FsOpen, 8, const wchar_t*, uint32_t)
 SYSCALL(bool, FsClose, 4, handle_t)
 SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t*)
 SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
-SYSCALL(addr_t, FsSeek, 8, handle_t, addr_t)
+SYSCALL(off_t, FsSeek, 12, handle_t, off_t, unsigned)
 /*SYSCALL(bool, FsRequestSync, 8, handle_t, struct request_t*)*/
 SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
 SYSCALL(bool, FsQueryFile, 16, const wchar_t*, uint32_t, void*, size_t)

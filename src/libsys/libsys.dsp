@@ -117,6 +117,14 @@ SOURCE=.\syscall.S
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\..\include\os\blkdev.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\coff.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\defs.h
 # End Source File
 # Begin Source File
@@ -125,11 +133,23 @@ SOURCE=..\..\include\os\device.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\os\keyboard.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\pe.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\..\include\os\port.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\port.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\os\rtl.h
 # End Source File
 # Begin Source File
 

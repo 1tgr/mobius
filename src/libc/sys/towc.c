@@ -2,22 +2,22 @@
 
 wchar_t *_towc(const char *mb)
 {
-	size_t len = strlen(mb);
-	wchar_t *wc = malloc(sizeof(wchar_t) * (len + 1));
+    size_t len = strlen(mb);
+    wchar_t *wc = malloc(sizeof(wchar_t) * (len + 1));
 
-	if (wc == NULL)
-		return NULL;
+    if (wc == NULL)
+	return NULL;
 
-	len = mbstowcs(wc, mb, len);
-	if (len == -1)
-	{
-		free(wc);
-		return NULL;
-	}
-	else
-	{
-		wc[len] = '\0';
-		return wc;
-	}
+    len = mbstowcs(wc, mb, len);
+    if (len == -1)
+    {
+	free(wc);
+	return NULL;
+    }
+    else
+    {
+	wc[len] = '\0';
+	return wc;
+    }
 }
 

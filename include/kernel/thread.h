@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.8 2002/02/25 18:41:58 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.9 2002/03/04 18:56:07 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -22,6 +22,7 @@ struct process_t;
 typedef struct thread_t thread_t;
 
 #include <kernel/handle.h>
+#include <kernel/arch.h>
 
 typedef struct thread_apc_t thread_apc_t;
 struct thread_apc_t
@@ -52,6 +53,12 @@ struct thread_t
 	unsigned sleep_end;
 	thread_apc_t *apc_first, *apc_last;
 	unsigned cputime;
+	addr_t user_stack_top;
+
+	bool v86_if;
+	addr_t v86_handler;
+	bool v86_in_handler;
+	context_v86_t v86_context;
 };
 
 extern thread_t *thr_first, *thr_last, *current;

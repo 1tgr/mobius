@@ -1,4 +1,4 @@
-/* $Id: fs.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: fs.h,v 1.5 2002/03/04 18:56:07 pavlovskii Exp $ */
 #ifndef __KERNEL_FS_H
 #define __KERNEL_FS_H
 
@@ -42,7 +42,7 @@ handle_t	FsOpen (const wchar_t*, uint32_t);
 bool	FsClose (handle_t);
 bool	FsRead (handle_t, void*, size_t, struct fileop_t*);
 bool	FsWrite (handle_t, const void*, size_t, struct fileop_t*);
-addr_t	FsSeek (handle_t, addr_t);
+off_t	FsSeek (handle_t, off_t, unsigned);
 
 size_t	FsReadSync(handle_t file, void *buf, size_t bytes);
 size_t	FsWriteSync(handle_t file, const void *buf, size_t bytes);

@@ -1,4 +1,4 @@
-/* $Id: string.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: string.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_string_h_
@@ -28,7 +28,7 @@ size_t	strcspn(const char *_s1, const char *_s2);
 char *	strerror(int _errcode);
 size_t	strlen(const char *_s);
 char *	strncat(char *_s1, const char *_s2, size_t _n);
-int		strncmp(const char *_s1, const char *_s2, size_t _n);
+int	strncmp(const char *_s1, const char *_s2, size_t _n);
 char *	strncpy(char *_s1, const char *_s2, size_t _n);
 char *	strpbrk(const char *_s1, const char *_s2);
 char *	strrchr(const char *_s, int _c);
@@ -37,7 +37,10 @@ char *	strstr(const char *_s1, const char *_s2);
 char *	strtok(char *_s1, const char *_s2);
 size_t	strxfrm(char *_s1, const char *_s2, size_t _n);
 
-int		_stricmp(const char *_s1, const char *_s2);
+int	_stricmp(const char *_s1, const char *_s2);
+#ifndef strdup
+char *	strdup(const char * _s);
+#endif
 
 #ifdef __cplusplus
 }

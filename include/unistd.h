@@ -1,4 +1,4 @@
-/* $Id: unistd.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: unistd.h,v 1.3 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1999 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
@@ -10,6 +10,7 @@ extern "C" {
 #endif
 
 #include <sys/types.h> /* NOT POSIX but you can't include just unistd.h without it */
+#include <libc/stubs.h>
 
 #define SEEK_SET	0
 #define SEEK_CUR	1
@@ -62,13 +63,12 @@ extern int optind, opterr, optopt;
 
 char *	sbrk(size_t diff);
 
-#if 0
 void	__exit(int _status) __attribute__((noreturn));
 void	_exit(int _status) __attribute__((noreturn));
 int		access(const char *_path, int _amode);
 unsigned int	alarm(unsigned int _seconds);
 int		chdir(const char *_path);
-int		chown(const char *_path, uid_t _owner, gid_t _group);
+/*int		chown(const char *_path, uid_t _owner, gid_t _group);*/
 int		close(int _fildes);
 char *	ctermid(char *_s);
 int		dup(int _fildes);
@@ -79,10 +79,10 @@ int		execlp(const char *_file, const char *_arg, ...);
 int		execv(const char *_path, char *const _argv[]);
 int		execve(const char *_path, char *const _argv[], char *const _envp[]);
 int		execvp(const char *_file, char *const _argv[]);
-pid_t	fork(void);
+/*pid_t	fork(void);*/
 long	fpathconf(int _fildes, int _name);
 char *	getcwd(char *_buf, size_t _size);
-gid_t	getegid(void);
+/*gid_t	getegid(void);
 uid_t	geteuid(void);
 gid_t	getgid(void);
 int		getgroups(int _gidsetsize, gid_t *_grouplist);
@@ -91,7 +91,7 @@ int		getopt(int _argc, char *const _argv[], const char *_optstring);
 pid_t	getpgrp(void);
 pid_t	getpid(void);
 pid_t	getppid(void);
-uid_t	getuid(void);
+uid_t	getuid(void);*/
 int		isatty(int _fildes);
 int		link(const char *_existing, const char *_new);
 off_t	lseek(int _fildes, off_t _offset, int _whence);
@@ -100,18 +100,17 @@ int		pause(void);
 int		pipe(int _fildes[2]);
 ssize_t	read(int _fildes, void *_buf, size_t _nbyte);
 int		rmdir(const char *_path);
-int		setgid(gid_t _gid);
+/*int		setgid(gid_t _gid);
 int		setpgid(pid_t _pid, pid_t _pgid);
 pid_t	setsid(void);
-int		setuid(uid_t uid);
+int		setuid(uid_t uid);*/
 unsigned int	sleep(unsigned int _seconds);
 long	sysconf(int _name);
-pid_t	tcgetpgrp(int _fildes);
-int		tcsetpgrp(int _fildes, pid_t _pgrp_id);
+/*pid_t	tcgetpgrp(int _fildes);
+int		tcsetpgrp(int _fildes, pid_t _pgrp_id);*/
 char *	ttyname(int _fildes);
 int		unlink(const char *_path);
 ssize_t	write(int _fildes, const void *_buf, size_t _nbyte);
-#endif
 
 #ifdef __cplusplus
 }

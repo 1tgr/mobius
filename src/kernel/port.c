@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.8 2002/02/24 19:13:28 pavlovskii Exp $ */
+/* $Id: port.c,v 1.9 2002/03/04 18:56:31 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -43,6 +43,7 @@ static device_t port_dev =
 	&port_driver, 
 	NULL,
 	NULL, NULL,
+	NULL,
 	&portfs_vtbl,
 };
 

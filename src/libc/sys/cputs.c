@@ -1,6 +1,7 @@
-/* $Id: cputs.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
+/* $Id: cputs.c,v 1.6 2002/03/04 18:56:32 pavlovskii Exp $ */
 
-#include <os/syscall.h>
+#include <stdio.h>
+/*#include <os/syscall.h>
 #include <os/rtl.h>
 
 #include <wchar.h>
@@ -8,29 +9,31 @@
 
 process_info_t *ProcGetProcessInfo(void);
 
-handle_t __cputws_event;
+handle_t __cputws_event;*/
 
 int _cputs(const char *str, size_t count)
 {
-	fileop_t op;
-	bool ret;
-	
-	if (__cputws_event == NULL)
-		__cputws_event = op.event = EvtAlloc();
-	else
-		op.event = __cputws_event;
+    /*fileop_t op;
+    bool ret;
 
-	ret = FsWrite(ProcGetProcessInfo()->std_out,
-		str,
-		count * sizeof(wchar_t), 
-		&op);
+    if (__cputws_event == NULL)
+	__cputws_event = op.event = EvtAlloc();
+    else
+	op.event = __cputws_event;
 
-	if (!ret)
-		return 0;
-	else
-	{
-		if (op.result == SIOPENDING)
-			ThrWaitHandle(__cputws_event);
-		return op.bytes / sizeof(wchar_t);
-	}
+    ret = FsWrite(ProcGetProcessInfo()->std_out,
+	str,
+	count * sizeof(wchar_t), 
+	&op);
+
+    if (!ret)
+	return 0;
+    else
+    {
+	if (op.result == SIOPENDING)
+	    ThrWaitHandle(__cputws_event);
+	return op.bytes / sizeof(wchar_t);
+    }*/
+
+    return fwrite(str, 1, count, stdout) == count ? 0 : -1;
 }

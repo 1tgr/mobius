@@ -23,7 +23,7 @@ DDEESSCCRRIIPPTTIIOONN
        --hh     Causes  nnddiissaassmm to exit immediately, after giving a
               summary of its invocation options.
 
-       --rr     Causes nnddiissaassmm to exit immediately, after  display­
+       --rr     Causes nnddiissaassmm to exit immediately, after  display-
               ing its version number.
 
        --oo _o_r_i_g_i_n
@@ -34,7 +34,7 @@ DDEESSCCRRIIPPTTIIOONN
 
        --ss _s_y_n_c_-_p_o_i_n_t
               Manually specifies a synchronisation address,  such
-              that  nnddiissaassmm  will not output any machine instruc­
+              that  nnddiissaassmm  will not output any machine instruc-
               tion which encompasses bytes on both sides  of  the
               address. Hence the instruction which _s_t_a_r_t_s at that
               address will be correctly disassembled.
@@ -43,20 +43,20 @@ DDEESSCCRRIIPPTTIIOONN
               Specifies a number of bytes  to  discard  from  the
               beginning  of the file before starting disassembly.
               This does not count towards the calculation of  the
-              disassembly offset: the first _d_i_s_a_s_s_e_m_b_l_e_d instruc­
+              disassembly offset: the first _d_i_s_a_s_s_e_m_b_l_e_d instruc-
               tion will be  shown  starting  at  the  given  load
               address.
 
        --kk _o_f_f_s_e_t_,_l_e_n_g_t_h
-              Specifies  that  _l_e_n_g_t_h bytes, starting from disas­
-              sembly offset _o_f_f_s_e_t, should be skipped over  with­
+              Specifies  that  _l_e_n_g_t_h bytes, starting from disas-
+              sembly offset _o_f_f_s_e_t, should be skipped over  with-
               out  generating any output. The skipped bytes still
               count towards the calculation  of  the  disassembly
               offset.
 
        --aa or --ii
               Enables  automatic  (or  intelligent) sync mode, in
-              which nnddiissaassmm will attempt to guess where  synchro­
+              which nnddiissaassmm will attempt to guess where  synchro-
               nisation should be performed, by means of examining
 
 
@@ -87,23 +87,23 @@ NDISASM(1)                                             NDISASM(1)
 
 
 RREESSTTRRIICCTTIIOONNSS
-       nnddiissaassmm  only  disassembles binary files: it has no under­
+       nnddiissaassmm  only  disassembles binary files: it has no under-
        standing of the header information present  in  object  or
        executable  files.  If  you  want to disassemble an object
        file, you should probably be using oobbjjdduummpp(11).
 
-       Auto-sync mode won't necessarily cure all your  synchroni­
-       sation problems: a sync marker can only be placed automat­
+       Auto-sync mode won't necessarily cure all your  synchroni-
+       sation problems: a sync marker can only be placed automat-
        ically if a jump or call instruction is found to refer  to
        it  _b_e_f_o_r_e  nnddiissaassmm actually disassembles that part of the
-       code. Also, if spurious jumps or calls result from  disas­
+       code. Also, if spurious jumps or calls result from  disas-
        sembling  non-machine-code  data,  sync  markers  may  get
        placed in strange places. Feel free to turn auto-sync  off
        and go back to doing it manually if necessary.
 
-       nnddiissaassmm  can  only  keep track of 8192 sync markers inter­
+       nnddiissaassmm  can  only  keep track of 8192 sync markers inter-
        nally at once: this is to do with portability,  since  DOS
-       machines  don't  take  kindly to more than 64K being allo­
+       machines  don't  take  kindly to more than 64K being allo-
        cated at a time.
 
 

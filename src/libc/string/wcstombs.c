@@ -1,4 +1,4 @@
-/* $Id: wcstombs.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: wcstombs.c,v 1.3 2002/03/04 18:56:32 pavlovskii Exp $ */
 
 #include <wchar.h>
 #include <errno.h>
@@ -7,55 +7,58 @@
 
 size_t wcstombs(char *mbstr, const wchar_t *wcstr, size_t count)
 {
-	int written, bytes;
-	uint16_t w;
+    int written, bytes;
+    uint16_t w;
 
-	for (written = 0; *wcstr && written < count;)
+    for (written = 0; *wcstr && written < count;)
+    {
+	w = *wcstr;
+	
+	if (w <= 0x7f)
+	    bytes = 1;
+	else if (w <= 0x7ff)
+	    bytes = 2;
+	else if (w <= 0xffff)
+	    bytes = 3;
+	else
 	{
-		w = *wcstr;
-		
-		if (w <= 0x7f)
-			bytes = 1;
-		else if (w <= 0x7ff)
-			bytes = 2;
-		else if (w <= 0xffff)
-			bytes = 3;
-		else
-		{
-			errno = EILSEQ;
-			return -1;
-		}
-
-		if (written + bytes > count)
-			return written;
-
-		switch (bytes)
-		{
-		case 1:
-			mbstr[0] = w & 0x7f;
-			break;
-
-		case 2:
-			mbstr[1] = 0x80 | (w & 0x3f);
-			w >>= 6;
-			mbstr[0] = 0xC0 | (w & 0x1f);
-			break;
-
-		case 3:
-			mbstr[2] = 0x80 | (w & 0x3f);
-			w >>= 6;
-			mbstr[1] = 0x80 | (w & 0x3f);
-			w >>= 6;
-			mbstr[0] = 0xE0 | (w & 0x0f);
-			break;
-		}
-		
-		written += bytes;
-		mbstr += bytes;
-		wcstr++;
+	    errno = EILSEQ;
+	    return -1;
 	}
 
-	*mbstr = 0;
-	return written;
+	if (written + bytes > count)
+	    return written;
+
+	if (mbstr != 0)
+	    switch (bytes)
+	    {
+	    case 1:
+		mbstr[0] = w & 0x7f;
+		break;
+
+	    case 2:
+		mbstr[1] = 0x80 | (w & 0x3f);
+		w >>= 6;
+		mbstr[0] = 0xC0 | (w & 0x1f);
+		break;
+
+	    case 3:
+		mbstr[2] = 0x80 | (w & 0x3f);
+		w >>= 6;
+		mbstr[1] = 0x80 | (w & 0x3f);
+		w >>= 6;
+		mbstr[0] = 0xE0 | (w & 0x0f);
+		break;
+	    }
+	
+	written += bytes;
+	if (mbstr != 0)
+	    mbstr += bytes;
+	wcstr++;
+    }
+
+    /*if (mbstr != 0)
+	*mbstr = 0;*/
+    return written;
 }
 

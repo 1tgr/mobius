@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.6 2002/03/04 18:56:07 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -19,7 +19,7 @@ extern "C" {
 /* Some programs think they know better... */
 #undef NULL
 
-#define BUFSIZ			16384
+#define BUFSIZ			1024
 #define EOF 			(-1)
 #define FILENAME_MAX	260
 #define FOPEN_MAX		20
@@ -36,15 +36,30 @@ extern "C" {
    are here at all is to comply with ANSI specifictions. */
    
 typedef struct FILE {
-  unsigned long _osfhnd;
+  int   _cnt;
+  char *_ptr;
+  char *_base;
+  int   _bufsiz;
+  int   _flag;
+  int   _file;
+  char *_name_to_remove;
+  int   _fillsize;
 } FILE;
 
 typedef unsigned long			fpos_t;
 
+FILE *__get_stdin(void), *__get_stdout(void), *__get_stderr(void);
+
+#ifdef __LIBC_STATIC
 extern FILE __dj_stdin, __dj_stdout, __dj_stderr;
 #define stdin	(&__dj_stdin)
 #define stdout	(&__dj_stdout)
 #define stderr	(&__dj_stderr)
+#else
+#define stdin	(__get_stdin())
+#define stdout	(__get_stdout())
+#define stderr	(__get_stderr())
+#endif
 
 void	clearerr(FILE *_stream);
 int 	fclose(FILE *_stream);

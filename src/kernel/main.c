@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.11 2002/02/25 18:42:09 pavlovskii Exp $ */
+/* $Id: main.c,v 1.12 2002/03/04 18:56:31 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -43,10 +43,6 @@ void KernelMain(void)
 	TRACE0("FsInit\n");
 	FsInit();
 
-	dev = IoOpenDevice(L"ide0a");
-	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);
-
 	DevInstallDevice(L"keyboard", L"keyboard", NULL);
 	DevInstallDevice(L"tty", L"tty0", NULL);
 	DevInstallDevice(L"tty", L"tty1", NULL);
@@ -57,6 +53,10 @@ void KernelMain(void)
 	DevInstallDevice(L"tty", L"tty6", NULL);
 	DevInstallDevice(L"cmos", L"cmos", NULL);
 	
+	dev = IoOpenDevice(L"ide0a");
+	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
+	FsMount(L"/hd", L"fat", dev);
+
 	dev = IoOpenDevice(L"fdc0");
 	wprintf(L"KernelMain: Mounting fdc0(%p) on /fd using fat\n", dev);
 	FsMount(L"/fd", L"fat", dev);
