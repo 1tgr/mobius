@@ -1,4 +1,4 @@
-/* $Id: frame.cpp,v 1.4 2002/09/13 23:26:02 pavlovskii Exp $ */
+/* $Id: frame.cpp,v 1.5 2002/12/18 23:16:56 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <gui/frame.h>
@@ -47,7 +47,9 @@ void Frame::OnPaint(mgl::Rc *rc)
     wchar_t text[256];
     unsigned i;
     MGLpoint size;
+    mgl::Font *font;
 
+    font = mgl::FontManager::GetDefault(0);
     GetPosition(&rect);
 
     rc->SetFillColour(frameColours[HasFocus()]);
@@ -77,35 +79,36 @@ void Frame::OnPaint(mgl::Rc *rc)
     for (i = 0; i < NUM_BUTTONS_LEFT; i++)
     {
         r = MGLrect(rect.left, rect.top, rect.left + SIZE_BUTTON, rect.bottom);
-        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, l_buttons[i], -1);
+        size = font->GetTextSize(rc, l_buttons[i], -1);
         r.left = (r.left + r.right - size.x) / 2;
         r.top = (r.top + r.bottom - size.y) / 2;
         r.right = r.left + size.x;
         r.bottom = r.top + size.y;
-        mgl::FontManager::GetDefault(0)->DrawText(rc, r, l_buttons[i], -1);
+        font->DrawText(rc, r, l_buttons[i], -1);
         rect.left += SIZE_BUTTON;
     }
 
     for (i = 0; i < NUM_BUTTONS_RIGHT; i++)
     {
         r = MGLrect(rect.right - SIZE_BUTTON, rect.top, rect.right, rect.bottom);
-        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, r_buttons[i], -1);
+        size = font->GetTextSize(rc, r_buttons[i], -1);
         r.left = (r.left + r.right - size.x) / 2;
         r.top = (r.top + r.bottom - size.y) / 2;
         r.right = r.left + size.x;
         r.bottom = r.top + size.y;
-        mgl::FontManager::GetDefault(0)->DrawText(rc, r, r_buttons[i], -1);
+        font->DrawText(rc, r, r_buttons[i], -1);
         rect.right -= SIZE_BUTTON;
     }
 
     if (GetTitle(text, _countof(text)))
     {
-        size = mgl::FontManager::GetDefault(0)->GetTextSize(rc, text, -1);
+        rc->SetFillColour(frameColours[HasFocus()]);
+        size = font->GetTextSize(rc, text, -1);
         rect.left = (rect.left + rect.right - size.x) / 2;
         rect.top = (rect.top + rect.bottom - size.y) / 2;
         rect.right = rect.left + size.x;
         rect.bottom = rect.top + size.y;
-        mgl::FontManager::GetDefault(0)->DrawText(rc, rect, text, -1);
+        font->DrawText(rc, rect, text, -1);
     }
 }
 

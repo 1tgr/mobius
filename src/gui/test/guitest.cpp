@@ -1,4 +1,4 @@
-/* $Id: guitest.cpp,v 1.3 2002/04/20 12:47:28 pavlovskii Exp $ */
+/* $Id: guitest.cpp,v 1.4 2002/12/18 23:16:56 pavlovskii Exp $ */
 
 #include <gui/application.h>
 #include <gui/dialog.h>
@@ -27,6 +27,7 @@ TestDialog::TestDialog() :
     m_button(this, L"Button", MGLrect(150, 150, 350, 200), 1),
     m_edit(this, L"Edit", MGLrect(150, 225, 350, 275), 1)
 {
+    __asm__("int3");
 }
 
 TestDialog::~TestDialog()

@@ -1,4 +1,4 @@
-/* $Id: desktopapplication.cpp,v 1.2 2002/09/13 23:26:02 pavlovskii Exp $ */
+/* $Id: desktopapplication.cpp,v 1.3 2002/12/18 23:16:56 pavlovskii Exp $ */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -27,7 +27,7 @@ DesktopApplication::DesktopApplication(const wchar_t *name) :
 {
     ThrCreateThread(KeyboardThread, NULL, 10);
     ThrCreateThread(MouseThread, NULL, 8);
-    ProcSpawnProcess(SYS_BOOT L"/guitest.exe", ProcGetProcessInfo());
+    //ProcSpawnProcess(SYS_BOOT L"/gconsole.exe", ProcGetProcessInfo());
 }
 
 void DesktopApplication::KeyboardThread()

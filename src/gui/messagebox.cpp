@@ -1,4 +1,4 @@
-/* $Id: messagebox.cpp,v 1.3 2002/09/13 23:26:02 pavlovskii Exp $ */
+/* $Id: messagebox.cpp,v 1.4 2002/12/18 23:16:56 pavlovskii Exp $ */
 
 #include <gui/messagebox.h>
 #include <gui/button.h>
@@ -24,11 +24,11 @@ static const struct
 };
 
 MessageBox::MessageBox(const wchar_t *title, const wchar_t *text, unsigned buttons, ...) :
-    Dialog(title, MGLrect(300, 400, 900, 600))
+    Dialog(title, MGLrect(300, 400, 900, 700))
 {
     unsigned i;
-    MGLrect button = MGLrect(750, 550, 900, 600), 
-        label = MGLrect(300, 400, 900, 450);
+    MGLrect button = MGLrect(750, 650, 900, 700), 
+        label = MGLrect(300, 400, 900, 550);
     va_list ptr;
 
     if (text != NULL)

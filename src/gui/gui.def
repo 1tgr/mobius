@@ -1,28 +1,15 @@
 NAME gui
 EXPORTS
-    WndCreate
-    WndClose
-    WndPostMessage
-    WndInvalidate
-    WndGetMessage
-    WndGetAttribute
-    WndSetAttribute
-    WndOwnRoot
-    WndQueueInput
-    WndSetFocus
-    WndHasFocus
-    WndSetCapture
-    WndGetClip
+    ExceptionHandler__Q22os11Application
     GetApplication__Q22os11Application
     GetMessage__Q22os11ApplicationP5msg_t
+    HandleException__Q22os11ApplicationP9context_t
     HandleMessage__Q22os11ApplicationPC5msg_t
     Run__Q22os11Application
     _$_Q22os11Application
     __Q22os11ApplicationPCUw
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
-    IncludesPoint__C7MGLrectii
-    Inflate__7MGLrectii
     OnClick__Q22os6Button
     OnKeyDown__Q22os6ButtonUl
     OnKeyUp__Q22os6ButtonUl
@@ -30,12 +17,7 @@ EXPORTS
     OnMouseMove__Q22os6ButtonUlii
     OnMouseUp__Q22os6ButtonUlii
     OnPaint__Q22os6ButtonPQ23mgl2Rc
-    SetFillColour__Q23mgl2RcUl
-    SetPenColour__Q23mgl2RcUl
     _$_Q22os6Button
-    _$_Q22os7Control
-    __7MGLrect
-    __8MGLpoint
     __Q22os6ButtonPQ22os6WindowPCUwRC7MGLrectUi
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
@@ -43,50 +25,14 @@ EXPORTS
     RecalcLayout__Q22os9Container
     RemoveView__Q22os9ContainerPQ22os6Window
     _$_Q22os9Container
-    _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _$_t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _$_t9allocator1ZQ32os9Container9ViewTuple
-    _M_create_node__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleRCQ32os9Container9ViewTuple
-    _M_get_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1
-    _M_put_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1Pt10_List_node1ZQ32os9Container9ViewTuple
     _S_chunk_alloc__t24__default_alloc_template2b0i0UiRi
-    _S_freelist_index__t24__default_alloc_template2b0i0Ui
     _S_oom_malloc__t23__malloc_alloc_template1i0Ui
     _S_refill__t24__default_alloc_template2b0i0Ui
-    _S_round_up__t24__default_alloc_template2b0i0Ui
-    __7MGLrect
-    __7MGLrectiiii
     __Q22os9Container
     __Q22os9ContainerPQ22os6WindowPCUwRC7MGLrect
-    __Q32os9Container9ViewTuplePQ22os6WindowQ22os9Alignmenti
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
-    __ml__Ct14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __ne__Ct14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTupleRCt14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __nw__FUiPv
-    __pp__t14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __rf__Ct14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleRCt9allocator1ZQ32os9Container9ViewTuple
-    __t14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __t14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuplePt10_List_node1ZQ32os9Container9ViewTuple
-    __t14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTupleRCt14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    __t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1RCt9allocator1ZQ32os9Container9ViewTuple
-    __t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleRCt9allocator1ZQ32os9Container9ViewTuple
-    __t9allocator1ZQ32os9Container9ViewTuple
-    allocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Ui
-    allocate__t23__malloc_alloc_template1i0Ui
-    allocate__t24__default_alloc_template2b0i0Ui
-    begin__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    construct__H2ZQ32os9Container9ViewTupleZQ32os9Container9ViewTuple_PX01RCX11_v
-    deallocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Pt10_List_node1ZQ32os9Container9ViewTupleUi
-    deallocate__t23__malloc_alloc_template1i0PvUi
-    deallocate__t24__default_alloc_template2b0i0PvUi
-    destroy__H1ZQ32os9Container9ViewTuple_PX01_v
-    end__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    erase__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleGt14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTuple
-    insert__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleGt14_List_iterator3ZQ32os9Container9ViewTupleZRQ32os9Container9ViewTupleZPQ32os9Container9ViewTupleRCQ32os9Container9ViewTuple
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
-    push_back__t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleRCQ32os9Container9ViewTuple
     OnBlur__Q22os7Control
     OnFocus__Q22os7Control
     OnKeyDown__Q22os7ControlUl
@@ -97,40 +43,20 @@ EXPORTS
     DoModal__Q22os6Dialog
     OnCommand__Q22os6DialogUi
     OnPaint__Q22os6DialogPQ23mgl2Rc
-    SetFillColour__Q23mgl2RcUl
-    _$_Q22os5Frame
     _$_Q22os6Dialog
-    _$_Q22os9Container
-    _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _$_t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _M_put_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1Pt10_List_node1ZQ32os9Container9ViewTuple
-    _S_freelist_index__t24__default_alloc_template2b0i0Ui
-    __7MGLrect
-    __7MGLrectiiii
     __Q22os6DialogPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    deallocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Pt10_List_node1ZQ32os9Container9ViewTupleUi
-    deallocate__t23__malloc_alloc_template1i0PvUi
-    deallocate__t24__default_alloc_template2b0i0PvUi
-    destroy__H1ZQ32os9Container9ViewTuple_PX01_v
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     DllMainCRTStartup
-    Inflate__7MGLrectii
     OnKeyDown__Q22os4EditUl
     OnMouseDown__Q22os4EditUlii
     OnPaint__Q22os4EditPQ23mgl2Rc
-    SetFillColour__Q23mgl2RcUl
-    SetPenColour__Q23mgl2RcUl
     _$_Q22os4Edit
-    _$_Q22os7Control
-    __7MGLrect
-    __7MGLrectiiii
     __Q22os4EditPQ22os6WindowPCUwRC7MGLrectUi
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     HitTest__Q22os5Frameii
-    IncludesPoint__C7MGLrectii
     OnBlur__Q22os5Frame
     OnFocus__Q22os5Frame
     OnHitBegin__Q22os5FrameQ32os5Frame11FrameRegionii
@@ -141,65 +67,43 @@ EXPORTS
     OnMouseUp__Q22os5FrameUlii
     OnPaint__Q22os5FramePQ23mgl2Rc
     OnSize__Q22os5FrameRC7MGLrect
-    SetFillColour__Q23mgl2RcUl
-    SetPenColour__Q23mgl2RcUl
     _$_Q22os5Frame
-    _$_Q22os9Container
-    _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _$_t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _M_put_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1Pt10_List_node1ZQ32os9Container9ViewTuple
-    _S_freelist_index__t24__default_alloc_template2b0i0Ui
-    __7MGLrect
-    __7MGLrectiiii
-    __8MGLpoint
-    __8MGLpointii
     __Q22os5FramePCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
-    __ne__H1ZQ32os5Frame11FrameRegion_RCX01T0_b
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    deallocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Pt10_List_node1ZQ32os9Container9ViewTupleUi
-    deallocate__t23__malloc_alloc_template1i0PvUi
-    deallocate__t24__default_alloc_template2b0i0PvUi
-    destroy__H1ZQ32os9Container9ViewTuple_PX01_v
     dwprintf__FPCUwe
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
     OnPaint__Q22os5LabelPQ23mgl2Rc
-    SetFillColour__Q23mgl2RcUl
-    SetPenColour__Q23mgl2RcUl
     _$_Q22os5Label
-    _$_Q22os7Control
-    __7MGLrect
-    __7MGLrectiiii
     __Q22os5LabelPQ22os6WindowPCUwRC7MGLrect
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
-    Offset__7MGLrectii
     OnClose__Q22os10MessageBox
     OnKeyDown__Q22os10MessageBoxUl
     _$_Q22os10MessageBox
-    _$_Q22os5Frame
-    _$_Q22os6Dialog
-    _$_Q22os9Container
-    _$_t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _$_t4list2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    _M_put_node__t16_List_alloc_base3ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTupleb1Pt10_List_node1ZQ32os9Container9ViewTuple
-    _S_freelist_index__t24__default_alloc_template2b0i0Ui
-    __7MGLrectiiii
     __Q22os10MessageBoxPCUwT1Uie
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
-    __ml__Ct14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __t14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowPt10_List_node1ZPQ22os6Window
-    begin__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
     clear__t10_List_base2ZQ32os9Container9ViewTupleZt9allocator1ZQ32os9Container9ViewTuple
-    deallocate__t12simple_alloc2Zt10_List_node1ZQ32os9Container9ViewTupleZt24__default_alloc_template2b0i0Pt10_List_node1ZQ32os9Container9ViewTupleUi
-    deallocate__t23__malloc_alloc_template1i0PvUi
-    deallocate__t24__default_alloc_template2b0i0PvUi
-    destroy__H1ZQ32os9Container9ViewTuple_PX01_v
-    empty__Ct4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    front__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
+    IpcAddParameter
+    IpcBeginCall
+    IpcConnect
+    IpcDispatchCall
+    IpcReceivePacket
+    WndClose
+    WndCreate
+    WndGetAttribute
+    WndGetClip
+    WndGetMessage
+    WndHasFocus
+    WndInvalidate
+    WndOwnRoot
+    WndPostMessage
+    WndQueueInput
+    WndSetAttribute
+    WndSetCapture
+    WndSetFocus
     _$_Q22os4View
-    __7MGLrectiiii
     __Q22os4ViewPQ22os9ContainerQ22os9Alignmenti
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
@@ -229,58 +133,18 @@ EXPORTS
     ReleaseCapture__Q22os6Window
     RemoveChild__Q22os6WindowPQ22os6Window
     SetCapture__Q22os6Window
-    SetFillColour__Q23mgl2RcUl
     SetFocus__Q22os6Window
     SetPosition__Q22os6WindowRC7MGLrect
     SetTitle__Q22os6WindowPw
     _$_Q22os6Window
-    _$_t10_List_base2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    _$_t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    _$_t9allocator1ZPQ22os6Window
-    _M_create_node__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowRCPQ22os6Window
-    _M_get_node__t16_List_alloc_base3ZPQ22os6WindowZt9allocator1ZPQ22os6Windowb1
-    _M_put_node__t16_List_alloc_base3ZPQ22os6WindowZt9allocator1ZPQ22os6Windowb1Pt10_List_node1ZPQ22os6Window
     _S_chunk_alloc__t24__default_alloc_template2b0i0UiRi
-    _S_freelist_index__t24__default_alloc_template2b0i0Ui
     _S_oom_malloc__t23__malloc_alloc_template1i0Ui
     _S_refill__t24__default_alloc_template2b0i0Ui
-    _S_round_up__t24__default_alloc_template2b0i0Ui
-    __7MGLrect
     __Q22os6Window
     __Q22os6WindowPQ22os6WindowPCUwRC7MGLrect
     __Q22os6WindowUl
-    __eq__Ct14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowRCt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __iterator_category__H1Zt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window_RCX01_Q2t15iterator_traits1ZX0117iterator_category
     __lexicographical_compare_3way__H2ZPCScZPCSc_X01X01X11X11_i
-    __ml__Ct14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __ne__Ct14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowRCt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __nw__FUiPv
     __opb__Q22os6Window
-    __pp__t14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __t10_List_base2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowRCt9allocator1ZPQ22os6Window
-    __t14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __t14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowPt10_List_node1ZPQ22os6Window
-    __t14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowRCt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    __t16_List_alloc_base3ZPQ22os6WindowZt9allocator1ZPQ22os6Windowb1RCt9allocator1ZPQ22os6Window
-    __t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowRCt9allocator1ZPQ22os6Window
-    __t9allocator1ZPQ22os6Window
-    allocate__t12simple_alloc2Zt10_List_node1ZPQ22os6WindowZt24__default_alloc_template2b0i0Ui
-    allocate__t23__malloc_alloc_template1i0Ui
-    allocate__t24__default_alloc_template2b0i0Ui
-    begin__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
     clear__t10_List_base2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    construct__H2ZPQ22os6WindowZPQ22os6Window_PX01RCX11_v
-    deallocate__t12simple_alloc2Zt10_List_node1ZPQ22os6WindowZt24__default_alloc_template2b0i0Pt10_List_node1ZPQ22os6WindowUi
-    deallocate__t23__malloc_alloc_template1i0PvUi
-    deallocate__t24__default_alloc_template2b0i0PvUi
-    destroy__H1ZPQ22os6Window_PX01_v
-    empty__Ct4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    end__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    erase__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowGt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6Window
-    find__H2Zt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowZPQ22os6Window_X01X01RCX11G18input_iterator_tag_X01
-    find__H2Zt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowZPQ22os6Window_X01X01RCX11_X01
-    front__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6Window
-    insert__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowGt14_List_iterator3ZPQ22os6WindowZRPQ22os6WindowZPPQ22os6WindowRCPQ22os6Window
     lexicographical_compare__H2ZPCScZPCSc_X01X01X11X11_b
-    push_back__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowRCPQ22os6Window
     remove__t4list2ZPQ22os6WindowZt9allocator1ZPQ22os6WindowRCPQ22os6Window
