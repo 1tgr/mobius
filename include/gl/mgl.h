@@ -1,4 +1,4 @@
-/* $Id: mgl.h,v 1.2 2002/03/05 16:21:42 pavlovskii Exp $ */
+/* $Id: mgl.h,v 1.3 2002/03/06 19:35:44 pavlovskii Exp $ */
 
 #ifndef __GL_MGL_H
 #define __GL_MGL_H
@@ -9,6 +9,11 @@ extern "C"
 #endif
 
 #include <sys/types.h>
+
+/*!
+ *  \defgroup	mgl   Mobius Graphics Layer (mgl)
+ * @{
+ */
 
 typedef    int	    MGLreal;
 typedef    uint32_t MGLcolour;
@@ -44,6 +49,9 @@ void	    glLineTo(MGLreal x, MGLreal y);
 void	    glRectangle(MGLreal left, MGLreal top, MGLreal right, MGLreal bottom);
 void	    glFlush(void);
 void	    glPutPixel(MGLreal x, MGLreal y);
+void	    glDrawText(const MGLrect *rc, const wchar_t *str, size_t len);
+void	    glFillPolygon(const MGLpoint *points, unsigned num_points);
+void	    glPolygon(const MGLpoint *points, unsigned num_points);
 
 #define MGL_ALPHA(c)	((byte) (((c) & 0xff000000) >> 24))
 #define MGL_RED(c)	  ((byte) (((c) & 0xff000000) >> 16))
@@ -58,15 +66,17 @@ void	    glPutPixel(MGLreal x, MGLreal y);
 #define MGL_COLOUR(r,g,b)    MGL_COLOUR4(r,g,b,0xff)
 #define MGL_COLOR(r,g,b)    MGL_COLOR4(r,g,b,0xff)
 
-void	    rectSet(MGLrect* r, 
+void	    RectSet(MGLrect* r, 
 		    MGLreal left, MGLreal top, MGLreal right, MGLreal bottom);
-void	    rectSetEmpty(MGLrect* r);
-bool	    rectIsEmpty(const MGLrect* r);
-void	    rectUnion(MGLrect* a, const MGLrect* b);
-bool	    rectIncludesPoint(const MGLrect* r, MGLreal x, MGLreal y);
-void	    rectOffset(MGLrect* r, MGLreal dx, MGLreal dy);
-bool	    rectIntersects(const MGLrect* r1, const MGLrect* r2);
-void	    rectInflate(MGLrect* r, MGLreal dx, MGLreal dy);
+void	    RectSetEmpty(MGLrect* r);
+bool	    RectIsEmpty(const MGLrect* r);
+void	    RectUnion(MGLrect* a, const MGLrect* b);
+bool	    RectIncludesPoint(const MGLrect* r, MGLreal x, MGLreal y);
+void	    RectOffset(MGLrect* r, MGLreal dx, MGLreal dy);
+bool	    RectIntersects(const MGLrect* r1, const MGLrect* r2);
+void	    RectInflate(MGLrect* r, MGLreal dx, MGLreal dy);
+
+/*! @} */
 
 #ifdef __cplusplus
 }
