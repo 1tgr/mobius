@@ -1,32 +1,36 @@
-/* $Id: cputs.c,v 1.4 2002/02/26 15:46:34 pavlovskii Exp $ */
+/* $Id: cputs.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
 
-#include <string.h>
-#include <stdlib.h>
+#include <os/syscall.h>
+#include <os/rtl.h>
 
-int _cputws(const wchar_t *str, size_t count);
+#include <wchar.h>
+#include <errno.h>
 
-/*static __inline__ void *_alloca(size_t size)
+process_info_t *ProcGetProcessInfo(void);
+
+handle_t __cputws_event;
+
+int _cputs(const char *str, size_t count)
 {
-	void *ret;
-	__asm__("sub %1, %%esp\n"
-		"mov %%esp, %0"
-		: "=a" (ret)
-		: "g" (size));
-	return ret;
-}*/
-
-int _cputs(const char *str, size_t len)
-{
-	wchar_t *wc;
-	int ret;
-
-	/*wc = _alloca(sizeof(wchar_t) * len);*/
-	wc = malloc(sizeof(wchar_t) * len);
-	len = mbstowcs(wc, str, len);
-	if (len == -1)
-		ret = 0;
+	fileop_t op;
+	bool ret;
+	
+	if (__cputws_event == NULL)
+		__cputws_event = op.event = EvtAlloc();
 	else
-		ret = _cputws(wc, len);
-	free(wc);
-	return ret;
+		op.event = __cputws_event;
+
+	ret = FsWrite(ProcGetProcessInfo()->std_out,
+		str,
+		count * sizeof(wchar_t), 
+		&op);
+
+	if (!ret)
+		return 0;
+	else
+	{
+		if (op.result == SIOPENDING)
+			ThrWaitHandle(__cputws_event);
+		return op.bytes / sizeof(wchar_t);
+	}
 }

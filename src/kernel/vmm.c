@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.5 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.6 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -195,7 +195,7 @@ bool VmmDoMapFile(vm_area_t *area, addr_t start, size_t pages)
 		pe = (IMAGE_PE_HEADERS*) (area->start + dos->e_lfanew);
 	}*/
 
-	FsSeek(area->dest.file, start - (addr_t) area->start);
+	FsSeek(area->dest.file, start - (addr_t) area->start, FILE_SEEK_SET);
 	FsReadSync(area->dest.file, (void*) start, pages * PAGE_SIZE);
 	return true;
 }

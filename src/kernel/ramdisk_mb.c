@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.2 2002/02/25 18:42:09 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.3 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -204,8 +204,8 @@ bool RdFsRequest(device_t* dev, request_t* req)
  */
 bool RdInit(void)
 {
-	unsigned i;
-	multiboot_module_t *mods;
+	/*unsigned i;
+	multiboot_module_t *mods;*/
 	wprintf(L"ramdisk: number of modules = %u\n",
 		kernel_startup.multiboot_info->mods_count);
 	/*mods = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;

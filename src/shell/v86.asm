@@ -1,4 +1,4 @@
-; $Id: v86.asm,v 1.1 2002/02/26 15:46:34 pavlovskii Exp $
+; $Id: v86.asm,v 1.2 2002/02/27 18:33:55 pavlovskii Exp $
 
 bits 16
 
@@ -9,18 +9,27 @@ start:
 	mov ds, ax
 	mov ah, 9
 	mov dx, msg
-	int 21h
+	int 0x21
 	
+	xor bx, bx
 	mov dx, msg2
-	int 21h
+.loop:
+	lea cx, ['0' + bx]
+	mov [num], cl
+	int 0x21
+	inc bx
+	cmp bx, 10
+	jne .loop
 
-	mov ah, 1
-	int 21h
+	;mov ah, 1
+	;int 21h
 
-	mov ah, 4ch
-	int 21h
+	mov ah, 0x4c
+	int 0x21
 
 msg:
 	db 'Hello, world!', 0xa, '$'
 msg2:
-	db 'Press any key to exit...', 0xa, '$'
+	db 'Count: '
+num:
+	db '0', 0xa, '$'

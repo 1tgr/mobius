@@ -36,7 +36,7 @@ protected:
 	void scroll();
 	void flush();
 	void doEscape(char code, unsigned num, const unsigned *esc);
-	void writeString(const wchar_t *str, size_t count);
+	void writeString(const char *str, size_t count);
 
 	bool onWrite(request_dev_t *req);
 
@@ -44,7 +44,7 @@ protected:
 	uint16_t attribs;
 	unsigned x, y, width, height, save_x, save_y;
 	unsigned escape, esc[3], esc_param;
-	const wchar_t *writebuf;
+	const char *writebuf;
 	size_t writeptr;
 };
 
@@ -132,11 +132,13 @@ void tty::scroll()
 
 void tty::flush()
 {
+	wchar_t wc[81];
 	char mb[81], *ch;
 	size_t count;
 	uint16_t *out;
 
-	count = wcsto437(mb, writebuf, min(writeptr, _countof(mb)));
+	count = mbstowcs(wc, writebuf, min(writeptr, _countof(wc)));
+	count = wcsto437(mb, wc, count);
 	out = buf_top + width * y + x;
 	ch = mb;
 	while (count > 0)
@@ -291,7 +293,7 @@ void tty::doEscape(char code, unsigned num, const unsigned *esc)
 	}
 }
 
-void tty::writeString(const wchar_t *str, size_t count)
+void tty::writeString(const char *str, size_t count)
 {
 	writebuf = str;
 	writeptr = 0;
@@ -415,8 +417,8 @@ void tty::finishio(request_t *req)
 
 bool tty::onWrite(request_dev_t *req)
 {
-	writeString((const wchar_t*) req->params.dev_write.buffer, 
-		req->params.dev_write.length / sizeof(wchar_t));
+	writeString((const char*) req->params.dev_write.buffer, 
+		req->params.dev_write.length);
 	return true;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: printf.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: printf.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <stddef.h>
 #include <printf.h>
@@ -44,12 +44,13 @@ int vprintf(const char* fmt, va_list ptr)
 {
 	int ret;
 #ifdef BUFFER
-	ch = printf_buffer;
+	if (ch == NULL)
+		ch = printf_buffer;
 #endif
 	ret = doprintf(kprintfhelp, NULL, fmt, ptr);
-#ifdef BUFFER
+/*#ifdef BUFFER
 	_cputs(printf_buffer, ch - printf_buffer);
-#endif
+#endif*/
 	return ret;
 }
 

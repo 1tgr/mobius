@@ -60,7 +60,7 @@ Word *_malloc_mem = NULL;
  *  calling malloc() if we can help it
  */
 int _malloc_tracing = 0;	/* No tracing */
-FILE *_malloc_statsfile = stderr;
+FILE *_malloc_statsfile = NULL;
 char _malloc_statsbuf[128];
 
 int _malloc_leaktrace = 0;

@@ -22,7 +22,8 @@ SHELL=/bin/sh
 # DEBUGDEFS are set for libmalloc_d.a. Say 'make libmalloc' for nondebug
 # version. (DEBUGDEFS=$(FASTDEFS))
 #
-DEBUGDEFS=-DDEBUG -DTRACE -DPROFILESIZES
+#DEBUGDEFS=-DDEBUG -DTRACE -DPROFILESIZES
+DEBUGDEFS=
 
 # FASTDEFS are used when the 'libmalloc' target is made.
 #
@@ -48,7 +49,7 @@ FASTDEFS=#-DSVID_MALLOC_0 -DTRACE -DPROFILESIZES
 # -DHAVE_MMAP can be defined for SunOS4.x and other systems
 # that have a general purpose mmap call that allows memory-mapped files.
 #
-NORMALDEFS=-DSTDHEADERS #-DHAVE_MMAP # -DSHORTNAMES -DUSESTDIO
+NORMALDEFS=-DSTDHEADERS -D__LIBC_STATIC #-DHAVE_MMAP # -DSHORTNAMES -DUSESTDIO
 
 # CC = gcc -ansi -Wall -O # -pedantic # add -pedantic if you fixed your includes.
 # SGI needs cc -xansi -D__STDC__ on Irix4.0.5.

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.17 2002/02/26 15:46:33 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.18 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -7,6 +7,8 @@
 #include <kernel/proc.h>
 #include <kernel/memory.h>
 #include <kernel/driver.h>
+
+/* #define DEBUG */
 #include <kernel/debug.h>
 
 #include <stdio.h>
@@ -318,17 +320,17 @@ bool i386V86Gpf(context_v86_t *ctx)
 	ip = FP_TO_LINEAR(ctx->cs, ctx->eip);
 	ivt = (uint16_t*) 0;
 	stack = (uint16_t*) FP_TO_LINEAR(ctx->ss, ctx->esp);
-	wprintf(L"i386V86Gpf: cs:ip = %04x:%04x ss:sp = %04x:%04x: ", 
+	TRACE4("i386V86Gpf: cs:ip = %04x:%04x ss:sp = %04x:%04x: ", 
 		ctx->cs, ctx->eip,
 		ctx->ss, ctx->esp);
 	switch (ip[0])
 	{
 	case 0xcd:	/* INT n */
-		wprintf(L"interrupt 0x%x => ", ip[1]);
+		TRACE1("interrupt 0x%x => ", ip[1]);
 		switch (ip[1])
 		{
 		case 0x30:
-			wprintf(L"syscall\n");
+			TRACE0("syscall\n");
 			if (ctx->regs.eax == SYS_ThrExitThread)
 				ThrExitThread(0);
 			return true;
@@ -339,7 +341,7 @@ bool i386V86Gpf(context_v86_t *ctx)
 			if (current->v86_in_handler)
 				return false;
 
-			wprintf(L"redirect to %x\n", current->v86_handler);
+			TRACE1("redirect to %x\n", current->v86_handler);
 			current->v86_in_handler = true;
 			current->v86_context = *ctx;
 			current->kernel_esp += sizeof(context_v86_t) - sizeof(context_t);
@@ -365,29 +367,29 @@ bool i386V86Gpf(context_v86_t *ctx)
 
 			ctx->cs = ivt[ip[1] * 2 + 1];
 			ctx->eip = ivt[ip[1] * 2];
-			wprintf(L"%04x:%04x\n", ctx->cs, ctx->eip);
+			TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
 			return true;
 		}
 
 		break;
 
 	case 0xcf:	/* IRET */
-		wprintf(L"iret => ");
+		TRACE0("iret => ");
 		ctx->eflags = EFLAG_IF | EFLAG_VM | stack[1];
 		ctx->cs = stack[2];
 		ctx->eip = stack[3];
 		ctx->esp = ((ctx->esp & 0xffff) + 6) & 0xffff;
-		wprintf(L"%04x:%04x\n", ctx->cs, ctx->eip);
+		TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
 		return true;
 
 	case 0xfa:	/* CLI */
-		wprintf(L"cli\n");
+		TRACE0("cli\n");
 		current->v86_if = false;
 		ctx->eip = (uint16_t) (ctx->eip + 1);
 		return true;
 
 	case 0xfb:	/* STI */
-		wprintf(L"sti\n");
+		TRACE0("sti\n");
 		current->v86_if = true;
 		ctx->eip = (uint16_t) (ctx->eip + 1);
 		return true;

@@ -1,5 +1,6 @@
-/* $Id: sbrk.c,v 1.4 2002/02/26 15:46:34 pavlovskii Exp $ */
+/* $Id: sbrk.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
 
+#include <unistd.h>
 #include <sys/types.h>
 #include <stddef.h>
 #include <os/syscall.h>

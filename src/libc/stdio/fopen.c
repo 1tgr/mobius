@@ -1,43 +1,72 @@
-/* $Id: fopen.c,v 1.1 2002/02/22 16:51:35 pavlovskii Exp $ */
-
+/* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
+#include <libc/stubs.h>
+#include <sys/types.h>
 #include <stdio.h>
-#include <os/syscall.h>
-#include <os/defs.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <libc/file.h>
+#include <libc/local.h>
 
-#define COMP1(s1, s2)	((s1)[0] == (s2)[0] && \
-						 (s1)[1] == '\0')
-#define COMP2(s1, s2)	((s1)[0] == (s2)[0] && \
-						 (s1)[1] == (s2)[1] && \
-						 (s1)[2] == '\0')
-#define COMP3(s1, s2)	((s1)[0] == (s2)[0] && \
-						 (s1)[1] == (s2)[1] && \
-						 (s1)[2] == (s2)[2] && \
-						 (s1)[3] == '\0')
-
-/*FILE *fopen(const char *filename, const char *mode)
+FILE *
+fopen(const char *file, const char *mode)
 {
-	FILE *f;
-	wchar_t temp[MAX_PATH + 1];
-	size_t len;
-	uint32_t flags;
-	const char *ch;
+  FILE *f;
+  int fd, rw, oflags = 0;
+  char tbchar;
 
-	len = mbstowcs(temp, filename, _countof(temp));
-	if (len == -1)
-		return NULL;
+  if (file == 0)
+    return 0;
+  if (mode == 0)
+    return 0;
 
-	temp[len] = '\0';
+  f = __alloc_file();
+  if (f == NULL)
+    return NULL;
 
-	f = malloc(sizeof(FILE));
-	if (f == NULL)
-		return NULL;
+  rw = (mode[1] == '+') || (mode[1] && (mode[2] == '+'));
 
-	flags = 0;
-	if (COMP1(mode, "r"))
-		flags = FILE_READ;
-	else if (COMP1(mode, "w"))
-		flags = FILE_WRITE;
-	else if (COMP1(mode, "a"))
-		flags = FILE_WRITE;
-	f->_osfhnd = FsOpen(temp, 
-}*/
+  switch (*mode)
+  {
+  case 'a':
+    oflags = O_CREAT | (rw ? O_RDWR : O_WRONLY);
+    break;
+  case 'r':
+    oflags = rw ? O_RDWR : O_RDONLY;
+    break;
+  case 'w':
+    oflags = O_TRUNC | O_CREAT | (rw ? O_RDWR : O_WRONLY);
+    break;
+  default:
+    return (NULL);
+  }
+  if (mode[1] == '+')
+    tbchar = mode[2];
+  else
+    tbchar = mode[1];
+  if (tbchar == 't')
+    oflags |= O_TEXT;
+  else if (tbchar == 'b')
+    oflags |= O_BINARY;
+  else
+    oflags |= (_fmode & (O_TEXT|O_BINARY));
+
+  fd = open(file, oflags, 0666);
+  if (fd < 0)
+    return NULL;
+
+  if (*mode == 'a')
+    lseek(fd, 0, SEEK_END);
+
+  f->_cnt = 0;
+  f->_file = fd;
+  f->_bufsiz = 0;
+  if (rw)
+    f->_flag = _IORW;
+  else if (*mode == 'r')
+    f->_flag = _IOREAD;
+  else
+    f->_flag = _IOWRT;
+
+  f->_base = f->_ptr = NULL;
+  return f;
+}

@@ -1,4 +1,4 @@
-/* $Id: wprintf.c,v 1.3 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: wprintf.c,v 1.4 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -17,8 +17,7 @@ static wchar_t printf_buffer[80], *ch;
 static bool kprintfhelp(void* pContext, const wchar_t* str, size_t len)
 {
 #ifdef BUFFER
-	if (ch + len > printf_buffer + _countof(printf_buffer) ||
-		*str == L'\r' || *str == L'\n')
+	if (ch + len > printf_buffer + _countof(printf_buffer))
 	{
 		_cputws(printf_buffer, ch - printf_buffer);
 		ch = printf_buffer;
@@ -26,6 +25,13 @@ static bool kprintfhelp(void* pContext, const wchar_t* str, size_t len)
 
 	memcpy(ch, str, sizeof(wchar_t) * len);
 	ch += len;
+	
+	if (*str == L'\r' || *str == L'\n')
+	{
+		_cputws(printf_buffer, ch - printf_buffer);
+		ch = printf_buffer;
+	}
+
 #else
 	_cputws(str, len);
 #endif
@@ -45,13 +51,14 @@ int vwprintf(const wchar_t* fmt, va_list ptr)
 {
 	int ret;
 #ifdef BUFFER
-	ch = printf_buffer;
+	if (ch == NULL)
+		ch = printf_buffer;
 #endif
 	ret = dowprintf(kprintfhelp, NULL, fmt, ptr);
-#ifdef BUFFER
+/*#ifdef BUFFER
 	if (ch > printf_buffer)
 		_cputws(printf_buffer, ch - printf_buffer);
-#endif
+#endif*/
 	return ret;
 }
 

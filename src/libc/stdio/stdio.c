@@ -1,5 +1,5 @@
-/* $Id: stdio.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
-
 #include <stdio.h>
+#include <libc/file.h>
 
-FILE __dj_stdin, __dj_stdout, __dj_stderr;
+char __init_file_handle_modes[20];
+char *__file_handle_modes = __init_file_handle_modes;

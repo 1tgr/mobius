@@ -131,14 +131,10 @@ EXPORTS
 	_HndInit
 	__builtin_delete
 	__builtin_new
-	__calloc
 	__dj_assert
-	__dj_movedata
-	__dj_movedata_rev
 	__get_eh_context
 	__free
 	__malloc
-	__nothing
 	__realloc
 	__strdup
 	__wcsdup
@@ -164,17 +160,13 @@ EXPORTS
 	i386SetDescriptorInt
 	i386_lpeek32
 	i386_lpoke32
-	mal_contents
-	mal_dumpleaktrace
-	mal_leaktrace
-	mal_mmap
 	mbstowcs
 	memcpy
 	memmove
 	memset
 	qsort
 	realloc
-	sbrk
+	__sbrk
 	sbrk_virtual
 	sprintf
 	strcat

@@ -1,4 +1,4 @@
-/* $Id: test.c,v 1.17 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: test.c,v 1.18 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -67,7 +67,7 @@ void testFileIo(const wchar_t *name)
 	op.event = EvtAlloc();
 	for (i = 0; i < 16; i++)
 	{
-		FsSeek(file, 0);
+		FsSeek(file, 0, FILE_SEEK_SET);
 		wprintf(L"\x1b[%um", (i % 8) + 30);
 		while (true)
 		{
@@ -111,7 +111,7 @@ void testBlockDeviceIo(const wchar_t *name)
 		for (j = 0; j < 1; j++)
 		{
 			wprintf(/*L"\x1b[2J"*/ L"\x1b[%um", (j % 8) + 30);
-			FsSeek(file, 19 * 512);
+			FsSeek(file, 19 * 512, FILE_SEEK_SET);
 			if (!FsRead(file, key, sizeof(key), &op))
 				break;
 			if (op.result == SIOPENDING)

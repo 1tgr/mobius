@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.8 2002/02/24 19:13:28 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -10,6 +10,11 @@
 #include <assert.h>
 #include <stdio.h>
 #include <errno.h>
+
+#include <unistd.h>	/* to give sbrk the right name */
+#include <libc/local.h>
+#include <libc/file.h>
+#include <libc/stdiohk.h>
 
 addr_t kernel_sbrk = 0xe0000000;
 unsigned con_x, con_y;
@@ -173,4 +178,36 @@ void *sbrk_virtual(size_t diff)
 int *_geterrno()
 {
 	return &current->info->status;
+}
+
+/*FILE *__get_stdin(void)
+{
+	return NULL;
+}
+
+FILE *__get_stdout(void)
+{
+	return NULL;
+}*/
+
+FILE __dj_stderr = {
+  0, 0, 0, 0,
+  _IOWRT | _IONBF,
+  0
+};
+
+FILE *__get_stderr(void)
+{
+	return &__dj_stderr;
+}
+
+__file_rec *__file_rec_list = NULL;
+
+void __setup_file_rec_list(void)
+{
+}
+
+size_t fwrite(const void *vptr, size_t size, size_t count, FILE *f)
+{
+	return count;
 }

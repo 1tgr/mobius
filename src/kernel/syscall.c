@@ -1,12 +1,16 @@
-/* $Id: syscall.c,v 1.8 2002/02/26 15:46:33 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
 #include <kernel/arch.h>
 #include <kernel/memory.h>
 
+/* #define DEBUG */
+#include <kernel/debug.h>
+
 #include <os/syscall.h>
 
+#include <errno.h>
 #include <wchar.h>
 
 int Hello(int a, int b)
@@ -88,24 +92,46 @@ handle_t ThrCreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority, v
 
 bool ThrGetV86Context(context_v86_t* ctx)
 {
+	if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
+	{
+		errno = EBUFFER;
+		return false;
+	}
+
 	if (current->v86_in_handler)
 	{
 		*ctx = current->v86_context;
+		if (current->v86_if)
+			ctx->eflags |= EFLAG_IF;
+		else
+			ctx->eflags &= ~EFLAG_IF;
 		return true;
 	}
 	else
+	{
+		errno = EINVALID;
 		return false;
+	}
 }
 
 bool ThrSetV86Context(const context_v86_t* ctx)
 {
+	if (!MemVerifyBuffer(ctx, sizeof(*ctx)))
+	{
+		errno = EBUFFER;
+		return false;
+	}
+
 	if (current->v86_in_handler)
 	{
 		current->v86_context = *ctx;
 		return true;
 	}
 	else
+	{
+		errno = EINVALID;
 		return false;
+	}
 }
 
 bool ThrContinueV86(void)
@@ -116,24 +142,32 @@ bool ThrContinueV86(void)
 
 	if (current->v86_in_handler)
 	{
-		ctx = ThrGetContext(current);
+		ctx = ThrGetUserContext(current);
 		kernel_esp = ctx->kernel_esp;
 		kernel_esp -= sizeof(context_v86_t) - sizeof(context_t);
-		current->kernel_esp = ctx->kernel_esp = kernel_esp;
+		/*current->kernel_esp = */ctx->kernel_esp = kernel_esp;
 
-		v86 = (context_v86_t*) ThrGetContext(current);
+		/*v86 = (context_v86_t*) ThrGetUserContext(current);*/
+		v86 = (context_v86_t*) (kernel_esp - 4);
 		*v86 = current->v86_context;
-		wprintf(L"ThrContinueV86: continuing...\n");
+
+		current->v86_if = (v86->eflags & EFLAG_IF) == EFLAG_IF;
+
+		TRACE2("ThrContinueV86: continuing: new esp = %x, old esp = %x\n",
+			kernel_esp, v86->kernel_esp);
 		v86->eflags |= EFLAG_IF | EFLAG_VM;
 		/*v86->kernel_esp = kernel_esp;*/
-		ArchDbgDumpContext((context_t*) v86);
+		/*ArchDbgDumpContext((context_t*) v86);*/
 		current->v86_in_handler = false;
 		__asm__("mov %0,%%eax\n"
-			"jmp _isr_switch_ret" : : "g" (v86->kernel_esp));
+			"jmp _isr_switch_ret" : : "g" (kernel_esp));
 		return true;
 	}
 	else
+	{
+		errno = EINVALID;
 		return false;
+	}
 }
 
 #else

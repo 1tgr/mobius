@@ -193,7 +193,19 @@ SOURCE=.\errno\errno.c
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\stdio\allocfil.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\clearerr.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\doprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\doscan.c
 # End Source File
 # Begin Source File
 
@@ -201,7 +213,111 @@ SOURCE=.\stdio\dowprintf.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdio\fclose.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\feof.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\ferror.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fflush.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fgetc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fgetpos.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fgets.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\filbuf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\flsbuf.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\fopen.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fputc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fputs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fread.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\freopen.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\frlist.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fscanf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fseek.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fsetpos.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\ftell.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fwalk.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\fwrite.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\getc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\getchar.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\gets.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\getw.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\perror.c
 # End Source File
 # Begin Source File
 
@@ -209,7 +325,71 @@ SOURCE=.\stdio\printf.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdio\putc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\putchar.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\puts.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\putw.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\remove.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\rename.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\rewind.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\scanf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\setbuf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\setbuffe.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\setlineb.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\setvbuf.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\sprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\sscanf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\stdaux.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\stderr.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\stdin.c
 # End Source File
 # Begin Source File
 
@@ -217,7 +397,43 @@ SOURCE=.\stdio\stdio.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdio\stdiohk.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\stdout.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\stdprn.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdio\swprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\tmpfile.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\tmpnam.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\ungetc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\vfprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\vprintf.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdio\vsprintf.c
 # End Source File
 # Begin Source File
 
@@ -233,7 +449,91 @@ SOURCE=.\stdlib\abort.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\stdlib\abs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\atexit.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\atof.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\atoi.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\atol.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\atold.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\bsdqsort.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\bsearch.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\div.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\exit.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\labs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\ldiv.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\llabs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\lldiv.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\stdlib\qsort.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\rand.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtod.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtol.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtold.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtoll.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtoul.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdlib\strtoull.c
 # End Source File
 # End Group
 # Begin Group "string"
@@ -419,10 +719,26 @@ SOURCE=.\string\wcstombs.c
 # Begin Group "time"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\time\localtime.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\time\time.c
+# End Source File
 # End Group
 # Begin Group "sys"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=.\sys\access.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\close.c
+# End Source File
 # Begin Source File
 
 SOURCE=.\sys\cputs.c
@@ -433,7 +749,23 @@ SOURCE=.\sys\cputws.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\sys\exit.c
+SOURCE=.\sys\creatnew.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\fmode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\getenv.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\isatty.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\lseek.c
 # End Source File
 # Begin Source File
 
@@ -441,7 +773,23 @@ SOURCE=.\sys\main.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\sys\open.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\read.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\sys\sbrk.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\towc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\sys\write.c
 # End Source File
 # End Group
 # Begin Group "malloc"
@@ -564,6 +912,46 @@ SOURCE=.\libc.def
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Group "sys (h)"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\sys\stat.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sys\types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\sys\version.h
+# End Source File
+# End Group
+# Begin Group "libc"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\..\include\libc\file.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\libc\local.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\libc\stdiohk.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\libc\stubs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\libc\unconst.h
+# End Source File
+# End Group
 # Begin Source File
 
 SOURCE=..\..\include\assert.h

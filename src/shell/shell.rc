@@ -1,4 +1,4 @@
-/* $Id: shell.rc,v 1.5 2002/02/26 15:46:34 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.6 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -32,6 +32,7 @@ BEGIN
     1037                    "End of file"
     1038                    "Argument list too long"
     1039                    "Not a directory"
+    1040                    "Fault"
 
     4096                    "The Möbius: command-line shell\n"
 END

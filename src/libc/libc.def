@@ -1,10 +1,77 @@
 NAME	libc
 EXPORTS
+	__access
+	__close
+	__get_stderr
+	__get_stdin
+	__get_stdout
+	__isatty
+	__lseek
+	__main
+	__open
+	__sbrk
+	_atold
 	_cputs
 	_cputws
+	_creatnew
+	_doscan
+	_doscan_low
+	_filbuf
+	_flsbuf
+	_fwalk
 	_geterrno
+	_read
+	_stricmp
+	_strtold
+	_towc
+	_wcsdup
+	_wcsicmp
+	_wcsmatch
+	_wcsnicmp
+	_write
 	abort
+	abs
+	atexit
+	atof
+	atoi
+	atol
+	bsearch
+	calloc
+	cfree
+	clearerr
+	div
+	doprintf
+	dowprintf
+	ecalloc
+	emalloc
+	erealloc
+	exit
+	fclose
+	feof
+	ferror
+	fflush
+	fgetc
+	fgetpos
+	fgets
+	fopen
+	fprintf
+	fputc
+	fputs
+	fread
+	free
+	freopen
+	fscanf
+	fseek
+	fsetpos
+	ftell
+	fwrite
+	getc
+	getchar
+	getenv
 	getpagesize
+	gets
+	getw
+	isalnum
 	isalpha
 	isascii
 	iscntrl
@@ -16,83 +83,100 @@ EXPORTS
 	isspace
 	isupper
 	isxdigit
+	labs
+	ldiv
+	llabs
+	localtime
+	mal_contents
+	mal_debug
+	mal_dumpleaktrace
+	mal_heapdump
+	mal_leaktrace
+	mal_mmap
+	mal_sbrkset
+	mal_setstatsfile
+	mal_slopset
+	mal_statsdump
+	mal_trace
+	mal_verify
+	malloc
 	mbstowcs
+	mbtowc
+	memalign
 	memchr
-	memcmp
 	memcmp
 	memcpy
 	memmove
 	memset
+	perror
+	printf
+	putc
+	putchar
+	puts
+	putw
+	qsort
+	qsort
+	rand
+	realloc
+	remove
+	rename
+	rewind
+	scanf
+	setbuf
+	setbuffer
+	setlinebuf
+	setvbuf
+	sprintf
+	srand
+	sscanf
 	strcat
 	strchr
 	strcmp
 	strcoll
 	strcpy
 	strcspn
-	_stricmp
+	strdup
+	strerror
 	strlen
 	strncat
 	strncmp
 	strncpy
 	strpbrk
 	strrchr
+	strsave
 	strspn
 	strstr
+	strtod
 	strtok
+	strtol
+	strtoul
 	strxfrm
+	swprintf
+	time
+	tmpfile
+	tmpnam
 	toascii
 	tolower
 	toupper
+	ungetc
+	valloc
+	vfprintf
+	vfprintf
+	vprintf
+	vprintf
+	vsprintf
+	vsprintf
+	vswprintf
+	vwprintf
 	wcscat
 	wcschr
 	wcscmp
 	wcscpy
-	_wcsdup
-	_wcsicmp
 	wcslen
+	wcsncmp
 	wcsncpy
 	wcspbrk
 	wcsrchr
 	wcstombs
-	doprintf
-	sbrk
-	dowprintf
-	strerror
-	vprintf
-	vsprintf
-	vswprintf
-	printf
-	emalloc
-	memalign
-	strdup
-	strsave
-	__emalloc
-	__malloc
-	__memalign
-	__strdup
-	__strsave
-	sprintf
-	swprintf
-	erealloc
-	vwprintf
-	ecalloc
-	wprintf
-	__erealloc
-	__free
-	__valloc
-	__realloc
-	__ecalloc
-	__calloc
-	valloc
-	__cfree
-	malloc
-	free
-	realloc
-	calloc
-	cfree
-	__main
-	exit
-	_wcsmatch
 	wctomb
-	mbtowc
-	qsort
+	wprintf

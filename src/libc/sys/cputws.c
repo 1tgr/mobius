@@ -1,37 +1,21 @@
-/* $Id: cputws.c,v 1.4 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: cputws.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
 
-#include <os/syscall.h>
-#include <os/rtl.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include <wchar.h>
-#include <errno.h>
+int _cputs(const char *str, size_t count);
 
-process_info_t *ProcGetProcessInfo(void);
-
-handle_t __cputws_event;
-
-int _cputws(const wchar_t *str, size_t count)
+int _cputws(const wchar_t *str, size_t len)
 {
-	/*return DbgWrite(str, count);*/
-	fileop_t op;
-	bool ret;
-	
-	if (__cputws_event == NULL)
-		__cputws_event = op.event = EvtAlloc();
-	else
-		op.event = __cputws_event;
+	char *mb;
+	int ret;
 
-	ret = FsWrite(ProcGetProcessInfo()->std_out,
-		str,
-		count * sizeof(wchar_t), 
-		&op);
-
-	if (!ret)
-		return 0;
+	mb = malloc(len);
+	len = wcstombs(mb, str, len);
+	if (len == -1)
+		ret = 0;
 	else
-	{
-		if (op.result == SIOPENDING)
-			ThrWaitHandle(__cputws_event);
-		return op.bytes / sizeof(wchar_t);
-	}
+		ret = _cputs(mb, len);
+	free(mb);
+	return ret;
 }

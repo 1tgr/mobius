@@ -1,4 +1,4 @@
-/* $Id: shell.c,v 1.8 2002/02/26 15:46:34 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,11 +6,15 @@
 #include <wchar.h>
 #include <iconv.h>
 #include <string.h>
+#include <unistd.h>	/* just for sbrk */
 
 #include <os/syscall.h>
 #include <os/rtl.h>
 
 #define PARAMSEP	'\\'
+#define ___CASSERT(a, b)	a##b
+#define __CASSERT(a, b)	___CASSERT(a, b)
+#define CASSERT(exp)	extern char __CASSERT(__ERR, __LINE__)[(exp)!=0]
 
 int _cputws(const wchar_t *str, size_t count);
 
@@ -110,7 +114,7 @@ wchar_t *ShPrompt(const wchar_t *prompt, wchar_t *params)
 		return params;
 	else
 	{
-		wprintf(L"%s", prompt);
+		_cputws(prompt, wcslen(prompt));
 		ShReadLine(buf, _countof(buf));
 		return buf;
 	}
@@ -273,7 +277,7 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
 		for (i = 0; sh_commands[i].name != NULL; i++)
 		{
 			for (j = wcslen(sh_commands[i].name); j < 8; j++)
-				_cputws(L" ", 1);
+				wprintf(L" ", 1);
 			wprintf(L"%s", sh_commands[i].name);
 			if (i > 0 && i % 8 == 0)
 				wprintf(L"\n");
@@ -292,9 +296,11 @@ void ShCmdHelp(const wchar_t *command, wchar_t *params)
 		{
 			if (_wcsicmp(params, sh_commands[i].name) == 0)
 			{
-				if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)))
+				if (!ResLoadString(NULL, sh_commands[i].help_id, text, _countof(text)) ||
+					text[0] == '\0')
 					swprintf(text, L"no string for ID %u", sh_commands[i].help_id);
-				wprintf(L"%s: ", sh_commands[i].name);
+				_cputws(sh_commands[i].name, wcslen(sh_commands[i].name));
+				_cputws(L": ", 2);
 				_cputws(text, wcslen(text));
 				break;
 			}
@@ -419,13 +425,14 @@ void ShCmdDir(const wchar_t *command, wchar_t *params)
 	}
 }
 
-static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, size_t))
+static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, addr_t, size_t))
 {
 	static char buf[2048];
 
 	handle_t file;
 	size_t len;
 	fileop_t op;
+	addr_t origin;
 	
 	file = FsOpen(name, FILE_READ);
 	if (file == NULL)
@@ -435,6 +442,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, size_t))
 	}
 
 	op.event = EvtAlloc();
+	origin = 0;
 	while (true)
 	{
 		if (!FsRead(file, buf, sizeof(buf), &op))
@@ -455,8 +463,9 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, size_t))
 		
 		if (len < _countof(buf))
 			buf[len] = '\0';
-		fn(buf, len);
+		fn(buf, origin, len);
 
+		origin += len;
 		if (len < sizeof(buf))
 			/*
 			 * FSD hit the end of the file: successful but fewer bytes read 
@@ -469,7 +478,7 @@ static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, size_t))
 	FsClose(file);
 }
 
-static void ShTypeOutput(const void *buf, size_t len)
+static void ShTypeOutput(const void *buf, addr_t origin, size_t len)
 {
 	static wchar_t str[2048];
 	size_t bytes_converted, i;
@@ -494,7 +503,7 @@ void ShCmdType(const wchar_t *command, wchar_t *params)
 	ShDumpFile(params, ShTypeOutput);
 }
 
-static void ShDumpOutput(const void *buf, size_t size)
+static void ShDumpOutput(const void *buf, addr_t origin, size_t size)
 {
 	const uint8_t *ptr;
 	int i, j;
@@ -502,7 +511,7 @@ static void ShDumpOutput(const void *buf, size_t size)
 	ptr = (const uint8_t*) buf;
 	for (j = 0; j < size; j += i, ptr += i)
 	{
-		wprintf(L"%8x ", j);
+		wprintf(L"%8x ", origin + j);
 		for (i = 0; i < 16; i++)
 		{
 			wprintf(L"%02x ", ptr[i]);
@@ -562,21 +571,34 @@ void ShCmdPoke(const wchar_t *command, wchar_t *params)
 
 void ShCmdRun(const wchar_t *command, wchar_t *params)
 {
-	wchar_t buf[MAX_PATH];
+	wchar_t buf[MAX_PATH], *space;
 	handle_t spawned;
+	static process_info_t info;
 
 	params = ShPrompt(L" Program? ", params);
 	if (*params == '\0')
 		return;
 
-	wcscpy(buf, params);
-	wcscat(buf, L".exe");
+	space = wcschr(params, ' ');
+	if (space)
+	{
+		wcsncpy(buf, params, space - params);
+		wcscpy(buf + (space - params), L".exe");
+	}
+	else
+	{
+		wcscpy(buf, params);
+		wcscat(buf, L".exe");
+	}
 
 	spawned = FsOpen(buf, 0);
 	if (spawned)
 	{
 		FsClose(spawned);
-		spawned = ProcSpawnProcess(buf, ProcGetProcessInfo());
+		info = *ProcGetProcessInfo();
+		memset(info.cmdline, 0, sizeof(info.cmdline));
+		wcsncpy(info.cmdline, params, _countof(info.cmdline));
+		spawned = ProcSpawnProcess(buf, &info);
 		ThrWaitHandle(spawned);
 		HndClose(spawned);
 	}
@@ -597,7 +619,9 @@ void ShCmdDetach(const wchar_t *command, wchar_t *params)
 	if (*params == '\0')
 		return;
 
-	doWait = ShHasParam(names, L"wait");
+	doWait = false;
+	if (ShHasParam(names, L"wait"))
+		doWait = true;
 	
 	out = ShFindParam(names, values, L"out");
 	if (*out == '\0')
@@ -701,13 +725,13 @@ void ShCmdInfo(const wchar_t *command, wchar_t *params)
 		if (SysGetTimes(&times))
 		{
 			unsigned ms, s, m, h;
-			wprintf(L"      System quantum: %u ms\n",
+			wprintf(L"   System quantum: %u ms\n",
 				times.quantum);
 			ShSplitTime(times.uptime, &h, &m, &s, &ms);
-			wprintf(L"       System uptime: %02u:%02u:%02u.%03u\n",
+			wprintf(L"    System uptime: %02u:%02u:%02u.%03u\n",
 				h, m, s, ms);
 			ShSplitTime(times.current_cputime, &h, &m, &s, &ms);
-			wprintf(L"CPU time (this task): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
+			wprintf(L"CPU time (thread): %02u:%02u:%02u.%03u (average %u%% CPU usage)\n",
 				h, m, s, ms, (times.current_cputime * 100) / times.uptime);
 		}
 		else
@@ -801,57 +825,60 @@ void ShV86Handler(void)
 	ThrContinueV86();
 }
 
-#if 0
-		0x31, 0xc0,		/* xor ax, ax */
-		0x8e, 0xd8,		/* mov ds, ax */
-		0x83, 0xc0,		/* mov es, ax */
-		0x40,			/* inc ax */
-		0xeb, 0xfd,		/* jmp 0 */
-#elif 0
-		0x83, 0xE9, 0x01,
-		0xE2, 0xFB,
-		0xC3,
-#elif 0
-		0xB8, 0x00, 0xA0,						/* mov ax, 0xb800 */
-		0x8E, 0xC0,								/* mov es, ax*/
-		0x26,									/* es: */
-		0xC7, 0x06, 0x00, 0x00, 0x34, 0x12,		/* mov [0], word 0x1234 */
-		0xC7, 0x06, 0x02, 0x00, 0x34, 0x12,		/* mov [2], word 0x1234 */
-		0xC7, 0x06, 0x04, 0x00, 0x34, 0x12,		/* mov [2], word 0x1234 */
-		0x66, 0xB8, 0x00, 0x02, 0x00, 0x00,		/* mov eax,0x200 */
-		0xCD, 0x30,								/* int 0x30 */
-#elif 0
-		0x8C, 0xC8,			/* mov ax, cs */
-		0x8E, 0xD8,			/* mov ds, ax */
-		0xB4, 0x09,			/* mov ah, 9 */
-		0xBA, 0x0C, 0x01,	/* mov dx, 0x10c */
-		0xCD, 0x21,			/* int 0x21 */
-		0xC3,				/* ret */
-		'H', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd', '!', '\n', '$'
-#endif
+#pragma pack(push, 1)
+typedef struct psp_t psp_t;
+struct psp_t
+{
+	uint16_t int20;
+	uint16_t memory_top;
+	uint8_t reserved;
+	uint8_t cpm_call[5];
+	uint16_t com_bytes_available;
+	uint32_t terminate_addr;
+	uint32_t cbreak_addr;
+	uint32_t error_addr;
+	uint16_t parent_psp;
+	uint8_t file_handles[20];
+	uint16_t environment;
+	uint32_t int21_stack;
+	uint16_t handles_size;
+	uint32_t handles_addr;
+	uint32_t prev_psp_addr;
+	uint8_t reserved1[20];
+	uint8_t dos_dispatch[3];
+	uint8_t reserved2[9];
+	uint8_t fcb1[36];
+	uint8_t fdb2[20];
+	uint8_t cmdline_length;
+	uint8_t cmdline[127];
+};
+#pragma pack(pop)
+
+CASSERT(sizeof(psp_t) == 0x100);
 
 void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 {
-	static const uint8_t code_exit[] =
-	{
-#if 0
-		0x66, 0xB8, 0x00, 0x02, 0x00, 0x00,		/* mov eax,0x200 */
-		0xCD, 0x30,								/* int 0x30 */
-#else
-		0xCD, 0x20,
-#endif
-	};
-
 	static uint8_t *stack;
 	uint8_t *code;
+	psp_t *psp;
 	FARPTR fp_code, fp_stackend;
 	handle_t thr, file;
 	dirent_t di;
 	fileop_t op;
+	bool doWait;
+	wchar_t **names, **values;
 
+	ShParseParams(params, &names, &values, &params);
 	params = ShPrompt(L" .COM file? ", params);
-	if (*params == NULL)
+	if (*params == '\0')
 		return;
+
+	doWait = true;
+	if (ShHasParam(names, L"nowait"))
+		doWait = false;
+	
+	free(names);
+	free(values);
 
 	/*if (!FsQueryFile(params, FILE_QUERY_STANDARD, &di, sizeof(di)))
 	{
@@ -869,7 +896,9 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 	}
 
 	code = sbrk(di.length + 0x100);
-	memcpy(code, code_exit, sizeof(code_exit));
+	psp = (psp_t*) code;
+	memset(psp, 0, sizeof(*psp));
+	psp->int20 = 0x20cd;
 
 	op.event = file;
 	if (!FsRead(file, code + 0x100, di.length, &op))
@@ -903,7 +932,10 @@ void ShCmdV86(const wchar_t *cmd, wchar_t *params)
 	memset(stack, 0, 65536);
 	
 	thr = ThrCreateV86Thread(fp_code, fp_stackend, 15, ShV86Handler);
-	ThrWaitHandle(thr);
+	if (doWait)
+		ThrWaitHandle(thr);
+
+	/* xxx - need to clean up HndClose() implementation before we can use this */
 	/*HndClose(thr);*/
 }
 
@@ -973,7 +1005,9 @@ int main(void)
 
 	while (!sh_exit)
 	{
-		wprintf(L"[%s] ", proc->cwd);
+		_cputws(L"[", 1);
+		_cputws(proc->cwd, wcslen(proc->cwd));
+		_cputws(L"] ", 2);
 		if (ShReadLine(buf, _countof(buf)) == -1)
 			break;
 		

@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.4 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.5 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -24,7 +24,7 @@ static IMAGE_PE_HEADERS* PeGetHeaders(addr_t base)
 
 module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 {
-	wchar_t full_file[256];
+	static wchar_t full_file[256];
 	handle_t fd;
 	module_t* mod;
 	IMAGE_DOS_HEADER dos;
@@ -45,7 +45,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 	if (!fd)
 		return NULL;
 	
-	FsSeek(fd, 0);
+	FsSeek(fd, 0, FILE_SEEK_SET);
 	size = FsReadSync(fd, &dos, sizeof(dos));
 	if (size < sizeof(dos))
 	{
@@ -59,7 +59,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
 		return NULL;
 	}
 
-	FsSeek(fd, dos.e_lfanew);
+	FsSeek(fd, dos.e_lfanew, FILE_SEEK_SET);
 	FsReadSync(fd, &pe, sizeof(pe));
 
 	if (pe.Signature != IMAGE_NT_SIGNATURE)
@@ -313,7 +313,7 @@ bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
 
 	if (raw_offset != (addr_t) -1)
 	{
-		FsSeek(mod->file, raw_offset);
+		FsSeek(mod->file, raw_offset, FILE_SEEK_SET);
 		FsReadSync(mod->file, scn_base, raw_size);
 	}
 	

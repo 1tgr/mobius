@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.6 2002/02/22 15:31:20 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.7 2002/02/27 18:33:38 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -73,7 +73,7 @@ bool DbgLookupSymbol(module_t *mod, void* sym, addr_t* address, SYMENT *syment)
 		pe->FileHeader.PointerToSymbolTable);*/
 
 	if (mod->file)
-		FsSeek(mod->file, pe->FileHeader.PointerToSymbolTable);
+		FsSeek(mod->file, pe->FileHeader.PointerToSymbolTable, FILE_SEEK_SET);
 	else
 		return false;
 

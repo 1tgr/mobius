@@ -1,4 +1,4 @@
-/* $Id: doprintf.c,v 1.3 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: doprintf.c,v 1.4 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <stddef.h>
 #include <string.h>
@@ -118,7 +118,13 @@ int doprintf(PRINTFUNC Fn, void* Ptr, const char* Fmt, va_list Args)
 				State++;    /* FALL THROUGH */
 
 		case 2:     /* AWAITING FIELD WIDTH (<number>) */
-			if(*Fmt >= '0' && *Fmt <= '9')
+			if (*Fmt == '*')
+			{
+				GivenWd = va_arg(Args, int);
+				State++;
+				break;
+			}
+			else if(*Fmt >= '0' && *Fmt <= '9')
 			{
 				GivenWd=10 * GivenWd + (*Fmt - '0');
 				break;

@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.15 2002/02/26 15:46:22 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.16 2002/02/27 18:33:38 pavlovskii Exp $ */
 #include <kernel/driver.h>
 #include <kernel/fs.h>
 #include <kernel/io.h>
@@ -619,7 +619,7 @@ bool FsWrite(handle_t file, const void *buf, size_t bytes, struct fileop_t *op)
  *	\param	ofs	New offset, relative to the beginning of the file
  *	\return	New offset, or 0 if the handle was invalid
  */
-addr_t FsSeek(handle_t file, addr_t ofs)
+off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
 {
 	file_t *fd;
 	
@@ -627,7 +627,22 @@ addr_t FsSeek(handle_t file, addr_t ofs)
 	if (fd == NULL)
 		return 0;
 
-	fd->pos = ofs;
+	switch (origin)
+	{
+	case FILE_SEEK_SET:
+		fd->pos = ofs;
+		break;
+
+	case FILE_SEEK_CUR:
+		fd->pos += ofs;
+		break;
+
+	case FILE_SEEK_END:
+		/* xxx - need to implement this */
+		assert(origin != FILE_SEEK_END);
+		break;
+	}
+
 	HndUnlock(NULL, file, 'file');
 
 	return ofs;

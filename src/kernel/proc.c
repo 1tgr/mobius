@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.8 2002/02/25 01:28:14 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.9 2002/02/27 18:33:55 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -25,9 +25,11 @@ unsigned proc_last_id;
 
 process_info_t proc_idle_info =
 {
-	SYS_BOOT,					/* cwd */
 	0,							/* id */
 	(addr_t) scode,				/* base */
+	NULL, NULL,					/* std_in, std_out */
+	SYS_BOOT,					/* cwd */
+	L"",						/* cmdline */
 };
 
 module_t mod_kernel =
