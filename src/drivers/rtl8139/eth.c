@@ -1,4 +1,4 @@
-/* $Id: eth.c,v 1.2 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: eth.c,v 1.3 2002/12/18 23:20:21 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -90,7 +90,7 @@ net_binding_t *EthBindProtocol(net_protocol_t *proto, device_t *dev, uint16_t ty
     bind->proto = proto;
     bind->proto_cookie = NULL;
 
-    bind->thr = ThrCreateThread(NULL, true, EthHandleBinding, true, bind, 16);
+    bind->thr = ThrCreateThread(NULL, true, EthHandleBinding, true, bind, 12);
     if (bind->thr == NULL)
     {
         free(bind);
