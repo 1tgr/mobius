@@ -1,4 +1,4 @@
-/* $Id: s3.c,v 1.1 2002/03/28 15:35:17 pavlovskii Exp $ */
+/* $Id: s3.c,v 1.2 2002/04/03 23:33:45 pavlovskii Exp $ */
 
 /*
  * Mostly hacked from S3 Trio64 Linux framebuffer driver written by 
@@ -134,13 +134,33 @@ static void Trio_WaitIdle (void) {
   Trio_WaitBlit();
 }
 
-static void Trio_MoveCursor (uint16_t x, uint16_t y)
+#include "cur_hand.c"
+
+void s3MoveCursor(video_t *vid, point_t pt)
 {
-    crt_outb(CRT_ID_REGISTER_LOCK_2, 0xa0);
-    crt_outb(CRT_ID_HWGC_ORIGIN_X_HI, (char)((x & 0x0700) >> 8));
-    crt_outb(CRT_ID_HWGC_ORIGIN_X_LO, (char)(x & 0x00ff));
-    crt_outb(CRT_ID_HWGC_ORIGIN_Y_HI, (char)((y & 0x0700) >> 8));
-    crt_outb(CRT_ID_HWGC_ORIGIN_Y_LO, (char)(y & 0x00ff));
+    pt.x -= hotspot_x;
+    pt.y -= hotspot_y;
+    
+    if (pt.x < 0)
+    {
+        crt_outb(CRT_ID_HWGC_DSTART_X, -pt.x);
+        pt.x = 0;
+    }
+    else
+        crt_outb(CRT_ID_HWGC_DSTART_X, 0);
+    
+    if (pt.y < 0)
+    {
+        crt_outb(CRT_ID_HWGC_DSTART_Y, -pt.y);
+        pt.y = 0;
+    }
+    else
+        crt_outb(CRT_ID_HWGC_DSTART_Y, 0);
+
+    crt_outb(CRT_ID_HWGC_ORIGIN_X_HI, (char)((pt.x & 0x0700) >> 8));
+    crt_outb(CRT_ID_HWGC_ORIGIN_X_LO, (char)(pt.x & 0x00ff));
+    crt_outb(CRT_ID_HWGC_ORIGIN_Y_HI, (char)((pt.y & 0x0700) >> 8));
+    crt_outb(CRT_ID_HWGC_ORIGIN_Y_LO, (char)(pt.y & 0x00ff));
 }
 
 inline void trio_video_disable(int toggle) {
@@ -274,7 +294,10 @@ static void trio_load_video_mode (s3mode_t *mode)
 
     crt_outb(0x11, crt_inb(0x11) & 0x7f); /* unlock crt 0-7 */
 
-    crt_outb(CRT_ID_HWGC_MODE,        0x00);
+    crt_outb(CRT_ID_HWGC_MODE, crt_inb(CRT_ID_HWGC_MODE) | 1);
+    crt_outb(CRT_ID_HWGC_FG_STACK, 0);
+    crt_outb(CRT_ID_HWGC_BG_STACK, 15);
+    
     crt_outb(CRT_ID_EXT_DAC_CNTL, 0x00);
 
     /* sequential addressing, chain-4 */
@@ -512,6 +535,7 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
 {
     bool found;
     unsigned i;
+    point_t pt;
     
     found = false;
     for (i = 0; i < _countof(s3_modes); i++)
@@ -530,13 +554,26 @@ static bool s3SetMode(video_t *vid, videomode_t *mode)
     s3FillSolidRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
     bpp8GeneratePalette(bpp8_palette);
     vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
-    Trio_MoveCursor(0, 0);
+    pt.x = pt.y = 0;
+    s3MoveCursor(vid, pt);
     return true;
 }
 
-static void s3PutPixel(video_t *vid, int x, int y, colour_t clr)
+static void s3PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
+                       colour_t clr)
 {
-    ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = bpp8Dither(x, y, clr);
+    unsigned i;
+
+    for (i = 0; i < clip->num_rects; i++)
+        if (x >= clip->rects[i].left &&
+            y >= clip->rects[i].top &&
+            x <  clip->rects[i].right &&
+            y <  clip->rects[i].bottom)
+        {
+            ((uint8_t*) TrioMem)[x + y * video_mode.bytesPerLine] = 
+                bpp8Dither(x, y, clr);
+            break;
+        }
 }
 
 static colour_t s3GetPixel(video_t *vid, int x, int y)
@@ -548,17 +585,28 @@ static colour_t s3GetPixel(video_t *vid, int x, int y)
         bpp8_palette[index].blue);
 }
 
-static void s3HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
+static void s3HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+                    colour_t clr)
 {
     uint8_t *ptr;
+    unsigned i;
+    int ax1, ax2;
 
     if (x2 < x1)
 	swap_int(&x1, &x2);
 
-    for (ptr = ((uint8_t*) TrioMem) + x1 + y * video_mode.bytesPerLine;
-        x1 < x2;
-        x1++, ptr++)
-        *ptr = bpp8Dither(x1, y, clr);
+    for (i = 0; i < clip->num_rects; i++)
+    {
+        if (y >= clip->rects[i].top && y < clip->rects[i].bottom)
+        {
+            ax1 = max(clip->rects[i].left, x1);
+            ax2 = min(clip->rects[i].right, x2);
+            for (ptr = ((uint8_t*) TrioMem) + ax1 + y * video_mode.bytesPerLine;
+                ax1 < ax2;
+                ax1++, ptr++)
+                *ptr = bpp8Dither(ax1, y, clr);
+        }
+    }
 }
 
 static video_t s3 =
@@ -566,6 +614,8 @@ static video_t s3 =
     s3Close,
     s3EnumModes,
     s3SetMode,
+    vgaStorePalette,
+    s3MoveCursor,
     s3PutPixel,
     s3GetPixel,
     s3HLine,
@@ -574,15 +624,30 @@ static video_t s3 =
     NULL,           /* fillrect */
     NULL,           /* textout */
     NULL,           /* fillpolygon */
-    vgaStorePalette
 };
+
+void _swab(char *src, char *dest, int nbytes)
+{
+    char b1, b2;
+
+    while (nbytes > 1)
+    {
+        b1 = *src++;
+        b2 = *src++;
+        *dest++ = b2;
+        *dest++ = b1;
+        nbytes -= 2;
+    }
+}
 
 void s3InitHardware(void)
 {
-    int i;
+    int i, j;
     unsigned char test;
     unsigned int clockpar;
-    volatile uint32_t *CursorBase;
+    volatile uint16_t *CursorBase;
+    unsigned cursor_off;
+    uint32_t a, b;
 
     /* make sure 0x46e8 accesses are responded to */
     crt_outb(CRT_ID_EXT_MISC_CNTL, crt_inb(CRT_ID_EXT_MISC_CNTL) & 0xfb);
@@ -682,29 +747,94 @@ void s3InitHardware(void)
     vga_outb(VDAC_MASK, 0xFF);
 
     crt_outb(CRT_ID_BACKWAD_COMP_3, 0x10);/* FIFO enabled */
-    crt_outb(CRT_ID_HWGC_MODE, 0x00); /* GFx hardware cursor off */
-    crt_outb(CRT_ID_HWGC_DSTART_X, 0x00);
-    crt_outb(CRT_ID_HWGC_DSTART_Y, 0x00);
+    crt_outb(CRT_ID_HWGC_MODE, 0x00);     /* GFx hardware cursor off */
+    
+    cursor_off = TrioSize - 0x400;
+    CursorBase = (uint16_t *)((char *)(TrioMem) + cursor_off);
+    crt_outb(CRT_ID_HWGC_START_AD_HI, ((cursor_off / 1024) & 0xf00) >> 8);
+    crt_outb(CRT_ID_HWGC_START_AD_LO,  (cursor_off / 1024) & 0x0ff);
+
     att_outb(0x33, 0);
     trio_video_disable(0);    
 
     /* Initialize hardware cursor */
-    CursorBase = (uint32_t *)((char *)(TrioMem) + TrioSize - 0x400);
-#if 1
-    for (i=0; i < 8; i++) {
+    /*for (i = 0; i < 8; i++)
+    {
         *(CursorBase  +(i*4)) = 0xffffff00;
         *(CursorBase+1+(i*4)) = 0xffff0000;
         *(CursorBase+2+(i*4)) = 0xffff0000;
         *(CursorBase+3+(i*4)) = 0xffff0000;
     }
-    for (i=8; i < 64; i++) {
+
+    for (i = 8; i < 64; i++)
+    {
         *(CursorBase  +(i*4)) = 0xffff0000;
         *(CursorBase+1+(i*4)) = 0xffff0000;
         *(CursorBase+2+(i*4)) = 0xffff0000;
         *(CursorBase+3+(i*4)) = 0xffff0000;
+    }*/
+
+    for (i = 0; i < 256; i++)
+    {
+        CursorBase[i * 2 + 0] = 0xffff;
+        CursorBase[i * 2 + 1] = 0x0000;
     }
-#endif
+
+    for (i = 0; i < _countof(cur_hand); i += j)
+    {
+        a = b = 0;
+        for (j = 0; j < 32; j++)
+        {
+            a <<= 1;
+            b <<= 1;
+
+            /*
+             *  The bits are interpreted as:
+             *  A    B    MS-Windows:         X-11:
+             *  0    0    Background          Screen data
+             *  0    1    Foreground          Screen data
+             *  1    0    Screen data         Background
+             *  1    1    Inverted screen     Foreground
+             */
+            switch (cur_hand[i + j])
+            {
+            case B:
+                a |= 0;
+                b |= 0;
+                break;
+
+            case F:
+                a |= 0;
+                b |= 1;
+                break;
+
+            case _:
+                a |= 1;
+                b |= 0;
+                break;
+
+            case I:
+                a |= 1;
+                b |= 1;
+                break;
+            }
+        }
+
+        /* xxx - Why are these bytes swapped? Some S3 weirdness... */
+        _swab((char*) &a, (char*) &a, sizeof(a));
+        _swab((char*) &b, (char*) &b, sizeof(b));
+
+        CursorBase[i / 4 + 0] = a >> 16;
+        CursorBase[i / 4 + 1] = b >> 16;
+        CursorBase[i / 4 + 2] = a;
+        CursorBase[i / 4 + 3] = b;
+    }
 }
+
+#undef F
+#undef B
+#undef I
+#undef _
 
 video_t *s3Init(device_config_t *cfg)
 {

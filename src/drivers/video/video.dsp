@@ -102,7 +102,19 @@ SOURCE=.\font8x8.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\line.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\polygon.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\s3.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\text.c
 # End Source File
 # Begin Source File
 
@@ -147,6 +159,10 @@ SOURCE=..\..\..\include\os\video.h
 # Begin Source File
 
 SOURCE=.\include\video.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\include\vidfuncs.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

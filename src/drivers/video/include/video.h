@@ -1,4 +1,4 @@
-/* $Id: video.h,v 1.1 2002/03/28 15:35:17 pavlovskii Exp $ */
+/* $Id: video.h,v 1.2 2002/04/03 23:33:45 pavlovskii Exp $ */
 
 #ifndef __VGA_H
 #define __VGA_H
@@ -29,20 +29,6 @@ extern "C"
 #define VGA_CRTC_DATA		0x3D5
 #define VGA_INSTAT_READ		0x3DA
 
-/* Write to indexed VGA register using outw. */
-void __svgalib_outGR(int index, unsigned char value);
-void __svgalib_outSR(int index, unsigned char value);
-void __svgalib_outCR(int index, unsigned char value);
-
-/* Write to indexed VGA register using outb. */
-void __svgalib_outbGR(int index, unsigned char value);
-void __svgalib_outbSR(int index, unsigned char value);
-void __svgalib_outbCR(int index, unsigned char value);
-
-unsigned char __svgalib_inGR(int index);
-unsigned char __svgalib_inSR(int index);
-unsigned char __svgalib_inCR(int index);
-
 /* number of registers in each VGA unit */
 #define NUM_CRTC_REGS		25
 #define NUM_AC_REGS		21
@@ -68,19 +54,25 @@ struct video_t
     void (*vidClose)(video_t *vid);
     int  (*vidEnumModes)(video_t *vid, unsigned index, videomode_t *mode);
     bool (*vidSetMode)(video_t *vid, videomode_t *mode);
-
-    void (*vidPutPixel)(video_t *vid, int x, int y, colour_t c);
-    colour_t (*vidGetPixel)(video_t *vid, int x, int y);
-    void (*vidHLine)(video_t *vid, int x1, int x2, int y, colour_t c);
-    void (*vidVLine)(video_t *vid, int x, int y1, int y2, colour_t c);
-    void (*vidLine)(video_t *vid, int x1, int y1, int x2, int y2, colour_t d);
-    void (*vidFillRect)(video_t *vid, int x1, int y1, int x2, int y2, colour_t c);
-    void (*vidTextOut)(video_t *vid, rect_t *rect, const wchar_t *str, size_t len, 
-        colour_t fg, colour_t bg);
-    void (*vidFillPolygon)(video_t *vid, const point_t *points, 
-        unsigned num_points, colour_t colour);
     void (*vidStorePalette)(video_t *vid, const rgb_t *entries, unsigned first,
         unsigned count);
+    void (*vidMoveCursor)(video_t *vid, point_t pt);
+
+    void (*vidPutPixel)(video_t *vid, const clip_t *clip, int x, int y, 
+        colour_t c);
+    colour_t (*vidGetPixel)(video_t *vid, int x, int y);
+    void (*vidHLine)(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+        colour_t c);
+    void (*vidVLine)(video_t *vid, const clip_t *clip, int x, int y1, int y2, 
+        colour_t c);
+    void (*vidLine)(video_t *vid, const clip_t *clip, int x1, int y1, int x2, int y2, 
+        colour_t d);
+    void (*vidFillRect)(video_t *vid, const clip_t *clip, int x1, int y1, int x2, int y2, 
+        colour_t c);
+    void (*vidTextOut)(video_t *vid, const clip_t *clip, rect_t *rect, 
+        const wchar_t *str, size_t len, colour_t fg, colour_t bg);
+    void (*vidFillPolygon)(video_t *vid, const clip_t *clip, 
+        const point_t *points, unsigned num_points, colour_t colour);
 };
 
 #define VID_ENUM_CONTINUE	1

@@ -18,9 +18,9 @@ uint8_t bpp8Dither(int x, int y, colour_t clr)
 {
     int rb, r, g, b;
 
-    /*if (COLOUR_RED(clr) / 16 == COLOUR_GREEN(clr) / 16 &&
+    if (COLOUR_RED(clr) / 16 == COLOUR_GREEN(clr) / 16 &&
         COLOUR_GREEN(clr) / 16 == COLOUR_BLUE(clr) / 16)
-        return COLOUR_RED(clr) / 16;*/
+        return COLOUR_RED(clr) / 16;
 
     x &= 3;
     y &= 3;

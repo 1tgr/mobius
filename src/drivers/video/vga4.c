@@ -1,4 +1,4 @@
-/* $Id: vga4.c,v 1.10 2002/03/28 15:35:17 pavlovskii Exp $ */
+/* $Id: vga4.c,v 1.11 2002/04/03 23:33:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -98,6 +98,7 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
 {
     const uint8_t *regs;
     unsigned i;
+    clip_t clip;
     
     regs = NULL;
     for (i = 0; i < _countof(vga4_modes); i++)
@@ -123,12 +124,14 @@ bool vga4SetMode(video_t *vid, videomode_t *mode)
         //vid->text_memory = NULL;
     //}
     //else
-        vid->vidFillRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
+    clip.num_rects = 0;
+    clip.rects = NULL;
+    vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
         
     return true;
 }
 
-void vga4PutPixel(video_t *vid, int x, int y, colour_t clr)
+void vga4PutPixel(video_t *vid, const clip_t *clip, int x, int y, colour_t clr)
 {
     uint8_t *offset;
     volatile uint8_t a;
@@ -193,7 +196,8 @@ colour_t vga4GetPixel(video_t *vid, int x, int y)
     return b + 2 * g + 4 * r + 8 * i;
 }
 
-void vga4HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
+void vga4HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+               colour_t clr)
 {
     int midx, leftpix, rightx, midpix, rightpix;
     uint8_t leftmask, rightmask, pix, *offset;
@@ -353,15 +357,16 @@ video_t vga4 =
     vga4Close,
     vga4EnumModes,
     vga4SetMode,
+    vgaStorePalette,
+    NULL,           /* movecusor */
     vga4PutPixel,
     vga4GetPixel,
     vga4HLine,
-    NULL,             /* vline */
-    NULL,             /* line */
-    NULL,             /* fillrect */
+    NULL,          /* vline */
+    NULL,          /* line */
+    NULL,          /* fillrect */
     NULL, //vga4TextOut,
-    NULL,             /* fillpolygon */
-    vgaStorePalette
+    NULL,          /* fillpolygon */
 };
 
 video_t *vga4Init(device_config_t *cfg)

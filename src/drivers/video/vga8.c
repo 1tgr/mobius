@@ -1,4 +1,4 @@
-/* $Id: vga8.c,v 1.6 2002/03/28 15:35:17 pavlovskii Exp $ */
+/* $Id: vga8.c,v 1.7 2002/04/03 23:33:45 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -45,6 +45,7 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
 {
     const uint8_t *regs;
     unsigned i;
+    clip_t clip;
     
     regs = NULL;
     for (i = 0; i < _countof(vga8_modes); i++)
@@ -69,14 +70,17 @@ static bool vga8SetMode(video_t *vid, videomode_t *mode)
         //vid->text_memory = NULL;
     //}
     //else
-        vid->vidFillRect(vid, 0, 0, video_mode.width, video_mode.height, 0);
+    clip.num_rects = 0;
+    clip.rects = NULL;
+    vid->vidFillRect(vid, &clip, 0, 0, video_mode.width, video_mode.height, 0);
         
     bpp8GeneratePalette(bpp8_palette);
     vgaStorePalette(vid, bpp8_palette, 0, _countof(bpp8_palette));
     return true;
 }
 
-static void vga8PutPixel(video_t *vid, int x, int y, colour_t clr)
+static void vga8PutPixel(video_t *vid, const clip_t *clip, int x, int y, 
+                         colour_t clr)
 {
     video_base[x + y * video_mode.bytesPerLine] = bpp8Dither(x, y, clr);
 }
@@ -90,7 +94,8 @@ static colour_t vga8GetPixel(video_t *vid, int x, int y)
         bpp8_palette[index].blue);
 }
 
-static void vga8HLine(video_t *vid, int x1, int x2, int y, colour_t clr)
+static void vga8HLine(video_t *vid, const clip_t *clip, int x1, int x2, int y, 
+                      colour_t clr)
 {
     uint8_t *ptr;
 
@@ -157,15 +162,16 @@ static video_t vga8 =
     vga8Close,
     vga8EnumModes,
     vga8SetMode,
+    vgaStorePalette,
+    NULL,           /* movecursor */
     vga8PutPixel,
     vga8GetPixel,
     vga8HLine,
-    NULL,	     /* vline */
-    NULL,	     /* line */
-    NULL,	     /* fillrect */
+    NULL,	   /* vline */
+    NULL,	   /* line */
+    NULL,	   /* fillrect */
     NULL, //vga8TextOut,
-    NULL,	     /* fillpolygon */
-    vgaStorePalette
+    NULL,	   /* fillpolygon */
 };
 
 video_t *vga8Init(device_config_t *cfg)
