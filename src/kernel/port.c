@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.4 2002/01/06 01:56:15 pavlovskii Exp $ */
+/* $Id: port.c,v 1.5 2002/01/06 18:36:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -33,8 +33,10 @@ static const IDeviceVtbl portfs_vtbl =
 
 static device_t port_dev =
 {
-	&portfs_vtbl,
 	&port_driver, 
+	NULL,
+	NULL, NULL,
+	&portfs_vtbl,
 };
 
 device_t *PortMountFs(driver_t *driver, const wchar_t *name, device_t *dev)

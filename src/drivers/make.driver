@@ -1,7 +1,7 @@
 ROOT=		/mn
 BIN=		$(ROOT)/bin
 LIB=		$(ROOT)/lib
-CPPFLAGS+=	-g -O2 -ansi -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -fno-rtti -I$(ROOT)/include -I.
+CPPFLAGS+=	-g -O2 -ansi -D__MOBIUS__ -DKERNEL -Di386 -Wall -Wno-multichar -nostdinc -fno-rtti -fvtable-thunks -I$(ROOT)/include -I.
 CC=		gcc
 NASM=		nasm
 LDFLAGS+=	-g --subsystem native --entry _DrvInit \

@@ -520,7 +520,7 @@ FdcStartIo():
 8006146c:	53                   	push   %ebx
 /mn/src/drivers/fdc/fdc.c:198
 8006146d:	8b 45 08             	mov    0x8(%ebp),%eax
-80061470:	8b 40 0c             	mov    0xc(%eax),%eax
+80061470:	8b 40 08             	mov    0x8(%eax),%eax
 80061473:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
 /mn/src/drivers/fdc/fdc.c:199
 80061476:	85 c0                	test   %eax,%eax
@@ -1550,86 +1550,86 @@ FdcAddDevice():
 80061e16:	b9 11 00 00 00       	mov    $0x11,%ecx
 80061e1b:	f3 ab                	repz stos %eax,%es:(%edi)
 /mn/src/drivers/fdc/fdc.c:543
-80061e1d:	c7 03 2c 1d 06 80    	movl   $0x80061d2c,(%ebx)
+80061e1d:	c7 43 10 2c 1d 06 80 	movl   $0x80061d2c,0x10(%ebx)
 /mn/src/drivers/fdc/fdc.c:544
-80061e23:	66 c7 43 18 f0 03    	movw   $0x3f0,0x18(%ebx)
+80061e24:	66 c7 43 18 f0 03    	movw   $0x3f0,0x18(%ebx)
 /mn/src/drivers/fdc/fdc.c:545
-80061e29:	c6 43 1a 06          	movb   $0x6,0x1a(%ebx)
+80061e2a:	c6 43 1a 06          	movb   $0x6,0x1a(%ebx)
 /mn/src/drivers/fdc/fdc.c:546
-80061e2d:	c7 43 28 00 00 00 00 	movl   $0x0,0x28(%ebx)
+80061e2e:	c7 43 28 00 00 00 00 	movl   $0x0,0x28(%ebx)
 /mn/src/drivers/fdc/fdc.c:547
-80061e34:	c7 43 40 ff ff ff ff 	movl   $0xffffffff,0x40(%ebx)
+80061e35:	c7 43 40 ff ff ff ff 	movl   $0xffffffff,0x40(%ebx)
 /mn/src/drivers/fdc/fdc.c:548
-80061e3b:	c7 43 20 ff ff ff ff 	movl   $0xffffffff,0x20(%ebx)
+80061e3c:	c7 43 20 ff ff ff ff 	movl   $0xffffffff,0x20(%ebx)
 /mn/src/drivers/fdc/fdc.c:549
-80061e42:	c6 43 24 00          	movb   $0x0,0x24(%ebx)
+80061e43:	c6 43 24 00          	movb   $0x0,0x24(%ebx)
 /mn/src/drivers/fdc/fdc.c:551
-80061e46:	e8 d9 01 00 00       	call   80062024 <_alloc_dma_buffer>
+80061e47:	e8 d8 01 00 00       	call   80062024 <_alloc_dma_buffer>
 /mn/src/drivers/fdc/fdc.c:552
-80061e4b:	83 c4 f4             	add    $0xfffffff4,%esp
+80061e4c:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/fdc/fdc.c:551
-80061e4e:	89 43 3c             	mov    %eax,0x3c(%ebx)
+80061e4f:	89 43 3c             	mov    %eax,0x3c(%ebx)
 /mn/src/drivers/fdc/fdc.c:552
-80061e51:	68 00 10 00 00       	push   $0x1000
-80061e56:	e8 21 03 00 00       	call   8006217c <_sbrk_virtual>
-80061e5b:	89 c2                	mov    %eax,%edx
-80061e5d:	89 53 38             	mov    %edx,0x38(%ebx)
+80061e52:	68 00 10 00 00       	push   $0x1000
+80061e57:	e8 20 03 00 00       	call   8006217c <_sbrk_virtual>
+80061e5c:	89 c2                	mov    %eax,%edx
+80061e5e:	89 53 38             	mov    %edx,0x38(%ebx)
 /mn/src/drivers/fdc/fdc.c:553
-80061e60:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
-80061e66:	6a 03                	push   $0x3
-80061e68:	50                   	push   %eax
-80061e69:	8b 43 3c             	mov    0x3c(%ebx),%eax
-80061e6c:	50                   	push   %eax
-80061e6d:	52                   	push   %edx
-80061e6e:	e8 01 03 00 00       	call   80062174 <_MemMap>
+80061e61:	8d 82 00 10 00 00    	lea    0x1000(%edx),%eax
+80061e67:	6a 03                	push   $0x3
+80061e69:	50                   	push   %eax
+80061e6a:	8b 43 3c             	mov    0x3c(%ebx),%eax
+80061e6d:	50                   	push   %eax
+80061e6e:	52                   	push   %edx
+80061e6f:	e8 00 03 00 00       	call   80062174 <_MemMap>
 /mn/src/drivers/fdc/fdc.c:557
-80061e73:	83 c4 20             	add    $0x20,%esp
-80061e76:	8b 43 38             	mov    0x38(%ebx),%eax
-80061e79:	83 c4 fc             	add    $0xfffffffc,%esp
-80061e7c:	50                   	push   %eax
-80061e7d:	8b 43 3c             	mov    0x3c(%ebx),%eax
-80061e80:	50                   	push   %eax
-80061e81:	68 40 1d 06 80       	push   $0x80061d40
-80061e86:	e8 31 03 00 00       	call   800621bc <_wprintf>
+80061e74:	83 c4 20             	add    $0x20,%esp
+80061e77:	8b 43 38             	mov    0x38(%ebx),%eax
+80061e7a:	83 c4 fc             	add    $0xfffffffc,%esp
+80061e7d:	50                   	push   %eax
+80061e7e:	8b 43 3c             	mov    0x3c(%ebx),%eax
+80061e81:	50                   	push   %eax
+80061e82:	68 40 1d 06 80       	push   $0x80061d40
+80061e87:	e8 30 03 00 00       	call   800621bc <_wprintf>
 /mn/src/drivers/fdc/fdc.c:560
-80061e8b:	c6 43 1b 02          	movb   $0x2,0x1b(%ebx)
+80061e8c:	c6 43 1b 02          	movb   $0x2,0x1b(%ebx)
 /mn/src/drivers/fdc/fdc.c:564
-80061e8f:	83 c4 f8             	add    $0xfffffff8,%esp
+80061e90:	83 c4 f8             	add    $0xfffffff8,%esp
 /mn/src/drivers/fdc/fdc.c:561
-80061e92:	c6 43 1c 50          	movb   $0x50,0x1c(%ebx)
+80061e93:	c6 43 1c 50          	movb   $0x50,0x1c(%ebx)
 /mn/src/drivers/fdc/fdc.c:562
-80061e96:	c6 43 1d 12          	movb   $0x12,0x1d(%ebx)
+80061e97:	c6 43 1d 12          	movb   $0x12,0x1d(%ebx)
 /mn/src/drivers/fdc/fdc.c:564
-80061e9a:	53                   	push   %ebx
-80061e9b:	6a 00                	push   $0x0
-80061e9d:	e8 ca 02 00 00       	call   8006216c <_DevRegisterIrq>
+80061e9b:	53                   	push   %ebx
+80061e9c:	6a 00                	push   $0x0
+80061e9e:	e8 c9 02 00 00       	call   8006216c <_DevRegisterIrq>
 /mn/src/drivers/fdc/fdc.c:565
-80061ea2:	83 c4 20             	add    $0x20,%esp
-80061ea5:	83 c4 f8             	add    $0xfffffff8,%esp
-80061ea8:	53                   	push   %ebx
-80061ea9:	0f b6 43 1a          	movzbl 0x1a(%ebx),%eax
-80061ead:	50                   	push   %eax
-80061eae:	e8 b9 02 00 00       	call   8006216c <_DevRegisterIrq>
+80061ea3:	83 c4 20             	add    $0x20,%esp
+80061ea6:	83 c4 f8             	add    $0xfffffff8,%esp
+80061ea9:	53                   	push   %ebx
+80061eaa:	0f b6 43 1a          	movzbl 0x1a(%ebx),%eax
+80061eae:	50                   	push   %eax
+80061eaf:	e8 b8 02 00 00       	call   8006216c <_DevRegisterIrq>
 /mn/include/kernel/i386.h:281
-80061eb3:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
+80061eb4:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
 /mn/src/drivers/fdc/fdc.c:568
-80061eb7:	c7 43 14 01 00 00 00 	movl   $0x1,0x14(%ebx)
+80061eb8:	c7 43 14 01 00 00 00 	movl   $0x1,0x14(%ebx)
 /mn/src/drivers/fdc/fdc.c:569
-80061ebe:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
+80061ebf:	c6 43 34 01          	movb   $0x1,0x34(%ebx)
 /mn/include/kernel/i386.h:281
-80061ec2:	83 c2 02             	add    $0x2,%edx
-80061ec5:	b0 00                	mov    $0x0,%al
-80061ec7:	83 c4 10             	add    $0x10,%esp
+80061ec3:	83 c2 02             	add    $0x2,%edx
+80061ec6:	b0 00                	mov    $0x0,%al
+80061ec8:	83 c4 10             	add    $0x10,%esp
 /mn/include/kernel/i386.h:282
-80061eca:	ee                   	out    %al,(%dx)
+80061ecb:	ee                   	out    %al,(%dx)
 /mn/include/kernel/i386.h:281
-80061ecb:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
-80061ecf:	b0 0c                	mov    $0xc,%al
-80061ed1:	83 c2 02             	add    $0x2,%edx
+80061ecc:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
+80061ed0:	b0 0c                	mov    $0xc,%al
+80061ed2:	83 c2 02             	add    $0x2,%edx
 /mn/include/kernel/i386.h:282
-80061ed4:	ee                   	out    %al,(%dx)
+80061ed5:	ee                   	out    %al,(%dx)
 /mn/src/drivers/fdc/fdc.c:573
-80061ed5:	8d 76 00             	lea    0x0(%esi),%esi
+80061ed6:	89 f6                	mov    %esi,%esi
 80061ed8:	8b 43 14             	mov    0x14(%ebx),%eax
 80061edb:	85 c0                	test   %eax,%eax
 80061edd:	75 f9                	jne    80061ed8 <_FdcAddDevice+0xf0>

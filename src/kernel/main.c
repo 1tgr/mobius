@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.3 2002/01/05 21:37:46 pavlovskii Exp $ */
+/* $Id: main.c,v 1.4 2002/01/06 18:36:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -72,13 +72,13 @@ void KernelMain(void)
 	/*proc = ProcCreateProcess(SYS_BOOT L"/console.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
 
-	DevInstallDevice(L"tty", L"tty0", NULL);
-	DevInstallDevice(L"keyboard", L"keyboard", NULL);
-	
 	dev = DevOpen(L"fdc0");
 	wprintf(L"KernelMain: Mounting fdc0(%p) on /hd using fat\n", dev);
 	FsMount(L"/hd", L"fat", dev);
 
+	DevInstallDevice(L"tty", L"tty0", NULL);
+	DevInstallDevice(L"keyboard", L"keyboard", NULL);
+	
 	proc = ProcCreateProcess(SYS_BOOT L"/test.exe");
 	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
 

@@ -1,4 +1,4 @@
-/* $Id: driver.h,v 1.7 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: driver.h,v 1.8 2002/01/06 18:36:14 pavlovskii Exp $ */
 #ifndef __KERNEL_DRIVER_H
 #define __KERNEL_DRIVER_H
 
@@ -94,7 +94,7 @@ struct IDeviceVtbl
 };
 
 #ifdef __cplusplus
-struct device_t
+struct __attribute__((com_interface)) device_t
 {
 	virtual bool request(request_t *req) = 0;
 	virtual bool isr(uint8_t irq) = 0;
@@ -106,10 +106,10 @@ struct device_t
 #else
 struct device_t
 {
-	const IDeviceVtbl *vtbl;
 	driver_t *driver;
 	device_config_t *cfg;
 	asyncio_t *io_first, *io_last;
+	const IDeviceVtbl *vtbl;
 };
 #endif
 

@@ -1919,7 +1919,7 @@ FatRequest():
 /mn/src/drivers/fat/fat.c:601
 800520cf:	8b 5d 08             	mov    0x8(%ebp),%ebx
 800520d2:	83 c4 10             	add    $0x10,%esp
-800520d5:	8b 7b 0c             	mov    0xc(%ebx),%edi
+800520d5:	8b 7b 08             	mov    0x8(%ebx),%edi
 800520d8:	85 ff                	test   %edi,%edi
 800520da:	74 1d                	je     800520f9 <_FatRequest+0x2f1>
 800520dc:	8b 55 0c             	mov    0xc(%ebp),%edx
@@ -2276,13 +2276,13 @@ FatMountFs():
 /mn/src/drivers/fat/fat.c:642
 800523c3:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/fat/fat.c:638
-800523c6:	c7 06 38 21 05 80    	movl   $0x80052138,(%esi)
+800523c6:	c7 46 10 38 21 05 80 	movl   $0x80052138,0x10(%esi)
 /mn/src/drivers/fat/fat.c:639
-800523cc:	8b 45 08             	mov    0x8(%ebp),%eax
+800523cd:	8b 45 08             	mov    0x8(%ebp),%eax
 /mn/src/drivers/fat/fat.c:640
-800523cf:	89 5e 14             	mov    %ebx,0x14(%esi)
+800523d0:	89 5e 14             	mov    %ebx,0x14(%esi)
 /mn/src/drivers/fat/fat.c:639
-800523d2:	89 46 04             	mov    %eax,0x4(%esi)
+800523d3:	89 06                	mov    %eax,(%esi)
 /mn/src/drivers/fat/fat.c:642
 800523d5:	68 40 21 05 80       	push   $0x80052140
 800523da:	e8 01 03 00 00       	call   800526e0 <_wprintf>

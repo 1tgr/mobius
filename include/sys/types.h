@@ -1,7 +1,9 @@
-/* $Id: types.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: types.h,v 1.3 2002/01/06 18:36:14 pavlovskii Exp $ */
 #ifndef __SYS_TYPES_H
 #define __SYS_TYPES_H
 
+#ifndef __cplusplus
+/* bool is a keyword in C++ */
 typedef char _Bool;
 
 #ifndef __bool_true_false_are_defined
@@ -9,6 +11,8 @@ typedef char _Bool;
 #define false 0
 #define true 1
 #define __bool_true_false_are_defined 1
+#endif
+
 #endif
 
 typedef signed char int8_t;

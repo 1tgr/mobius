@@ -848,7 +848,7 @@ kbdDoRequests():
 80081726:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/keyboard/keyboard.c:269
 80081728:	8b 45 08             	mov    0x8(%ebp),%eax
-8008172b:	8b 70 0c             	mov    0xc(%eax),%esi
+8008172b:	8b 70 08             	mov    0x8(%eax),%esi
 8008172e:	85 f6                	test   %esi,%esi
 80081730:	0f 84 90 00 00 00    	je     800817c6 <_kbdDoRequests+0xae>
 80081736:	89 f6                	mov    %esi,%esi
@@ -920,7 +920,7 @@ kbdDoRequests():
 800817c0:	0f 85 72 ff ff ff    	jne    80081738 <_kbdDoRequests+0x20>
 /mn/src/drivers/keyboard/keyboard.c:294
 800817c6:	8b 55 08             	mov    0x8(%ebp),%edx
-800817c9:	83 7a 0c 00          	cmpl   $0x0,0xc(%edx)
+800817c9:	83 7a 08 00          	cmpl   $0x0,0x8(%edx)
 800817cd:	74 17                	je     800817e6 <_kbdDoRequests+0xce>
 800817cf:	83 c4 f4             	add    $0xfffffff4,%esp
 800817d2:	52                   	push   %edx
@@ -1262,16 +1262,16 @@ KbdAddDevice():
 /mn/src/drivers/keyboard/keyboard.c:418
 80081a71:	8b 45 10             	mov    0x10(%ebp),%eax
 /mn/src/drivers/keyboard/keyboard.c:416
-80081a74:	89 5f 04             	mov    %ebx,0x4(%edi)
+80081a74:	89 1f                	mov    %ebx,(%edi)
 /mn/src/drivers/keyboard/keyboard.c:418
-80081a77:	89 47 08             	mov    %eax,0x8(%edi)
+80081a76:	89 47 04             	mov    %eax,0x4(%edi)
 /mn/src/drivers/keyboard/keyboard.c:421
-80081a7a:	8d 47 24             	lea    0x24(%edi),%eax
+80081a79:	8d 47 24             	lea    0x24(%edi),%eax
 /mn/src/drivers/keyboard/keyboard.c:417
-80081a7d:	c7 07 b8 19 08 80    	movl   $0x800819b8,(%edi)
+80081a7c:	c7 47 10 b8 19 08 80 	movl   $0x800819b8,0x10(%edi)
 /mn/src/drivers/keyboard/keyboard.c:419
-80081a83:	c7 47 10 00 00 00 00 	movl   $0x0,0x10(%edi)
-80081a8a:	c7 47 0c 00 00 00 00 	movl   $0x0,0xc(%edi)
+80081a83:	c7 47 0c 00 00 00 00 	movl   $0x0,0xc(%edi)
+80081a8a:	c7 47 08 00 00 00 00 	movl   $0x0,0x8(%edi)
 /mn/src/drivers/keyboard/keyboard.c:420
 80081a91:	c7 47 14 00 00 00 00 	movl   $0x0,0x14(%edi)
 /mn/src/drivers/keyboard/keyboard.c:421

@@ -1,25 +1,36 @@
 #include <kernel/kernel.h>
-#include <kernel/driver.h>
 #include <kernel/arch.h>
+
+#include <kernel/device>
 
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
 
-typedef struct tty_t tty_t;
-struct tty_t : public device_t
+typedef struct tty tty;
+class tty : public kernel::device
 {
-	bool request(request_t *req);
-	bool isr(uint8_t irq);
+public:
+	/*virtual bool request(request_t *req);
+	*/
+	DEV_BEGIN_REQUEST()
+		DEV_HANDLE_REQUEST(DEV_WRITE, onWrite, request_dev_t)
+	DEV_END_REQUEST()
 
-	void TtyUpdateCursor();
-	void TtySwitchTo();
-	void TtyScroll();
-	void TtyFlush();
-	void TtyClear();
-	void TtyDoEscape(char code, unsigned num, const unsigned *esc);
-	void TtyWriteString(const wchar_t *str, size_t count);
+	virtual bool isr(uint8_t irq);
+
+	tty();
+	void ttyUpdateCursor();
+	void ttySwitchTo();
+	void ttyScroll();
+	void ttyFlush();
+	void ttyClear();
+	void ttyDoEscape(char code, unsigned num, const unsigned *esc);
+	void ttyWriteString(const wchar_t *str, size_t count);
+
+protected:
+	bool onWrite(request_dev_t *req);
 
 	uint16_t *buf_top;
 	uint16_t attribs;
@@ -31,7 +42,7 @@ struct tty_t : public device_t
 
 unsigned num_consoles = 1;
 semaphore_t sem_consoles;
-tty_t consoles[12];
+tty consoles[12];
 unsigned cur_console;
 
 /* 7-bit ASCII maps to bottom 128 characters of UCS */
@@ -248,7 +259,22 @@ void memset16(uint16_t *ptr, uint16_t c, size_t count)
 		*ptr++ = c;
 }
 
-void tty_t::TtyUpdateCursor()
+tty::tty()
+{
+	wprintf(L"tty::tty: this = %p, vtbl = %p\n",
+		this, *((void**) this));
+	buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 25 * (this - consoles);
+	attribs = 0x1700;
+	x = 0;
+	y = 0;
+	width = 80;
+	height = 25;
+	escape = 0;
+	writeptr = 0;
+	writebuf = NULL;
+}
+
+void tty::ttyUpdateCursor()
 {
 	uint16_t addr;
 	/* move cursor */
@@ -263,7 +289,7 @@ void tty_t::TtyUpdateCursor()
 	}
 }
 
-void tty_t::TtySwitchTo()
+void tty::ttySwitchTo()
 {
 	uint16_t addr;
 	addr = (uint16_t) (addr_t) (buf_top - (uint16_t*) PHYSICAL(0xb8000));
@@ -275,15 +301,10 @@ void tty_t::TtySwitchTo()
 	out(_crtc_base_adr + VGA_CRTC_DATA, addr);
 	cur_console = this - consoles;
 
-	TtyUpdateCursor();
+	ttyUpdateCursor();
 }
 
-extern "C" void TtySwitchConsoles(unsigned n)
-{
-	consoles[n].TtySwitchTo();
-}
-
-void tty_t::TtyScroll()
+void tty::ttyScroll()
 {
 	uint16_t *mem;
 	unsigned i;
@@ -299,10 +320,10 @@ void tty_t::TtyScroll()
 		y--;
 	}
 
-	TtyUpdateCursor();
+	ttyUpdateCursor();
 }
 
-void tty_t::TtyFlush()
+void tty::ttyFlush()
 {
 	char mb[81], *ch;
 	size_t count;
@@ -326,7 +347,7 @@ void tty_t::TtyFlush()
 		
 		if (y >= height)
 		{
-			TtyScroll();
+			ttyScroll();
 			out = buf_top + width * y + x;
 		}
 	}
@@ -335,15 +356,15 @@ void tty_t::TtyFlush()
 	writeptr = 0;
 }
 
-void tty_t::TtyClear()
+void tty::ttyClear()
 {
 	memset16(buf_top, attribs | ' ', width * height);
 	x = 0;
 	y = 0;
-	TtyUpdateCursor();
+	ttyUpdateCursor();
 }
 
-void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
+void tty::ttyDoEscape(char code, unsigned num, const unsigned *esc)
 {
 	unsigned i;
 	static const char ansi_to_vga[] =
@@ -359,14 +380,14 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 			y = min(esc[0], height - 1);
 		if (num > 1)
 			x = min(esc[1], width - 1);
-		TtyUpdateCursor();
+		ttyUpdateCursor();
 		break;
 	
 	case 'A':	/* ESC[PnA - cursor up */
 		if (num > 0 && y >= esc[0])
 		{
 			y -= esc[0];
-			TtyUpdateCursor();
+			ttyUpdateCursor();
 		}
 		break;
 	
@@ -374,7 +395,7 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 		if (num > 0 && y < height + esc[0])
 		{
 			y += esc[0];
-			TtyUpdateCursor();
+			ttyUpdateCursor();
 		}
 		break;
 
@@ -382,7 +403,7 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 		if (num > 0 && x < width + esc[0])
 		{
 			x += esc[0];
-			TtyUpdateCursor();
+			ttyUpdateCursor();
 		}
 		break;
 	
@@ -390,7 +411,7 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 		if (num > 0 && y >= esc[0])
 		{
 			x -= esc[0];
-			TtyUpdateCursor();
+			ttyUpdateCursor();
 		}
 		break;
 
@@ -402,11 +423,11 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 	case 'u':	/* ESC[u - restore cursor position */
 		x = save_x;
 		y = save_y;
-		TtyUpdateCursor();
+		ttyUpdateCursor();
 		break;
 
 	case 'J':	/* ESC[2J - clear screen */
-		TtyClear();
+		ttyClear();
 		break;
 
 	case 'K':	/* ESC[K - erase line */
@@ -462,7 +483,7 @@ void tty_t::TtyDoEscape(char code, unsigned num, const unsigned *esc)
 	}
 }
 
-void tty_t::TtyWriteString(const wchar_t *str, size_t count)
+void tty::ttyWriteString(const wchar_t *str, size_t count)
 {
 	writebuf = str;
 	writeptr = 0;
@@ -474,33 +495,33 @@ void tty_t::TtyWriteString(const wchar_t *str, size_t count)
 			switch (*str)
 			{
 			case 27:
-				TtyFlush();
+				ttyFlush();
 				escape++;
 				break;
 			case '\t':
-				TtyFlush();
+				ttyFlush();
 				writebuf = str + 1;
 				x = (x + 4) & ~3;
 				if (x >= width)
 				{
 					x = 0;
 					y++;
-					TtyScroll();
+					ttyScroll();
 				}
-				TtyUpdateCursor();
+				ttyUpdateCursor();
 				break;
 			case '\n':
-				TtyFlush();
+				ttyFlush();
 				writebuf = str + 1;
 				x = 0;
 				y++;
-				TtyScroll();
-				TtyUpdateCursor();
+				ttyScroll();
+				ttyUpdateCursor();
 				break;
 			default:
 				writeptr++;
 				if (writeptr >= 80)
-					TtyFlush();
+					ttyFlush();
 			}
 			break;
 
@@ -544,7 +565,7 @@ void tty_t::TtyWriteString(const wchar_t *str, size_t count)
 				esc[0],
 				esc[1],
 				esc[2]);*/
-			TtyDoEscape((char) *str, esc_param + 1, esc);
+			ttyDoEscape((char) *str, esc_param + 1, esc);
 			escape = 0;
 			writebuf = str + 1;
 			writeptr = 0;
@@ -555,23 +576,23 @@ void tty_t::TtyWriteString(const wchar_t *str, size_t count)
 		count--;
 	}
 
-	TtyFlush();
+	ttyFlush();
 }
 
-bool tty_t::isr(uint8_t irq)
+bool tty::isr(uint8_t irq)
 {
 	uint8_t scan;
 	scan = in(0x60);
 	if (scan >= 0x3b && scan < 0x3b + 12)
 	{
-		consoles[scan - 0x3b].TtySwitchTo();
+		consoles[scan - 0x3b].ttySwitchTo();
 		return true;
 	}
 	else
 		return false;
 }
 
-bool tty_t::request(request_t* req)
+/*bool tty::request(request_t* req)
 {
 	request_dev_t *req_dev = (request_dev_t*) req;
 	
@@ -581,54 +602,57 @@ bool tty_t::request(request_t* req)
 		return true;
 
 	case DEV_WRITE:
-		TtyWriteString((const wchar_t*) req_dev->params.dev_write.buffer, 
+		ttyWriteString((const wchar_t*) req_dev->params.dev_write.buffer, 
 			req_dev->params.dev_write.length / sizeof(wchar_t));
 		return true;
 	}
 
 	req->result = ENOTIMPL;
 	return false;
+}*/
+
+bool tty::onWrite(request_dev_t *req)
+{
+	ttyWriteString((const wchar_t*) req->params.dev_write.buffer, 
+		req->params.dev_write.length / sizeof(wchar_t));
+	return true;
 }
 
-device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
+device_t *ttyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 {
-	tty_t *tty;
+	tty *tty;
 	
-	/*tty = malloc(sizeof(device_t));*/
 	tty = consoles + num_consoles;
-	//memset(tty, 0, sizeof(tty));
-	//dev.vtbl = &tty_vtbl;
-	//dev.driver = drv;
 	tty->driver = drv;
 
 	SemAcquire(&sem_consoles);
-	tty->buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 25 * num_consoles;
 	num_consoles++;
 	SemRelease(&sem_consoles);
 
-	tty->attribs = 0x1700;
-	tty->width = 80;
-	tty->height = 25;
-	tty->escape = 0;
-
-	tty->TtyClear();
-	/*TtySwitchTo(tty);*/
+	tty->ttyClear();
+	//tty->ttySwitchTo();
 	return tty;
 }
 
+extern "C" void (*__CTOR_LIST__[])();
+//extern "C" void *__DTOR_LIST__[];
+
 extern "C" bool DrvInit(driver_t *drv)
 {
-	drv->add_device = TtyAddDevice;
+	void (**pfunc)() = __CTOR_LIST__;
 
+	/* Cygwin dcrt0.cc sources do this backwards */
+	while (*++pfunc)
+		;
+	while (--pfunc > __CTOR_LIST__)
+		(*pfunc) ();
+
+	drv->add_device = ttyAddDevice;
 	consoles[0].driver = drv;
-	consoles[0].buf_top = (uint16_t*) PHYSICAL(0xb8000);
-	consoles[0].attribs = 0x1700;
-	consoles[0].x = 0;
-	consoles[0].y = 0;
-	consoles[0].width = 80;
-	consoles[0].height = 25;
-	consoles[0].escape = 0;
-
-	/*DevRegisterIrq(1, &consoles[0].dev);*/
 	return true;
+}
+
+extern "C" void TtySwitchConsoles(unsigned n)
+{
+	consoles[n].ttySwitchTo();
 }

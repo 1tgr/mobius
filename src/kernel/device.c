@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.8 2002/01/06 01:56:14 pavlovskii Exp $ */
+/* $Id: device.c,v 1.9 2002/01/06 18:36:15 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -138,11 +138,11 @@ static const IDeviceVtbl devfs_vtbl =
 
 device_t dev_fsd =
 {
-	&devfs_vtbl,
 	&devfs_driver,
 	NULL,
 	NULL,
 	NULL,
+	&devfs_vtbl,
 };
 
 device_t *DevMountFs(driver_t *drv, const wchar_t *name, device_t *dev)
@@ -489,7 +489,10 @@ device_t *DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 	{
 		dev = drv->add_device(drv, name, cfg);
 		if (dev != NULL)
+		{
+			assert(dev->vtbl != NULL);
 			DevAddDevice(dev, name, cfg);
+		}
 		return dev;
 	}
 	else
