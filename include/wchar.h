@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.3 2001/11/05 23:47:41 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -62,7 +62,7 @@ int vwscanf(const wchar_t *restrict format,
     va_list arg);
 int vfwprintf(struct FILE *restrict stream, const wchar_t *restrict format,
     va_list arg);
-int vswprintf(wchar_t *restrict s, size_t n, const wchar_t *restrict format,
+int vswprintf(wchar_t *restrict s, /*size_t n, */const wchar_t *restrict format,
     va_list arg);
 int vwprintf(const wchar_t *restrict format,
     va_list arg);
