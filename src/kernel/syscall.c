@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.20 2002/09/03 13:13:31 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.21 2002/09/08 20:25:08 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -193,18 +193,8 @@ handle_t SysThrCreateThread(void (*entry)(void), void *param, unsigned priority)
 
 bool SysVmmFree(void *base)
 {
-    vm_area_t *area;
-    area = VmmArea(current()->process, base);
-    if (area == NULL)
-    {
-	errno = ENOTFOUND;
-	return false;
-    }
-    else
-    {
-	VmmFree(area);
-	return true;
-    }
+    VmmFree(base);
+    return true;
 }
 
 /*

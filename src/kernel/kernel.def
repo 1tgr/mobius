@@ -150,7 +150,6 @@ EXPORTS
 	ThrWaitHandle
 	VmmAlloc
 	VmmAllocCallback
-	VmmArea
 	VmmDoMapFile
 	VmmFree
 	VmmMap
@@ -159,7 +158,6 @@ EXPORTS
 	VmmOpenSharedArea
 	VmmPageFault
 	VmmShare
-	VmmUncommit
 	_HndAlloc
 	_HndInit
 	__builtin_delete

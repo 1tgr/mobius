@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.15 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.16 2002/09/08 20:25:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -602,23 +602,43 @@ void DbgDumpBuffer(const void* buf, size_t size)
 	}
 }
 
-static int DbgCompareVmArea(const void *elem1, const void *elem2)
+/*static int DbgCompareVmNode(const void *elem1, const void *elem2)
 {
-    vm_area_t *a1 = *(vm_area_t**) elem1, 
-        *a2 = *(vm_area_t**) elem2;
+    vm_node_t *a1 = *(vm_node_t**) elem1, 
+        *a2 = *(vm_node_t**) elem2;
 
-    if (a1->start == a2->start)
+    if (a1->base == a2->base)
         return 0;
     else
-        return a1->start > a2->start ? 1 : -1;
+        return a1->base > a2->base ? 1 : -1;
+}*/
+
+static unsigned DbgCountVmNodes(vm_node_t *parent)
+{
+    if (parent == NULL)
+        return 0;
+    else
+        return 1 + DbgCountVmNodes(parent->left) + DbgCountVmNodes(parent->right);
+}
+
+static vm_node_t **DbgEnumVmNodes(vm_node_t *parent, vm_node_t **ary)
+{
+    if (parent != NULL)
+    {
+        ary = DbgEnumVmNodes(parent->left, ary);
+        *ary = parent;
+        ary++;
+        ary = DbgEnumVmNodes(parent->right, ary);
+    }
+
+    return ary;
 }
 
 static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
 {
     process_t *proc;
-    vm_area_t *area;
-    unsigned count, i;
-    vm_area_t **ary;
+    unsigned count, i, num_pages;
+    vm_node_t **ary;
     const wchar_t *type;
 
     if (*params == '\0')
@@ -638,53 +658,54 @@ static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
 
     wprintf(L"\tBlock   \tStart   \tEnd     \tType\n");
 
-    count = 0;
-    for (area = proc->area_first; area; area = area->next)
-        count++;
+    count = DbgCountVmNodes(proc->vmm_top);
 
-    ary = malloc(count * sizeof(vm_area_t*));
+    ary = malloc(count * sizeof(vm_node_t*));
     assert(ary != NULL);
 
-    for (area = proc->area_first, i = 0; 
-        area && i < count; 
-        area = area->next, i++)
-        ary[i] = area;
-
-    qsort(ary, count, sizeof(vm_area_t*), DbgCompareVmArea);
+    DbgEnumVmNodes(proc->vmm_top, ary);
+    //qsort(ary, count, sizeof(vm_node_t*), DbgCompareVmNode);
 
     for (i = 0; i < count; i++)
     {
-        switch (ary[i]->type)
+        if (VMM_NODE_IS_EMPTY(ary[i]))
         {
-        case VM_AREA_EMPTY:
-            type = L"EMPTY";
-            break;
-        case VM_AREA_NORMAL:
-            type = L"NORMAL";
-            break;
-        case VM_AREA_MAP:
-            type = L"MAP";
-            break;
-        case VM_AREA_SHARED:
-            type = L"SHARED";
-            break;
-        case VM_AREA_FILE:
-            type = L"FILE";
-            break;
-        case VM_AREA_IMAGE:
-            type = L"IMAGE";
-            break;
-        default:
-            type = L"?";
-            break;
+            type = L"(empty)";
+            num_pages = ary[i]->u.empty_pages;
+        }
+        else
+        {
+            switch (ary[i]->u.desc->type)
+            {
+            case VM_AREA_NORMAL:
+                type = L"VM_AREA_NORMAL";
+                break;
+            case VM_AREA_MAP:
+                type = L"VM_AREA_MAP";
+                break;
+            case VM_AREA_FILE:
+                type = L"VM_AREA_FILE";
+                break;
+            case VM_AREA_IMAGE:
+                type = L"VM_AREA_IMAGE";
+                break;
+            case VM_AREA_CALLBACK:
+                type = L"VM_AREA_CALLBACK";
+                break;
+            default:
+                type = L"VM_AREA_?";
+                break;
+            }
+
+            num_pages = ary[i]->u.desc->num_pages;
         }
 
-        wprintf(L"%c\t%p\t%08x\t%08x\tVM_AREA_%s\n",
+        wprintf(L"%c\t%p\t%08x\t%08x\t%s\n",
             /*area->is_committed ? 'C' : '_', */
             ' ',
             ary[i],
-            ary[i]->start,
-            ary[i]->start + ary[i]->num_pages * PAGE_SIZE,
+            ary[i]->base,
+            ary[i]->base + num_pages * PAGE_SIZE,
             type);
     }
 

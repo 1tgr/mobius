@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.15 2002/09/08 00:31:16 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.16 2002/09/08 20:25:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -193,7 +193,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         mod,
         NULL,
         VM_AREA_IMAGE,
-        0);
+        3);
 
     assert(new_base == mod->base);
 

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.24 2002/09/08 00:31:16 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.25 2002/09/08 20:25:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -77,8 +77,8 @@ process_t proc_idle =
     0,                          /* handle_allocated */
     &mod_kernel,                /* mod_first */
     &mod_kernel,                /* mod_last */
-    NULL,                       /* area_first */
-    NULL,                       /* area_last */
+    NULL,                       /* vmm_top */
+    /*NULL,*/                       /* area_last */
     /*0xe8000000,*/             /* vmm_end */
     { 0 },                      /* sem_vmm */
     { 0 },                      /* sem_lock */
@@ -132,14 +132,19 @@ static void ProcCleanupProcess(void *p)
 process_t *ProcCreateProcess(const wchar_t *exe)
 {
     process_t *proc;
-    vm_area_t *area;
+    //vm_desc_t *desc;
+    vm_node_t *node;
 
     proc = malloc(sizeof(process_t));
     if (proc == NULL)
         return NULL;
 
-    area = malloc(sizeof(vm_area_t));
-    if (area == NULL)
+    /*desc = malloc(sizeof(vm_desc_t));
+    if (desc == NULL)
+        return NULL;*/
+
+    node = malloc(sizeof(vm_node_t));
+    if (node == NULL)
         return NULL;
 
     memset(proc, 0, sizeof(*proc));
@@ -166,12 +171,17 @@ process_t *ProcCreateProcess(const wchar_t *exe)
     proc->exit_code = 0;
 
     /* Create a VM area spanning the whole address space */
-    memset(area, 0, sizeof(vm_area_t));
-    area->owner = proc;
-    area->start = PAGE_SIZE;
-    area->num_pages = 0x100000 - 1025; /* 4GB - 4MB - 4096 -- trust me on this */
-    area->type = VM_AREA_EMPTY;
-    proc->area_first = proc->area_last = area;
+#if 0
+    memset(desc, 0, sizeof(vm_desc_t));
+    desc->num_pages = 0x100000 - 1025; /* 4GB - 4MB - 4096 -- trust me on this */
+    desc->type = VM_AREA_EMPTY;
+#endif
+
+    node->left = node->right = NULL;
+    node->base = PAGE_SIZE;
+    node->flags = 0;
+    node->u.empty_pages = 0x100000 - 1025;
+    proc->vmm_top = node;
 
     TRACE2("ProcCreateProcess(%s): page dir = %x\n", 
             exe, proc->page_dir_phys);
@@ -405,7 +415,6 @@ int ProcGetExitCode(handle_t hnd)
 
 bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 {
-    vm_area_t *area;
     /*module_t *mod;*/
 #ifdef DEBUG
     static unsigned nest;
@@ -459,7 +468,7 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
         }
     }
 
-    FOREACH (area, proc->area)
+    /*FOREACH (area, proc->area)
     {
         if (area->type != VM_AREA_EMPTY && 
             addr >= area->start &&
@@ -474,9 +483,12 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
             //return VmmCommit(area, NULL, -1);
             return VmmPageFault(area, addr, is_writing);
         }
-    }
+    }*/
 
-    if (proc != &proc_idle)
+    if (VmmPageFault(proc, addr, is_writing))
+        return true;
+
+    /*if (proc != &proc_idle)
         FOREACH (area, proc_idle.area)
         {
             if (area->type != VM_AREA_EMPTY && 
@@ -492,7 +504,10 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
                 //return VmmCommit(area, NULL, -1);
                 return VmmPageFault(area, addr, is_writing);
             }
-        }
+        }*/
+
+    if (VmmPageFault(&proc_idle, addr, is_writing))
+        return true;
 
 #ifdef DEBUG
     nest--;
@@ -513,7 +528,8 @@ bool ProcPageFault(process_t *proc, addr_t addr, bool is_writing)
 */
 bool ProcInit(void)
 {
-    vm_area_t *area;
+    //vm_desc_t *desc;
+    vm_node_t *node;
 
     /*area = malloc(sizeof(vm_area_t));
     memset(area, 0, sizeof(vm_area_t));
@@ -522,12 +538,18 @@ bool ProcInit(void)
     area->num_pages = 0x40000000 / PAGE_SIZE - 1; // 1GB
     area->type = VM_AREA_EMPTY;*/
 
-    area = malloc(sizeof(vm_area_t));
-    memset(area, 0, sizeof(vm_area_t));
-    area->owner = &proc_idle;
-    area->start = PAGE_SIZE;
-    area->num_pages = 0xC0000000 / PAGE_SIZE - 1025; /* 4GB - 4MB - 4096 */
-    area->type = VM_AREA_EMPTY;
+#if 0
+    desc = malloc(sizeof(vm_desc_t));
+    memset(desc, 0, sizeof(vm_desc_t));
+    desc->num_pages = 0xC0000000 / PAGE_SIZE - 1025; /* 4GB - 4MB - 4096 */
+    desc->type = VM_AREA_EMPTY;
+#endif
+
+    node = malloc(sizeof(*node));
+    node->base = PAGE_SIZE;
+    node->flags = 0;
+    node->u.empty_pages = 0xC0000000 / PAGE_SIZE - 1025;
+    node->left = node->right = NULL;
 
     proc_idle.handle_count = 2;
     proc_idle.handle_allocated = 16;
@@ -537,7 +559,7 @@ bool ProcInit(void)
     proc_idle.page_dir_phys = (addr_t) kernel_pagedir/*proc_idle.page_dir */
         - (addr_t) scode 
         + kernel_startup.kernel_phys;
-    proc_idle.area_first = proc_idle.area_last = area;
+    proc_idle.vmm_top = node;
 
     proc_first = proc_last = &proc_idle;
     return true;
