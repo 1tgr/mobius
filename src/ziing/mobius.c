@@ -1,4 +1,4 @@
-/* $Id: mobius.c,v 1.1 2002/08/17 22:52:14 pavlovskii Exp $ */
+/* $Id: mobius.c,v 1.2 2002/12/18 22:55:25 pavlovskii Exp $ */
 
 #include "common.h"
 #include <os/queue.h>
@@ -54,7 +54,7 @@ static void EdKeyboardThread(void)
     handle_t keyb;
     uint32_t key;
 
-    keyb = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+    keyb = ProcGetProcessInfo()->std_in;
     if (keyb == NULL)
     {
         perror("keyboard");
@@ -75,6 +75,7 @@ static void EdKeyboardThread(void)
 
 void EdInitEvents(void)
 {
-    ed_event_waiting = EvtAlloc();
+    ed_event_waiting = EvtCreate();
     ThrCreateThread(EdKeyboardThread, NULL, 16);
+    QueueInit(&ed_event_queue);
 }
