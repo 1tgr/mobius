@@ -10,6 +10,12 @@ serial mouse driver
 #define DEBUG
 #include <kernel/debug.h>
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	sermouse    Serial mouse
+ *  @{
+ */
+
 //#define peek40(OFF) *((word*) (0x400 + (OFF))) // xxx - FIX!
 #define	BUF_SIZE	64
 
@@ -306,3 +312,5 @@ of the PnP ID. Each byte has b5 set (i.e. ORed with 0x20) */
 
 	return true;
 }
+
+//@}

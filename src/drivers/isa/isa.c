@@ -5,10 +5,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	isa ISA bus
+ *  @{
+ */
+
 device_t *isa;
 wchar_t devname[16];
 int num_resources;
 device_resource_t *resources;
+word vendor, device;
 
 void isaAddItem(hashelem_t* elem)
 {
@@ -56,6 +63,10 @@ void isaAddItem(hashelem_t* elem)
 		res.u.irq = wcstol(data, NULL, 0);
 		goto add_resource;
 	}
+	else if (wcsicmp(elem->str, L"vendor") == 0)
+		vendor = wcstol(data, NULL, 16);
+	else if (wcsicmp(elem->str, L"device") == 0)
+		device = wcstol(data, NULL, 16);
 	else
 		wprintf(L"%s: invalid keyword\n", elem->str);
 
@@ -96,6 +107,8 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 		memset(devname, 0, sizeof(devname));
 		num_resources = 0;
 		resources = NULL;
+		vendor = 0xffff;
+		device = 0xffff;
 
 		table = cfgParseStrLine((const char**) &p);
 		hashList(table, isaAddItem);
@@ -105,7 +118,8 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 		{
 			cfg = hndAlloc(sizeof(device_config_t), NULL);
 			cfg->parent = isa;
-			cfg->vendor_id = cfg->device_id = 0xffff;
+			cfg->vendor_id = vendor;
+			cfg->device_id = device;
 			cfg->subsystem = 0xffffffff;
 			cfg->num_resources = num_resources;
 			cfg->resources = resources;
@@ -115,3 +129,5 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 
 	return true;
 }
+
+//@}

@@ -153,13 +153,10 @@ thread_t* thrCreate(int level, process_t* proc, const void* entry_point)
  *		kernel syscall interrupt, 0x30: this functions the same way as in 
  *		protected mode. Hence a V86 thread can terminate itself with the 
  *		following sequence:
- */
-/*!
- *	\example
+ *
  *	mov	ax, 106h
  *	int	30h
- */
-/*!
+ *
  *	\note	To access system calls with IDs > 0xFFFF, a V86 thread must use
  *		the operand-size override and load eax with the system call ID, not
  *		ax. Initially all registers, including the high words of general-

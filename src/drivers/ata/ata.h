@@ -8,6 +8,12 @@ extern "C"
 
 #include <kernel/driver.h>
 
+/*!
+ *  \ingroup drivers
+ *  \defgroup ata ATA/ATAPI
+ *  @{
+ */
+
 /* ATA register file (offsets from 0x1F0 or 0x170) */
 #define	ATA_REG_DATA		0	/* data (16-bit) */
 #define	ATA_REG_FEAT		1	/* write: feature reg */
@@ -44,7 +50,7 @@ extern "C"
 #define ATA_READY			0x40
 #define ATA_BUSY			0x80
 
-void ataDetect();
+//!@}
 
 #ifdef __cplusplus
 }

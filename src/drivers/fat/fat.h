@@ -1,6 +1,12 @@
 #ifndef __FAT_H
 #define __FAT_H
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	fat FAT file system
+ *  @{
+ */
+
 #pragma pack(push, 1)
 
 typedef struct fat_bootsector_t fat_bootsector_t;
@@ -60,5 +66,7 @@ struct fat_lfnslot_t
 
 #define ATTR_LONG_NAME     \
 	(ATTR_READ_ONLY | ATTR_HIDDEN | ATTR_SYSTEM | ATTR_VOLUME_ID)
+
+//@}
 
 #endif

@@ -33,6 +33,12 @@
 
 #include "mytypes.h"
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	fdc Floppy drive controller
+ *  @{
+ */
+
 /* datatypes */
 
 /* drive geometry */
@@ -100,5 +106,7 @@ bool fdcLogDisk(Fdc* fdc, DrvGeom *g);
 bool fdcReadBlock(Fdc* fdc, int block,byte *blockbuff);
 bool fdcWriteBlock(Fdc* fdc, int block,byte *blockbuff);
 bool fdcFormatTrack(Fdc* fdc, byte track,DrvGeom *g);
+
+//@}
 
 #endif /* FDC_H_ */

@@ -309,6 +309,15 @@ bool devClose(device_t* dev)
 	return devRequestSync(dev, &req) == 0;
 }
 
+//! Removes a device from the device manager
+/*!
+ *	This function issues the DEV_REMOVE request to the device.
+ *	The driver itself is responsible for freeing all the resources 
+ *		allocated for the device, including the device_t structure
+ *		itself.
+ *	\param	dev	The device to remove
+ *	\return	true if the remove request completed successfully.
+ */
 bool devRemove(device_t* dev)
 {
 	request_t req;
@@ -331,9 +340,9 @@ bool devRemove(device_t* dev)
  *		when the driver determines that its hardware has completed the request.
  *	\param	dev	The device to which the request is to be issued
  *	\param	req	The request to pass to the driver
- *	\return	true if the device request could be issued, and if the driver 
- *		reported success. Additional status information is available through
- *		req->result.
+ *	\return	The error code returned by the driver, or zero if no error 
+ *		occurred. The return value is equal to the result member of the 
+ *		request structure provided.
  */
 status_t devRequest(device_t* dev, request_t* req)
 {
@@ -375,19 +384,19 @@ status_t devRequest(device_t* dev, request_t* req)
  *		for the request to complete before returning.
  *	\param	dev	The device to which the request is to be issued
  *	\param	req	The request to pass to the driver
- *	\return	true if the device request could be issued, and if the driver 
- *		reported success. Additional status information is available through
- *		req->result.
+ *	\return	The error code returned by the driver, or zero if no error 
+ *		occurred. The return value is equal to the result member of the 
+ *		request structure provided.
  */
 status_t devRequestSync(device_t* dev, request_t* req)
 {
-	if (devRequest(dev, req))
+	if (devRequest(dev, req) == 0)
 	{
 		if (req->result == 0)
 		{
 			while (!hndIsSignalled(req->event))
 				asm("sti\n"
-					"hlt");
+				    "hlt");
 			
 			hndFree(req->event);
 			return 0;
@@ -407,6 +416,8 @@ status_t devRequestSync(device_t* dev, request_t* req)
  *		called with the DEV_ISR code.
  *	\param	dev	The device to which the specified IRQ is to be connected
  *	\param	irq	The IRQ to connect.
+ *	\param	install	true to install the IRQ in the device manager's IRQ chain, 
+ *		false to remove it.
  *	\return	true if the operation completed successfully.
  */
 bool devRegisterIrq(device_t* dev, byte irq, bool install)
@@ -454,6 +465,45 @@ bool devRegisterIrq(device_t* dev, byte irq, bool install)
 	return true;
 }
 
+//! Registers a device with the device manager
+/*!
+ *  The device manager keeps an internal list of devices. This function
+ *	adds entries to that list.
+ *  This function is used under two circumstances:
+ *  1.	to add a device for which a device_t structure has already been 
+ *	allocated,
+ *  2.	to install a device from an unknown driver given a set of 
+ *	configuration information.
+ *
+ *  To use case 1, allocate a device_t structure and (optionally) a 
+ *	device_config_t structure, and pass them to devRegister() (along with 
+ *	a name) to create an entry in the device manager's namespace.
+ *	This is generally used to bypass the PnP and explicitly create a
+ *	device link.
+ *
+ *  To use case 2, provide a name and a valid device_config_t structure,
+ *	and pass them to devRegister(). Use NULL for dev. The device manager
+ *	will use the name and configuration information to match a driver to
+ *	this device. This method is generally used by devices which enumerate 
+ *	one or more other devices; for example, the PCI bus driver needs to
+ *	add several child devices, for which it knows the configuration but
+ *	doesn't know the name of the driver to use.
+ *
+ *  If you adhere to the PnP standard your driver's add_device routine will get
+ *	called automatically when the relevant bus driver calls devRegister().
+ *	You should only need to use devRegister() if you add further devices
+ *	not already added by another device.
+ *
+ *  \param  name    The name (ID) of the device to add
+ *  \param  dev	    The device object to add. If this is NULL, the device 
+ *	manager will attempt to load a driver based on the device 
+ *	configuration provided (which must not be NULL).
+ *  \param  cfg	    The configuration of the device to be added. This may only
+ *	be NULL if dev is not NULL.
+ *
+ *  \return true if the device could be added (and if loading the driver 
+ *	succeeded, if necessary).
+ */
 bool devRegister(const wchar_t* name, device_t* dev, device_config_t* cfg)
 {
 	devlink_t* link;
@@ -511,6 +561,7 @@ bool devRegister(const wchar_t* name, device_t* dev, device_config_t* cfg)
 	return true;
 }
 
+//! Adds a request to a device's request queue
 void devStartRequest(device_t* dev, request_t* req)
 {
 	req->next = NULL;
@@ -524,6 +575,7 @@ void devStartRequest(device_t* dev, request_t* req)
 	req->queued++;
 }
 
+//! Marks a request as finished and removes it from the device's queue
 void devFinishRequest(device_t* dev, request_t* req)
 {
 	request_t *next;
@@ -548,6 +600,7 @@ void devFinishRequest(device_t* dev, request_t* req)
 	req->queued--;
 }
 
+//! Reads from a device synchronously
 status_t devReadSync(device_t* dev, qword pos, void* buffer, size_t* length)
 {
 	request_t req;
@@ -565,6 +618,7 @@ status_t devReadSync(device_t* dev, qword pos, void* buffer, size_t* length)
 		return req.result;
 }
 
+//! Writes to a device synchronously
 status_t devWriteSync(device_t* dev, qword pos, const void* buffer, size_t* length)
 {
 	request_t req;
@@ -582,6 +636,7 @@ status_t devWriteSync(device_t* dev, qword pos, const void* buffer, size_t* leng
 		return req.result;
 }
 
+//! Issues a request from user mode
 status_t devUserRequest(device_t* dev, request_t* req, size_t size)
 {
 	request_t* kreq;
@@ -626,6 +681,7 @@ status_t devUserRequest(device_t* dev, request_t* req, size_t size)
 	return req->result;
 }
 
+//! Retrieves the results from a request previously made from user mode
 status_t devUserFinishRequest(request_t* req, bool delete_event)
 {
 	addr_t user_buffer;

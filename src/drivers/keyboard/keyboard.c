@@ -14,6 +14,12 @@
 #include "keyboard.h"
 #include "british.h"
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	keyboard    AT/PS2 keyboard
+ *  @{
+ */
+
 typedef struct Keyboard Keyboard;
 struct Keyboard
 {
@@ -468,3 +474,5 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 	//devRegister(L"keyboard", kbdAddDevice(drv, L"keyboard", NULL), NULL);
 	return true;
 }
+
+//@}

@@ -9,4 +9,5 @@ cmos.o: cmos.c f:\Projects\mobius\include\kernel/kernel.h \
  f:\Projects\mobius\include\kernel/handle.h \
  f:\Projects\mobius\include\os/devreq.h \
  f:\Projects\mobius\include\sys/error.h \
- f:\Projects\mobius\include\errno.h
+ f:\Projects\mobius\include\errno.h \
+ f:\Projects\mobius\include\kernel/debug.h

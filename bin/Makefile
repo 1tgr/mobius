@@ -5,7 +5,7 @@ KERNEL=	kernel.exe
 
 SYS=	isa.cfg drivers.cfg pci.drv isa.drv \
 	ps2mouse.drv sermouse.drv keyboard.drv ata.drv \
-	fdc.drv fat.drv vgatext.drv \
+	fdc.drv fat.drv vgatext.drv cmos.drv \
 	kdebug.dll devtest.exe kernelu.dll libc.dll \
 	tetris.exe short.exe console.exe hello.exe
 APPS=	ls.exe mount.exe

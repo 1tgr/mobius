@@ -2,6 +2,12 @@
 #include <kernel/driver.h>
 #include <errno.h>
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	vgatext	CGA text-mode frame buffer
+ *  @{
+ */
+
 #define _crtc_base_adr	0x3C0
 
 /* I/O addresses for VGA registers */
@@ -82,3 +88,5 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 	drv->add_device = vgatAddDevice;
 	return true;
 }
+
+//@}

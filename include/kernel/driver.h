@@ -226,10 +226,14 @@ dword		devFindResource(const device_config_t *cfg, int cls, int index);
 
 #define		devIsBufferedRequest(code) (((int) (code)) < 0)
 	
-bool STDCALL drvInit(driver_t*);
+bool STDCALL	drvInit(driver_t*);
 void		msleep(dword ms);
 
 //@}
+
+/*!
+ *  \defgroup drivers Device Drivers
+ */
 
 #ifdef __cplusplus
 }

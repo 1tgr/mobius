@@ -40,6 +40,9 @@
 
 #include <kernel/debug.h>
 
+//! \ingroup	fdc
+//!@{
+
 /* globals */
 struct Fdc
 {
@@ -666,3 +669,5 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 	drv->add_device = fdcAddDevice;
 	return true;
 }
+
+//@}

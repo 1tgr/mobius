@@ -17,6 +17,12 @@
 #include "disasm.h"
 #include "sync.h"
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	kdebug	Kernel debugger
+ *  @{
+ */
+
 #define KSTACK_BOTTOM	0xc0009000
 #define KSTACK_TOP		0xc000b000
 #define USTACK_BOTTOM	0
@@ -24,6 +30,7 @@
 
 bool key_read;
 wchar_t key;
+device_t* keyboard;
 
 static const wchar_t* thread_states[] =
 {
@@ -64,7 +71,8 @@ SYMENT* dbgLookupSymbol(addr_t base, void* rawdata, void* symbol, addr_t* addres
 	IMAGE_SECTION_HEADER* sections;
 	SYMENT *symbols, *found, *closest;
 	int i;
-	addr_t addr, closest_diff;
+	addr_t addr;
+	size_t closest_diff;
 	
 	dos = (IMAGE_DOS_HEADER*) base;
 	pe = (IMAGE_PE_HEADERS*) ((dword) base + dos->e_lfanew);
@@ -286,19 +294,21 @@ void dbgSwitchThreads(thread_t* t, context_t* ctx)
 
 wint_t getwchar()
 {
-	device_t* dev;
 	dword key;
 	size_t len = sizeof(key);
 
-	dev = devOpen(L"keyboard", NULL);
+	if (keyboard == NULL)
+		return 0;
 
 	do
 	{
 		key = 0;
-		devReadSync(dev, 0, &key, &len);
-	} while ((wchar_t) key == 0);
-	devClose(dev);
 
+		if (devReadSync(keyboard, 0, &key, &len) != 0)
+			return 0;
+
+	} while ((wchar_t) key == 0);
+	
 	return key;
 }
 
@@ -486,6 +496,9 @@ bool dbgAttach(thread_t* t, context_t* ctx, addr_t addr)
 	unsigned line;
 	char* file;
 	
+	if (keyboard == NULL)
+		keyboard = devOpen(L"keyboard", NULL);
+	
 	t->suspend++;
 	enable();
 	fault_addr = addr;
@@ -631,3 +644,5 @@ bool STDCALL drvInit(driver_t* drv)
 	//devRegisterIrq(dev, 1, true);
 	return true;
 }
+
+//@}

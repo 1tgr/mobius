@@ -1,12 +1,5 @@
 #include "resource.h"
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
 1                       ICON    DISCARDABLE     "ras.ico"
 
 VS_VERSION_INFO VERSIONINFO
@@ -46,15 +39,4 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     1                       "The Möbius: single user command line\n"
-    2                       "This is the second string\n"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    4096                    "This is the 4096th string\n"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    32767                   "This is the 32767th string\n"
 END

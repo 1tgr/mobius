@@ -8,6 +8,12 @@
 
 #include <kernel/debug.h>
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	ps2mouse    PS/2 aux port and mouse
+ *  @{
+ */
+
 /*
  * General keyboard defines --
  *	needed for i8042 port (PS/2 controller)
@@ -336,3 +342,5 @@ bool STDCALL INIT_CODE drvInit(driver_t* drv)
 	drv->add_device = ps2AddDevice;
 	return true;
 }
+
+//@}

@@ -12,6 +12,9 @@
 #define DEBUG
 #include <kernel/debug.h>
 
+//! \ingroup fat
+//@{
+
 typedef struct fat_root_t fat_root_t;
 struct fat_root_t
 {
@@ -491,3 +494,5 @@ bool STDCALL drvInit(driver_t* drv)
 	drv->mount_fs = fatMountFs;
 	return true;
 }
+
+//@}

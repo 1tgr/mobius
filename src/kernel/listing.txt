@@ -7258,7 +7258,7 @@ c00057e3:	50             	push   %eax
 c00057e4:	e8 fb fe ff ff 	call   c00056e4 <_devRequest>
 c00057e9:	83 c4 08       	add    $0x8,%esp
 c00057ec:	85 c0          	test   %eax,%eax
-c00057ee:	74 2c          	je     c000581c <_devRequestSync+0x44>
+c00057ee:	75 2c          	jne    c000581c <_devRequestSync+0x44>
 c00057f0:	8b 43 04       	mov    0x4(%ebx),%eax
 c00057f3:	85 c0          	test   %eax,%eax
 c00057f5:	75 28          	jne    c000581f <_devRequestSync+0x47>

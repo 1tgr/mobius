@@ -2,6 +2,8 @@
 #include <os/pe.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <stdio.h>
 
 static const IMAGE_RESOURCE_DIRECTORY_ENTRY* resFindItem(dword base, 
 	const IMAGE_RESOURCE_DIRECTORY* dir, const word* ids)
@@ -17,21 +19,22 @@ static const IMAGE_RESOURCE_DIRECTORY_ENTRY* resFindItem(dword base,
 			ids++;
 			if (entry[i].u2.s.DataIsDirectory)
 			{
-				//wprintf(L"%x: Directory: offset to directory = %x\n", 
-					//entry[i].Id, entry[i].OffsetToDirectory);
+				wprintf(L"%x: Directory: offset to directory = %x\n", 
+					entry[i].u.Id, entry[i].u2.s.OffsetToDirectory);
 				dir = (const IMAGE_RESOURCE_DIRECTORY*) (base + entry[i].u2.s.OffsetToDirectory);
 				return resFindItem(base, dir, ids);
 			}
 			else
 			{
-				//wprintf(L"%x: Resource: offset to data = %x\n", 
-					//entry[i].Id, entry[i].OffsetToData);
+				wprintf(L"%x: Resource: offset to data = %x\n", 
+					entry[i].u.Id, entry[i].u2.OffsetToData);
 				return entry + i;
 			}
 		}
 	}
 
-	//wprintf(L"%x: Not found\n", ids[0]);
+	wprintf(L"%x: Not found\n", ids[0]);
+	sysSetErrno(ENOTFOUND);
 	return NULL;
 }
   
@@ -94,7 +97,10 @@ const void* resFind(dword base, word type, word id, word language)
 		(base + header->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE].VirtualAddress);
 
 	if ((dword) dir <= base)
+	{
+		sysSetErrno(ENOTFOUND);
 		return NULL;
+	}
 
 	entry = resFindItem((dword) dir, dir, ids);
 	if (entry)

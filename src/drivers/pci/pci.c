@@ -4,6 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*!
+ *  \ingroup	drivers
+ *  \defgroup	pci PCI bus
+ *  @{
+ */
+
 typedef struct pci_cfg_t pci_cfg_t;
 struct pci_cfg_t
 {
@@ -406,3 +412,5 @@ bool STDCALL INIT_CODE drvInit(driver_t *drv)
 	wprintf(L"PCI: finished\n");
 	return true;
 }
+
+//@}
