@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.3 2003/06/22 15:44:56 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -214,6 +214,7 @@ uint32_t i386Isr(context_t ctx)
             handled = true;
         }
 
+#if 0
         if (!handled &&
             old_current->info->exception_handler != NULL &&
             ctx.eip < 0x80000000)
@@ -223,6 +224,7 @@ uint32_t i386Isr(context_t ctx)
             wprintf(L"i386Isr: revectoring to %x\n", ctx.eip);
             handled = true;
         }
+#endif
 
         if (!handled)
         {

@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.3 2003/06/22 15:44:56 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -420,6 +420,8 @@ bool VmmShare(void *base, const wchar_t *name)
     SpinRelease(&sem_share);
 
     SpinRelease(&current()->process->sem_vmm);
+
+	wprintf(L"VmmShare: base = %p, desc = %p\n", base, desc);
     return true;
 }
 
@@ -472,9 +474,9 @@ void *VmmMapSharedArea(handle_t hnd, addr_t start, uint32_t flags)
         flags, 
         dest, 
         (flags & 3) == 0);
-    wprintf(L"VmmMapSharedArea(%s): start = %lx, base = %lx\n",
-        dest->name, start, ret->base);
     HndUnlock(NULL, hnd, 'vmmd');
+
+	wprintf(L"VmmMapSharedArea: base = %p, desc = %p\n", (void*) ret->base, dest);
     return (void*) ret->base;
 }
 
@@ -848,7 +850,7 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
             MemMap(start, start, start + PAGE_SIZE, f);
             phys = start + PAGE_SIZE;
         }
-        else
+        else if (desc->pages->pages[page] == NULL)
         {
             if (desc->type == VM_AREA_MAP)
                 phys = desc->dest.phys_map + (start - node->base);
@@ -876,8 +878,6 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
                 }
             }
 
-            MemMap(start, phys, start + PAGE_SIZE, f);
-
             if (node->flags & VM_MEM_ZERO)
             {
                 uint8_t *ptr;
@@ -890,17 +890,21 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
                             *ptr);
                     }
             }
-        }
 
-        SpinAcquire(&desc->spin);
-        desc->pages->pages[page] = phys;
-        SpinRelease(&desc->spin);
-        MemLockPages(phys, 1, true);
+			SpinAcquire(&desc->spin);
+			desc->pages->pages[page] = phys;
+			SpinRelease(&desc->spin);
+
+			MemLockPages(phys, 1, true);
+        }
+		else
+			phys = desc->pages->pages[page];
 
         /* xxx -- need to check descriptor flags here */
         //if (node->flags & VM_MEM_ZERO)
             //memset((void*) start, 0, PAGE_SIZE);
 
+		MemMap(start, phys, start + PAGE_SIZE, f);
         SpinRelease(&proc->sem_vmm);
         return true;
 

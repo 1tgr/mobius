@@ -1,4 +1,4 @@
-/* $Id: pipe.c,v 1.1 2002/12/21 09:49:26 pavlovskii Exp $ */
+/* $Id: pipe.c,v 1.2 2003/06/22 15:44:56 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -49,7 +49,7 @@ static void PipeWakeBlockedReaders(pipe_t *pipe)
                 length = io->length;
             //wprintf(L"Pipe has %u bytes, request %p needs %u bytes\n",
                 //length, io, io->length);
-            dest = MemMapPageArray(io->pages, io->length);
+            dest = MemMapPageArray(io->pages, PRIV_PRES | PRIV_KERN | PRIV_WR);
             memcpy(dest, pipe->buffer + pipe->read_ptr, length);
             MemUnmapTemp();
             pipe->read_ptr += length;
@@ -184,7 +184,7 @@ bool PipeWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
 
     assert(other->write_ptr + length <= other->allocated);
 
-    buf = MemMapPageArray(pages, length);
+    buf = MemMapPageArray(pages, PRIV_PRES | PRIV_KERN | PRIV_RD);
     memcpy(other->buffer + other->write_ptr, buf, length);
     MemUnmapTemp();
 

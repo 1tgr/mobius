@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.3 2003/06/22 15:44:56 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -318,6 +318,12 @@ static bool PeDoImports(process_t* proc,
     for (; imp->Name != 0; imp++)
     {
         name = (const char*) (mod->base + (addr_t) imp->Name);
+		if (name < (const char*) mod->base ||
+			name >= (const char*) mod->base + mod->length)
+		{
+			wprintf(L"%s: invalid name offset: %x\n", mod->name, imp->Name);
+			continue;
+		}
 
         count = mbstowcs(name_wide, name, _countof(name_wide));
         if (count == -1)

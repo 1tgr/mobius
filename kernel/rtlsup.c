@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.3 2003/06/22 15:44:56 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -332,8 +332,8 @@ void TextUpdateProgress(int min, int progress, int max)
     bottom = (con_top + con_height) * 8 - 2;
     for (y = top; y < bottom; y++)
     {
-        con_vga4->vidHLine(con_vga4, NULL, 2, x, y, 4);
-        con_vga4->vidHLine(con_vga4, NULL, x, 638, y, 7);
+        con_vga4->vidHLine(con_vga4, 2, x, y, 4);
+        con_vga4->vidHLine(con_vga4, x, 638, y, 7);
     }
 }
 
@@ -438,7 +438,7 @@ int name(const ct *str, size_t count) \
         { \
             vga4ScrollUp((con_y - con_height + 2) * 8, con_top * 8, (con_height - 1) * 8); \
             for (y = 0; y < 8; y++) \
-                con_vga4->vidHLine(con_vga4, NULL, 0, 640, \
+                con_vga4->vidHLine(con_vga4, 0, 640, \
                     (con_top + con_height - 2) * 8 + y, (con_attribs >> 12) & 0xf); \
             con_y = con_height - 2; \
         } \
@@ -638,14 +638,14 @@ bool RtlInit(void)
     bmp = RdGetFilePhysicalAddress(L"kernel.raw");
     if (bmp == NULL)
         for (i = 0; i < 280; i++)
-            con_vga4->vidHLine(con_vga4, NULL, 0, 640, i, 15);
+            con_vga4->vidHLine(con_vga4, 0, 640, i, 15);
     else
         vga4DisplayBitmap(0, 0, 640, 280, PHYSICAL(bmp));
 
     for (i = 280; i < 472; i++)
-        con_vga4->vidHLine(con_vga4, NULL, 0, 640, i, 0);
+        con_vga4->vidHLine(con_vga4, 0, 640, i, 0);
     for (;        i < 480; i++)
-        con_vga4->vidHLine(con_vga4, NULL, 0, 640, i, 7);
+        con_vga4->vidHLine(con_vga4, 0, 640, i, 7);
 #endif
 
     return true;

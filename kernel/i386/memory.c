@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.3 2003/06/22 15:44:56 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -155,7 +155,8 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
         {
             addr_t pt;
 
-            pt = MemAlloc();
+            pt = MemAllocLow();
+		memset(PHYSICAL(pt), 0, PAGE_SIZE);
 
             if (pt == NULL)
                 return false;
