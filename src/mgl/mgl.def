@@ -1,0 +1,22 @@
+EXPORTS
+	glClear
+	glFillRect
+	glFlush
+	glLineTo
+	glMoveTo
+	glPutPixel
+	glRectangle
+	glSetClearColour
+	glSetColour
+	mglCreateRc
+	mglDeleteRc
+	mglGetDimensions
+	mglUseRc
+	rectIncludesPoint
+	rectInflate
+	rectIntersects
+	rectIsEmpty
+	rectOffset
+	rectSet
+	rectSetEmpty
+	rectUnion
