@@ -285,6 +285,10 @@ SOURCE=..\..\include\kernel\proc.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\kernel\profile.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\kernel\ramdisk.h
 # End Source File
 # Begin Source File
@@ -298,6 +302,10 @@ SOURCE=..\..\include\kernel\thread.h
 # Begin Source File
 
 SOURCE=..\..\include\kernel\vmm.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\kernel\winmgr.h
 # End Source File
 # End Group
 # Begin Group "i386 (h)"

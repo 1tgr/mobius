@@ -152,7 +152,8 @@ EXPORTS
 	VmmFree
 	VmmMap
 	VmmMapFile
-	VmmMapShared
+	VmmMapSharedArea
+	VmmOpenSharedArea
 	VmmPageFault
 	VmmShare
 	VmmUncommit

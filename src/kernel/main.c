@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.23 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: main.c,v 1.24 2002/08/20 22:58:00 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -154,13 +154,17 @@ static void __initcode KeInstallDevices(void)
         }
 
         TextUpdateProgress(0, i, count - 1);
+        wprintf(L"--\n");
         swprintf(value, L"%u", i + 1);
     }
 
     wcscpy(proc_idle.info->cwd, L"/");
     ptr = ProGetString(L"", L"Shell", NULL);
     if (ptr == NULL)
+    {
+        wprintf(L"No Shell setting found in system.pro; starting debugger\n");
         DbgStartShell();
+    }
     else
         ProcSpawnProcess(ptr, proc_idle.info);
 

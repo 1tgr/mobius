@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.15 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.16 2002/08/20 22:58:00 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -79,15 +79,19 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 
         if (collide->start == start)
         {
+            /* Allocating at the start of an empty block */
             collide->start += pages * PAGE_SIZE;
             collide->num_pages -= pages;
         }
         else if (collide->start + collide->num_pages * PAGE_SIZE 
             == start + pages * PAGE_SIZE)
+            /* Allocating at the end of an empty block */
             collide->num_pages -= pages;
         else
         {
             vm_area_t *collide2;
+
+            /* Allocating in the middle of an empty block */
 
             assert(collide->start + collide->num_pages * PAGE_SIZE >
                 (start + pages * PAGE_SIZE));
@@ -107,6 +111,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
         }
     }
 
+    HndInit(&area->hdr, 'vmma');
     area->start = start;
     area->owner = proc;
     area->pages = MemDupPageArray(pages, 0, NULL);
@@ -238,7 +243,7 @@ bool VmmShare(void *base, const wchar_t *name)
     return true;
 }
 
-void *VmmMapShared(const wchar_t *name, addr_t start, uint32_t flags)
+handle_t VmmOpenSharedArea(const wchar_t *name)
 {
     vm_area_t *dest;
 
@@ -255,11 +260,45 @@ void *VmmMapShared(const wchar_t *name, addr_t start, uint32_t flags)
     {
         errno = ENOTFOUND;
         SpinRelease(&sem_share);
-        return NULL;
+        return 0;
     }
 
     SpinRelease(&sem_share);
-    return VmmMap(dest->pages->num_pages, start, dest, VM_AREA_SHARED, flags);
+
+    return HndDuplicate(NULL, &dest->hdr);
+}
+
+void *VmmMapSharedArea(handle_t hnd, addr_t start, uint32_t flags)
+{
+    vm_area_t *dest;
+    void *ptr, *ret;
+
+    /*SpinAcquire(&sem_share);
+
+    for (dest = shared_first; dest != NULL; dest = dest->shared_next)
+    {
+        assert(dest->name != NULL);
+        if (_wcsicmp(dest->name, name) == 0)
+            break;
+    }
+
+    if (dest == NULL)
+    {
+        errno = ENOTFOUND;
+        SpinRelease(&sem_share);
+        return NULL;
+    }
+
+    SpinRelease(&sem_share);*/
+
+    ptr = HndLock(NULL, hnd, 'vmma');
+    if (ptr == NULL)
+        return NULL;
+
+    dest = (vm_area_t*) ((handle_hdr_t*) ptr - 1);
+    ret = VmmMap(dest->pages->num_pages, start, dest, VM_AREA_SHARED, flags);
+    HndUnlock(NULL, hnd, 'vmma');
+    return ret;
 }
 
 /*!    \brief Frees an area of memory allocated by the VmmAlloc() function.
@@ -271,6 +310,11 @@ void VmmFree(vm_area_t* area)
 {
     if (area == NULL)
         return;
+
+    /*
+     * xxx -- need to do this using handle semantics
+     *  (i.e. unmap from process on VmmFree, free area on handle cleanup)
+     */
 
     /*wprintf(L"vmmFree: %d => %x...", area->pages, area->start);*/
 
