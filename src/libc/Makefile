@@ -72,7 +72,8 @@ RTL=	string/djmd.o string/djmdr.o dllmain.o
 SYS=	sys/cputs.o sys/cputws.o sys/float_dx.o sys/fmode.o \
 	sys/getenv.o sys/huge_val.o sys/int64.o sys/main.o \
 	sys/morecore.o sys/towc.o sys/wdprintf.o sys/unicode.o \
-	sys/ucfile.o
+	sys/ucfile.o \
+	crt0/args.o crt0/wargs.o
 
 CRT0=	$(LIB)/crt0.o $(LIB)/wcrt0.o
 
@@ -90,6 +91,15 @@ $(LIB)/crt0.o:	crt0/crt0.c
 
 $(LIB)/wcrt0.o:	crt0/crt0.c
 	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include -DWIDE $(CFLAGS)
+
+crt0/args.o:	crt0/args.c
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
+
+crt0/wargs.o:	crt0/args.c
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include -DWIDE $(CFLAGS)
+
+crt0/wargs.d:	crt0/args.c
+	 echo "$(dir $<)`$(CC) -c -M $< -I$(INCLUDE) -I./include -DWIDE $(CFLAGS)`" > $@
 
 $(BIN)/unicode.dat:	ctype/unicode.o
 	objcopy -O binary -j .data $< $@
