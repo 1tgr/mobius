@@ -449,7 +449,8 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 
     if (tty > consoles)
 	tty->clear();
-    /*tty->switchTo();*/
+    if (tty == consoles + 1)
+        tty->switchTo();
 
     SemAcquire(&sem_consoles);
     num_consoles++;

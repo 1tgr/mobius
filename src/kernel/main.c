@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.15 2002/03/13 14:26:24 pavlovskii Exp $ */
+/* $Id: main.c,v 1.16 2002/03/14 01:27:06 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -50,12 +50,14 @@ void KernelMain(void)
     FsInit();
 
     ProLoadProfile(L"system.pro", L"/");
+    i386InitSerialDebug();
     ProEnumValues(L"Devices", NULL, KernelEnumDevices);
 
     /*FsMount(L"/hd", L"fat", IoOpenDevice(L"ide0a"));*/
     FsMount(L"/fd", L"fat", IoOpenDevice(L"fdc0"));
 
-    ProcSpawnProcess(SYS_BOOT L"/shell.exe", proc_idle.info);
+    ProcSpawnProcess(ProGetString(L"", L"Shell", SYS_BOOT L"/shell.exe"), 
+        proc_idle.info);
     ScEnableSwitch(true);
 
     wprintf(L"Idle\n");

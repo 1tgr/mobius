@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.1 2002/03/13 14:38:30 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.2 2002/03/14 01:27:07 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -50,14 +50,19 @@ static profile_key_t *ProOpenSubkey(profile_key_t *root, wchar_t *key)
     if (ch == NULL)
     {
 	/*TRACE1("ProOpenSubkey: end: %s\n", key);*/
-	search(root, key);
-	if (found)
-	{
-	    value = item(root);
-	    return value->u.subkey;
-	}
-	else
-	    return NULL;
+        if (*key == '\0')
+            return root;
+        else
+        {
+	    search(root, key);
+	    if (found)
+	    {
+	        value = item(root);
+	        return value->u.subkey;
+	    }
+	    else
+	        return NULL;
+        }
     }
     else
     {

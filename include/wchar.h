@@ -1,4 +1,4 @@
-/* $Id: wchar.h,v 1.7 2002/03/07 15:51:51 pavlovskii Exp $ */
+/* $Id: wchar.h,v 1.8 2002/03/14 01:26:52 pavlovskii Exp $ */
 #ifndef __WCHAR_H
 #define __WCHAR_H
 
@@ -144,6 +144,7 @@ void	_pwerror(const wchar_t *text);
 #define towlower(c)		(iswupper(c) ? (c) - 'A' + 'a' : (c))
 #define iswdigit(c)		((c) >= '0' && (c) <= '9')
 #define iswspace(c)		((c) == '\r' || (c) == '\n' || (c) == '\t' || (c) == ' ')
+#define iswalpha(c)		(iswupper(c) || iswlower(c))
 
 #ifdef __cplusplus
 }

@@ -6,12 +6,7 @@ LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc.lib $(LIB)/libsys.lib $(LIB)/libiconv.lib
 include ../make.conf
 include ../make.actions
 
-all: $(BIN)/v86.com $(TARGET)
-
-#$(TARGET): $(OBJS) $(LIBS)
-#	ld -o $(TARGET) $(OBJS) $(LIBS)
-
-include $(OBJS:.o=.d)
+all: $(TARGET) $(BIN)/v86.com
 
 $(BIN)/v86.com: v86.asm
 	nasm -f bin $< -o `cygpath -w $@`

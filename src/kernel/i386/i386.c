@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.20 2002/03/13 14:26:24 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.21 2002/03/14 01:27:07 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -8,7 +8,7 @@
 #include <kernel/memory.h>
 #include <kernel/driver.h>
 
-/* #define DEBUG */
+/*#define DEBUG*/
 #include <kernel/debug.h>
 
 #include <stdio.h>
@@ -17,6 +17,7 @@
 
 extern unsigned sc_need_schedule;
 extern irq_t *irq_first[16], *irq_last[16];
+extern uint16_t dbg_hasgdb;
 
 extern tss_t arch_tss;
 extern descriptor_t arch_gdt[];
@@ -226,19 +227,23 @@ uint32_t i386Isr(context_t ctx)
 		    wprintf(L"in kernel mode\n");
 	    }
 
-	    /*if (ctx.eflags & EFLAG_VM)
-		wprintf(L"Stack dump not available in V86 mode\n");
-	    else
-		DbgDumpStack(current->process, ctx.regs.ebp);*/
-
-	    /*ArchDbgDumpContext(&ctx);*/
-	    /*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
-
-	    /*if (current->process == &proc_idle)*/
+	    if (dbg_hasgdb)
 		i386TrapToDebugger(&ctx);
-		/*halt(ctx.eip);
 	    else
-		ProcExitProcess(-ctx.intr);*/
+	    {
+		if (ctx.eflags & EFLAG_VM)
+		    wprintf(L"Stack dump not available in V86 mode\n");
+		else
+		    DbgDumpStack(current->process, ctx.regs.ebp);
+
+		ArchDbgDumpContext(&ctx);
+		/*DbgDumpBuffer((char*) ctx.eip - 8, 16);*/
+
+		if (current->process == &proc_idle)
+		    halt(ctx.eip);
+		else
+    		    ProcExitProcess(-ctx.intr);
+	    }
 	}
     }
     
@@ -304,7 +309,7 @@ thread_t *i386CreateV86Thread(FARPTR entry, FARPTR stack_top, unsigned priority,
     ctx->cs = FP_SEG(entry);
     ctx->eip = FP_OFF(entry);
     ctx->ss = FP_SEG(stack_top);
-    ctx->esp = FP_OFF(stack_top);
+    ctx->esp = FP_OFF(stack_top) - 0x800;
     thr->v86_if = true;
     thr->v86_handler = (addr_t) handler;
 
@@ -326,7 +331,30 @@ bool i386V86Gpf(context_v86_t *ctx)
 	ctx->ss, ctx->esp);
     switch (ip[0])
     {
-    case 0xcd:	  /* INT n */
+    case 0x9c:	    /* PUSHF */
+	TRACE0("pushf\n");
+	ctx->esp = ((ctx->esp & 0xffff) - 2) & 0xffff;
+	stack--;
+
+	stack[0] = (uint16_t) ctx->eflags;
+	
+	if (current->v86_if)
+	    stack[0] |= EFLAG_IF;
+	else
+	    stack[0] &= ~EFLAG_IF;
+
+	ctx->eip = (uint16_t) (ctx->eip + 1);
+	return true;
+
+    case 0x9d:	    /* POPF */
+	TRACE0("popf\n");
+	ctx->eflags = EFLAG_IF | EFLAG_VM | stack[0];
+	current->v86_if = (stack[0] & EFLAG_IF) != 0;
+	ctx->esp = ((ctx->esp & 0xffff) + 2) & 0xffff;
+	ctx->eip = (uint16_t) (ctx->eip + 1);
+	return true;
+
+    case 0xcd:	    /* INT n */
 	TRACE1("interrupt 0x%x => ", ip[1]);
 	switch (ip[1])
 	{
@@ -355,16 +383,17 @@ bool i386V86Gpf(context_v86_t *ctx)
 	    return true;
 
 	default:
+	    stack -= 3;
+	    ctx->esp = ((ctx->esp & 0xffff) - 6) & 0xffff;
+
 	    stack[0] = (uint16_t) (ctx->eip + 2);
-	    stack[-1] = ctx->cs;
-	    stack[-2] = (uint16_t) ctx->eflags;
+	    stack[1] = ctx->cs;
+	    stack[2] = (uint16_t) ctx->eflags;
 	    
 	    if (current->v86_if)
-		stack[-2] |= EFLAG_IF;
+		stack[2] |= EFLAG_IF;
 	    else
-		stack[-2] &= ~EFLAG_IF;
-
-	    ctx->esp = ((ctx->esp & 0xffff) - 6) & 0xffff;
+		stack[2] &= ~EFLAG_IF;
 
 	    ctx->cs = ivt[ip[1] * 2 + 1];
 	    ctx->eip = ivt[ip[1] * 2];
@@ -374,22 +403,24 @@ bool i386V86Gpf(context_v86_t *ctx)
 
 	break;
 
-    case 0xcf:	  /* IRET */
+    case 0xcf:	    /* IRET */
 	TRACE0("iret => ");
-	ctx->eflags = EFLAG_IF | EFLAG_VM | stack[1];
-	ctx->cs = stack[2];
-	ctx->eip = stack[3];
+	ctx->eip = stack[0];
+	ctx->cs = stack[1];
+	ctx->eflags = EFLAG_IF | EFLAG_VM | stack[2];
+	current->v86_if = (stack[2] & EFLAG_IF) != 0;
+
 	ctx->esp = ((ctx->esp & 0xffff) + 6) & 0xffff;
 	TRACE2("%04x:%04x\n", ctx->cs, ctx->eip);
 	return true;
 
-    case 0xfa:	  /* CLI */
+    case 0xfa:	    /* CLI */
 	TRACE0("cli\n");
 	current->v86_if = false;
 	ctx->eip = (uint16_t) (ctx->eip + 1);
 	return true;
 
-    case 0xfb:	  /* STI */
+    case 0xfb:	    /* STI */
 	TRACE0("sti\n");
 	current->v86_if = true;
 	ctx->eip = (uint16_t) (ctx->eip + 1);
@@ -397,7 +428,6 @@ bool i386V86Gpf(context_v86_t *ctx)
 
     default:
 	wprintf(L"unhandled opcode 0x%x\n", ip[0]);
-	halt(ip[0]);
 	break;
     }
 

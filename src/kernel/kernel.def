@@ -194,5 +194,6 @@ EXPORTS
 	wcslen
 	wcsncpy
 	wcsrchr
+	wcstol
 	wcstombs
 	wprintf

@@ -49,7 +49,8 @@ STDLIB=	stdlib/abort.o stdlib/abs.o stdlib/atexit.o stdlib/atof.o \
 	stdlib/bsearch.o stdlib/div.o stdlib/exit.o \
 	stdlib/labs.o stdlib/ldiv.o stdlib/llabs.o stdlib/lldiv.o \
 	stdlib/qsort.o stdlib/rand.o stdlib/strtod.o stdlib/strtol.o \
-	stdlib/strtold.o stdlib/strtoll.o stdlib/strtoul.o stdlib/strtoull.o
+	stdlib/strtold.o stdlib/strtoll.o stdlib/strtoul.o stdlib/strtoull.o \
+	stdlib/wcstol.o 
 STRING=	string/mbstowcs.o string/memchr.o string/memcpy.o string/memmove.o \
 	string/memset.o string/memcmp.o string/strcat.o string/strchr.o \
 	string/strcmp.o string/strcoll.o string/strcpy.o string/strcspn.o \

@@ -180,6 +180,7 @@ EXPORTS
 	wcsncpy
 	wcspbrk
 	wcsrchr
+	wcstol
 	wcstombs
 	wprintf
 	_wfopen

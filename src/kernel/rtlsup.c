@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.10 2002/03/07 15:52:03 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.11 2002/03/14 01:27:07 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -19,6 +19,9 @@
 addr_t kernel_sbrk = 0xe0000000;
 unsigned con_x, con_y;
 uint16_t con_attribs = 0x0700;
+
+extern uint16_t dbg_combase;
+int putDebugChar(int ch);
 
 #define VGA_AC_INDEX		0x3C0
 #define VGA_AC_WRITE		0x3C0
@@ -80,6 +83,14 @@ int name(const ct *str, size_t count) \
 \
 	for (; *str && count > 0; count--, str++) \
 	{ \
+		if (dbg_combase != 0) \
+		{ \
+		    if (*str == '\n') \
+			putDebugChar('\r'); \
+		    else \
+			putDebugChar(*str); \
+		} \
+\
 		switch (*str) \
 		{ \
 		case '\n': \

@@ -1,7 +1,8 @@
-# $Id: system.pro,v 1.1 2002/03/13 14:38:30 pavlovskii Exp $
+# $Id: system.pro,v 1.2 2002/03/14 01:26:52 pavlovskii Exp $
 
 key KernelDebug
-    Enabled=true
+    Port=0x3f8
+    SyncGdb=false
 end
 
 key Devices
@@ -21,34 +22,36 @@ key Devices
 end
 
 key PCI
-    key Vendor8086Device7190
+    key Vendor8086Device7190Subsystem00000000
 	Description=Intel 82443BX/ZX 440BX/ZX CPU to PCI Bridge (AGP Implemented)
     end
 
-    key Vendor8086Device7191
+    key Vendor8086Device7191Subsystem00000000
 	Description=Intel 82443BX/ZX 440BX/ZX PCI to AGP Bridge
     end
 
-    key Vendor8086Device7110
+    key Vendor8086Device7110Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 ISA Bridge
     end
 
-    key Vendor8086Device7111
+    key Vendor8086Device7111Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 EIDE Controller
 	Driver=ata
     end
 
-    key Vendor8086Device7112
+    key Vendor8086Device7112Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 USB Controller
     end
     
-    key Vendor8086Device7113
+    key Vendor8086Device7113Subsystem00000000
 	Description=Intel 82371AB/EB/MB PIIX4 Power Management Controller
     end
 
-    key Vendor5333Device8811
+    key Vendor5333Device8811Subsystem00000000
 	Description=S3 86C732 Trio32, 86C764 Trio64, 86C765 Trio64V+ Rev 01
 	Driver=video
 	Device=video
     end
 end
+
+Shell=/System/Boot/shell.exe

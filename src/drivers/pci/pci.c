@@ -328,7 +328,7 @@ bool DrvInit(driver_t *drv)
 {
     uint16_t bus, dev, func;
     device_t *pci;
-    wchar_t name[20], key[30];
+    wchar_t name[20], key[50];
     const wchar_t *driver, *desc, *device;
     device_config_t* cfg;
     pci_cfg_t pcfg;
@@ -349,12 +349,6 @@ bool DrvInit(driver_t *drv)
 	    {
 		if (pciProbe(bus, dev, func, &pcfg))
 		{
-		    swprintf(name, L"pci:%d:%d:%d", bus, dev, func);
-		    swprintf(key, L"PCI/Vendor%04xDevice%04x", pcfg.vendor_id, pcfg.device_id);
-		    driver = ProGetString(key, L"Driver", name);
-		    desc = ProGetString(key, L"Description", NULL);
-		    device = ProGetString(key, L"Device", name);
-		    
 		    cfg = malloc(sizeof(device_config_t));
 		    cfg->parent = pci;
 		    cfg->vendor_id = pcfg.vendor_id;
@@ -364,6 +358,13 @@ bool DrvInit(driver_t *drv)
 		    cfg->pci_dev = dev;
 		    cfg->pci_func = func;
 
+		    swprintf(name, L"pci:%d:%d:%d", bus, dev, func);
+		    swprintf(key, L"PCI/Vendor%04xDevice%04xSubsystem%08x", 
+			cfg->vendor_id, cfg->device_id, cfg->subsystem);
+		    driver = ProGetString(key, L"Driver", name);
+		    desc = ProGetString(key, L"Description", key);
+		    device = ProGetString(key, L"Device", name);
+		    
 		    if (pcfg.irq)
 			cfg->num_resources = 1;
 		    else
@@ -412,6 +413,11 @@ bool DrvInit(driver_t *drv)
 
 		    wprintf(L"%s => %s\n", name, desc);
 		    DevInstallDevice(driver, device, cfg);
+
+		    if ((pcfg.header_type & 0x80) == 0 &&
+			func == 0)
+			/* single-function device */
+			break;
 		}
 	    }
 	}

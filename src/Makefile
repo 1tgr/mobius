@@ -1,7 +1,7 @@
 DIRS=	librtl libsys libc kernel/i386 \
 	kernel drivers test shell \
 	hello nasm vidtest mgl \
-	tetris ../bin
+	tetris vbe ../bin
 
 all:
 	make -C boot --win32

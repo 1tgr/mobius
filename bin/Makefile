@@ -4,7 +4,7 @@ BOOT2=	fat.drv tty.drv keyboard.drv fdc.drv \
 BOOT3=	shell.exe hello.exe libc.dll v86.com \
 	ndisasm.exe nasm.exe libsys.dll 
 BOOT4=	vidtest.exe mgl.dll mgltest.exe tetris.exe \
-	test.exe test.txt
+	test.exe test.txt vbe.exe
 GRUB=	menu.lst 
 OS1=	folder.wmf banner.wmf ..\\src\\shell\\v86.asm ..\\src\\kernel\\start.asm 
 ifeq ($(DEST),)

@@ -27,6 +27,7 @@ EXPORTS
     QueuePopLast
     ResFindResource
     ResLoadString
+    ResSizeOfResource
     SysGetInfo
     SysGetTimes
     SysUpTime
