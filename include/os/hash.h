@@ -1,4 +1,4 @@
-/* $Id: hash.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $
+/* $Id: hash.h,v 1.3 2002/08/17 23:09:01 pavlovskii Exp $
    +++Date last modified: 05-Jul-1997
    Modified: $LOG$
    By: $Author: pavlovskii $
@@ -53,7 +53,8 @@ typedef int boolean;
 #define TRUE (!FALSE)
 #endif
 
-typedef struct hash_table {
+typedef struct hash_table
+{
     size_t size;
     bucket **table;
     hash_table_iterator *iterator;
@@ -71,7 +72,7 @@ typedef struct hash_table {
  the table's size to 0, and the pointer to the table to NULL.
 */
 
-hash_table* new_hash_table(size_t size);
+hash_table* HashCreate(size_t size);
 
 /*
  Inserts a pointer to 'item' in the table, with a copy of 'key' as its
@@ -79,14 +80,14 @@ hash_table* new_hash_table(size_t size);
  associated item.
 */
 
-void insert(struct hash_table *table, void * item, const wchar_t *key);
+void HashInsertItem(struct hash_table *table, void * item, const wchar_t *key);
 
 /*
  Look up a key and set found to 1 if found and adjust values in iterator
 */
 
 
-void search(struct hash_table *table, const wchar_t *key);
+void HashSearch(struct hash_table *table, const wchar_t *key);
 
 /*
  Deletes an entry from the table.  Returns a pointer to the item that
@@ -94,7 +95,7 @@ void search(struct hash_table *table, const wchar_t *key);
  properly.
 */
 
-void del(struct hash_table *table, const wchar_t *key );
+void HashDeleteItem(struct hash_table *table, const wchar_t *key );
 
 /*
  Goes through a hash table and calls the function passed to it
@@ -103,8 +104,7 @@ void del(struct hash_table *table, const wchar_t *key );
  with it.
 */
 
-void enumerate(struct hash_table *table,void (*func)(wchar_t *,void *));
-
+void HashEnumerate(struct hash_table *table, void (*func)(wchar_t *,void *));
 
 /* access to iterator */
 inline void set_iterator_position(hash_table*, size_t);
@@ -113,7 +113,7 @@ inline void set_iterator_bucket(hash_table*, bucket*);
 
 inline void* item(hash_table*);
 inline size_t position(hash_table*);
-inline wchar_t* key (hash_table*);
+inline wchar_t* HashGetKey(hash_table*);
 
 
 /* other iteration facilities */
@@ -134,7 +134,7 @@ inline void forth(hash_table*);
  any function with the item. )
 */
 
-void free_table(hash_table *table); /* , void (*func)(void *)); */
+void HashDelete(hash_table *table); /* , void (*func)(void *)); */
 
 void printer (wchar_t *, void*);
 

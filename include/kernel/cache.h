@@ -1,4 +1,4 @@
-/* $Id: cache.h,v 1.4 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: cache.h,v 1.5 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_CACHE_H
 #define __KERNEL_CACHE_H
 
@@ -17,7 +17,7 @@ typedef struct cache_t cache_t;
 /*! \brief	Represents a file cache object */
 struct cache_t
 {
-    semaphore_t lock;
+    spinlock_t lock;
     size_t block_size;
     unsigned block_shift;
     unsigned num_blocks;

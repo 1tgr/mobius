@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.14 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.15 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -77,8 +77,12 @@
 #define PAGE_WRITEFAILED   (0x800 | PRIV_PRES)
 #define PAGE_PAGEDOUT       0xa00
 
+#define PRIV_WRITETHROUGH   0x008
+#define PRIV_NOCACHE        0x010
 #define PAGE_ACCESSED       0x020
-#define PAGE_DIRTY          0x040
+#define PAGE_DIRTY          0x040   /* PTE only */
+#define PAGE_4MEG           0x080   /* PDE only */
+#define PAGE_GLOBAL         0x100   /* PTE only */
 
 #define PAGE_NUM(X)         ((X) & -PAGE_SIZE)
 #define PAGE_TABENT(X)      (((X) >> 12) & 0x3FF)
@@ -93,6 +97,31 @@
 #define EFLAG_VM	    0x20000
 
 #define DR6_BS		    0x4000
+
+#define CR0_PG              0x80000000
+#define CR0_CD              0x40000000
+#define CR0_NW              0x20000000
+#define CR0_AM              0x00040000
+#define CR0_WP              0x00010000
+#define CR0_NE              0x00000020
+#define CR0_ET              0x00000010
+#define CR0_TS              0x00000008
+#define CR0_EM              0x00000004
+#define CR0_MP              0x00000002
+#define CR0_PE              0x00000001
+
+#define CR3_PCD             0x00000010  /* ignored if CR0.CD set */
+#define CR3_PWT             0x00000008  /* ignored if CR0.CD set */
+
+#define CR4_PCE             0x00000100
+#define CR4_PGE             0x00000080
+#define CR4_MCE             0x00000040
+#define CR4_PAE             0x00000020
+#define CR4_PSE             0x00000010
+#define CR4_DE              0x00000008
+#define CR4_TSD             0x00000004
+#define CR4_PVI             0x00000002
+#define CR4_VME             0x00000001
 
 #define KERNEL_BASED_CODE   0x08
 #define KERNEL_BASED_DATA   0x10
@@ -112,13 +141,15 @@
 #define PHYSMEM             0xF0000000
 #define SCHED_QUANTUM       10
 
-#define PAGETABLE_MAP		(0xffc00000)
-#define PAGEDIRECTORY_MAP	(0xffc00000 + (PAGETABLE_MAP / (1024)))
-#define ADDR_TO_PDE(v)	(addr_t*)(PAGEDIRECTORY_MAP + \
-								(((addr_t) (v) / (1024 * 1024))&(~0x3)))
-#define ADDR_TO_PTE(v)	(addr_t*)(PAGETABLE_MAP + ((((addr_t) (v) / 1024))&(~0x3)))
+#define PAGETABLE_MAP      (0xffc00000)
+#define PAGEDIRECTORY_MAP  (0xffc00000 + (PAGETABLE_MAP / (1024)))
+#define ADDR_TO_PDE(v)     (addr_t*)(PAGEDIRECTORY_MAP + \
+                                (((addr_t) (v) / (1024 * 1024))&(~0x3)))
+#define ADDR_TO_PTE(v)     (addr_t*)(PAGETABLE_MAP + ((((addr_t) (v) / 1024))&(~0x3)))
 
-#define KERNEL_PHYS				0x100000
+/* xxx -- hard-coded kernel load address */
+#define KERNEL_PHYS         0x100000
+
 /*!	\brief Adjusts the value of a pointer so that it can be used before the 
  *	initial kernel GDT is set up.
  */

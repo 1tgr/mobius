@@ -1,4 +1,4 @@
-/* $Id: queue.h,v 1.1 2002/03/05 16:13:58 pavlovskii Exp $ */
+/* $Id: queue.h,v 1.2 2002/08/17 23:09:01 pavlovskii Exp $ */
 
 #ifndef __OS_QUEUE_H
 #define __OS_QUEUE_H
@@ -7,8 +7,8 @@
 #include <os/defs.h>
 
 #ifndef KERNEL
-typedef struct semaphore_t semaphore_t;
-struct semaphore_t
+typedef struct spinlock_t spinlock_t;
+struct spinlock_t
 {
 	uint32_t locks;
 };
@@ -19,7 +19,7 @@ struct queue_t
 {
 	void *data;
 	size_t allocated, length;
-	semaphore_t lock;
+	spinlock_t lock;
 };
 
 #define QUEUE_DATA(q)			((q).data)

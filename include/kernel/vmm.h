@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.6 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.7 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -43,7 +43,7 @@ struct vm_area_t
     addr_t start;
     unsigned num_pages;
     uint32_t flags;
-    semaphore_t mtx_allocate;
+    spinlock_t mtx_allocate;
     fileop_t pagingop;
     struct page_array_t *pages, *read_pages;
     wchar_t *name;

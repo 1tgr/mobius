@@ -1,4 +1,4 @@
-/* $Id: handle.h,v 1.5 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: handle.h,v 1.6 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_HANDLE_H
 #define __KERNEL_HANDLE_H
 
@@ -29,7 +29,7 @@ typedef struct thread_queue_t thread_queue_t;
 struct thread_queue_t
 {
 	thread_queuent_t *first, *last, *current;
-	semaphore_t sem;
+	spinlock_t sem;
 };
 
 struct process_t;

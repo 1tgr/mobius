@@ -1,4 +1,4 @@
-/* $Id: winmgr.h,v 1.2 2002/04/10 12:32:37 pavlovskii Exp $ */
+/* $Id: winmgr.h,v 1.3 2002/08/17 23:09:01 pavlovskii Exp $ */
 
 #ifndef __KERNEL_WINMGR_H
 #define __KERNEL_WINMGR_H
@@ -35,7 +35,7 @@ struct window_t
     window_t *child_first, *child_last;
     window_t *child_focus, *parent;
     struct thread_t *owner;
-    semaphore_t sem;
+    spinlock_t sem;
     wndattr_hdr_t *attr_first, *attr_last;
     MGLrect invalid_rect;
     MGLclip clip;

@@ -1,4 +1,4 @@
-/* $Id: memory.h,v 1.6 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: memory.h,v 1.7 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_MEMORY_H
 #define __KERNEL_MEMORY_H
 
@@ -21,7 +21,7 @@ typedef struct page_pool_t page_pool_t;
 /*!	Describes a stack of physical pages */
 struct page_pool_t
 {
-    semaphore_t sem;
+    spinlock_t sem;
     /*! Stack of addresses, describing each page in the pool */
     addr_t *pages;
     /*! The number of pages in memory, i.e. memory_top / PAGE_SIZE */

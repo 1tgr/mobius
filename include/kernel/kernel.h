@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.8 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.9 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -32,8 +32,8 @@ struct kernel_startup_t
 
 struct thread_t;
 
-typedef struct semaphore_t semaphore_t;
-struct semaphore_t
+typedef struct spinlock_t spinlock_t;
+struct spinlock_t
 {
     uint32_t locks;
     struct thread_t *owner;
@@ -42,11 +42,11 @@ struct semaphore_t
 
 extern kernel_startup_t kernel_startup;
 
-void	SemInit(semaphore_t *sem);
-void	SemAcquire(semaphore_t *sem);
-void	SemRelease(semaphore_t *sem);
-void	MtxAcquire(semaphore_t *sem);
-void	MtxRelease(semaphore_t *sem);
+void	SpinInit(spinlock_t *sem);
+void	SpinAcquire(spinlock_t *sem);
+void	SpinRelease(spinlock_t *sem);
+void	MtxAcquire(spinlock_t *sem);
+void	MtxRelease(spinlock_t  *sem);
 int     _cputs(const char *str, size_t count);
 int     _cputws(const wchar_t *str, size_t count);
 

@@ -1,4 +1,4 @@
-/* $Id: sysdef.h,v 1.15 2002/08/14 16:30:53 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.16 2002/08/17 23:09:01 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
@@ -56,7 +56,6 @@
 #define SYS_FsRead              0x403
 #define SYS_FsWrite             0x404
 #define SYS_FsSeek              0x405
-/*efine SYS_FsOpenSearch        0x406*/
 #define SYS_FsOpenDir           0x406
 #define SYS_FsQueryFile         0x407
 #define SYS_FsRequestSync       0x408
@@ -65,6 +64,8 @@
 #define SYS_FsQueryHandle       0x40b
 #define SYS_FsCreateDir         0x40c
 #define SYS_FsChangeDir         0x40d
+#define SYS_FsMount             0x40e
+#define SYS_FsDismount          0x40f
 
 #define SYS_VmmAlloc            0x500
 #define SYS_VmmFree             0x501
@@ -135,7 +136,6 @@ SYSCALL(bool, FsClose, 4, (handle_t))
 SYSCALL(bool, FsRead, 16, (handle_t, void*, size_t, struct fileop_t *))
 SYSCALL(bool, FsWrite, 16, (handle_t, const void*, size_t, struct fileop_t *))
 SYSCALL(off_t, FsSeek, 12, (handle_t, off_t, unsigned))
-/*SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)*/
 SYSCALL(handle_t, FsOpenDir, 4, (const wchar_t*))
 SYSCALL(bool, FsQueryFile, 16, (const wchar_t*, uint32_t, void *, size_t))
 SYSCALL(bool, FsRequestSync, 20, (handle_t, uint32_t, void *, size_t, struct fileop_t*))
@@ -144,6 +144,8 @@ SYSCALL(bool, FsReadDir, 12, (handle_t, struct dirent_t *, size_t))
 SYSCALL(bool, FsQueryHandle, 16, (handle_t, uint32_t, void *, size_t))
 SYSCALL(bool, FsCreateDir, 4, (const wchar_t*))
 SYSCALL(bool, FsChangeDir, 4, (const wchar_t*))
+SYSCALL(bool, FsMount, 12, (const wchar_t *, const wchar_t *, const wchar_t *))
+SYSCALL(bool, FsDismount, 4, (const wchar_t *))
 SYS_END_GROUP(4)
 
 /* 5 */
