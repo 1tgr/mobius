@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.16 2002/09/08 20:25:08 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.17 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -193,7 +193,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         mod,
         NULL,
         VM_AREA_IMAGE,
-        3);
+        VM_MEM_USER);
 
     assert(new_base == mod->base);
 
@@ -468,10 +468,8 @@ void PeProcessSection(module_t *mod, addr_t addr)
     IMAGE_SECTION_HEADER *scn;
 
     pe = PeGetHeaders(mod->base);
-    if (!mod->imported &&
-        !PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory))
-        ;
-        //wprintf(L"%s: imports failed\n", mod->name);
+    if (!mod->imported)
+        PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory);
 
     if (addr > mod->base + mod->sizeof_headers)
     {
@@ -493,7 +491,7 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
         /* Map headers as a special case */
         *off = 0;
         *bytes = mod->sizeof_headers;
-        *flags = 3 | MEM_READ;
+        *flags = VM_MEM_USER | VM_MEM_READ;
     }
     else
     {
@@ -511,14 +509,12 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
         }
 
         scn_base = mod->base + scn->VirtualAddress;
-        /*size = (scn->Misc.VirtualSize + PAGE_SIZE - 1) & -PAGE_SIZE;*/
-        /*wprintf(L"%x: section %d: %.8S %d bytes\n", addr, i, scn->Name, size);*/
 
-        *flags = MEM_ZERO;
+        *flags = VM_MEM_ZERO;
         if (scn->Characteristics & IMAGE_SCN_MEM_READ)
-            *flags |= MEM_READ;
+            *flags |= VM_MEM_READ;
         if (scn->Characteristics & IMAGE_SCN_MEM_WRITE)
-            *flags |= MEM_WRITE;
+            *flags |= VM_MEM_WRITE;
 
         if ((scn->Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) == 0)
             *off = scn->PointerToRawData + addr - scn_base;
@@ -529,134 +525,19 @@ bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
             *bytes = min(PAGE_SIZE, scn->PointerToRawData + scn->SizeOfRawData - *off);
         else
         {
-            *flags |= MEM_ZERO;
+            *flags |= VM_MEM_ZERO;
             *bytes = -1;
         }
 
         if (mod->base < 0x80000000)
-            *flags |= 3;
+            *flags |= VM_MEM_USER;
     }
 
     return true;
 }
-
-#if 0
-bool PePageFault(process_t* proc, module_t* mod, addr_t addr)
-{
-    IMAGE_PE_HEADERS *pe;
-    size_t size, raw_size;
-    void *scn_base;
-    uint32_t priv;
-    addr_t raw_offset;
-    bool should_import;
-    
-    if (addr < mod->base || addr >= mod->base + mod->length)
-        return false;
-
-    /*wprintf(L"pePageFault: %s at %p\n", mod->name, addr);*/
-    
-    should_import = true;
-    if (addr >= mod->base && addr < mod->base + mod->sizeof_headers)
-    {
-        /*wprintf(L"%x: headers: %d bytes\n", addr, mod->sizeof_headers);*/
-
-        /* Map headers as a special case */
-
-        size = (mod->sizeof_headers + PAGE_SIZE - 1) & -PAGE_SIZE;
-        raw_size = mod->sizeof_headers;
-        priv = 3 | MEM_READ | MEM_COMMIT | MEM_ZERO;
-        scn_base = (void*) mod->base;
-        raw_offset = 0;
-        pe = NULL;
-        should_import = false;
-    }
-    else
-    {
-        IMAGE_SECTION_HEADER *first_scn, *scn;
-        int i;
-        
-        pe = PeGetHeaders(mod->base);
-        first_scn = IMAGE_FIRST_SECTION(pe);
-        
-        scn = NULL;
-        for (i = 0; i < pe->FileHeader.NumberOfSections; i++)
-        {
-            if ((first_scn[i].Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) &&
-                scn == NULL)
-                scn = first_scn + i;
-            else if (addr >= mod->base + first_scn[i].VirtualAddress &&
-                addr < mod->base + first_scn[i].VirtualAddress + first_scn[i].Misc.VirtualSize)
-            {
-                scn = first_scn + i;
-                break;
-            }
-        }
-
-        if (scn == NULL)
-        {
-            wprintf(L"%x: section not found\n", addr);
-            return false;
-        }
-
-        scn_base = (void*) (mod->base + scn->VirtualAddress);
-        size = (scn->Misc.VirtualSize + PAGE_SIZE - 1) & -PAGE_SIZE;
-        /*wprintf(L"%x: section %d: %.8S %d bytes\n", addr, i, scn->Name, size);*/
-
-        priv = 3 | MEM_COMMIT | MEM_ZERO;
-        if (scn->Characteristics & IMAGE_SCN_MEM_READ)
-            priv |= MEM_READ;
-        if (scn->Characteristics & IMAGE_SCN_MEM_WRITE)
-            priv |= MEM_WRITE;
-        
-        if ((scn->Characteristics & IMAGE_SCN_CNT_UNINITIALIZED_DATA) == 0)
-            raw_offset = scn->PointerToRawData;
-        else
-            raw_offset = -1;
-
-        raw_size = scn->SizeOfRawData;
-
-        PeRelocateSection(mod, (addr_t) scn_base, (addr_t) scn_base + scn->Misc.VirtualSize);
-    }
-
-    if (VmmArea(proc, scn_base))
-    {
-        wprintf(L"Section already mapped\n");
-        return false;
-    }
-
-    /*wprintf(L"%s: 0x%x bytes (= 0x%x bytes) at 0x%x\t", 
-        mod->name, size, raw_size, scn_base);*/
-    if (!VmmAlloc(size / PAGE_SIZE, (addr_t) scn_base, priv))
-    {
-        wprintf(L"%s: failed to allocate section\n", mod->name);
-        return false;
-    }
-
-    if (raw_offset != (addr_t) -1)
-    {
-        FsSeek(mod->file, raw_offset, FILE_SEEK_SET);
-        FsReadSync(mod->file, scn_base, raw_size, NULL);
-    }
-    
-    if (!pe)
-        pe = PeGetHeaders(mod->base);
-
-    if (should_import &&
-        !mod->imported &&
-        !PeDoImports(proc, mod, pe->OptionalHeader.DataDirectory))
-    {
-        wprintf(L"%s: imports failed\n", mod->name);
-        return false;
-    }
-
-    return true;
-}
-#endif
 
 void PeUnload(process_t* proc, module_t* mod)
 {
-    /*vm_area_t *area;*/
-
     KeAtomicDec(&mod->refs);
 
     if (mod->refs == 0)
@@ -671,10 +552,7 @@ void PeUnload(process_t* proc, module_t* mod)
         if (proc->mod_first == mod)
             proc->mod_first = mod->next;
 
-        /* xxx - free all areas allocated */
-        /*area = VmmArea(proc, (const void*) mod->base);
-        VmmFree(proc, area);*/
-
+        VmmFree((void*) mod->base);
         free(mod->name);
         free(mod);
     }

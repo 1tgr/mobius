@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.18 2002/09/08 20:25:09 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.19 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -97,7 +97,7 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
     assert(flags != 0);
     collide = NULL;
     base = PAGE_ALIGN(base);
-    if (base == NULL && (flags & MEM_LITERAL) == 0)
+    if (base == NULL && (flags & VM_MEM_LITERAL) == 0)
     {
         /*
          * base == 0: Choose a base address
@@ -123,7 +123,7 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
     else
     {
         /*
-         * base != 0: Split empty nodes to accomodate
+         * base != 0: Split empty or reserved nodes to accomodate
          */
 
         /*wprintf(L"VmmMap(%u, %x): desc_first = %p, size = %u, base = %x\n",
@@ -135,10 +135,16 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
 
         collide = VmmLookupNode(proc->vmm_top, (void*) base);
         assert(collide != NULL);
-        if (!VMM_NODE_IS_EMPTY(collide))
+
+        /* We can split either empty or reserved nodes */
+        if ((collide->flags & VM_MEM_RESERVED) == 0 &&
+            !VMM_NODE_IS_EMPTY(collide))
         {
-            wprintf(L"VmmMap(%u, %x): collided with page at %x\n", 
-                desc->num_pages * PAGE_SIZE, base, collide->base);
+            wprintf(L"VmmMap(%x, %x): collided with page at %x, %x bytes\n", 
+                desc->num_pages * PAGE_SIZE, base, collide->base, 
+                VMM_NODE_IS_EMPTY(collide) 
+                    ? collide->u.empty_pages * PAGE_SIZE
+                    : collide->u.desc->num_pages * PAGE_SIZE);
             free(desc);
             errno = EACCESS;
             return NULL;
@@ -174,7 +180,13 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
             collide2 = malloc(sizeof(*collide2));
             memset(collide2, 0, sizeof(*collide2));
             collide2->base = base + desc->num_pages * PAGE_SIZE;
-            collide2->flags = 0;
+
+            /*
+             * Make sure the new node has the same flags as the old one: zero
+             *  if we're splitting an empty node, or VM_MEM_RESERVED if we're
+             *  splitting a reserved node.
+             */
+            collide2->flags = collide->flags;
             collide2->u.empty_pages = 
                 (collide->base + collide->u.empty_pages * PAGE_SIZE -
                 (base + desc->num_pages * PAGE_SIZE)) / PAGE_SIZE;
@@ -190,7 +202,7 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
     node = malloc(sizeof(*node));
     memset(node, 0, sizeof(*node));
     node->base = base;
-    node->flags = flags;
+    node->flags = flags & VM_MEM_NODE_MASK;
     node->u.desc = desc;
 
     SpinAcquire(&proc->sem_vmm);
@@ -200,6 +212,48 @@ vm_node_t *VmmAllocNode(process_t *proc, addr_t base, uint32_t flags,
     return node;
 }
 
+/*!
+ *  \brief  Creates any type of memory area in the current process
+ *
+ *  Called by \p VmmAlloc and \p VmmAllocCallback and \p VmmMapFile.
+ *  This function creates the \p vm_desc_t structure backing the memory area,
+ *      and calls \p VmmAllocNode to allocate space in the current process's
+ *      address space. Other functions (\p VmmMapSharedArea) can attach 
+ *      additional \p vm_node_t structures to the same \p vm_desc_t.
+ *
+ *  \param  pages   Size of the area to allocate, in pages
+ *  \param  start   Start address of the area in the current process, or use 
+ *      \p NULL to get \p VmmAllocNode to choose a suitable address. The 
+ *      address chosen when \p NULL is passed will be below 2GB for user-mode
+ *      allocations ((\p flags & 3) != 0) and above 2GB for kernel-mode
+ *      allocations ((\p flags & 3) == 0).
+ *  \param  dest1   Parameter for the area; this pointer is interpreted 
+ *      differently according to the value passed for \p type.
+ *  \param  dest2   Additional parameter for the area
+ *  \param  type    Type of mapping to create. Can be one of the following
+ *      values:
+ *  - \p VM_AREA_NORMAL: \p dest1 and \p dest2 are ignored.
+ *  - \p VM_AREA_MAP: \p dest1 specifies the physical address of a virtual-to-
+ *      physical mapping; \p dest2 is ignored.
+ *  - \p VM_AREA_FILE: \p dest1 specifies a file handle in the current process;
+ *      \p dest2 is ignored.
+ *  - \p VM_AREA_IMAGE: \p dest1 specifies a pointer to a \p module_t 
+ *      structure; \p dest2 is ignored.
+ *  - \p VM_AREA_CALLBACK: \p dest1 specifies a handler function whose 
+ *      signature matches that of the typedef \p VMM_CALLBACK; \p dest2 
+ *      specifies the cookie to be passed to the handler function.
+ *  \param  flags   Flags to apply to the allocation and mapping of the area.
+ *      Can be a bitwise-OR combination of the any of the following values:
+ *  - \p VM_MEM_READ: Permits read access to the area. Note: current x86 
+ *      processors always allow read access to memory.
+ *  - \p VM_MEM_WRITE: Permits write access to the area. Note: on the x86, user-
+ *      mode pages area always writable from kernel mode, regardless of 
+ *      whether write protection has been applied.
+ *  - \p VM_MEM_ZERO: Causes each page in the area to be zeroed as it is 
+ *      allocated.
+ *  \return A pointer to the start of the newly-allocated area, or \p NULL is
+ *      allocation failed.
+ */
 void* VmmMap(size_t pages, addr_t start, void *dest1, void *dest2, 
              unsigned type, uint32_t flags)
 {
@@ -217,6 +271,7 @@ void* VmmMap(size_t pages, addr_t start, void *dest1, void *dest2,
     desc->name = NULL;
     desc->shared_prev = desc->shared_next = NULL;
     desc->num_pages = pages;
+    desc->num_copies = 1;
 
     if (desc->pages == NULL)
     {
@@ -258,28 +313,41 @@ void* VmmMap(size_t pages, addr_t start, void *dest1, void *dest2,
         return (void*) node->base;
 }
 
-/*!    \brief Allocates an desc of memory in the specified process's address space.
-*
-*    The VmmArea() function can be used to get a vm_desc_t structure from
-*      a pointer.
-*
-*    The memory can only be accessed from with in the specified process's 
-*      context.
-*
-*    \param    proc    The process which will access the memory
-*    \param    pages     The number of 4KB pages to allocate
-*    \param    start     The virtual address at which the block will start. If this 
-*      is NULL an address will be chosen (unless flags includes the 
-*      MEM_LITERAL flag).
-*
-*    \return     A pointer to the start of the block, or NULL if the block could
-*      not be allocated.
-*/
+/*!
+ *  \brief Allocates an area of memory
+ *
+ *  \param  pages   Number of 4KB pages to allocate
+ *  \param  start   Virtual address at which the area will start. If this 
+ *      is \p NULL an address will be chosen (unless \p flags includes the 
+ *      \p VM_MEM_LITERAL flag).
+ *  \param  flags   \p VM_MEM_xxx flags controlling the allocation of and access to 
+ *      the allocated area
+ *
+ *  \return     A pointer to the start of the area, or \p NULL if the area could
+ *      not be allocated.
+ */
 void* VmmAlloc(size_t pages, addr_t start, uint32_t flags)
 {
     return VmmMap(pages, start, NULL, NULL, VM_AREA_NORMAL, flags);
 }
 
+/*!
+ *  \brief  Allocates an area of memory whose mapping is controlled by a 
+ *      callback function
+ *
+ *  \param  pages   Number of 4KB pages to allocate
+ *  \param  start   Virtual address at which the area will start. If this
+ *      if \p NULL an address will be chosen (unless \p flags includes the 
+ *      \p VM_MEM_LITERAL flag).
+ *  \param  flags   \p VM_MEM_xxx flags controlling the allocation of and access to
+ *      the allocated area
+ *  \param  handler Function called by the kernel when a page fault occurs in 
+ *      the allocated area
+ *  \param  cookie  Opaque pointer passed to \p handler
+ *
+ *  \return A pointer to the start of the area, or \p NULL if the area could
+ *      not be allocated.
+ */
 void* VmmAllocCallback(size_t pages, addr_t start, uint32_t flags, 
                        VMM_CALLBACK handler,
                        void *cookie)
@@ -287,12 +355,35 @@ void* VmmAllocCallback(size_t pages, addr_t start, uint32_t flags,
     return VmmMap(pages, start, handler, cookie, VM_AREA_CALLBACK, flags);
 }
 
+/*!
+ *  \brief  Allocates an area of memory backed by a file
+ *
+ *  \param  file    Handle to the file to be mapped
+ *  \param  start   Virtual address at which the area will start. If this
+ *      if \p NULL an address will be chosen (unless \p flags includes the 
+ *      \p VM_MEM_LITERAL flag).
+ *  \param  pages   Number of 4KB pages to map
+ *  \param  flags   \p VM_MEM_xxx flags controlling the allocation of and access to
+ *      the allocated area
+ *
+ *  \return A pointer to the start of the area, or \p NULL if the area could
+ *      not be mapped.
+ */
 void *VmmMapFile(handle_t file, addr_t start, size_t pages, uint32_t flags)
 {
-    flags &= ~(MEM_COMMIT | MEM_ZERO);
+    flags &= ~VM_MEM_ZERO;
     return VmmMap(pages, start, (void*) file, NULL, VM_AREA_FILE, flags);
 }
 
+/*!
+ *  \brief  Makes an area of memory available for sharing through 
+ *      \p VmmOpenSharedArea and \p VmmMapSharedArea
+ *
+ *  \param  base    Pointer to the start of the area to be shared
+ *  \param  name    Name under which the area will be made available
+ *
+ *  \return \p true if the area could be shared, \p false otherwise
+ */
 bool VmmShare(void *base, const wchar_t *name)
 {
     vm_node_t *node;
@@ -334,6 +425,13 @@ bool VmmShare(void *base, const wchar_t *name)
     return true;
 }
 
+/*!
+ *  \brief  Opens a handle to a shared area, for use with VmmMapSharedArea
+ *
+ *  \param  name    Name of the area to open
+ *
+ *  \return \p true if the area could be opened, \p false otherwise
+ */
 handle_t VmmOpenSharedArea(const wchar_t *name)
 {
     vm_desc_t *dest;
@@ -370,26 +468,36 @@ void *VmmMapSharedArea(handle_t hnd, addr_t start, uint32_t flags)
         return NULL;
 
     dest = (vm_desc_t*) ((handle_hdr_t*) ptr - 1);
-    ret = VmmAllocNode(current()->process, start, flags, dest, (flags & 3) == 0);
+    KeAtomicInc(&dest->num_copies);
+    ret = VmmAllocNode(current()->process, 
+        start, 
+        flags, 
+        dest, 
+        (flags & 3) == 0);
     wprintf(L"VmmMapSharedArea(%s): start = %lx, base = %lx\n",
         dest->name, start, ret->base);
     HndUnlock(NULL, hnd, 'vmmd');
     return (void*) ret->base;
 }
 
-/*!    \brief Removes an desc of memory from the address space of the specified process.
-*
-*    The physical storage associated with the desc is deallocated and the desc is
-*      un-mapped from the address space of the process.
-*
-*    \param    proc    The process which contains the desc
-*    \param    desc    The desc to be uncommitted
-*/
+void *VmmReserveArea(size_t pages, addr_t start)
+{
+    vm_node_t *ret;
+
+    ret = VmmAllocNode(current()->process, start, VM_MEM_RESERVED, NULL, false);
+
+    if (ret == NULL)
+        return NULL;
+    else
+        return (void*) ret->base;
+}
+
 static void VmmUncommitNode(vm_node_t *node)
 {
     int i;
     addr_t virt, phys;
     vm_desc_t *desc;
+    bool is_freeing;
 
     //assert(desc->owner == current()->process);
     /*wprintf(L"vmmUncommit: %d => %x...", desc->pages, desc->start);*/
@@ -399,18 +507,39 @@ static void VmmUncommitNode(vm_node_t *node)
     SpinAcquire(&current()->process->sem_vmm);
     virt = node->base;
     desc = node->u.desc;
+
+    SpinAcquire(&desc->spin);
+    desc->num_copies--;
+    is_freeing = desc->num_copies == 0;
+    SpinRelease(&desc->spin);
+
     for (i = 0; i < desc->pages->num_pages; i++)
     {
         phys = desc->pages->pages[i];
-        if (phys)
+
+        if (is_freeing && phys != NULL)
         {
             MemLockPages(phys, 1, false);
             if (!MemIsPageLocked(phys))
+            {
+                //wprintf(L"VmmUncommitNode: freeing page %08x\n", phys);
                 MemFree(phys);
+            }
         }
 
         MemMap(virt, 0, virt + PAGE_SIZE, 0);
         virt += PAGE_SIZE;
+    }
+
+    if (is_freeing)
+    {
+        /* xxx -- free desc here */
+        SpinAcquire(&desc->spin);
+        MemDeletePageArray(desc->pages);
+        desc->pages = NULL;
+        free(desc->name);
+        desc->name = NULL;
+        SpinRelease(&desc->spin);
     }
 
     SpinRelease(&current()->process->sem_vmm);
@@ -418,20 +547,9 @@ static void VmmUncommitNode(vm_node_t *node)
     /*wprintf(L"done\n"); */
 }
 
-/*!    \brief Frees an desc of memory allocated by the VmmAlloc() function.
-*
-*    \param    proc    The process which contains the desc
-*    \param    desc    The desc of memory to be freed
-*/
-void VmmFree(const void *ptr)
+void VmmFreeNode(vm_node_t *node)
 {
-    vm_node_t *node;
     vm_desc_t *desc;
-
-    node = VmmLookupNode(current()->process->vmm_top, ptr);
-    if (node == NULL ||
-        VMM_NODE_IS_EMPTY(node))
-        return;
 
     desc = node->u.desc;
 
@@ -449,20 +567,31 @@ void VmmFree(const void *ptr)
     node->u.empty_pages = desc->num_pages;
     SpinRelease(&current()->process->sem_vmm);
 
-    SpinAcquire(&desc->spin);
-    MemDeletePageArray(desc->pages);
-    desc->pages = NULL;
-    free(desc->name);
-    desc->name = NULL;
-    SpinRelease(&desc->spin);
-    free(desc);
-
-    /*free(desc);*/
+    free(node);
     /*wprintf(L"done\n");*/
 }
 
-bool VmmMapAddressToFile(vm_node_t *node, vm_desc_t *desc, addr_t addr, 
-                         uint64_t *off, size_t *bytes, uint32_t *flags)
+/*!
+ *  \brief Frees an area of memory allocated by the VmmAlloc() function.
+ *
+ *  \param  ptr Pointer with the area to be freed
+ */
+bool VmmFree(void *ptr)
+{
+    vm_node_t *node;
+
+    node = VmmLookupNode(current()->process->vmm_top, ptr);
+    if (node == NULL ||
+        VMM_NODE_IS_EMPTY(node))
+        return false;
+
+    VmmFreeNode(node);
+    return true;
+}
+
+static bool VmmMapAddressToFile(vm_node_t *node, vm_desc_t *desc, 
+                                addr_t addr, uint64_t *off, size_t *bytes, 
+                                uint32_t *flags)
 {
     if (desc->type == VM_AREA_IMAGE)
     {
@@ -483,7 +612,8 @@ bool VmmMapAddressToFile(vm_node_t *node, vm_desc_t *desc, addr_t addr,
     }
 }
 
-bool VmmDoMapFile(vm_node_t *node, vm_desc_t *desc, addr_t start, bool is_writing)
+static bool VmmDoMapFile(vm_node_t *node, vm_desc_t *desc, addr_t start, 
+                         bool is_writing)
 {
     uint32_t flags;
     uint16_t state;
@@ -492,9 +622,6 @@ bool VmmDoMapFile(vm_node_t *node, vm_desc_t *desc, addr_t start, bool is_writin
     size_t bytes;
     handle_t file;
     process_t *proc;
-
-    /*assert(desc->owner == current()->process || 
-        desc->owner == &proc_idle);*/
 
     voff = start - node->base;
     state = MemGetPageState((const void*) start);
@@ -509,7 +636,6 @@ bool VmmDoMapFile(vm_node_t *node, vm_desc_t *desc, addr_t start, bool is_writin
     }
 
     SpinAcquire(&proc->sem_vmm);
-    //wprintf(L"VmmDoMapFile: start = %x ", start);
 
 tryagain:
     switch (state)
@@ -518,13 +644,12 @@ tryagain:
         wprintf(L"PAGE_PAGEDOUT\n");
 
     case 0: /* not committed */
+
         /*
          * xxx - need to release VMM semaphore in case something needs to be 
          *  faulted in here?
          */
         SpinRelease(&proc->sem_vmm);
-        //wprintf(L"VmmDoMapFile(%x): calling VmmMapAddressToFile...",
-            //start);
         if (!VmmMapAddressToFile(node, desc, start, &off, &bytes, &flags))
         {
             SpinAcquire(&proc->sem_vmm);
@@ -532,10 +657,6 @@ tryagain:
             SpinRelease(&proc->sem_vmm);
             return true;
         }
-
-        //wprintf(L"done\n");
-        /*wprintf(L"%s:%x: PAGE_PAGEDOUT off = %x bytes = %x flags = %x\n", 
-            desc->owner->exe, start, (uint32_t) off, bytes, flags);*/
 
         SpinAcquire(&proc->sem_vmm);
         MtxAcquire(&desc->mtx_allocate);
@@ -546,33 +667,30 @@ tryagain:
         desc->pages->pages[voff / PAGE_SIZE] = phys;
         SpinRelease(&desc->spin);
 
-        node->flags = (node->flags & ~(3 | MEM_READ | MEM_WRITE | MEM_ZERO)) 
-            | (flags & (3 | MEM_READ | MEM_WRITE | MEM_ZERO));
+        /*
+         * Allow VmmMapAddressToFile to set read, write, zero and PL bits;
+         *  apply other bits from node.
+         */
+        flags = (node->flags & ~(3 | VM_MEM_READ | VM_MEM_WRITE | VM_MEM_ZERO)) 
+              | (flags       &  (3 | VM_MEM_READ | VM_MEM_WRITE | VM_MEM_ZERO));
 
         if (off == (uint64_t) -1 ||
             bytes == (size_t) -1)
         {
-            //wprintf(L"VmmDoMapFile: empty space, zeroing\n");
-
-            if (!MemMap(start, phys, start + PAGE_SIZE, PAGE_VALID_DIRTY))
-                MemSetPageState((const void*) start, PAGE_READFAILED);
+            if (is_writing && (flags & VM_MEM_WRITE))
+                state = PAGE_VALID_DIRTY;
             else
-            {
+                state = PAGE_VALID_CLEAN;
+
+            if ((flags & 3) == 3)
+                state |= PRIV_USER;
+            else
+                state |= PRIV_KERN;
+
+            if (MemMap(start, phys, start + PAGE_SIZE, state))
                 memset((void*) start, 0, PAGE_SIZE);
-
-                if (is_writing && (node->flags & MEM_WRITE))
-                    state = PAGE_VALID_DIRTY;
-                else
-                    state = PAGE_VALID_CLEAN;
-
-                if ((node->flags & 3) == 3)
-                    state |= PRIV_USER;
-                else
-                    state |= PRIV_KERN;
-
-                MemSetPageState((const void*) start, state);
-                /*wprintf(L"%s:%x: finished blank page\n", desc->owner->exe, start);*/
-            }
+            else
+                MemSetPageState((const void*) start, PAGE_READFAILED);
 
             MtxRelease(&desc->mtx_allocate);
             SpinRelease(&proc->sem_vmm);
@@ -599,10 +717,18 @@ tryagain:
         }
 
     case PAGE_VALID_CLEAN:
-        /*wprintf(L"%s:%x: PAGE_VALID_CLEAN ", desc->owner->exe, start);*/
-        if (node->flags & MEM_WRITE)
+        if (!VmmMapAddressToFile(node, desc, start, &off, &bytes, &flags))
         {
-            /*wprintf(L"=> PAGE_VALID_DIRTY\n");*/
+            SpinRelease(&proc->sem_vmm);
+            return false;
+        }
+
+        /*
+         * Need to check what the flags in the file say, not what the flags 
+         *  in the node say
+         */
+        if (flags & VM_MEM_WRITE)
+        {
             MemSetPageState((const void*) start, PAGE_VALID_DIRTY);
             SpinRelease(&proc->sem_vmm);
             return true;
@@ -615,7 +741,6 @@ tryagain:
         break;
 
     case PAGE_READINPROG:
-        //wprintf(L"PAGE_READINPROG\n");
         MtxAcquire(&desc->mtx_allocate);
         if (/*EvtIsSignalled(NULL, desc->pagingop.event) &&*/
             desc->pagingop.result != -1)
@@ -625,8 +750,7 @@ tryagain:
 
             if (desc->pagingop.result == 0)
             {
-                //wprintf(L"Read succeeded\n");
-                if (is_writing && (node->flags & MEM_WRITE))
+                if (is_writing && (node->flags & VM_MEM_WRITE))
                     state = PAGE_VALID_DIRTY;
                 else
                     state = PAGE_VALID_CLEAN;
@@ -641,17 +765,6 @@ tryagain:
                     start + PAGE_SIZE, state))
                     MemSetPageState((const void*) start, PAGE_READFAILED);
                 SpinRelease(&desc->spin);
-
-                //wprintf(L"Finished\n");
-                /*wprintf(L"%s:%x: finished page in, %u bytes read\n", 
-                    desc->owner->exe, start, desc->pagingop.bytes);
-                if (start == 0x618000)
-                {
-                    char *ptr;
-                    ptr = (char*) start + PAGE_SIZE - 4;
-                    wprintf(L"contents: %p = %02x %p = %02x %p = %02x %p = %02x\n", 
-                        ptr + 0, ptr[0], ptr + 1, ptr[1], ptr + 2, ptr[2], ptr + 3, ptr[3]);
-                }*/
             }
             else
             {
@@ -661,11 +774,7 @@ tryagain:
             }
         }
         else
-        {
-            /*wprintf(L"PAGE_READINPROG(%x): waiting, result = %d\n", 
-                start, desc->pagingop.result);*/
             ThrWaitHandle(current(), desc->pagingop.event, 0);
-        }
 
         MtxRelease(&desc->mtx_allocate);
         SpinRelease(&proc->sem_vmm);
@@ -673,7 +782,6 @@ tryagain:
         if (desc->type == VM_AREA_IMAGE &&
             MemGetPageState((const void*) start) != PAGE_READINPROG /*&&
             !desc->dest.mod->imported*/)
-            /*PeInitImage(desc->dest.mod);*/
             PeProcessSection(desc->dest.mod, start);
         return true;
 
@@ -700,22 +808,20 @@ tryagain:
     return false;
 }
 
-/*!    \brief Commits an desc of memory, by mapping and initialising it.
-*
-*    This function is called by VmmAlloc() if the MEM_COMMIT flag is specified.
-*    Otherwise, it will be called when a page fault occurs in the desc.
-*
-*    Physical storage is allocated (unless the MEM_LITERAL flag is specified) and
-*      it is mapped into the address space of the specified process. If the 
-*      process is the one currently executing, that desc of the address space
-*      is invalidated, allowing it to be accessed immediately. If the MEM_ZERO
-*      flag was specified then the desc is zeroed; otherwise, the contents of
-*      the desc are undefined.
-*
-*    \param    proc    The process which contains the desc
-*    \param    desc    The desc to be committed
-*    \return     true if the desc could be committed, false otherwise.
-*/
+/*!
+ *  \brief Brings a normal or mapped page into physical memory
+ *
+ *  Called by \p VmmPageFault for \p VM_AREA_NORMAL and \p VM_AREA_MAP areas.
+ *
+ *  \param  node    Node identifying the area to be paged in the current 
+ *      process
+ *  \param  desc    Descriptor backing the memory area
+ *  \param  start   Virtual address which caused the page fault
+ *  \param  is_writing  Set to \p true if the access to address \p start was 
+ *      a write, of \p false for a read
+ *  \return \p true if the function could handle the page fault, \p false 
+ *      otherwise
+ */
 bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
 {
     uint32_t f;
@@ -732,7 +838,7 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
     switch (state)
     {
     case 0: /* not committed */
-        if (is_writing && (node->flags & MEM_WRITE))
+        if (is_writing && (node->flags & VM_MEM_WRITE))
             f = PAGE_VALID_DIRTY;
         else
             f = PAGE_VALID_CLEAN;
@@ -743,15 +849,31 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
             f |= PRIV_KERN;
 
         page = PAGE_ALIGN_UP(start - node->base) / PAGE_SIZE;
-        if (node->flags & MEM_LITERAL)
+        if (node->flags & VM_MEM_LITERAL)
+        {
             MemMap(start, start, start + PAGE_SIZE, f);
+            phys = start + PAGE_SIZE;
+        }
         else
         {
             if (desc->type == VM_AREA_MAP)
                 phys = desc->dest.phys_map + (start - node->base);
             else
             {
-                phys = MemAlloc();
+                if (desc->flags & VM_MEM_ZERO)
+                {
+                    while ((phys = MemAllocFromList(&mem_zero)) == NULL)
+                    {
+                        wprintf(L"VmmCommit: out of zeroed pages\r");
+                        //__asm__("int3");
+                        KeYield();
+                    }
+
+                    wprintf(L"VmmCommit: got zeroed page %x\n", phys);
+                }
+                else
+                    phys = MemAlloc();
+
                 if (!phys)
                 {
                     wprintf(L"VmmCommit: out of memory\n");
@@ -761,6 +883,19 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
             }
 
             MemMap(start, phys, start + PAGE_SIZE, f);
+
+            if (node->flags & VM_MEM_ZERO)
+            {
+                uint8_t *ptr;
+                for (ptr = (uint8_t*) start; ptr < (uint8_t*) start + PAGE_SIZE; ptr++)
+                    if (*ptr != '\0')
+                    {
+                        wprintf(L"VmmCommit: zeroed page failed at %lx/%lx: %02x\n",
+                            (addr_t) ptr,
+                            start,
+                            *ptr);
+                    }
+            }
         }
 
         SpinAcquire(&desc->spin);
@@ -769,15 +904,15 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
         MemLockPages(phys, 1, true);
 
         /* xxx -- need to check descriptor flags here */
-        if (node->flags & MEM_ZERO)
-            memset((void*) start, 0, PAGE_SIZE);
+        //if (node->flags & VM_MEM_ZERO)
+            //memset((void*) start, 0, PAGE_SIZE);
 
         SpinRelease(&proc->sem_vmm);
         return true;
 
     case PAGE_VALID_CLEAN:
         /*wprintf(L"%s:%x: PAGE_VALID_CLEAN ", desc->owner->exe, start);*/
-        if (node->flags & MEM_WRITE)
+        if (node->flags & VM_MEM_WRITE)
         {
             /*wprintf(L"=> PAGE_VALID_DIRTY\n");*/
             MemSetPageState((const void*) start, PAGE_VALID_DIRTY);
@@ -819,14 +954,28 @@ bool VmmCommit(vm_node_t *node, vm_desc_t* desc, addr_t start, bool is_writing)
     return false;
 }
 
+/*!
+ *  \brief  Handles a page fault in VMM-managed memory in the current process
+ *
+ *  Attempts to look up the fault address in the current process's VMM nodes 
+ *      and, if found, calls the appropriate handler function to bring the
+ *      page into physical memory.
+ *
+ *  \param  proc    Process whose nodes are to be checked. This can be either 
+ *      \p current()->\p process or \p proc_idle.
+ *  \param  page    Virtual address which caused the page fault
+ *  \param  is_writing  Set to \p true if the access to address \p page was 
+ *      a write, of \p false for a read
+ *  \return \p true if the function could handle the page fault, \p false 
+ *      otherwise
+ */
 bool VmmPageFault(process_t *proc, addr_t page, bool is_writing)
 {
     vm_node_t *node;
     vm_desc_t *desc;
 
     node = VmmLookupNode(proc->vmm_top, (void*) page);
-    assert(node != NULL);
-    if (VMM_NODE_IS_EMPTY(node))
+    if (node == NULL || VMM_NODE_IS_EMPTY(node))
         return false;
 
     page = PAGE_ALIGN(page);
@@ -855,5 +1004,5 @@ void *morecore_user(size_t nbytes)
 {
     return VmmAlloc(PAGE_ALIGN_UP(nbytes) / PAGE_SIZE, 
         NULL,
-        3 | MEM_READ | MEM_WRITE);
+        VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
 }

@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.25 2002/09/08 00:31:16 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.26 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -19,7 +19,6 @@
 
 extern process_t proc_idle;
 
-//thread_info_t idle_thread_info;
 uint32_t thr_queue_ready;
 
 /*! Running threads: one queue per priority level */
@@ -37,39 +36,6 @@ cpu_t thr_cpu[MAX_CPU];
 cpu_t thr_cpu_single;
 #endif
 
-#if 0
-thread_t thr_idle =
-{
-    NULL,                           /* ctx_last */
-    {
-        0,                          /* hdr.locks */
-        'thrd',                     /* hdr.tag */
-        NULL,                       /* hdr.locked_by */
-        0,                          /* hdr.signal */
-        {
-            NULL,                   /* hdr.waiting.first */
-            NULL,                   /* hdr.waiting.last */
-            NULL,                   /* hdr.current */
-        },
-        __FILE__,                   /* hdr.file */
-        __LINE__,                   /* hdr.line */
-        0,
-    },
-    NULL,                           /* prev */
-    NULL,                           /* next */
-    NULL,                           /* kernel_stack */
-    0,                              /* kernel_stack_phys */
-    &idle_thread_info,              /* info */
-    0xdeadbeef,                     /* kernel_esp */
-    &proc_idle,
-    true,
-};
-
-thread_t /**current = &thr_idle, */
-    *thr_first = &thr_idle, 
-    *thr_last = &thr_idle;
-#endif
-
 thread_t *thr_first, *thr_last;
 unsigned thr_last_id;
 uint8_t *thr_kernel_stack_end = (void*) 0xE0000000;
@@ -81,6 +47,10 @@ spinlock_t sc_sem;
 
 handle_hdr_t *HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
 
+/*!
+ *  \brief  Returns a pointer to the thread that is currently running on this 
+ *      CPU
+ */
 #ifdef __SMP__
 thread_t *ThrGetCurrent(void)
 {
@@ -93,6 +63,10 @@ thread_t *ThrGetCurrent(void)
 }
 #endif
 
+/*!
+ *  \brief  Finds the \p thread_queuent_t structure that corresponds to
+ *      the specified thread in a given queue
+ */
 thread_queuent_t *ThrFindInQueue(thread_queue_t *queue, thread_t *thr)
 {
     thread_queuent_t *ent;
@@ -102,6 +76,9 @@ thread_queuent_t *ThrFindInQueue(thread_queue_t *queue, thread_t *thr)
     return NULL;
 }
 
+/*!
+ *  \brief  Inserts a thread into a thread queue
+ */
 void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
 {
     thread_queuent_t *ent, *entb;
@@ -158,6 +135,9 @@ void ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before)
     SpinRelease(&queue->sem);
 }
 
+/*!
+ *  \brief  Removes a thread from a thread queue
+ */
 void ThrRemoveQueue(thread_t *thr, thread_queue_t *queue)
 {
     thread_queuent_t *ent;
@@ -218,6 +198,9 @@ void ThrRunQueue(thread_queue_t *queue)
     ScNeedSchedule(true);
 }
 
+/*!
+ *  \brief  Chooses a new thread to run
+ */
 void ScSchedule(void)
 {
     thread_t *new;
@@ -280,7 +263,7 @@ void ScSchedule(void)
                         c->current_thread->span = 0;
                     
                     c->current_thread = new;
-                    scr[79] = 0x7100 | c->current_thread->id;
+                    scr[79] = 0x7100 | ('0' + c->current_thread->id);
                     return;
                 }
             }
@@ -318,6 +301,9 @@ void ScNeedSchedule(bool need)
     /*SpinRelease(&sc_sem);*/
 }
 
+/*!
+ *  \brief  Allocates a \p thread_info_t structure for the specified thread
+ */
 bool ThrAllocateThreadInfo(thread_t *thr)
 {
     assert(thr->process == current()->process);
@@ -327,7 +313,7 @@ bool ThrAllocateThreadInfo(thread_t *thr)
     else
         thr->info = VmmAlloc(PAGE_ALIGN_UP(sizeof(thread_info_t)) / PAGE_SIZE,
             NULL,
-            3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
+            VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE | VM_MEM_ZERO);
 
     //wprintf(L"ThrAllocateThreadInfo(%s/%u): %p\n", thr->process->exe, thr->id, thr->info);
     if (thr->info == NULL)
@@ -341,6 +327,9 @@ bool ThrAllocateThreadInfo(thread_t *thr)
     return true;
 }
 
+/*!
+ *  \brief  Creates and runs a new thread in the specified process
+ */
 thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void), 
                           bool useParam, void *param, unsigned priority)
 {
@@ -433,7 +422,7 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
         if (proc == current()->process)
         {
             stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, proc->stack_end, 
-                3 | MEM_READ | MEM_WRITE);
+                VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
             //wprintf(L"ThrCreateThread(user): user stack at %x\n", stack);
             stack += 0x100000;
         }
@@ -480,6 +469,9 @@ thread_t *ThrCreateThread(process_t *proc, bool isKernel, void (*entry)(void),
     return thr;
 }
 
+/*!
+ *  \brief  Suspends and frees the specified thread
+ */
 void ThrDeleteThread(thread_t *thr)
 {
     asyncio_t *aio, *next;
@@ -565,6 +557,9 @@ context_t* ThrGetContext(thread_t* thr)
     return (context_t*) (thr->kernel_esp - 4);
 }
 
+/*!
+ *  \brief  Returns the user-mode context structure for the specified thread
+ */
 context_t *ThrGetUserContext(thread_t *thr)
 {
     context_t *ctx;
@@ -575,6 +570,10 @@ context_t *ThrGetUserContext(thread_t *thr)
     return ctx;
 }
 
+/*!
+ *  \brief  Places the specified thread onto the run queue for the 
+ *      appropriate priority
+ */
 bool ThrRun(thread_t *thr)
 {
     if (thr->priority > _countof(thr_priority))
@@ -588,6 +587,9 @@ bool ThrRun(thread_t *thr)
     return true;
 }
 
+/*!
+ *  \brief  Removes the specified thread from its priority's run queue
+ */
 void ThrPause(thread_t *thr)
 {
     thread_queue_t *queue;
@@ -606,19 +608,26 @@ void ThrPause(thread_t *thr)
     }
 }
 
+/*!
+ *  \brief  Causes the a thread to suspend execution for the given length of 
+ *      time
+ */
 void ThrSleep(thread_t *thr, unsigned ms)
 {
     unsigned end;
     thread_queuent_t *sleep;
 
+    SpinAcquire(&sc_sem);
     end = sc_uptime + ms;
     for (sleep = thr_sleeping.first; sleep; sleep = sleep->next)
         if (sleep->thr->sleep_end > end)
             break;
-    
+    SpinRelease(&sc_sem);
+
     ThrPause(thr);
-    thr->sleep_end = end;
+
     SpinAcquire(&sc_sem);
+    thr->sleep_end = end;
 
     if (sleep)
         ThrInsertQueue(thr, &thr_sleeping, sleep->thr);
@@ -630,6 +639,10 @@ void ThrSleep(thread_t *thr, unsigned ms)
     ScNeedSchedule(true);
 }
 
+/*!
+ *  \brief  Causes a thread to suspend execution until the specified handle 
+ *      object is signalled
+ */
 bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 {
     handle_hdr_t *ptr;
@@ -679,6 +692,9 @@ void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
     SpinRelease(&sc_sem);
 }
 
+/*!
+ *  \brief  Initialises the scheduler
+ */
 bool ThrInit(void)
 {
     cpu_t *c;

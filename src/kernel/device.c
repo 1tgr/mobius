@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.34 2002/09/01 16:16:32 pavlovskii Exp $ */
+/* $Id: device.c,v 1.35 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -405,13 +405,13 @@ bool DfsReadWrite(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length,
     /* xxx - bad - req_dev might have been freed here */
     if (req_dev->header.code != 0)
     {
-    /*
-    * This case only applies if DfsFinishIo hasn't been called yet: 
-    *  that is, if either:
-    * - ret == false
-    * - req_dev->header.result == SIOPENDING
-    * Either way, the FS needs to know what the result was
-        */
+        /*
+         * This case only applies if DfsFinishIo hasn't been called yet: 
+         *  that is, if either:
+         * - ret == false
+         * - req_dev->header.result == SIOPENDING
+         * Either way, the FS needs to know what the result was
+         */
 
         /* xxx - this is hack: we shouldn't have to modify io->original */
         io->original->result = io->op.result = req_dev->header.result;
@@ -425,12 +425,12 @@ bool DfsReadWrite(fsd_t *fsd, file_t *file, page_array_t *pages, size_t length,
     }
 
     /*
-    * DfsFinishIo *will* get called upon every successful request: 
-    *  for async io: when the device finishes
-    *   for sync io: by IoRequest
-    * Therefore, since DfsFinishIo frees req_dev, we can't use it from now on.
-    * Also, FsNotifyCompletion will free io, so we can't use that either.
-    */
+     * DfsFinishIo *will* get called upon every successful request: 
+     *  for async io: when the device finishes
+     *   for sync io: by IoRequest
+     * Therefore, since DfsFinishIo frees req_dev, we can't use it from now on.
+     * Also, FsNotifyCompletion will free io, so we can't use that either.
+     */
 
     return true;
 }
@@ -836,6 +836,19 @@ void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
     }
 }
 
+/*!
+ *  \brief  Cancels an I/O request
+ *
+ *  I/O requests can be cancelled if the originator is no longer interested in
+ *  receiving the results of the operation. For example, when a thread exits,
+ *  \p ThrExitThread calls \p DevCancelIo for each pending I/O request.
+ *
+ *  This function calls the device's \p cancelio routine if available; 
+ *  otherwise, \p DevFinishIo is called with \p ECANCELLED status.
+ *
+ *  \param  io  Asynchronous request to cancel
+ *  \return \p true if the request could be cancelled, \p false otherwise
+ */
 bool DevCancelIo(asyncio_t *io)
 {
     device_t *dev;
@@ -989,18 +1002,17 @@ driver_t *DevInstallNewDriver(const wchar_t *name, const wchar_t *profile_key)
 }
 
 /*! 
-*    \brief	Adds a new device to the device manager's list
-*
-*    The new device will appear in the \p /System/Device directory, and it
-*    will also be available via \p IoOpenDevice. This function is most often 
-*    used by bus drivers, or other drivers that enumerate their own devices, 
-*    to add devices that they have found.
-*
-*    \param	dev    Pointer to the new device object
-*    \param	name	Name for the device
-*    \param	cfg    Device configuration list
-*    \return	 \p true if the device was added
-*/
+ *  \brief  Adds a new device to the device manager's list
+ *
+ *  The new device will appear in the \p /System/Device directory, and it
+ *  will also be available via \p IoOpenDevice. Call this function from a 
+ *  driver's \p add_device routine for any devices found.
+ *
+ *  \param  dev     Pointer to the new device object
+ *  \param  name    Name for the device
+ *  \param  cfg     Device configuration list
+ *  \return \p true if the device was added, or \p false otherwise
+ */
 bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
 {
     device_info_t *info, *parent, *link;
@@ -1076,6 +1088,25 @@ bool DevAddDevice(device_t *dev, const wchar_t *name, device_config_t *cfg)
     return true;
 }
 
+/*!
+ *  \brief  Initialises the standard fields in a \p device_t structure
+ *
+ *  Drivers can call this function to initialise their devices' fields to
+ *  the correct values. The \p device_t structure must be allocated beforehand
+ *  (e.g. using \p malloc ).
+ *
+ *  \param  dev     Device structure to be initialised
+ *  \param  vtbl    Function table for this device
+ *  \param  drv     Driver which handles this device
+ *  \param  flags   Flags which define the device manager's interactions with 
+ *      the device. This is a bitwise OR of some of the following values:
+ *  - \p DEVICE_IO_PAGED: when set, requests that the device manager provides
+ *      read and write buffers in the form of a \p page_array_t structure, 
+ *      whose memory can be accessed using \p MemMapPageArray. This is set if
+ *      \p DEVICE_IO_DIRECT is not set.
+ *  - \p DEVICE_IO_DIRECT: when set, requests that the device manager provides
+ *      an ordinary memory buffer for reads and writes.
+ */
 void DevInitDevice(device_t *dev, const device_vtbl_t *vtbl, driver_t *drv, 
                    uint32_t flags)
 {
@@ -1100,16 +1131,18 @@ void DevUnloadDriver(driver_t *driver)
 }
 
 /*!
-*    \brief	Installs a new device
-*
-*    This function will ask the specified driver for the given device;
-*    the driver is loaded if not already present.
-*
-*    \param	driver	  Name of the device driver
-*    \param	name	Name of the new device
-*    \param	cfg    Configuration list to assign to the new device
-*    \return	 A pointer to the new device object
-*/
+ *  \brief  Installs a new device
+ *
+ *  This function will ask the specified driver for the given device;
+ *  the driver is loaded if not already present.
+ *
+ *  \param  driver      Name of the device driver
+ *  \param  name        Name of the new device
+ *  \param  cfg         Configuration list to assign to the new device
+ *  \param  profile_key Path to the device's profile key
+ *  \return \p true if the driver could be loaded (or was already present),
+ *      \p false otherwise
+ */
 bool DevInstallDevice(const wchar_t *driver, const wchar_t *name, 
                       device_config_t *cfg, const wchar_t *profile_key)
 {
@@ -1139,20 +1172,16 @@ bool DevInstallDevice(const wchar_t *driver, const wchar_t *name,
 }
 
 /*!
-*    \brief	Temporarily maps the user-mode buffer of an asynchronous request
-*
-*    Use this function in the interrupt routine of a driver when data need to be
-*    written to the user buffer.
-*
-*    Note that the pointer returned by this function refers to the start of the
-*    lowest page in the buffer; you must add \p io->mod_buffer_start to obtain
-*    a usable buffer address.
-*
-*    Call \p DevUnmapBuffer when you have finished with the buffer returned.
-*
-*    \param	io    Asynchronous request structure
-*    \return	 A page-aligned pointer to the start of the buffer
-*/
+ *  \brief  Temporarily maps the user-mode buffer of an asynchronous request
+ *
+ *  Use this function in the interrupt routine of a driver when data need to be
+ *  written to the user buffer.
+ *
+ *  Call \p DevUnmapBuffer when you have finished with the buffer returned.
+ *
+ *  \param  io  Asynchronous request structure
+ *  \return A pointer to the start of the buffer
+ */
 void *DevMapBuffer(asyncio_t *io)
 {
 /*return MemMapTemp((addr_t*) (io + 1), io->length_pages, 

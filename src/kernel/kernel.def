@@ -85,7 +85,6 @@ EXPORTS
         KeSetSysCall
 	MemAlloc
 	MemAllocLow
-	MemAllocLowSpan
 	MemAllocPageDir
 	MemCreatePageArray
 	MemCopyPageArray
@@ -150,13 +149,13 @@ EXPORTS
 	ThrWaitHandle
 	VmmAlloc
 	VmmAllocCallback
-	VmmDoMapFile
 	VmmFree
 	VmmMap
 	VmmMapFile
 	VmmMapSharedArea
 	VmmOpenSharedArea
 	VmmPageFault
+	VmmReserveArea
 	VmmShare
 	_HndAlloc
 	_HndInit

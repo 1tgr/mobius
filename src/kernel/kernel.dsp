@@ -23,8 +23,8 @@ CFG=kernel - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "kernel"
+# PROP Scc_LocalPath "."
 
 !IF  "$(CFG)" == "kernel - Win32 Release"
 
@@ -125,10 +125,6 @@ SOURCE=.\i386\smp.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\start.asm
-# End Source File
-# Begin Source File
-
 SOURCE=.\i386\uniproc.c
 # End Source File
 # End Group
@@ -195,6 +191,10 @@ SOURCE=.\ramdisk_mb.c
 # Begin Source File
 
 SOURCE=.\rtlsup.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\start.asm
 # End Source File
 # Begin Source File
 

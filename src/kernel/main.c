@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.26 2002/09/08 00:31:16 pavlovskii Exp $ */
+/* $Id: main.c,v 1.27 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -235,6 +235,7 @@ void KernelMain(void)
 
     ScEnableSwitch(true);
     ThrCreateThread(&proc_idle, true, KeInstallDevices, false, NULL, 16);
+    ThrCreateThread(&proc_idle, true, MemZeroPageThread, false, NULL, 24);
     //KeInstallDevices();
     TRACE0("Idle\n");
 

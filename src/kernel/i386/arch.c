@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.25 2002/09/03 13:13:31 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.26 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -422,8 +422,8 @@ static void ArchPowerOffThread(void)
     FARPTR fpcode, fpstack_top;
     handle_t thr;
     
-    code = VmmAlloc(1, NULL, 3 | MEM_READ | MEM_WRITE);
-    stack = VmmAlloc(1, NULL, 3 | MEM_READ | MEM_WRITE);
+    code = VmmAlloc(1, NULL, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
+    stack = VmmAlloc(1, NULL, VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
     stack_top = stack + 0x800;
     memcpy(code, i386PowerOff, i386PowerOffEnd - i386PowerOff);
     fpcode = MK_FP((uint16_t) ((addr_t) code >> 4), 0);

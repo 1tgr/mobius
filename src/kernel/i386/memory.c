@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.18 2002/08/17 19:13:33 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.19 2002/09/13 23:06:40 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -15,134 +15,130 @@ extern addr_t kernel_pagedir[];
 extern char scode[], ebss[], edata[], _data_start__[];
 extern process_t proc_idle;
 
-page_pool_t pool_low, pool_all;
+page_phys_t *mem_pages;
+pfn_list_t mem_free =     { { 0 }, PFN_NULL, PFN_NULL, 0 };
+pfn_list_t mem_free_low = { { 0 }, PFN_NULL, PFN_NULL, 0 };
+pfn_list_t mem_zero =     { { 0 }, PFN_NULL, PFN_NULL, 0 };
 addr_t mem_temp_end = MEM_TEMP_START;
 uint8_t *locked_pages;
 
 bool mem_ready;
 
 /*
-* Mike Rieker's page states, i386-style:
-*
-* Mask = 111110011011 = 0xf9b
-* PAGEDOUT, page is set to 'no-access'     AVAIL=000 RW=0 P=0 00000xx00x00 = 0x000
-* READINPROG, page is set to 'no-access'   AVAIL=001 RW=0 P=0 00100xx00x00 = 0x200
-* WRITEINPROG, page is set to 'read-only'  AVAIL=010 RW=0 P=1 01000xx00x01 = 0x401
-* READFAILED, page is set to 'no-access'   AVAIL=011 RW=0 P=0 01100xx00x00 = 0x600
-* WRITEFAILED, page is set to 'read-only'  AVAIL=100 RW=0 P=1 10000xx00x01 = 0x801
-* VALID_CLEAN, page is set to 'read-only'  AVAIL=101 RW=0 P=1 10100xx00x01 = 0xa01
-* VALID_DIRTY, page is set to 'read/write' AVAIL=110 RW=1 P=1 11000xx00x11 = 0xc02
-*/
+ * Mike Rieker's page states, i386-style:
+ *
+ * Mask = 111110011011 = 0xf9b
+ * PAGEDOUT, page is set to 'no-access'     AVAIL=000 RW=0 P=0 00000xx00x00 = 0x000
+ * READINPROG, page is set to 'no-access'   AVAIL=001 RW=0 P=0 00100xx00x00 = 0x200
+ * WRITEINPROG, page is set to 'read-only'  AVAIL=010 RW=0 P=1 01000xx00x01 = 0x401
+ * READFAILED, page is set to 'no-access'   AVAIL=011 RW=0 P=0 01100xx00x00 = 0x600
+ * WRITEFAILED, page is set to 'read-only'  AVAIL=100 RW=0 P=1 10000xx00x01 = 0x801
+ * VALID_CLEAN, page is set to 'read-only'  AVAIL=101 RW=0 P=1 10100xx00x01 = 0xa01
+ * VALID_DIRTY, page is set to 'read/write' AVAIL=110 RW=1 P=1 11000xx00x11 = 0xc02
+ */
 
-static addr_t MemAllocPool(page_pool_t *pool)
+page_phys_t *MemLookupAllocatedPage(struct vm_desc_t *desc, addr_t offset)
 {
-    addr_t addr;
-
-    SpinAcquire(&pool->sem);
-    do
-    {
-        if (pool->free_pages <= 0)
-            return NULL;
-
-        KeAtomicDec(&pool->free_pages);
-        addr = pool->pages[pool->free_pages];
-    } while (addr == (addr_t) -1);
-    SpinRelease(&pool->sem);
-
-    return addr;
-}
-
-static void MemFreePool(page_pool_t *pool, addr_t block)
-{
-    SpinAcquire(&pool->sem);
-    pool->pages[pool->free_pages] = block;
-    KeAtomicInc(&pool->free_pages);
-    SpinRelease(&pool->sem);
-}
-
-static void MemFreePoolRange(page_pool_t *pool, addr_t start, addr_t end)
-{
-    SpinAcquire(&pool->sem);
-
-    start = PAGE_ALIGN(start);
-    end = PAGE_ALIGN(end);
-    for (; start < end; start += PAGE_SIZE)
-    {
-        pool->pages[pool->free_pages] = start;
-        KeAtomicInc(&pool->free_pages);
-    }
-
-    SpinRelease(&pool->sem);
-}
-
-/*!
-* \brief    Allocates one physical page
-*/
-addr_t MemAlloc(void)
-{
-    return MemAllocPool(&pool_all);
-}
-
-/*!
-* \brief    Frees one physical page
-*/
-void MemFree(addr_t block)
-{
-    MemFreePool(&pool_all, block);
-}
-
-/*!
-* \brief    Allocates one physical page from the low memory pool
-*/
-addr_t MemAllocLow(void)
-{
-    return MemAllocPool(&pool_low);
-}
-
-/*!
-* \brief    Frees one low memory physical page
-*/
-void MemFreeLow(addr_t block)
-{
-    MemFreePool(&pool_low, block);
-}
-
-/*!
-* \brief    Allocates a contiguous span of low-memory pages
-*/
-addr_t MemAllocLowSpan(size_t pages)
-{
-    unsigned start, i;
-    addr_t addr;
-
-    SpinAcquire(&pool_low.sem);
-    for (start = 0; start < pool_low.num_pages; start++)
-    {
-        for (i = 0; i < pages; i++)
-            if (pool_low.pages[start + i] == NULL ||
-                (i > 0 && pool_low.pages[start + i] != 
-                pool_low.pages[start + i - 1] + PAGE_SIZE))
-                break;
-
-            if (i >= pages)
-            {
-                addr = pool_low.pages[start];
-
-                for (i = 0; i < pages; i++)
-                    pool_low.pages[start + i] = NULL;
-
-                SpinRelease(&pool_low.sem);
-                return addr;
-            }
-    }
-
-    SpinRelease(&pool_low.sem);
     return NULL;
 }
 
-/*!
-* \brief    Creates a virtual-to-physical mapping in the current address space
-*/
+static void MemAddToList(pfn_list_t *list, addr_t addr, uint16_t flags)
+{
+    page_phys_t *page;
+    pfn_t pfn;
+
+    SpinAcquire(&list->spin);
+    pfn = PHYS_TO_PFN(addr);
+    page = mem_pages + pfn;
+    page->flags = flags;
+
+    if (list->last != PFN_NULL)
+        mem_pages[list->last].u.list.next = pfn;
+    page->u.list.prev = list->last;
+    page->u.list.next = PFN_NULL;
+    list->last = pfn;
+    if (list->first == PFN_NULL)
+        list->first = pfn;
+    list->num_pages++;
+
+    SpinRelease(&list->spin);
+}
+
+static bool MemRemoveFromList(pfn_list_t *list, addr_t addr)
+{
+    page_phys_t *page;
+    pfn_t pfn;
+
+    SpinAcquire(&list->spin);
+    if (list->first == PFN_NULL)
+    {
+        SpinRelease(&list->spin);
+        return false;
+    }
+
+    pfn = PHYS_TO_PFN(addr);
+    page = mem_pages + pfn;
+
+    if (page->u.list.next != PFN_NULL)
+        mem_pages[page->u.list.next].u.list.prev = page->u.list.prev;
+    if (page->u.list.prev != PFN_NULL)
+        mem_pages[page->u.list.prev].u.list.next = page->u.list.next;
+    if (list->first == pfn)
+        list->first = page->u.list.next;
+    if (list->last == pfn)
+        list->last = page->u.list.prev;
+    page->u.list.next = page->u.list.prev = PFN_NULL;
+    page->flags = (page->flags & ~PAGE_STATE_MASK) | PAGE_STATE_ALLOCATED;
+    page->u.alloc_vm.desc = NULL;
+    page->u.alloc_vm.offset = 0;
+    list->num_pages--;
+
+    SpinRelease(&list->spin);
+    return true;
+}
+
+addr_t MemAllocFromList(pfn_list_t *list)
+{
+    addr_t ret;
+    ret = PFN_TO_PHYS(list->first);
+    if (!MemRemoveFromList(list, ret))
+        return NULL;
+    else
+        return ret;
+}
+
+static void MemFreeRange(pfn_list_t *list, addr_t start, addr_t end, uint16_t flags)
+{
+    start = PAGE_ALIGN(start);
+    end = PAGE_ALIGN(end);
+    for (; start < end; start += PAGE_SIZE)
+        MemAddToList(list, start, flags | PAGE_STATE_FREE);
+}
+
+addr_t MemAlloc(void)
+{
+    addr_t ret;
+    ret = MemAllocFromList(&mem_zero);
+    if (ret == NULL)
+        ret = MemAllocFromList(&mem_free);
+    return ret;
+}
+
+void MemFree(addr_t block)
+{
+    MemAddToList(&mem_free, block, PAGE_STATE_FREE);
+}
+
+addr_t MemAllocLow(void)
+{
+    return MemAllocFromList(&mem_free_low);
+}
+
+void MemFreeLow(addr_t block)
+{
+    MemAddToList(&mem_free_low, block, PAGE_STATE_FREE | PAGE_FLAG_LOW);
+}
+
 bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
 {
     addr_t *pde;
@@ -154,10 +150,6 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
     for (; virt < virt_end; virt += PAGE_SIZE, phys += PAGE_SIZE)
     {
         pde = ADDR_TO_PDE(virt);
-
-        /*if (mem_ready && virt < 0x400000)
-        wprintf(L"MemMap: mapping %lx => %lx pde = %lx\n",
-        virt, phys, *pde);*/
 
         if (*pde == 0)
         {
@@ -176,9 +168,6 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
             }
 
             *pde = pt | PRIV_WR | PRIV_USER | PRIV_PRES;
-
-            /*__asm__("mov %%cr3, %0" : "=r" (pt));
-            __asm__("mov %0, %%cr3" : : "r" (pt));*/
         }
 
         *ADDR_TO_PTE(virt) = phys | priv;
@@ -190,19 +179,12 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
     return true;
 }
 
-/*!
-* \brief    Updates the state of a page in virtual memory
-*/
 bool MemSetPageState(const void *virt, uint16_t state)
 {
     addr_t v, *pde;
 
     v = PAGE_ALIGN((addr_t) virt);
     pde = ADDR_TO_PDE(virt);
-
-    /*if (mem_ready && virt < 0x400000)
-    wprintf(L"MemMap: mapping %lx => %lx pde = %lx\n",
-    virt, phys, *pde);*/
 
     if (*pde == NULL)
     {
@@ -214,22 +196,16 @@ bool MemSetPageState(const void *virt, uint16_t state)
             return false;
 
         *pde = pt | PRIV_WR | PRIV_USER | PRIV_PRES;
-
-        /*__asm__("mov %%cr3, %0" : "=r" (pt));
-        __asm__("mov %0, %%cr3" : : "r" (pt));*/
     }
 
     *ADDR_TO_PTE(v) = (*ADDR_TO_PTE(v) & ~PAGE_STATEMASK) | state;
     __asm__("invlpg %0"
         :
-    : "m" (v));
+        : "m" (v));
 
     return true;
 }
 
-/*!
-* \brief    Returns the physical address associated with a virtual page
-*/
 uint32_t MemTranslate(const void *address)
 {
     uint32_t ret;
@@ -254,9 +230,6 @@ uint32_t MemTranslate(const void *address)
     return ret;
 }
 
-/*!
-* \brief    Returns the state of a virtual page
-*/
 uint16_t MemGetPageState(const void *address)
 {
     if (*ADDR_TO_PDE((addr_t) address))
@@ -265,9 +238,6 @@ uint16_t MemGetPageState(const void *address)
         return 0;
 }
 
-/*!
-* \brief    Creates a temporary physical-to-virtual mapping
-*/
 void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
 {
     unsigned i;
@@ -289,15 +259,10 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
         return PHYSICAL(*phys);
 
     ptr = (void*) mem_temp_end;
-    //wprintf(L"MemMapTemp: %u pages ", num_pages);
     for (i = 0; i < num_pages; i++)
     {
-        //wprintf(L"%x=%x ", mem_temp_end, phys[i]);
         if (!MemMap(mem_temp_end, phys[i], mem_temp_end + PAGE_SIZE, priv))
-        {
-            /*wprintf(L"failed\n");*/
             return NULL;
-        }
 
         mem_temp_end += PAGE_SIZE;
     }
@@ -305,53 +270,29 @@ void *MemMapTemp(const addr_t *phys, unsigned num_pages, uint8_t priv)
     MemMap(mem_temp_end, 0, mem_temp_end + PAGE_SIZE, 0);
     mem_temp_end += PAGE_SIZE;
 
-    //wprintf(L"done\n");
     return ptr;
 }
 
-/*!
-* \brief    Unmaps all temporary physical-to-virtual mappings
-*/
 void MemUnmapTemp(void)
 {
     MemMap(MEM_TEMP_START, 0, mem_temp_end, 0);
     mem_temp_end = MEM_TEMP_START;
 }
 
-/*!
-* \brief    Allocates a page directory
-*/
 addr_t MemAllocPageDir(void)
 {
     addr_t page_dir, *pd;
-    /*unsigned i;
-    bool fail;*/
 
     page_dir = MemAlloc();
     pd = MemMapTemp(&page_dir, 1, PRIV_KERN | PRIV_WR | PRIV_PRES);
     memset(pd, 0, 512 * sizeof(*pd));
     memcpy(pd + 512, kernel_pagedir + 512, 511 * sizeof(*pd));
     pd[1023] = page_dir | PRIV_KERN | PRIV_WR | PRIV_PRES;
-    /*__asm__("int3");*/
-
-    /*for (i = 0; i < 512; i++)
-    {
-    if (pd[i] != 0)
-    {
-    wprintf(L"MemAllocPageDir: pd[%d] == 0x%x\n", i, pd[i]);
-    fail = true;
-    }
-    }
-
-    assert(!fail);*/
     MemUnmapTemp();
 
     return page_dir;
 }
 
-/*!
-* \brief    Verifies that the whole of a virtual buffer is accessible
-*/
 bool MemVerifyBuffer(const void *buf, size_t bytes)
 {
     addr_t virt;
@@ -365,9 +306,6 @@ bool MemVerifyBuffer(const void *buf, size_t bytes)
         return true;
 }
 
-/*!
-* \brief    Locks or unlocks a region of physical memory
-*/
 bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 {
     unsigned index;
@@ -379,9 +317,6 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 
     for (; pages > 0; pages--, index++, phys += PAGE_SIZE)
     {
-    /*if (phys > kernel_startup.memory_size)
-        return false;*/
-
         /*
         * xxx - drivers could try to lock memory outside of RAM (e.g. the 
         *  video frame buffer).
@@ -499,26 +434,50 @@ void *MemMapPageArray(page_array_t *array, uint16_t state)
         return ptr + array->mod_first_page;
 }
 
+void MemZeroPageThread(void)
+{
+    addr_t addr;
+    void *ptr;
+
+    while (true)
+    {
+        addr = MemAllocFromList(&mem_free);
+
+        if (addr == NULL)
+        {
+            ThrSleep(current(), 2000);
+            KeYield();
+            continue;
+        }
+
+        //wprintf(L"MemZeroPageThread: page = %08x\n", addr);
+        ptr = MemMapTemp(&addr, 1, PRIV_PRES | PRIV_RD | PRIV_WR);
+        memset(ptr, 0, PAGE_SIZE);
+        MemUnmapTemp();
+        MemAddToList(&mem_zero, addr, PAGE_STATE_ZERO);
+    }
+}
+
 /*!
-* \brief Initializes the physical memory manager
-*
-*    This is the first function called by \p KernelMain. Its purpose is to get
-*    the CPU into an environment suitable for running the rest of the kernel,
-*    and performs the following tasks:
-*
-*    - Sets aside physical page pools for main and low memory
-*    - Distinguishes between usable and unusable memory
-*    - Sets up the initial kernel page directory
-*    - Enables paging
-*    - Maps the bottom 128MB of memory into the region at 0xF0000000 
-*	  (= \p PHYSMEM )
-*
-*    \return	 \p true
-*/
+ * \brief Initializes the physical memory manager
+ *
+ *    This is the first function called by \p KernelMain. Its purpose is to get
+ *    the CPU into an environment suitable for running the rest of the kernel,
+ *    and performs the following tasks:
+ *
+ *    - Sets aside physical page pools for main and low memory
+ *    - Distinguishes between usable and unusable memory
+ *    - Sets up the initial kernel page directory
+ *    - Enables paging
+ *    - Maps the bottom 128MB of memory into the region at 0xF0000000 
+ *	  (= \p PHYSMEM )
+ *
+ *    \return	 \p true
+ */
 bool MemInit(void)
 {
     unsigned num_pages;
-    addr_t *pages, pt1, pt2, phys;
+    addr_t pt1, pt2, phys;
     uint32_t entry;
     size_t kernel_code;
     unsigned i;
@@ -528,16 +487,13 @@ bool MemInit(void)
     num_pages = kernel_startup.memory_size / PAGE_SIZE;
 
     /*
-    * Total kernel size composed of:
-    *	  Kernel file image
-    *	  bss
-    *	  Page address stack
-    *	  Page lock counts
-    */
-    kernel_startup.kernel_data = kernel_startup.kernel_size 
-        + ebss - edata;
-        /*+ num_pages * sizeof(addr_t)
-    + num_pages;*/
+     * Total kernel size composed of:
+     *	  Kernel file image
+     *	  bss
+     *	  Page address stack
+     *	  Page lock counts
+     */
+    kernel_startup.kernel_data = kernel_startup.kernel_size + ebss - edata;
     kernel_startup.kernel_data = PAGE_ALIGN_UP(kernel_startup.kernel_data);
 
     /* One page of PTEs at one page per PTE = 4MB */
@@ -548,79 +504,59 @@ bool MemInit(void)
     phys = PAGE_ALIGN_UP(phys);
 
     /* Page address stack goes after the bss */
-    /*pages = (addr_t*) ebss;*/
-    /*pages = DEMANGLE_PTR(addr_t*, 0x5000);*/
-    pages = DEMANGLE_PTR(addr_t*, phys);
-    /*memset(pages, 0, num_pages * sizeof(addr_t));*/
+    mem_pages = DEMANGLE_PTR(page_phys_t*, phys);
 
     /* Page lock counts go after the stack */
-    locked_pages = (uint8_t*) (pages + num_pages);
+    locked_pages = (uint8_t*) (mem_pages + num_pages);
 
     /* xxx - why does memset not work here? */
-    /*memset(locked_pages, 0, num_pages);*/
     for (i = 0; i < num_pages; i++)
-    {
-        pages[i] = 0;
         locked_pages[i] = 0;
-    }
-
-    pool_all.num_pages = num_pages - NUM_LOW_PAGES;
-    pool_all.pages = pages + NUM_LOW_PAGES;
-    pool_all.free_pages = 0;
-
-    pool_low.num_pages = NUM_LOW_PAGES;
-    pool_low.pages = pages;
-    pool_low.free_pages = 0;
 
     /* Memory from BDA=>ROMs */
-    /*entry = 0x5000 + PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages);*/
     entry = 0x5000;
     assert(entry <= 0xA0000);
-    MemFreePoolRange(&pool_low, entry, 0xA0000);
+    MemFreeRange(&mem_free_low, entry, 0xA0000, PAGE_FLAG_LOW);
     /* Memory from top of ROMs to top of 'low memory' */
-    MemFreePoolRange(&pool_low, 0x100000, LOW_MEMORY);
+    MemFreeRange(&mem_free_low, 0x100000, LOW_MEMORY, PAGE_FLAG_LOW);
 
-    /*MemLockPages(0, NUM_LOW_PAGES, true);*/
     MemLockPages(kernel_startup.kernel_phys, 
         PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE, 
         true);
     MemLockPages(phys, 
-        PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages) / PAGE_SIZE,
+        PAGE_ALIGN_UP(num_pages * sizeof(page_phys_t) + num_pages) / PAGE_SIZE,
         true);
     mod = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
     for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
         MemLockPages(mod[i].mod_start, 
-        PAGE_ALIGN_UP(mod[i].mod_end - mod[i].mod_start) / PAGE_SIZE,
-        true);
+            PAGE_ALIGN_UP(mod[i].mod_end - mod[i].mod_start) / PAGE_SIZE,
+            true);
 
-        /*if (kernel_startup.multiboot_info->mmap_length > 0)
-        {
+    /*if (kernel_startup.multiboot_info->mmap_length > 0)
+    {
         map = (memory_map_t*) kernel_startup.multiboot_info->mmap_addr;
         while ((uint32_t) map < kernel_startup.multiboot_info->mmap_addr + 
-        kernel_startup.multiboot_info->mmap_length)
+            kernel_startup.multiboot_info->mmap_length)
         {
-        if (map->type != 1 &&
-        map->length_low != 0 &&
-        map->base_addr_high == 0)
-        MemLockPages(map->base_addr_low, 
-        PAGE_ALIGN_UP(map->length_low) / PAGE_SIZE, true);
+            if (map->type != 1 &&
+            map->length_low != 0 &&
+            map->base_addr_high == 0)
+            MemLockPages(map->base_addr_low, 
+            PAGE_ALIGN_UP(map->length_low) / PAGE_SIZE, true);
 
-          map = (memory_map_t*) ((uint8_t*) map + ((uint32_t*) map)[-1]);
-          }
-}*/
+            map = (memory_map_t*) ((uint8_t*) map + ((uint32_t*) map)[-1]);
+        }
+    }*/
 
     for (i = num_pages - 1; i >= NUM_LOW_PAGES; i--)
         if (locked_pages[i] == 0)
-            MemFreePool(&pool_all, i * PAGE_SIZE);
-
-    pool_low.num_pages = pool_low.free_pages;
-    pool_all.num_pages = pool_all.free_pages;
+            MemAddToList(&mem_free, i * PAGE_SIZE, PAGE_STATE_FREE);
 
     /*
-    * Allocate one page table and patch the entries in the page directory:
-    *	  - at 0xC0000000 for scode
-    *	  - at kernel_phys for identity mapping
-    */
+     * Allocate one page table and patch the entries in the page directory:
+     *   - at 0xC0000000 for scode
+     *   - at kernel_phys for identity mapping
+     */
 
     pt1 = MemAlloc();
     kernel_pagedir[PAGE_DIRENT((addr_t) scode)] = pt1 | PRIV_WR | PRIV_USER | PRIV_PRES;
@@ -631,9 +567,7 @@ bool MemInit(void)
     kernel_code = _data_start__ - scode;
 
     /* Map code read-only */
-    for (phys = 0; 
-    phys < kernel_code;  
-    phys += PAGE_SIZE)
+    for (phys = 0; phys < kernel_code; phys += PAGE_SIZE)
     {
         entry = PAGE_TABENT((addr_t) scode + phys);
         i386_lpoke32(pt1 + entry * 4, 
@@ -645,9 +579,7 @@ bool MemInit(void)
     }
 
     /* Map data read-write */
-    for (; 
-    phys < kernel_startup.kernel_data; 
-    phys += PAGE_SIZE)
+    for ( ; phys < kernel_startup.kernel_data; phys += PAGE_SIZE)
     {
         entry = PAGE_TABENT((addr_t) scode + phys);
         i386_lpoke32(pt1 + entry * 4, 
@@ -668,11 +600,11 @@ bool MemInit(void)
     kernel_pagedir[1023] = phys | PRIV_WR | PRIV_KERN | PRIV_PRES;
 
     /*
-    * xxx - Chicken and egg situation here
-    * Need to map PHYSMEM, in order to access pool_all.pages, before we can 
-    *	  call MemMap() later.
-    */
-    entry = PAGE_TABENT(PHYSMEM);
+     * xxx - Chicken and egg situation here
+     * Need to map PHYSMEM, in order to access pool_all.pages, before we can 
+     *	  call MemMap() later.
+     */
+    //entry = PAGE_TABENT(PHYSMEM);
     pt1 = MemAlloc();
     memset(DEMANGLE_PTR(void*, pt1), 0, PAGE_SIZE);
     kernel_pagedir[PAGE_DIRENT(PHYSMEM)] = pt1 | PRIV_WR | PRIV_USER | PRIV_PRES;
@@ -683,13 +615,13 @@ bool MemInit(void)
         : "r" (phys));
 
     /* Enable paging... */
-    __asm__("mov %%cr0, %%eax\n"
-        "or %0, %%eax\n"
-        "mov %%eax, %%cr0" : : "g" (CR0_PG) : "eax");
+    __asm__("mov %%cr0, %0\n"
+        "or %1, %0\n"
+        "mov %0, %%cr0" : : "r" (entry), "g" (CR0_PG));
 
-    __asm__("mov %%cr4, %%eax\n"
-        "or %0, %%eax\n"
-        "mov %%eax, %%cr4" : : "g" (CR4_PGE) : "eax");
+    __asm__("mov %%cr4, %0\n"
+        "or %1, %0\n"
+        "mov %0, %%cr4" : : "r" (entry), "g" (CR4_PGE));
 
     /* Reload the flat selectors */
     __asm__("mov %0, %%ds\n"
@@ -702,6 +634,7 @@ bool MemInit(void)
 
     /* Reload CS with the new flat selector */
     __asm__("ljmp %0,$_paging\n"
+        ".align 8\n"
         "_paging:"
         :
         : "i" (KERNEL_FLAT_CODE));
@@ -716,8 +649,7 @@ bool MemInit(void)
     :
     : "m" (0xb8000));*/
 
-    pool_all.pages = PHYSICAL(MANGLE_PTR(void*, pool_all.pages));
-    pool_low.pages = PHYSICAL(MANGLE_PTR(void*, pool_low.pages));
+    mem_pages = PHYSICAL(MANGLE_PTR(void*, mem_pages));
     locked_pages = PHYSICAL(MANGLE_PTR(void*, locked_pages));
 
     /* Map at most 128MB of physical memory */
@@ -732,5 +664,6 @@ bool MemInit(void)
         (addr_t) PHYSICAL(MANGLE_PTR(void*, kernel_startup.multiboot_info->mods_addr));
     kernel_startup.multiboot_info->mmap_addr = 
         (addr_t) PHYSICAL(MANGLE_PTR(void*, kernel_startup.multiboot_info->mmap_addr));
+
     return true;
 }

@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.16 2002/09/08 20:25:08 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.17 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -653,10 +653,10 @@ static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
         }
     }
 
-    wprintf(L"Low memory:\t%uKB\n", (pool_low.free_pages * PAGE_SIZE) / 1024);
-    wprintf(L"All memory:\t%uKB\n", (pool_all.free_pages * PAGE_SIZE) / 1024);
+    //wprintf(L"Low memory:\t%uKB\n", (pool_low.free_pages * PAGE_SIZE) / 1024);
+    //wprintf(L"All memory:\t%uKB\n", (pool_all.free_pages * PAGE_SIZE) / 1024);
 
-    wprintf(L"\tBlock   \tStart   \tEnd     \tType\n");
+    wprintf(L"Block   \tStart   \tEnd     \tType            \tFlags\t\n");
 
     count = DbgCountVmNodes(proc->vmm_top);
 
@@ -700,13 +700,12 @@ static void DbgCmdVmm(wchar_t *cmd, wchar_t *params)
             num_pages = ary[i]->u.desc->num_pages;
         }
 
-        wprintf(L"%c\t%p\t%08x\t%08x\t%s\n",
-            /*area->is_committed ? 'C' : '_', */
-            ' ',
+        wprintf(L"%p\t%08x\t%08x\t%-16s\t%04x\n",
             ary[i],
             ary[i]->base,
             ary[i]->base + num_pages * PAGE_SIZE,
-            type);
+            type,
+            ary[i]->flags);
     }
 
     free(ary);
@@ -877,6 +876,32 @@ static void DbgCmdPdbr(wchar_t *cmd, wchar_t *params)
     }
 }
 
+static void DbgCmdPte(wchar_t *cmd, wchar_t *params)
+{
+    addr_t addr;
+    uint32_t pte;
+
+    if (*params == '\0')
+    {
+        wprintf(L"Please specify a virtual memory address\n");
+        return;
+    }
+
+    addr = wcstoul(params, 0, 16);
+    pte = MemTranslate((void*) addr);
+    wprintf(L"0x%08x => 0x%08x: %c%c%c%c%c%c%c%c\n", 
+        addr, 
+        pte & ~(PAGE_SIZE - 1),
+        (pte & PRIV_PRES)           ? 'P' : 'p', 
+        (pte & PRIV_WR)             ? 'W' : 'w', 
+        (pte & PRIV_USER)           ? 'U' : 'u',
+        (pte & PRIV_WRITETHROUGH)   ? 'T' : 't', 
+        (pte & PRIV_NOCACHE)        ? 'N' : 'n', 
+        (pte & PAGE_ACCESSED)       ? 'A' : 'a', 
+        (pte & PAGE_DIRTY)          ? 'D' : 'd', 
+        (pte & PAGE_GLOBAL)         ? 'G' : 'g');
+}
+
 static void DbgCmdHelp(wchar_t *cmd, wchar_t *params);
 
 static struct
@@ -905,6 +930,7 @@ static struct
     { L"mal",       DbgCmdMalloc },
     { L"leak",      DbgCmdLeak },
     { L"pdbr",      DbgCmdPdbr },
+    { L"pte",       DbgCmdPte },
 };
 
 void DbgCmdHelp(wchar_t *cmd, wchar_t *params)

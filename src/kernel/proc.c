@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.25 2002/09/08 20:25:08 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.26 2002/09/13 23:06:40 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -208,14 +208,6 @@ bool ProcFirstTimeInit(process_t *proc)
     if (proc->user_heap == NULL)
         return false;
 
-    /*info = VmmAlloc(1, NULL, 
-        3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
-    if (info == NULL)
-    {
-        //SpinRelease(&proc->sem_lock);
-        return false;
-    }*/
-
     info = amalloc(proc->user_heap, sizeof(*info));
 
     for (thr = thr_first; thr; thr = thr->all_next)
@@ -232,7 +224,7 @@ bool ProcFirstTimeInit(process_t *proc)
 
             stack = (addr_t) VmmAlloc(0x100000 / PAGE_SIZE, 
                 thr->user_stack_top - 0x100000, 
-                3 | MEM_READ | MEM_WRITE);
+                VM_MEM_USER | VM_MEM_READ | VM_MEM_WRITE);
             wprintf(L"ProcFirstTimeInit: user stack at %x\n", stack);
             stack += 0x100000;
             assert(stack == thr->user_stack_top);
@@ -325,11 +317,29 @@ bool ProcFirstTimeInit(process_t *proc)
     return true;
 }
 
+static void ProcFreeVmTree(vm_node_t *parent)
+{
+    if (parent != NULL)
+    {
+        ProcFreeVmTree(parent->left);
+        if (parent->base < 0x80000000)
+        {
+            ProcFreeVmTree(parent->right);
+
+            if (!VMM_NODE_IS_EMPTY(parent))
+            {
+                wprintf(L"ProcFreeVmTree: %x ", parent->base);
+                VmmFreeNode(parent);
+            }
+        }
+    }
+}
+
 void ProcExitProcess(int code)
 {
     thread_t *thr, *tnext;
-    //vm_area_t *area, *anext;
     process_t *proc;
+    module_t *mod, *mnext;
     //unsigned i;
     //void **handles;
 
@@ -346,22 +356,16 @@ void ProcExitProcess(int code)
             ThrDeleteThread(thr);
     }
 
-    /*for (area = proc->area_first; area != NULL; area = anext)
+    for (mod = proc->mod_first; mod != NULL; mod = mnext)
     {
-        anext = area->next;
-        if (area->type != VM_AREA_EMPTY)
-        {
-            assert(area->owner == proc);
-            //wprintf(L"ProcExitProcess: freeing area at %x...", area->start);
-            VmmFree(area);
-            free(area);
-            //wprintf(L"done\n");
-        }
+        mnext = mod->next;
+        if (mod->base < 0x80000000)
+            PeUnload(proc, mod);
     }
 
-    proc->area_first = proc->area_last = NULL;
+    ProcFreeVmTree(proc->vmm_top);
 
-    for (i = 0; i < proc->handle_count; i++)
+    /*for (i = 0; i < proc->handle_count; i++)
         if (proc->handles[i] != NULL &&
             proc->handles[i] != proc)
         {
@@ -371,13 +375,6 @@ void ProcExitProcess(int code)
                 //i, hdr->file, hdr->line);
             HndClose(proc, i, 0);
         }*/
-
-    /*for (area = proc->area_first; area != NULL; area = anext)
-    {
-        assert(area->type == VM_AREA_EMPTY);
-        anext = area->next;
-        free(area);
-    }*/
 
     HndSignalPtr(&proc->hdr, true);
     /*handles = proc->handles;

@@ -1,4 +1,4 @@
-/* $Id: syscall.c,v 1.21 2002/09/08 20:25:08 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.22 2002/09/13 23:06:40 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/sched.h>
@@ -67,8 +67,10 @@ void SysThrSleep(unsigned ms)
 bool SysGetInfo(sysinfo_t *info)
 {
     info->page_size = PAGE_SIZE;
-    info->pages_total = pool_all.num_pages + pool_low.num_pages;
-    info->pages_free = pool_all.free_pages + pool_low.free_pages;
+    //info->pages_total = pool_all.num_pages + pool_low.num_pages;
+    //info->pages_free = pool_all.free_pages + pool_low.free_pages;
+    info->pages_total = PAGE_ALIGN_UP(kernel_startup.memory_size - kernel_startup.kernel_data) / PAGE_SIZE;
+    info->pages_free = mem_zero.num_pages;
     info->pages_physical = PAGE_ALIGN_UP(kernel_startup.memory_size) / PAGE_SIZE;
     info->pages_kernel = PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE;
     return true;
@@ -189,12 +191,6 @@ handle_t SysThrCreateThread(void (*entry)(void), void *param, unsigned priority)
         return NULL;
     else
         return HndDuplicate(current()->process, &thr->hdr);
-}
-
-bool SysVmmFree(void *base)
-{
-    VmmFree(base);
-    return true;
 }
 
 /*
