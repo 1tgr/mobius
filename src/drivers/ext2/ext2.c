@@ -1,4 +1,4 @@
-/* $Id: ext2.c,v 1.3 2002/08/05 15:16:36 pavlovskii Exp $ */
+/* $Id: ext2.c,v 1.4 2002/08/17 17:37:08 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -11,144 +11,8 @@
 #include <errno.h>
 #include <wchar.h>
 
-typedef struct superblock_t superblock_t;
-struct superblock_t
-{
-    uint32_t s_inodes_count;
-    uint32_t s_blocks_count;
-    uint32_t s_r_blocks_count;
-    uint32_t s_free_blocks_count;
-    uint32_t s_free_inodes_count;
-    uint32_t s_first_data_block;
-    uint32_t s_log_block_size;
-    uint32_t s_log_frag_size;
-    uint32_t s_blocks_per_group;
-    uint32_t s_frags_per_group;
-    uint32_t s_inodes_per_group;
-    uint32_t s_mtime;
-    uint32_t s_wtime;
-    uint16_t s_mnt_count;
-    uint16_t s_max_mnt_count;
-    uint16_t s_magic;
-    uint16_t s_state;
-    uint16_t s_errors;
-    uint16_t s_minor_rev_level;
-    uint32_t s_lastcheck;
-    uint32_t s_checkinterval;
-    uint32_t s_creator_os;
-    uint32_t s_rev_level;
-    uint16_t s_def_resuid;
-    uint16_t s_def_resgid;
-    /* EXT2_DYNAMIC_REV Specific */
-    uint32_t s_first_ino;
-    uint16_t s_inode_size;
-    uint16_t s_block_group_nr;
-    uint32_t s_feature_compat;
-    uint32_t s_feature_incompat;
-    uint32_t s_feature_ro_compat;
-    uint8_t s_uuid[16];
-    char s_volume_name[16];
-    uint8_t s_last_mounted[64];
-    uint32_t s_algo_bitmap;
-    /* Performance Hints */
-    uint8_t s_prealloc_blocks;
-    uint8_t s_prealloc_dir_blocks;
-    uint16_t s_reserved;
-    /* Journaling Support */
-    uint8_t s_journal_uuid[16];
-    uint32_t s_journal_inum;
-    uint32_t s_journal_dev;
-    uint32_t s_last_orphan;
-    /* Unused */
-    uint8_t padding[788];
-};
-
-CASSERT(sizeof(superblock_t) == 1024);
-
-typedef struct gpdesc_t gpdesc_t;
-struct gpdesc_t
-{
-    uint32_t bg_block_bitmap;
-    uint32_t bg_inode_bitmap;
-    uint32_t bg_inode_table;
-    uint16_t bg_free_blocks_count;
-    uint16_t bg_free_inodes_count;
-    uint16_t bg_used_dirs_count;
-    uint16_t bg_pad;
-    uint8_t bg_reserved[12];
-};
-
-CASSERT(sizeof(gpdesc_t) == 32);
-
-typedef struct inode_t inode_t;
-struct inode_t
-{
-    uint16_t i_mode;
-    uint16_t i_uid;
-    uint32_t i_size;
-    uint32_t i_atime;
-    uint32_t i_ctime;
-    uint32_t i_mtime;
-    uint32_t i_dtime;
-    uint16_t i_gid;
-    uint16_t i_links_count;
-    uint32_t i_blocks;
-    uint32_t i_flags;
-    uint32_t i_osd1;
-    uint32_t i_block[15];
-    uint32_t i_generation;
-    uint32_t i_file_acl;
-    uint32_t i_dir_acl;
-    uint32_t i_faddr;
-    uint8_t i_osd2[12];
-};
-
 #define EXT2_INODE_SIZE64(inode)    \
     (((uint64_t) (inode).i_dir_acl << 32) | (inode).i_size)
-
-CASSERT(sizeof(inode_t) == 128);
-
-#pragma pack(push, 1)
-typedef struct ext2_dirent_t ext2_dirent_t;
-struct ext2_dirent_t
-{
-    uint32_t inode;
-    uint16_t rec_len;
-    uint8_t name_len;
-    uint8_t file_type;
-    char name[1];
-};
-
-CASSERT(sizeof(ext2_dirent_t) == 9);
-#pragma pack(pop)
-
-#define EXT2_S_IFMT     0xF000  /* format mask */
-#define EXT2_S_IFSOCK   0xA000  /* socket */
-#define EXT2_S_IFLNK    0xC000  /* symbolic link */
-#define EXT2_S_IFREG    0x8000  /* regular file */
-#define EXT2_S_IFBLK    0x6000  /* block device */
-#define EXT2_S_IFDIR    0x4000  /* directory */
-#define EXT2_S_IFCHR    0x2000  /* character device */
-#define EXT2_S_IFIFO    0x1000  /* fifo */
-
-#define EXT2_S_ISUID    0x0800  /* SUID */
-#define EXT2_S_ISGID    0x0400  /* SGID */
-#define EXT2_S_ISVTX    0x0200  /* sticky bit */
-
-#define EXT2_S_IRWXU    0x01C0  /* user access rights mask */
-#define EXT2_S_IRUSR    0x0100  /* read */
-#define EXT2_S_IWUSR    0x0080  /* write */
-#define EXT2_S_IXUSR    0x0040  /* execute */
-
-#define EXT2_S_IRWXG    0x0038  /* group access rights mask */
-#define EXT2_S_IRGRP    0x0020  /* read */
-#define EXT2_S_IWGRP    0x0010  /* write */
-#define EXT2_S_IXGRP    0x0008  /* execute */
-
-#define EXT2_S_IRWXO    0x0007  /* others access rights mask */
-#define EXT2_S_IROTH    0x0004  /* read */
-#define EXT2_S_IWOTH    0x0002  /* write */
-#define EXT2_S_IXOTH    0x0001  /* execute */
 
 typedef struct ext2_dir_t ext2_dir_t;
 struct ext2_dir_t
@@ -156,7 +20,7 @@ struct ext2_dir_t
     ext2_dir_t *hash_next;
     unsigned copies;
     unsigned ino;
-    inode_t inode;
+    ext2_inode_t inode;
     cache_t *cache;
 };
 
@@ -165,8 +29,8 @@ struct ext2_t
 {
     fsd_t fsd;
     device_t *dev;
-    superblock_t super_block;
-    gpdesc_t *groups;
+    ext2_super_block_t super_block;
+    ext2_group_desc_t *groups;
     unsigned num_groups;
     unsigned block_size;
     ext2_dir_t *dir_hash[31];
@@ -174,7 +38,7 @@ struct ext2_t
     struct inode_hash
     {
         unsigned ino;
-        inode_t inode;
+        ext2_inode_t inode;
     } inode_hash[128];
 };
 
@@ -188,9 +52,9 @@ struct ext2_search_t
 typedef struct ext2_file_t ext2_file_t;
 struct ext2_file_t
 {
-    inode_t inode;
+    ext2_inode_t inode;
     unsigned ino;
-    wchar_t *name;
+    //wchar_t *name;
 };
 
 typedef struct ext2_asyncio_t ext2_asyncio_t;
@@ -230,7 +94,7 @@ static uint32_t Ext2GetBlockNumber(ext2_t *ext2, uint32_t numbers_block, unsigne
 
 static uint64_t Ext2CalculateDeviceOffset(ext2_t *ext2, 
                                           uint64_t file_offset, 
-                                          const inode_t *inode)
+                                          const ext2_inode_t *inode)
 {
     uint32_t block;
     uint64_t offset;
@@ -276,7 +140,7 @@ static uint64_t Ext2CalculateDeviceOffset(ext2_t *ext2,
 
 static status_t Ext2GetDirectoryEntry(ext2_t *ext2, ext2_dir_t *dir, uint64_t *posn, dirent_t *dirent)
 {
-    ext2_dirent_t *di;
+    ext2_dir_entry_t *di;
     page_array_t *array;
     unsigned i;
     uint8_t *ptr;
@@ -324,7 +188,7 @@ again:
     if (ptr == NULL)
         return errno;
 
-    di = (ext2_dirent_t*) 
+    di = (ext2_dir_entry_t*) 
         (ptr + (pos & ((1 << (10 + ext2->super_block.s_log_block_size)) - 1)));
     if (di->rec_len == 0 ||
         di->name_len == 0)
@@ -431,10 +295,10 @@ static unsigned Ext2LookupInode(ext2_t *ext2, wchar_t *path)
     return ino;
 }
 
-static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
+static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, ext2_inode_t *inode)
 {
     unsigned group, hash, i;
-    inode_t all_inodes[512 / sizeof(inode_t)];
+    ext2_inode_t all_inodes[512 / sizeof(ext2_inode_t)];
 
     /* xxx -- these should really be uint64_t's */
     uint32_t offset, mod;
@@ -449,7 +313,7 @@ static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
 
     ino--;
     group = ino / ext2->super_block.s_inodes_per_group;
-    mod = (ino % ext2->super_block.s_inodes_per_group) * sizeof(inode_t);
+    mod = (ino % ext2->super_block.s_inodes_per_group) * sizeof(ext2_inode_t);
     assert(group < ext2->num_groups);
 
     offset = ext2->groups[group].bg_inode_table 
@@ -463,7 +327,7 @@ static bool Ext2LoadInode(ext2_t *ext2, unsigned ino, inode_t *inode)
         return false;
 
     TRACE2("Ext2LoadInode: loaded inode %u at hash = %x\n", ino + 1, hash);
-    *inode = all_inodes[mod / sizeof(inode_t)];
+    *inode = all_inodes[mod / sizeof(ext2_inode_t)];
 
     ino = (ino & -_countof(all_inodes)) + 1;
     for (i = 0; i < _countof(all_inodes); i++)
@@ -508,7 +372,7 @@ static ext2_dir_t *Ext2GetDirectory(ext2_t *ext2, wchar_t *path, unsigned ino)
 
     if (dir == NULL)
     {
-        inode_t inode;
+        ext2_inode_t inode;
 
         if (!Ext2LoadInode(ext2, ino, &inode))
             return NULL;
@@ -594,54 +458,119 @@ void Ext2GetFsInfo(fsd_t *fsd, fs_info_t *info)
             << (10 + ext2->super_block.s_log_block_size);
 }
 
-status_t Ext2CreateFile(fsd_t *fsd, const wchar_t *path, 
-    fsd_t **redirect, void **cookie)
+status_t Ext2ParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vnode_t *node)
+{
+    ext2_t *ext2;
+    unsigned ino;
+    ext2_dir_t *dir;
+    dirent_t *dirent;
+    status_t ret;
+    uint64_t pos;
+
+    ext2 = (ext2_t*) fsd;
+
+    if (node->id == VNODE_ROOT)
+        ino = 2;
+    else
+        ino = node->id;
+
+    //wprintf(L"Ext2ParseElement(%s, %u)\n", name, ino);
+
+    /* Allocate dirent on the heap to save stack space */
+    dirent = malloc(sizeof(dirent_t));
+    dir = Ext2GetDirectory(ext2, NULL, ino);
+    if (dir == NULL)
+    {
+        free(dirent);
+        return 0;
+    }
+
+    pos = 0;
+    while ((ret = Ext2GetDirectoryEntry(ext2, dir, &pos, dirent)) == 0)
+    {
+        if (_wcsicmp(dirent->name, name) == 0)
+        {
+            //wcscpy(ch, dirent->name);
+            node->id = dirent->vnode;
+            break;
+        }
+    }
+
+    free(dirent);
+    if (ret != 0)
+    {
+        Ext2ReleaseDirectory(ext2, dir);
+
+        if (ret == EEOF)
+            ret = ENOTFOUND;
+
+        /*if (ret == EEOF)
+            return ENOTFOUND;
+        else
+            return ret;*/
+
+        return ret;
+    }
+
+    //if (slash != NULL)
+        //*slash = '/';
+    //ch = slash + 1;
+    Ext2ReleaseDirectory(ext2, dir);
+    //wprintf(L"\t => %u\n", node->id);
+    return 0;
+}
+
+status_t Ext2CreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **cookie)
 {
     return ENOTIMPL;
 }
 
-status_t Ext2LookupFile(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, 
-                        void **cookie)
+status_t Ext2LookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
 {
     unsigned ino;
     ext2_t *ext2;
-    wchar_t *copy;
+    //wchar_t *copy;
     ext2_file_t *file;
 
     ext2 = (ext2_t*) fsd;
 
-    copy = _wcsdup(path);
+    /*copy = _wcsdup(path);
     ino = Ext2LookupInode(ext2, copy);
 
     if (ino == 0)
     {
         free(copy);
         return ENOTFOUND;
-    }
+    }*/
+
+    if (id == VNODE_ROOT)
+        ino = 2;
+    else
+        ino = id;
 
     file = malloc(sizeof(ext2_file_t));
     if (file == NULL)
     {
-        free(copy);
+        //free(copy);
         return errno;
     }
 
     if (!Ext2LoadInode(ext2, ino, &file->inode))
     {
         /* xxx -- use a more descriptive error code */
-        free(copy);
+        //free(copy);
         free(file);
         return EHARDWARE;
     }
 
     file->ino = ino;
-    path = wcsrchr(copy, '/');
+    /*path = wcsrchr(copy, '/');
     if (path != NULL)
         file->name = _wcsdup(path + 1);
     else
         file->name = _wcsdup(path);
 
-    free(copy);
+    free(copy);*/
     *cookie = file;
     return 0;
 }
@@ -662,7 +591,8 @@ status_t Ext2GetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
     case FILE_QUERY_DIRENT:
         di->dirent.vnode = file->ino;
         memset(di->dirent.name, 0, sizeof(di->dirent.name));
-        wcsncpy(di->dirent.name, file->name, _countof(di->dirent.name) - 1);
+        //wcsncpy(di->dirent.name, file->name, _countof(di->dirent.name) - 1);
+        wcscpy(di->dirent.name, L"");
         return 0;
 
     case FILE_QUERY_STANDARD:
@@ -683,9 +613,10 @@ status_t Ext2GetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
         }
 
         if ((di->standard.attributes & (FILE_ATTR_DEVICE | FILE_ATTR_DIRECTORY)) == 0)
-            FsGuessMimeType(wcsrchr(file->name, '.'), 
+            /*FsGuessMimeType(wcsrchr(file->name, '.'), 
                 di->standard.mimetype, 
-                _countof(di->standard.mimetype));
+                _countof(di->standard.mimetype));*/
+            wcscpy(di->standard.mimetype, L"");
         else
             memset(di->standard.mimetype, 0, sizeof(di->standard.mimetype));
 
@@ -704,7 +635,7 @@ void Ext2FreeCookie(fsd_t *fsd, void *cookie)
 {
     ext2_file_t *file;
     file = cookie;
-    free(file->name);
+    //free(file->name);
     free(file);
 }
 
@@ -914,23 +845,19 @@ bool Ext2WriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
     return false;
 }
 
-status_t Ext2OpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+status_t Ext2OpenDir(fsd_t *fsd, vnode_id_t id, void **dir_cookie)
 {
     ext2_t *ext2;
     ext2_dir_t *dir;
-    wchar_t *copy;
     ext2_search_t *search;
 
     ext2 = (ext2_t*) fsd;
-    copy = _wcsdup(path);
-    dir = Ext2GetDirectory(ext2, copy, 0);
-    if (dir == NULL)
-    {
-        free(copy);
-        return ENOTFOUND;
-    }
+    if (id == VNODE_ROOT)
+        id = 2;
 
-    free(copy);
+    dir = Ext2GetDirectory(ext2, NULL, id);
+    if (dir == NULL)
+        return ENOTFOUND;
 
     search = malloc(sizeof(ext2_search_t));
     if (search == NULL)
@@ -965,6 +892,7 @@ static const fsd_vtbl_t ext2_vtbl =
 {
     Ext2Dismount,
     Ext2GetFsInfo,
+    Ext2ParseElement,
     Ext2CreateFile,
     Ext2LookupFile,
     Ext2GetFileInfo,
@@ -974,10 +902,10 @@ static const fsd_vtbl_t ext2_vtbl =
     Ext2WriteFile,
     NULL,           /* ioctl */
     NULL,           /* passthrough */
+    NULL,           /* mkdir */
     Ext2OpenDir,
     Ext2ReadDir,
     Ext2FreeDirCookie,
-    NULL,           /* mount */
     Ext2FinishIo,
     Ext2FlushCache,
 };
@@ -996,6 +924,7 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
     ext2->dev = IoOpenDevice(dest);
     if (ext2->dev == NULL)
     {
+        wprintf(L"ext2: " SYS_DEVICES L"/%s not found\n", dest);
         free(ext2);
         return NULL;
     }
@@ -1005,6 +934,7 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
         &ext2->super_block, 
         sizeof(ext2->super_block)) != sizeof(ext2->super_block))
     {
+        wprintf(L"ext2: unable to read superblock from " SYS_DEVICES L"/%s\n", dest);
         Ext2Dismount(&ext2->fsd);
         return NULL;
     }
@@ -1038,7 +968,7 @@ fsd_t *Ext2Mount(driver_t *drv, const wchar_t *dest)
     wprintf(L"\tnum_groups = %u\n", ext2->num_groups);
 #endif
 
-    size = sizeof(gpdesc_t) * ext2->num_groups;
+    size = sizeof(ext2_group_desc_t) * ext2->num_groups;
     size = (size + ext2->block_size - 1) & -ext2->block_size;
     ext2->groups = malloc(size);
 
