@@ -1,6 +1,6 @@
 OBJS=	console.o
 TARGET=	$(BIN)/console.exe
-LIBS=	$(LIB)/crt0.o $(LIB)/libc.lib $(LIB)/libsys.lib 
+LIBS=	$(LIB)/libc.lib $(LIB)/libsys.lib 
 
 include ../make.conf
 include ../make.actions

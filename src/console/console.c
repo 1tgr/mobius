@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.4 2002/08/17 22:52:06 pavlovskii Exp $ */
+/* $Id: console.c,v 1.5 2002/09/01 16:21:22 pavlovskii Exp $ */
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -10,88 +10,97 @@
 #include <os/defs.h>
 #include <os/rtl.h>
 #include <os/ioctl.h>
+#include <os/keyboard.h>
 
-handle_t hnd;
-
-/*bool FsReadSync(handle_t file, void *buf, size_t bytes, size_t *bytes_read)
+typedef struct console_t console_t;
+struct console_t
 {
-    fileop_t op;
+    handle_t client;
+} consoles[10];
 
-    op.event = hnd;
-    if (!FsRead(file, buf, bytes, &op))
+unsigned num_consoles = 1;
+console_t *current;
+
+int *_geterrno(void)
+{
+    return &ThrGetThreadInfo()->status;
+}
+
+void ConKeyboardThread(void)
+{
+    uint32_t ch, code;
+    handle_t keyboard;
+
+    keyboard = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+    while (FsReadSync(keyboard, &ch, sizeof(ch), NULL))
     {
-        errno = op.result;
-        return false;
+        code = ch & ~KBD_BUCKY_ANY;
+        if (code >= KEY_F1 && code <= KEY_F12)
+            current = consoles + code - KEY_F1;
+        else if (ch == (KEY_DEL | KBD_BUCKY_CTRL | KBD_BUCKY_ALT))
+            SysShutdown(SHUTDOWN_REBOOT);
+        else if (current != NULL && current->client != NULL)
+            FsWriteSync(current->client, &ch, sizeof(ch), NULL);
     }
-
-    if (op.result == SIOPENDING)
-        ThrWaitHandle(op.event);
-
-    if (op.result != 0)
-    {
-        errno = op.result;
-        return false;
-    }
-
-    if (bytes_read != NULL)
-        *bytes_read = op.bytes;
-
-    return true;
-}*/
+}
 
 void ConClientThread(void)
 {
-    char buf[16];
-    size_t size;
-    handle_t client;
-    fileop_t op;
+    wchar_t dev[256];
+    char buf[160];
+    console_t *console;
+    handle_t out;
+    size_t bytes;
 
-    client = (handle_t) ThrGetThreadInfo()->param;
-    if (client != NULL)
-    {
-        fprintf(stderr, "console: got client\n");
-        while (FsIoCtl(client, IOCTL_BYTES_AVAILABLE, &size, sizeof(size), &op))
-            if (size > 0)
-            {
-                fprintf(stderr, "console: got %u bytes\n", size);
-                if (size > sizeof(buf) - 1)
-                    size = sizeof(buf) - 1;
+    console = ThrGetThreadInfo()->param;
+    swprintf(dev, SYS_DEVICES L"/tty%u", console - consoles);
+    out = FsOpen(dev, FILE_WRITE);
+    if (current == NULL)
+        current = console;
 
-                if (!FsReadSync(client, buf, size, &size))
-                    break;
+    while (FsReadSync(console->client, buf, sizeof(buf), &bytes))
+        FsWriteSync(out, buf, bytes, NULL);
 
-                buf[size] = '\0';
-                fprintf(stderr, "console: got string: %u bytes: %s", size, buf);
-            }
-
-        perror("console");
-        FsClose(client);
-    }
-    else
-        fprintf(stderr, "console: NULL client\n");
+    HndClose(console->client);
+    HndClose(out);
+    if (current == console)
+        current = NULL;
 
     ThrExitThread(0);
 }
 
-int main(void)
+void mainCRTStartup(void)
 {
-    handle_t server;
+    handle_t server, client;
+    const wchar_t *server_name = SYS_PORTS L"/console",
+        *shell_name = SYS_BOOT L"/shell.exe";
+    process_info_t defaults = { 0 };
+    unsigned i;
 
-    fprintf(stderr, "Hello from the console!\n");
-    server = FsCreate(SYS_PORTS L"/console", 0);
-    hnd = EvtAlloc();
+    server = FsCreate(server_name, 0);
 
-    while (PortListen(server))
+    ThrCreateThread(ConKeyboardThread, NULL, 16);
+
+    for (i = 0; i < 3; i++)
     {
-        if (!ThrWaitHandle(server))
-            break;
-
-        ThrCreateThread(ConClientThread, 
-            (void*) PortAccept(server, FILE_READ | FILE_WRITE), 16);
+        client = FsOpen(server_name, FILE_READ | FILE_WRITE);
+        defaults.std_in = defaults.std_out = client;
+        wcscpy(defaults.cwd, L"/");
+        ProcSpawnProcess(shell_name, &defaults);
     }
 
-    fprintf(stderr, "console: finished\n");
-    FsClose(server);
-    HndClose(hnd);
-    return EXIT_SUCCESS;
+    while ((client = PortAccept(server, FILE_READ | FILE_WRITE)))
+    {
+        if (num_consoles < _countof(consoles))
+        {
+            consoles[num_consoles].client = client;
+            ThrCreateThread(ConClientThread, consoles + num_consoles, 15);
+            num_consoles++;
+        }
+        else
+            HndClose(client);
+    }
+
+    HndClose(server);
+    ProcExitProcess(EXIT_SUCCESS);
 }
