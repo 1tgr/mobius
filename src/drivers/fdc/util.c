@@ -53,7 +53,7 @@ static DmaChannel dmainfo[] =
  * this allocates a 4KB buffer in the < 1M range, maps it and returns the 
  * linear address, also setting the physical in the integer pointed at
  */
-long alloc_dma_buffer(void)
+addr_t alloc_dma_buffer(void)
 {
 	addr_t phys;
 	phys = MemAllocLow();
@@ -74,13 +74,13 @@ void dma_xfer(unsigned channel, addr_t physaddr, int length, bool read)
    
    assert(channel < 4);
    
-   SemAcquire(&dmainfo[channel].sem);
+   /*SemAcquire(&dmainfo[channel].sem);*/
    /* calculate dma page and offset */
    page = physaddr >> 16;
    offset = physaddr & 0xffff;
    length -= 1;  /* with dma, if you want k bytes, you ask for k - 1 */
 
-   /*disable();*/  /* disable irq's */
+   disable();    /* disable irq's */
    
    /* set the mask bit for the channel */
    out(0x0a,channel | 4);
@@ -105,6 +105,6 @@ void dma_xfer(unsigned channel, addr_t physaddr, int length, bool read)
    /* clear DMA mask bit */
    out(0x0a,channel);
    
-   /*enable();*/  /* enable irq's */
-   SemRelease(&dmainfo[channel].sem);
+   enable();  /* enable irq's */
+   /*SemRelease(&dmainfo[channel].sem);*/
 }

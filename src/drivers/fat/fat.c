@@ -1,4 +1,4 @@
-/* $Id: fat.c,v 1.7 2002/01/05 21:37:45 pavlovskii Exp $ */
+/* $Id: fat.c,v 1.8 2002/01/05 22:44:41 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -74,7 +74,7 @@ CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 fat_dir_t *FatAllocDir(fat_root_t *root, const fat_dirent_t *di)
 {
 	fat_dir_t *dir;
-	size_t size;
+	size_t size, bytes;
 
 	size = (di->file_length + SECTOR_SIZE - 1) & -SECTOR_SIZE;
 	dir = malloc(sizeof(fat_dir_t) + size);
@@ -87,7 +87,18 @@ fat_dir_t *FatAllocDir(fat_root_t *root, const fat_dirent_t *di)
 	dir->num_entries = size / sizeof(fat_dirent_t);
 
 	if (di->first_cluster == FAT_CLUSTER_ROOT)
-		DevRead(root->device, root->root_start * SECTOR_SIZE, dir + 1, size);
+	{
+		TRACE2("\tReading root directory: %u bytes at sector %u\n",
+			size,
+			root->root_start);
+		bytes = DevRead(root->device, 
+			root->root_start * SECTOR_SIZE, 
+			dir + 1, 
+			size);
+		if (bytes < size)
+			wprintf(L"fat: failed to read root directory: read %u bytes\n", 
+				bytes);
+	}
 	else
 		assert(false);
 
@@ -243,6 +254,8 @@ bool FatLookupFile(fat_root_t *root, fat_dir_t *dir,
 	
 	i = 0;
 	entries = ((fat_dirent_t*) (dir + 1));
+	TRACE2("FatLookupFile: directory %s has %u entries\n",
+		path, dir->num_entries);
 	while (i < dir->num_entries && entries[i].name[0] != '\0')
 	{
 		if (entries[i].name[0] == 0xe5 ||
@@ -295,6 +308,7 @@ uint32_t FatClusterToOffset(fat_root_t *root, uint32_t cluster)
 		+ (cluster - 2) * root->bytes_per_cluster;
 }
 
+#if 0
 bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 {
 	fat_file_t *file;
@@ -384,6 +398,7 @@ bool FatRead(fat_root_t *root, request_fs_t *req_fs)
 	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 	return ret;
 }
+#endif
 
 typedef struct fat_ioextra_t fat_ioextra_t;
 struct fat_ioextra_t

@@ -1,4 +1,4 @@
-/* $Id */
+/* $Id: fdc.c,v 1.5 2002/01/05 22:44:41 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-long	alloc_dma_buffer(void);
+addr_t	alloc_dma_buffer(void);
 void	dma_xfer(unsigned channel, addr_t physaddr, int length, bool read);
 void *	sbrk_virtual(size_t diff);
 
@@ -182,7 +182,7 @@ void msleep(unsigned ms)
 {
 	unsigned end;
 	end = SysUpTime() + ms;
-	while (SysUpTime() < end)
+	while (SysUpTime() <= end)
 		;
 }
 
@@ -218,6 +218,7 @@ start:
 	case fdcIdle:
 		/* Controller is idle, so we need to start a request */
 		fdc->op = fdcSpinUp;
+		wprintf(L"fdc: ");
 		if (fdc->motor_on)
 			goto start;
 		else
@@ -342,6 +343,7 @@ start:
 				DevUnmapBuffer();
 			}
 
+			wprintf(L".");
 			io->length += 512;
 				
 			if (io->length < req_dev->params.buffered.length)
@@ -376,6 +378,7 @@ start:
 	 */
 finished:
 	/* Drive has finished reading/writing, so we can turn off the motor */
+	wprintf(L"done: %d\n", ret);
 	FdcMotorOff(fdc);
 	free(io->extra);
 	req_dev->params.buffered.length = io->length;
@@ -400,15 +403,18 @@ bool FdcIsr(device_t *dev, uint8_t irq)
 				fdc->motor_end = -1;
 				fdc->motor_on = false;
 				out(fdc->base + REG_DOR, DOR_DEFAULT);
+				wprintf(L"m");
 				break;
 			case fdcReset:
-				/* Drive motor has finished spinning up */
+				/* Drive motor has finished spinning up during reset */
+				wprintf(L"M");
 				fdc->motor_end = -1;
 				fdc->motor_on = true;
 				fdc->op = fdcIdle;
 				break;
 			case fdcSpinUp:
-				/* Drive motor has finished spinning up */
+				/* Drive motor has finished spinning up during a request */
+				wprintf(L"M");
 				fdc->motor_end = -1;
 				fdc->motor_on = true;
 				FdcStartIo(fdc);
@@ -561,7 +567,12 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 
 	while (fdc->op != fdcIdle)
 		;
-	
+
+	/* Specify drive timings (got these off the BIOS) */
+	FdcSendByte(fdc, CMD_SPECIFY);
+	FdcSendByte(fdc, 0xdf);	/* SRT = 3ms, HUT = 240ms */
+	FdcSendByte(fdc, 0x02);	/* HLT = 16ms, ND = 0 */
+
 	/* Recalibrate the drive */
 	fdc->op = fdcReset;
 	FdcMotorOn(fdc);
@@ -592,11 +603,6 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 
 	fdc->fdc_track = 0;
 	FdcMotorOff(fdc);
-
-	/* specify drive timings (got these off the BIOS) */
-	FdcSendByte(fdc, CMD_SPECIFY);
-	FdcSendByte(fdc, 0xdf);	/* SRT = 3ms, HUT = 240ms */
-	FdcSendByte(fdc, 0x02);	/* HLT = 16ms, ND = 0 */
 	return &fdc->dev;
 }
 
