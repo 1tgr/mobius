@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.1 2002/12/21 09:49:32 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include <kernel/profile.h>
@@ -73,6 +73,7 @@ int getDebugChar(void)
 
 int putDebugChar(int ch)
 {
+    out(0x0402, ch);
     while (!(in(dbg_combase + 5) & 0x20));
 	out(dbg_combase, (char) ch);
     return 1;

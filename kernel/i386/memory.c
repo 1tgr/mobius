@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.1 2002/12/21 09:49:34 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -173,7 +173,7 @@ bool MemMap(addr_t virt, addr_t phys, addr_t virt_end, uint16_t priv)
         *ADDR_TO_PTE(virt) = phys | priv;
         __asm__("invlpg %0"
             :
-        : "m" (virt));
+        : "m" (*(char*) virt));
     }
 
     return true;
@@ -317,12 +317,10 @@ bool MemLockPages(addr_t phys, unsigned pages, bool do_lock)
 
     for (; pages > 0; pages--, index++, phys += PAGE_SIZE)
     {
-        /*
-        * xxx - drivers could try to lock memory outside of RAM (e.g. the 
-        *  video frame buffer).
-        * The kernel isn't going to do anything with these pages anyway, so
-        *  just ignore attempts to lock/unlock them.
-        */
+        /* xxx - drivers could try to lock memory outside of RAM (e.g. the 
+         *  video frame buffer).
+         * The kernel isn't going to do anything with these pages anyway, so
+         *  just ignore attempts to lock/unlock them. */
         if (phys < kernel_startup.memory_size)
             locked_pages[index] += d;
     }
@@ -445,7 +443,7 @@ void MemZeroPageThread(void)
 
         if (addr == NULL)
         {
-            ThrSleep(current(), 2000);
+            //ThrSleep(current(), 2000);
             KeYield();
             continue;
         }
@@ -599,11 +597,9 @@ bool MemInit(void)
     /* Set up the last PDE to point to the page directory itself */
     kernel_pagedir[1023] = phys | PRIV_WR | PRIV_KERN | PRIV_PRES;
 
-    /*
-     * xxx - Chicken and egg situation here
+    /* xxx - Chicken and egg situation here
      * Need to map PHYSMEM, in order to access pool_all.pages, before we can 
-     *	  call MemMap() later.
-     */
+     *	  call MemMap() later. */
     //entry = PAGE_TABENT(PHYSMEM);
     pt1 = MemAlloc();
     memset(DEMANGLE_PTR(void*, pt1), 0, PAGE_SIZE);
@@ -619,9 +615,9 @@ bool MemInit(void)
         "or %1, %0\n"
         "mov %0, %%cr0" : : "r" (entry), "g" (CR0_PG));
 
-    __asm__("mov %%cr4, %0\n"
-        "or %1, %0\n"
-        "mov %0, %%cr4" : : "r" (entry), "g" (CR4_PGE));
+    //__asm__("mov %%cr4, %0\n"
+        //"or %1, %0\n"
+        //"mov %0, %%cr4" : : "r" (entry), "g" (CR4_PGE));
 
     /* Reload the flat selectors */
     __asm__("mov %0, %%ds\n"

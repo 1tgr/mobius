@@ -33,6 +33,8 @@
         dd _sbss - base + phys			; end of kernel .data section
         dd _ebss - base + phys			; end of kernel BSS
         dd _KernelEntry - base + phys	; kernel entry point (initial EIP)
+        
+	align 4
 
 _KernelEntry:
 	;            eax -> address at top of memory
@@ -55,13 +57,13 @@ _KernelEntry:
 	;mov	[ebp + 12], edx
 	;mov	[ebp + 16], esi
 
-	;mov	edi, _sbss
-	;mov	ecx, _ebss
-	;sub	ecx, edi
+	mov	edi, _sbss
+	mov	ecx, _ebss
+	sub	ecx, edi
 	;;sub	edi, _scode
-	;add edi, phys - base
-	;xor	eax, eax
-	;rep stosd
+	add edi, phys - base
+	xor	eax, eax
+	rep stosb
 
 	push	ebx
 	push	dword mboot + phys - base

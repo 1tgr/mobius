@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.1 2002/12/21 09:49:29 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -494,10 +494,8 @@ void ThrDeleteThread(thread_t *thr)
         ThrPause(thr);
     }
 
-    /*
-     * xxx -- should be OK to ignore this since we have cancelled any pending
-     *  I/O on the thread
-     */
+    /* xxx -- should be OK to ignore this since we have cancelled any pending
+     *  I/O on the thread */
     /*TRACE2("ThrDeleteThread: thread %u queued %u times\n",
         thr->id, thr->queued);
     assert(thr->queued == 0);*/

@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.1 2002/12/21 09:49:34 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -139,8 +139,10 @@ uint32_t i386Isr(context_t ctx)
 
     if (kernel_startup.num_cpus > 1 && ArchThisCpu() != 2)
     {
-        wprintf(L"i386Isr: interrupt %u on CPU %u\n", ctx.intr, ArchThisCpu());
-        __asm__("hlt");
+        wprintf(L"i386Isr: interrupt %u on CPU %u at EIP %08x\n", 
+			ctx.intr, ArchThisCpu(), ctx.eip);
+		if (ctx.error != (uint32_t) -1)
+			__asm__("hlt");
     }
 
     old_current = current();

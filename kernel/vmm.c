@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.1 2002/12/21 09:49:31 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -400,10 +400,8 @@ bool VmmShare(void *base, const wchar_t *name)
 
     desc = node->u.desc;
 
-    /*
-     * xxx -- video driver stores shared area name in data section...
-     *  we don't want to page it in while holding sem_vmm
-     */
+    /* xxx -- video driver stores shared area name in data section...
+     *  we don't want to page it in while holding sem_vmm */
     name_copy = _wcsdup(name);
     SpinAcquire(&current()->process->sem_vmm);
     free(desc->name);
@@ -553,10 +551,8 @@ void VmmFreeNode(vm_node_t *node)
 
     desc = node->u.desc;
 
-    /*
-     * xxx -- need to do this using handle semantics
-     *  (i.e. unmap from process on VmmFree, free desc on handle cleanup)
-     */
+    /* xxx -- need to do this using handle semantics
+     *  (i.e. unmap from process on VmmFree, free desc on handle cleanup) */
 
     /*wprintf(L"vmmFree: %d => %x...", desc->pages, desc->start);*/
 
@@ -645,10 +641,8 @@ tryagain:
 
     case 0: /* not committed */
 
-        /*
-         * xxx - need to release VMM semaphore in case something needs to be 
-         *  faulted in here?
-         */
+        /* xxx - need to release VMM semaphore in case something needs to be 
+         *  faulted in here? */
         SpinRelease(&proc->sem_vmm);
         if (!VmmMapAddressToFile(node, desc, start, &off, &bytes, &flags))
         {
@@ -707,7 +701,7 @@ tryagain:
             MemSetPageState((const void*) start, PAGE_READINPROG);
 
             desc->read_pages = MemDupPageArray(1, 0, &phys);
-            FsSeek(file, off, FILE_SEEK_SET);
+			FsSeek(file, off, FILE_SEEK_SET);
             if (!FsReadPhysical(file, desc->read_pages, bytes, &desc->pagingop))
                 MemSetPageState((const void*) start, PAGE_READFAILED);
 

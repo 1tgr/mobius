@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.1 2002/12/21 09:49:26 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -133,7 +133,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         KeAtomicDec(&nesting);
         return NULL;
     }
-    
+
     FsSeek(fd, 0, FILE_SEEK_SET);
     if (!FsReadSync(fd, &dos, sizeof(dos), &size) ||
         size < sizeof(dos))
@@ -142,7 +142,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         KeAtomicDec(&nesting);
         return NULL;
     }
-    
+
     if (dos.e_magic != IMAGE_DOS_SIGNATURE)
     {
         wprintf(L"%s: not an executable (%S)\n", file, &dos);
@@ -163,7 +163,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     if (pe.Signature != IMAGE_NT_SIGNATURE)
     {
         char *c = (char*) &pe.Signature;
-        wprintf(L"%s: not PE format (%c%c%c%c)\n", full_file, 
+        wprintf(L"%s: not PE format (%c%c%c%c)\n", full_file,
             c[0], c[1], c[2], c[3]);
         KeAtomicDec(&nesting);
         return NULL;
@@ -198,7 +198,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     assert(new_base == mod->base);
 
     /*wprintf(L"%s: %x..%x (pbase = %x)\n",
-        file, mod->base, mod->base + mod->length, 
+        file, mod->base, mod->base + mod->length,
         pe.OptionalHeader.ImageBase);*/
 
     LIST_ADD(proc->mod, mod);
@@ -231,18 +231,18 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
     uint32_t *name_table, *function_table;
     uint16_t *ordinal_table;
     const char *export_name;
-    
+
     header = PeGetHeaders(mod->base);
     directories = header->OptionalHeader.DataDirectory;
-    
+
     if (directories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress == 0)
     {
-        wprintf(L"%s: no export directory looking for %S\n", 
+        wprintf(L"%s: no export directory looking for %S\n",
             mod->name, name);
         return NULL;
     }
 
-    exp = (IMAGE_EXPORT_DIRECTORY*) 
+    exp = (IMAGE_EXPORT_DIRECTORY*)
         (mod->base + directories[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
 
     if (exp->AddressOfNames == 0)
@@ -269,7 +269,7 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
                 return mod->base + function_table[ordinal_table[hint]];
         }
 
-        /*wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n", 
+        /*wprintf(L"%s: hint %u for %S incorrect (found %S instead)\n",
             mod->name, hint, name, export_name);*/
     }
 
@@ -297,7 +297,7 @@ addr_t PeGetExport(module_t* mod, const char* name, uint16_t hint)
 }
 
 static bool PeDoImports(process_t* proc,
-                        module_t* mod, 
+                        module_t* mod,
                         const IMAGE_DATA_DIRECTORY *directories)
 {
     IMAGE_IMPORT_DESCRIPTOR *imp;
@@ -308,17 +308,17 @@ static bool PeDoImports(process_t* proc,
     module_t *other;
     wchar_t name_wide[16];
     size_t count;
-    
+
     if (directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress == 0)
         return true;
 
-    imp = (IMAGE_IMPORT_DESCRIPTOR*) (mod->base + 
+    imp = (IMAGE_IMPORT_DESCRIPTOR*) (mod->base +
         directories[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
 
-    for (; imp->Name; imp++)
+    for (; imp->Name != 0; imp++)
     {
         name = (const char*) (mod->base + (addr_t) imp->Name);
-        
+
         count = mbstowcs(name_wide, name, _countof(name_wide));
         if (count == -1)
             continue;
@@ -348,12 +348,12 @@ static bool PeDoImports(process_t* proc,
             }
         }
     }
-    
+
     return true;
 }
 
-void PeRelocateSection(module_t *mod, 
-                       addr_t section_start_virtual, 
+void PeRelocateSection(module_t *mod,
+                       addr_t section_start_virtual,
                        addr_t section_length)
 {
     IMAGE_PE_HEADERS *pe;
@@ -371,9 +371,9 @@ void PeRelocateSection(module_t *mod,
 		return;
 
 	//wprintf(L"peRelocateSection: adjust = %d (%x)\n", adjust, adjust);
-	rel = (const IMAGE_BASE_RELOCATION*) (mod->base + 
+	rel = (const IMAGE_BASE_RELOCATION*) (mod->base +
 		directories[IMAGE_DIRECTORY_ENTRY_BASERELOC].VirtualAddress);
-	
+
 	while (rel->VirtualAddress)
 	{
 		const unsigned long reloc_num = (rel->SizeOfBlock - sizeof(*rel)) / sizeof(uint16_t);
@@ -406,7 +406,7 @@ void PeRelocateSection(module_t *mod,
 					break;
 				case IMAGE_REL_BASED_HIGHLOW:
 					addr = (uint32_t*) ((*ad & 0xfffU) + rel->VirtualAddress + mod->base);
-					//wprintf(L"hl(%p) %x = %x + %x\n", 
+					//wprintf(L"hl(%p) %x = %x + %x\n",
 						//addr, *addr + adjust, *addr, adjust);
 					*addr += adjust;
 					type = L"fix hilo";
@@ -427,7 +427,7 @@ void PeRelocateSection(module_t *mod,
 					type = L"???";
 					break;
 				}
-				
+
 				if (*ad >> 12 != IMAGE_REL_BASED_ABSOLUTE &&
 					*ad >> 12 != IMAGE_REL_BASED_HIGHLOW)
 					wprintf(L"Relocation not implemented: offset 0x%03x (%s)\n", *ad & 0xfffU, type);
@@ -469,23 +469,23 @@ void PeProcessSection(module_t *mod, addr_t addr)
 
     pe = PeGetHeaders(mod->base);
     if (!mod->imported)
-        PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory);
+        mod->imported = PeDoImports(current()->process, mod, pe->OptionalHeader.DataDirectory);
 
     if (addr > mod->base + mod->sizeof_headers)
     {
         scn = PeFindSection(mod, pe, addr);
 
         if (scn != NULL)
-            PeRelocateSection(mod, 
-                scn->VirtualAddress, 
+            PeRelocateSection(mod,
+                scn->VirtualAddress,
                 scn->Misc.VirtualSize);
     }
 }
 
-bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off, 
+bool PeMapAddressToFile(module_t *mod, addr_t addr, uint64_t *off,
                         size_t *bytes, uint32_t *flags)
 {
-    if (addr >= mod->base && 
+    if (addr >= mod->base &&
         addr < mod->base + mod->sizeof_headers)
     {
         /* Map headers as a special case */

@@ -1,5 +1,9 @@
 NAME	kernel.exe
 EXPORTS
+	_ZdaPv
+	_ZdlPv
+	_Znaj
+	_Znwj
 	ArchAttachToThread
 	ArchDbgBreak
 	ArchDbgDumpContext
@@ -159,10 +163,6 @@ EXPORTS
 	VmmShare
 	_HndAlloc
 	_HndInit
-	__builtin_delete
-	__builtin_new
-	__builtin_vec_delete
-	__builtin_vec_new
 	__dj_assert
 	__get_eh_context
 	__free

@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.1 2002/12/21 09:49:09 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.2 2003/06/05 21:56:48 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -93,11 +93,6 @@ void CcDeleteFileCache(cache_t *cc)
  *      \param  cc      A pointer to the file cache object
  *      \param  offset  The offset of the block in the file
  *      \return A pointer to the start of the block in memory
- */
-
-/*
- * xxx - this need to allocate multiple physical pages and return an array of 
- * their addresses
  */
 page_array_t *CcRequestBlock(cache_t *cc, uint64_t offset)
 {

@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.1 2002/12/21 09:49:12 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -230,10 +230,8 @@ status_t FsPathToVnode(const wchar_t *path, vnode_t *vn, bool do_create, const w
         {
             if (do_create)
             {
-                /*
-                 * xxx - what do we do here if some FSD followed a link?
-                 *  path no longer points to the full name.
-                 */
+                /* xxx - what do we do here if some FSD followed a link? */
+                /*  path no longer points to the full name. */
                 *out = path + (ch - name);
                 break;
             }

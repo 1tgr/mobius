@@ -1,4 +1,4 @@
-/* $Id: debug.c,v 1.1 2002/12/21 09:49:10 pavlovskii Exp $ */
+/* $Id: debug.c,v 1.2 2003/06/05 21:56:49 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -202,7 +202,7 @@ void DbgDumpStack(process_t* proc, uint32_t _ebp)
 
 		if (DbgIsValidEsp(proc, (uint32_t) pebp))
 		{
-			wprintf(L"%08x\t", pebp[1]);
+			wprintf(L"%08x (%08x, %08x, %08x) ", pebp[1], pebp[2], pebp[3], pebp[4]);
 
 			if (proc)
 			{
@@ -902,6 +902,135 @@ static void DbgCmdPte(wchar_t *cmd, wchar_t *params)
         (pte & PAGE_GLOBAL)         ? 'G' : 'g');
 }
 
+static void DbgCmdDisplayBytes(wchar_t *cmd, wchar_t *params)
+{
+	addr_t addr, last_page;
+	uint8_t *ptr;
+	unsigned i, hex_char;
+
+	if (*params == '\0')
+	{
+		wprintf(L"Please specify a virtual memory address\n");
+        return;
+	}
+
+	addr = wcstoul(params, 0, 16);
+	last_page = (addr_t) -1;
+	ptr = (uint8_t*) addr;
+	for (hex_char = 0; hex_char < 2; hex_char++)
+	{
+		for (i = 0; i < 16; i++)
+		{
+			if ((addr & -PAGE_SIZE) != last_page)
+			{
+				last_page = addr & -PAGE_SIZE;
+				if ((MemTranslate((void*) last_page) & PRIV_PRES) == 0)
+				{
+					if (hex_char == 0)
+						_cputws(L"??", 2);
+					else
+						_cputws(L".", 1);
+
+					goto out_of_loop;
+				}
+			}
+
+			if (hex_char == 0)
+				wprintf(L"%02x ", ptr[i]);
+			else
+			{
+				switch (ptr[i])
+				{
+				case '\b':
+				case '\t':
+				case '\n':
+				case '\r':
+				case '\0':
+					_cputws(L".", 1);
+					break;
+
+				default:
+					_cputs(ptr + i, 1);
+					break;
+				}
+			}
+		}
+	}
+
+out_of_loop:
+	_cputws(L"\n", 1);
+}
+
+static void DbgDumpPfnList(const pfn_list_t *list)
+{
+	wprintf(L"first = %u (%08x), last = %u (%08x), count = %u (%uKB)\n",
+		list->first, PFN_TO_PHYS(list->first),
+		list->last, PFN_TO_PHYS(list->last),
+		list->num_pages, (list->num_pages * PAGE_SIZE) / 1024);
+}
+
+static void DbgCmdPfn(wchar_t *cmd, wchar_t *params)
+{
+	addr_t addr;
+	pfn_t pfn;
+	page_phys_t *page;
+
+	if (*params == '\0')
+	{
+		wprintf(L"Free list:\n"
+			L"\t");
+		DbgDumpPfnList(&mem_free);
+		wprintf(L"Free low list:\n"
+			L"\t");
+		DbgDumpPfnList(&mem_free_low);
+		wprintf(L"Zero list:\n"
+			L"\t");
+		DbgDumpPfnList(&mem_zero);
+	}
+	else
+	{
+		addr = wcstoul(params, NULL, 16);
+		pfn = PHYS_TO_PFN(addr);
+		page = mem_pages + pfn;
+		wprintf(L"Page at %08x (PFN %u):\n"
+			L"\t", 
+			addr & -PAGE_SIZE, pfn);
+
+		switch (page->flags & PAGE_STATE_MASK)
+		{
+		case PAGE_STATE_FREE:
+			wprintf(L"free ");
+			break;
+		case PAGE_STATE_ZERO:
+			wprintf(L"zero ");
+			break;
+		case PAGE_STATE_ALLOCATED:
+			wprintf(L"allocated ");
+			break;
+		case PAGE_STATE_RESERVED:
+			wprintf(L"reserved ");
+			break;
+		}
+
+		if (page->flags & PAGE_FLAG_LOW)
+			wprintf(L"from low list ");
+		if (page->flags & PAGE_FLAG_LARGE)
+			wprintf(L"large page");
+
+		if ((page->flags & PAGE_STATE_MASK) == PAGE_STATE_FREE ||
+			(page->flags & PAGE_STATE_MASK) == PAGE_STATE_ZERO)
+			wprintf(L"\n"
+				L"\tprev = %u (%08x), next = %u (%08x)\n", 
+				page->u.list.prev, PFN_TO_PHYS(page->u.list.prev), 
+				page->u.list.next, PFN_TO_PHYS(page->u.list.next));
+		else
+			wprintf(L"\n"
+				L"\tdescriptor = %p, offset = %u bytes (%08x)\n", 
+				page->u.alloc_vm.desc,
+				page->u.alloc_vm.offset, page->u.alloc_vm.offset);
+	}
+}
+
 static void DbgCmdHelp(wchar_t *cmd, wchar_t *params);
 
 static struct
@@ -931,6 +1060,8 @@ static struct
     { L"leak",      DbgCmdLeak },
     { L"pdbr",      DbgCmdPdbr },
     { L"pte",       DbgCmdPte },
+	{ L"db",		DbgCmdDisplayBytes },
+	{ L"pfn",		DbgCmdPfn },
 };
 
 void DbgCmdHelp(wchar_t *cmd, wchar_t *params)

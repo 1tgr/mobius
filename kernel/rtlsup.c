@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.1 2002/12/21 09:49:28 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.2 2003/06/05 21:56:51 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -198,6 +198,8 @@ static void TextUpdateCursor(void)
 
 void TextSwitchToKernel(void)
 {
+    TextWriteRegs(modeK);
+    TextSetFont(font8x8, 0, 255, 8);
     out(VGA_CRTC_INDEX, 12);
     out(VGA_CRTC_DATA, 0);
     out(VGA_CRTC_INDEX, 13);
@@ -232,9 +234,6 @@ int name(const ct *str, size_t count) \
     { \
         if (dbg_combase != 0) \
         { \
-            if (*str == '\n') \
-            putDebugChar('\r'); \
-            else \
             putDebugChar(*str); \
         } \
 \
