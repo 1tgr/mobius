@@ -1,4 +1,4 @@
-/* $Id: profile.c,v 1.6 2002/08/17 19:13:32 pavlovskii Exp $ */
+/* $Id: profile.c,v 1.7 2002/08/31 00:32:11 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 #include <kernel/profile.h>
@@ -200,7 +200,7 @@ bool ProLoadProfile(const wchar_t *file, const wchar_t *root)
     }
 
     FsReadSync(fd, buf, di.length, &size);
-    FsClose(fd);
+    HndClose(NULL, fd, 'file');
 
     size = mbstowcs(wbuf, buf, size);
     free(buf);

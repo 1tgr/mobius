@@ -10,7 +10,7 @@ DEFINES=-Di386 -DKERNEL -D__LIBC_STATIC
 DEFINES+=	-DMODE_TEXT
 
 ARCH=	i386/isr.o i386/i386.o i386/memory.o i386/arch.o \
-	i386/scdsptch.o i386/gdb-stub.o i386/gdb.o i386/poweroff.o \
+	i386/scdsptch.o i386/gdb.o i386/poweroff.o \
 	../drivers/video/font8x8.o
 
 ifeq (,$(findstring __SMP__,$(DEFINES)))
@@ -29,8 +29,8 @@ OBJS=	start.o main.o thread.o \
 	device.o io.o vmm.o pipe.o \
 	mod_pe.o syscall.o \
 	ramdisk_mb.o cache.o cppsup.o \
-	rtlsup.o debug.o profile.o winmgr.o \
-	queue.o clip.o kernel.res.o \
+	rtlsup.o debug.o profile.o \
+	queue.o kernel.res.o \
 	$(ARCH)
 LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 DEF=	kernel.def

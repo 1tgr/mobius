@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.30 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.31 2002/08/31 00:32:11 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -69,10 +69,53 @@ void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
         FsDoCompletion(io);
     else
     {
-        wprintf(L"FsNotifyCompletion: queueing APC\n");
+        //wprintf(L"FsNotifyCompletion: queueing APC\n");
         //MemMap(0x7FFFF000, 0, 0x80000000, PAGE_READFAILED);
         ThrQueueKernelApc(io->owner, FsCompletionApc, io);
     }
+}
+
+static void FsCleanupFile(void *ptr)
+{
+    handle_hdr_t *hdr;
+    file_t *fd;
+    fsd_t *fsd;
+
+    //fd = HndLock(NULL, file, 'file');
+    //if (fd == NULL)
+        //return false;
+
+    hdr = ptr;
+    assert(hdr->tag == 'file');
+    fd = (file_t*) (hdr + 1);
+
+    fsd = fd->fsd;
+    if (fd->cache != NULL)
+    {
+        if (fsd->vtbl->flush_cache != NULL)
+            fsd->vtbl->flush_cache(fsd, fd);
+
+        CcDeleteFileCache(fd->cache);
+        fd->cache = NULL;
+    }
+
+    /*free(fd->name);
+    fd->name = NULL;*/
+
+    if (fd->flags & FILE_IS_DIRECTORY)
+    {
+        if (fsd->vtbl->free_dir_cookie != NULL)
+            fsd->vtbl->free_dir_cookie(fsd, fd->fsd_cookie);
+    }
+    else
+    {
+        if (fsd->vtbl->free_cookie != NULL)
+            fsd->vtbl->free_cookie(fsd, fd->fsd_cookie);
+    }
+
+    //HndUnlock(NULL, file, 'file');
+    //HndClose(NULL, file, 'file');
+    //return true;
 }
 
 static bool FsCheckAccess(file_t *file, uint32_t mask)
@@ -86,11 +129,17 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
     handle_t fd;
     file_t *file;
     fs_info_t info;
+    handle_hdr_t *ptr;
 
     fd = HndAlloc(NULL, sizeof(file_t), 'file');
     file = HndLock(NULL, fd, 'file');
     if (file == NULL)
         return NULL;
+
+    ptr = (handle_hdr_t*) file - 1;
+    assert(ptr->tag == 'file');
+
+    ptr->free_callback = FsCleanupFile;
 
     info.flags = FS_INFO_CACHE_BLOCK_SIZE;
     info.cache_block_size = 0;
@@ -440,50 +489,6 @@ bool FsReadDir(handle_t dir, dirent_t *di, size_t size)
 
     HndUnlock(NULL, dir, 'file');
     return ret > 0 ? false : true;
-}
-
-/*!
- *    \brief    Closes a file
- *
- *    \param    file    Handle of the file to close
- *    \return    \p true if the handle was valid
- */
-bool FsClose(handle_t file)
-{
-    file_t *fd;
-    fsd_t *fsd;
-
-    fd = HndLock(NULL, file, 'file');
-    if (fd == NULL)
-        return false;
-
-    fsd = fd->fsd;
-    if (fd->cache != NULL)
-    {
-        if (fsd->vtbl->flush_cache != NULL)
-            fsd->vtbl->flush_cache(fsd, fd);
-
-        CcDeleteFileCache(fd->cache);
-        fd->cache = NULL;
-    }
-
-    /*free(fd->name);
-    fd->name = NULL;*/
-
-    if (fd->flags & FILE_IS_DIRECTORY)
-    {
-        if (fsd->vtbl->free_dir_cookie != NULL)
-            fsd->vtbl->free_dir_cookie(fsd, fd->fsd_cookie);
-    }
-    else
-    {
-        if (fsd->vtbl->free_cookie != NULL)
-            fsd->vtbl->free_cookie(fsd, fd->fsd_cookie);
-    }
-
-    HndUnlock(NULL, file, 'file');
-    HndClose(NULL, file, 'file');
-    return true;
 }
 
 /*!

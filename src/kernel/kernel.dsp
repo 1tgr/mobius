@@ -138,10 +138,6 @@ SOURCE=.\cache.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\clip.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\cppsup.cpp
 # End Source File
 # Begin Source File
@@ -215,10 +211,6 @@ SOURCE=.\vfs.c
 # Begin Source File
 
 SOURCE=.\vmm.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\winmgr.c
 # End Source File
 # End Group
 # Begin Group "Header Files"

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.21 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.22 2002/08/31 00:32:11 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -101,6 +101,8 @@ handle_t ProcSpawnProcess(const wchar_t *exe, const process_info_t *defaults)
     if (defaults == NULL)
         defaults = proc->creator->info;
     memcpy(proc->info, defaults, sizeof(*defaults));
+
+    HndInheritHandles(proc->creator, proc);
 
     thr = ThrCreateThread(proc, false, (void (*)(void)) 0xdeadbeef, false, NULL, 16);
     ScNeedSchedule(true);
@@ -260,7 +262,6 @@ bool ProcFirstTimeInit(process_t *proc)
         proc->root = proc->cur_dir = proc_idle.root;
     else
     {
-        HndInheritHandles(proc->creator, proc);
         KeAtomicDec((unsigned*) &proc->creator->hdr.copies);
         proc->root = proc->creator->root;
         proc->cur_dir = proc->creator->cur_dir;

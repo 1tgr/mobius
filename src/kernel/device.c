@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.32 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: device.c,v 1.33 2002/08/31 00:32:11 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -756,7 +756,7 @@ static void DevFinishIoApc(void *ptr)
     TRACE1("io->req->original = %p\n", io->req->original);
     if (io->req->original != NULL)
     {
-        assert(io->owner == current());
+        assert(io->owner->process == current()->process);
         memcpy(io->req->original, io->req, io->req_size);
     }
 

@@ -1,4 +1,4 @@
-/* $Id: gdb.c,v 1.7 2002/05/19 13:04:59 pavlovskii Exp $ */
+/* $Id: gdb.c,v 1.8 2002/08/31 00:32:12 pavlovskii Exp $ */
 
 #include <kernel/arch.h>
 #include <kernel/profile.h>
@@ -42,7 +42,7 @@ void i386InitSerialDebug(void)
 
 	if (dbg_hasgdb)
         {
-            set_debug_traps();
+            //set_debug_traps();
 	    __asm__("int3");
         }
     }
@@ -86,7 +86,7 @@ void _pputs(const char *str, size_t count)
 
 void i386TrapToDebugger(const context_t *ctx)
 {
-    i386_registers[EAX] = ctx->regs.eax;
+    /*i386_registers[EAX] = ctx->regs.eax;
     i386_registers[ECX] = ctx->regs.ecx;
     i386_registers[EDX] = ctx->regs.edx;
     i386_registers[EBX] = ctx->regs.ebx;
@@ -102,7 +102,7 @@ void i386TrapToDebugger(const context_t *ctx)
     i386_registers[ES] = ctx->es;
     i386_registers[FS] = ctx->fs;
     i386_registers[GS] = ctx->gs;
-    handle_exception(ctx->intr);
+    handle_exception(ctx->intr);*/
 }
 
 void exceptionHandler(int exc, void *addr)

@@ -40,7 +40,6 @@ EXPORTS
 	EvtIsSignalled
 	EvtSignal
 	FsChangeDir
-	FsClose
 	FsCreate
 	FsCreateDir
 	FsCreateFileHandle

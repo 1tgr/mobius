@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.30 2002/08/29 13:59:38 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.31 2002/08/31 00:32:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -135,7 +135,7 @@ bool i386HandlePageFault(addr_t cr2, bool is_writing)
 
 uint32_t i386Isr(context_t ctx)
 {
-    thread_t *old_current;
+    thread_t *old_current, *prev_current;
 
     if (kernel_startup.num_cpus > 1 && ArchThisCpu() != 2)
     {
@@ -264,19 +264,23 @@ uint32_t i386Isr(context_t ctx)
         }
     }
 
+    assert(current() == old_current);
     old_current->ctx_last = ctx.ctx_prev;
     old_current->kernel_esp = ctx.kernel_esp;
     while (true)
     {
+        prev_current = current();
         if (sc_need_schedule)
             ScSchedule();
 
         //if (old_current != current())
         {
             if (ArchAttachToThread(current(), 
-                /*old_current->process != current()->process*/
+                /*prev_current->process != current()->process*/
                 true))
+            {
                 return current()->kernel_esp;
+            }
             else
                 ScNeedSchedule(true);
         }
