@@ -100,6 +100,10 @@ SOURCE=.\loaderb.asm
 
 SOURCE=.\main.c
 # End Source File
+# Begin Source File
+
+SOURCE=.\startup.asm
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -136,15 +140,7 @@ SOURCE=.\mobel.asm
 
 SOURCE=.\mobel_pe.asm
 # End Source File
-# Begin Source File
-
-SOURCE=.\startup.asm
-# End Source File
 # End Group
-# Begin Source File
-
-SOURCE=C:\BOCHS\bochs.out
-# End Source File
 # Begin Source File
 
 SOURCE=.\listing.txt

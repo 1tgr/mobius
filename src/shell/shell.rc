@@ -1,4 +1,4 @@
-/* $Id: shell.rc,v 1.1 2002/02/22 16:51:35 pavlovskii Exp $ */
+/* $Id: shell.rc,v 1.2 2002/02/24 19:13:30 pavlovskii Exp $ */
 
 STRINGTABLE DISCARDABLE 
 BEGIN
@@ -8,4 +8,7 @@ BEGIN
     4                       "Displays a list of files in the current directory"
     5                       "Displays the contents of a file"
     6                       "Clears the screen"
+    7                       "Writes the string ""Hello, world!"" to a file or device"
+    8                       "Displays the contents of a file as hex"
+    4096                    "The Möbius: command-line shell\n"
 END

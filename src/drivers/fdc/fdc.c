@@ -1,4 +1,4 @@
-/* $Id: fdc.c,v 1.9 2002/01/15 00:12:57 pavlovskii Exp $ */
+/* $Id: fdc.c,v 1.10 2002/02/24 19:13:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -37,6 +37,16 @@ void *	sbrk_virtual(size_t diff);
 #define DOR_MOTORB		0x20	/* motor for drive B */
 #define DOR_MOTORC		0x40	/* motor for drive C */
 #define DOR_MOTORD		0x80	/* motor for drive D */
+
+/* Main status register flags */
+#define MSR_ACTA		0x01	/* drive A in positioning mode */
+#define MSR_ACTB		0x02	/* drive B in positioning mode */
+#define MSR_ACTC		0x04	/* drive C in positioning mode */
+#define MSR_ACTD		0x08	/* drive D in positioning mode */
+#define MSR_BUSY		0x10	/* device busy */
+#define MSR_NDMA		0x20	/* not in DMA mode */
+#define MSR_DIO			0x40	/* data input/output is controller->CPU */
+#define MSR_MRQ			0x80	/* main request: data register is ready */
 
 /*
  * Default settings for DOR:
@@ -104,6 +114,7 @@ struct fdc_t
 	uint8_t irq;
 	
 	fdc_geometry_t geometry;
+	uint64_t total_bytes;
 	
 	int motor_end;
 	bool motor_on;
@@ -186,6 +197,11 @@ void msleep(unsigned ms)
 		;
 }
 
+addr_t DbgGetPhysicalAddress(const void *ptr)
+{
+	return (MemTranslate(ptr) & -PAGE_SIZE) + (addr_t) ptr % PAGE_SIZE;
+}
+
 void FdcStartIo(fdc_t *fdc)
 {
 	asyncio_t *io;
@@ -209,6 +225,11 @@ void FdcStartIo(fdc_t *fdc)
 start:
 
 	FdcBlockToHts(fdc, extra->block, &head, &track, &sector);
+	/*wprintf(L"fdc: state = %u code = %x addr = %p => %lx\n", 
+		fdc->op, 
+		req_dev->header.code, 
+		&req_dev->header.code, 
+		DbgGetPhysicalAddress(&req_dev->header.code));*/
 	switch (fdc->op)
 	{
 	case fdcReset:
@@ -258,6 +279,7 @@ start:
 		if (fdc->sensei)
 			/* Let head settle just after seeking */
 			/*msleep(15);*/
+			;
 		
 		/* Motor has finished seeking, so we can start to transfer data */
 		if (fdc->sr0 != 0x20 || fdc->fdc_track != track)
@@ -280,7 +302,7 @@ start:
 			dma_xfer(2, fdc->transfer_phys, 512, false);
 			FdcSendByte(fdc, CMD_READ);
 		}
-		else
+		else if (req_dev->header.code == DEV_WRITE)
 		{
 			buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
 			TRACE3("fdc: write block %u: copying from user %p to buffer %p\n", 
@@ -291,7 +313,13 @@ start:
 			dma_xfer(2, fdc->transfer_phys, 512, true);
 			FdcSendByte(fdc, CMD_WRITE);
 		}
-
+		else
+		{
+			wprintf(L"floppy: got weird code (%x)\n", req_dev->header.code);
+			/*ret = EHARDWARE;
+			goto finished;*/
+		}
+		
 		FdcSendByte(fdc, head << 2);
 		FdcSendByte(fdc, track);
 		FdcSendByte(fdc, head);
@@ -336,23 +364,25 @@ start:
 			if (req_dev->header.code == DEV_READ)
 			{
 				buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
-				TRACE3("fdc: read block %u: copying from buffer %p to user %p\n", 
-					extra->block, fdc->transfer_buffer, buf);
+				/*wprintf(L"fdc: read block %u: %p => %p: length = %u/%u: ", 
+					extra->block, fdc->transfer_buffer, buf, 
+					io->length, req_dev->params.buffered.length);*/
 				memcpy(buf, fdc->transfer_buffer, 512);
 				DevUnmapBuffer();
 			}
-
+			
 			io->length += 512;
 
 			if (io->length < req_dev->params.buffered.length)
 			{
+				TRACE0("more\n");
 				extra->block++;
 				fdc->op = fdcSpinUp;
 				goto start;
 			}
 			else
 			{
-				TRACE0("fdc: finished\n");
+				TRACE0("finished\n");
 				ret = 0;
 				goto finished;
 			}
@@ -486,6 +516,17 @@ bool FdcRequest(device_t *dev, request_t *req)
 			return false;
 		}
 
+		if (req_dev->params.buffered.offset >= fdc->total_bytes)
+		{
+			req->result = EEOF;
+			return false;
+		}
+
+		if (req_dev->params.buffered.offset + req_dev->params.buffered.length 
+			>= fdc->total_bytes)
+			req_dev->params.buffered.length = 
+				fdc->total_bytes - req_dev->params.buffered.offset;
+		
 		io = DevQueueRequest(dev, req, sizeof(request_dev_t),
 			req_dev->params.buffered.buffer,
 			req_dev->params.buffered.length);
@@ -552,12 +593,16 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 		fdc->transfer_phys, 
 		(addr_t) fdc->transfer_buffer + PAGE_SIZE,
 		PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
-	wprintf(L"DMA transfer buffer is at 0x%x => %p\n", 
+	TRACE2("DMA transfer buffer is at 0x%x => %p\n", 
 		fdc->transfer_phys, fdc->transfer_buffer);
 
 	fdc->geometry.heads = DG144_HEADS;
 	fdc->geometry.tracks = DG144_TRACKS;
 	fdc->geometry.spt = DG144_SPT;
+	fdc->total_bytes = fdc->geometry.heads 
+		* fdc->geometry.tracks 
+		* fdc->geometry.spt * 512;
+	/*wprintf(L"fdc: total_bytes = %lu\n", (uint32_t) fdc->total_bytes);*/
 
 	DevRegisterIrq(0, &fdc->dev);
 	DevRegisterIrq(fdc->irq, &fdc->dev);
@@ -568,7 +613,9 @@ device_t *FdcAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	out(fdc->base + REG_DOR, 0);
 	out(fdc->base + REG_DOR, DOR_DEFAULT);
 
-	while (fdc->op != fdcIdle)
+	/*while (fdc->op != fdcIdle)
+		;*/
+	while ((in(fdc->base + REG_MSR) & MSR_MRQ) == 0)
 		;
 
 	/* Specify drive timings (got these off the BIOS) */

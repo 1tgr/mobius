@@ -1,9 +1,10 @@
-/* $Id: memory.c,v 1.9 2002/02/20 01:35:54 pavlovskii Exp $ */
+/* $Id: memory.c,v 1.10 2002/02/24 19:13:29 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
 #include <kernel/thread.h>
 #include <kernel/proc.h>
 #include <kernel/init.h>
+#include <kernel/multiboot.h>
 
 #include <string.h>
 
@@ -28,7 +29,7 @@ static addr_t MemAllocPool(page_pool_t *pool)
 	{
 		if (pool->free_pages <= 0)
 			return NULL;
-
+		
 		addr = pool->pages[--pool->free_pages];
 	} while (addr == (addr_t) -1);
 	SemRelease(&pool->sem);
@@ -296,9 +297,12 @@ bool MemInit(void)
 	addr_t *pages, pt1, pt2, phys;
 	uint32_t entry;
 	size_t kernel_code;
+	unsigned i;
+	/*memory_map_t *map;*/
+	multiboot_module_t *mod;
 
 	num_pages = kernel_startup.memory_size / PAGE_SIZE;
-
+	
 	/*
 	 * Total kernel size composed of:
 	 *	Kernel file image
@@ -307,20 +311,21 @@ bool MemInit(void)
 	 *	Page lock counts
 	 */
 	kernel_startup.kernel_data = kernel_startup.kernel_size 
-		+ ebss - edata 
-		+ num_pages * sizeof(addr_t)
-		+ num_pages;
+		+ ebss - edata;
+		/*+ num_pages * sizeof(addr_t)
+		+ num_pages;*/
 	kernel_startup.kernel_data = PAGE_ALIGN_UP(kernel_startup.kernel_data);
 
 	/* One page of PTEs at one page per PTE = 4MB */
 	assert(kernel_startup.kernel_data < PAGE_SIZE * PAGE_SIZE / sizeof(uint32_t));
 
 	/* Page address stack goes after the bss */
-	pages = (addr_t*) ebss;
+	/*pages = (addr_t*) ebss;*/
+	pages = DEMANGLE_PTR(addr_t*, 0x5000);
 	memset(pages, 0, num_pages * sizeof(addr_t));
-
+	
 	/* Page lock counts go after the stack */
-	locked_pages = (uint8_t*) ((addr_t*) ebss + num_pages);
+	locked_pages = (uint8_t*) (pages + num_pages);
 	memset(locked_pages, 0, num_pages);
 	
 	pool_all.num_pages = num_pages - NUM_LOW_PAGES;
@@ -332,24 +337,41 @@ bool MemInit(void)
 	pool_low.free_pages = 0;
 
 	/* Memory from BDA=>ROMs */
-	MemFreePoolRange(&pool_low, 0x5000, 0xA0000);
+	entry = 0x5000 + PAGE_ALIGN_UP(num_pages * sizeof(addr_t) + num_pages);
+	assert(entry <= 0xA0000);
+	MemFreePoolRange(&pool_low, entry, 0xA0000);
 	/* Memory from top of ROMs to top of 'low memory' */
 	MemFreePoolRange(&pool_low, 0x100000, LOW_MEMORY);
 
-	/* Assume that the ramdisk comes before the kernel */
-	assert(kernel_startup.ramdisk_phys < kernel_startup.kernel_phys);
+	MemLockPages(kernel_startup.kernel_phys, 
+		PAGE_ALIGN_UP(kernel_startup.kernel_data) / PAGE_SIZE, 
+		true);
+	mod = (multiboot_module_t*) kernel_startup.multiboot_info->mods_addr;
+	for (i = 0; i < kernel_startup.multiboot_info->mods_count; i++)
+		MemLockPages(mod[i].mod_start, 
+			PAGE_ALIGN_UP(mod[i].mod_end - mod[i].mod_start) / PAGE_SIZE,
+			true);
 
-	/* Memory below the ramdisk */
-	MemFreePoolRange(&pool_all, LOW_MEMORY, kernel_startup.ramdisk_phys);
-	/* Memory between the ramdisk and the kernel */
-	MemFreePoolRange(&pool_all, 
-		kernel_startup.ramdisk_phys + kernel_startup.ramdisk_size,
-		kernel_startup.kernel_phys);
-	/* Memory above the kernel */
-	MemFreePoolRange(&pool_all, 
-		kernel_startup.kernel_phys + kernel_startup.kernel_size, 
-		kernel_startup.memory_size);
+	/*if (kernel_startup.multiboot_info->mmap_length > 0)
+	{
+		map = (memory_map_t*) kernel_startup.multiboot_info->mmap_addr;
+		while ((uint32_t) map < kernel_startup.multiboot_info->mmap_addr + 
+			kernel_startup.multiboot_info->mmap_length)
+		{
+			if (map->type != 1 &&
+				map->length_low != 0 &&
+				map->base_addr_high == 0)
+				MemLockPages(map->base_addr_low, 
+					PAGE_ALIGN_UP(map->length_low) / PAGE_SIZE, true);
+			
+			map = (memory_map_t*) ((uint8_t*) map + ((uint32_t*) map)[-1]);
+		}
+	}*/
 
+	for (i = LOW_MEMORY / PAGE_SIZE; i < num_pages; i++)
+		if (locked_pages[i] == 0)
+			MemFreePool(&pool_all, i * PAGE_SIZE);
+	
 	/*
 	 * Allocate one page table and patch the entries in the page directory:
 	 *	- at 0xC0000000 for scode
@@ -401,6 +423,16 @@ bool MemInit(void)
 	/* Set up the last PDE to point to the page directory itself */
 	kernel_pagedir[1023] = phys | PRIV_WR | PRIV_KERN | PRIV_PRES;
 
+	/*
+	 * xxx - Chicken and egg situation here
+	 * Need to map PHYSMEM, in order to access pool_all.pages, before we can 
+	 *	call MemMap() later.
+	 */
+	entry = PAGE_TABENT(PHYSMEM);
+	pt1 = MemAlloc();
+	memset(DEMANGLE_PTR(void*, pt1), 0, PAGE_SIZE);
+	kernel_pagedir[PAGE_DIRENT(PHYSMEM)] = pt1 | PRIV_WR | PRIV_USER | PRIV_PRES;
+
 	/* Load CR3 */
 	__asm__("mov %0, %%cr3" 
 		: 
@@ -439,11 +471,21 @@ bool MemInit(void)
 		:
 		: "m" (0xb8000));*/
 
+	pool_all.pages = PHYSICAL(MANGLE_PTR(void*, pool_all.pages));
+	pool_low.pages = PHYSICAL(MANGLE_PTR(void*, pool_low.pages));
+	locked_pages = PHYSICAL(MANGLE_PTR(void*, locked_pages));
+
 	/* Map at most 128MB of physical memory */
 	MemMap(PHYSMEM, 
 		0, 
 		PHYSMEM + min(kernel_startup.memory_size, 0x08000000), 
 		PRIV_WR | PRIV_PRES | PRIV_KERN);
 
+	kernel_startup.multiboot_info = 
+		PHYSICAL(MANGLE_PTR(void*, kernel_startup.multiboot_info));
+	kernel_startup.multiboot_info->mods_addr = 
+		(addr_t) PHYSICAL(MANGLE_PTR(void*, kernel_startup.multiboot_info->mods_addr));
+	kernel_startup.multiboot_info->mmap_addr = 
+		(addr_t) PHYSICAL(MANGLE_PTR(void*, kernel_startup.multiboot_info->mmap_addr));
 	return true;
 }

@@ -1,13 +1,13 @@
-/* $Id: sysdef.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
 #define ThrWaitHandle	SysThrWaitHandle
 #define ThrSleep		SysThrSleep
 #define EvtAlloc		SysEvtAlloc
-#define EvtFree			SysEvtFree
 #define EvtSignal		SysEvtSignal
 #define EvtIsSignalled	SysEvtIsSignalled
+#define HndClose		SysHndClose
 #endif
 
 #ifndef SYS_BEGIN_GROUP
@@ -41,12 +41,13 @@
 #define SYS_FsRead				0x403
 #define SYS_FsWrite				0x404
 #define SYS_FsSeek				0x405
-#define SYS_FsRequestSync		0x406
+/*#define SYS_FsRequestSync		0x406*/
+#define SYS_FsOpenSearch		0x406
 
 #define SYS_VmmAlloc			0x500
 
 #define SYS_EvtAlloc			0x600
-#define SYS_EvtFree				0x601
+#define SYS_HndClose			0x601
 #define SYS_EvtSignal			0x602
 #define SYS_EvtIsSignalled		0x603
 
@@ -83,6 +84,7 @@ SYSCALL(bool, FsRead, 16, handle_t, void*, size_t, struct fileop_t*)
 SYSCALL(bool, FsWrite, 16, handle_t, const void*, size_t, struct fileop_t*)
 SYSCALL(addr_t, FsSeek, 8, handle_t, addr_t)
 /*SYSCALL(bool, FsRequestSync, 8, handle_t, struct request_t*)*/
+SYSCALL(handle_t, FsOpenSearch, 4, const wchar_t*)
 SYS_END_GROUP(4)
 
 /* 5 */
@@ -93,7 +95,7 @@ SYS_END_GROUP(5)
 /* 6 */
 SYS_BEGIN_GROUP(6)
 SYSCALL(handle_t, EvtAlloc, 0, void)
-SYSCALL(bool, EvtFree, 4, handle_t)
+SYSCALL(bool, HndClose, 4, handle_t)
 SYSCALL(void, EvtSignal, 4, handle_t)
 SYSCALL(bool, EvtIsSignalled, 4, handle_t)
 SYS_END_GROUP(6)
@@ -104,7 +106,7 @@ SYS_END_GROUP(6)
 #undef ThrWaitHandle
 #undef ThrSleep
 #undef EvtAlloc
-#undef EvtFree
 #undef EvtSignal
 #undef EvtIsSignalled
+#undef HndClose
 #endif

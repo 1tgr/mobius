@@ -170,7 +170,7 @@ SOURCE=.\proc.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ramdisk.c
+SOURCE=.\ramdisk_mb.c
 # End Source File
 # Begin Source File
 
@@ -209,6 +209,10 @@ SOURCE=..\..\include\kernel\debug.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\kernel\device
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\kernel\driver.h
 # End Source File
 # Begin Source File
@@ -221,6 +225,10 @@ SOURCE=..\..\include\kernel\handle.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\kernel\init.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\kernel\io.h
 # End Source File
 # Begin Source File
@@ -230,6 +238,10 @@ SOURCE=..\..\include\kernel\kernel.h
 # Begin Source File
 
 SOURCE=..\..\include\kernel\memory.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\kernel\multiboot.h
 # End Source File
 # Begin Source File
 
@@ -273,6 +285,10 @@ SOURCE=.\i386\wrappers.h
 
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
+# Begin Source File
+
+SOURCE=C:\BOCHS\bochs.out
+# End Source File
 # Begin Source File
 
 SOURCE=.\kernel.ld

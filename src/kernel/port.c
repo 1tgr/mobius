@@ -1,4 +1,4 @@
-/* $Id: port.c,v 1.7 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: port.c,v 1.8 2002/02/24 19:13:28 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/port.h>
@@ -12,6 +12,13 @@
 
 semaphore_t server_sem;
 port_t *server_first, *server_last;
+
+typedef struct port_search_t port_search_t;
+struct port_search_t
+{
+	file_t file;
+	bool is_search;
+};
 
 device_t *PortMountFs(driver_t *driver, const wchar_t *name, device_t *dev);
 static bool PortFsRequest(device_t *dev, request_t *req);
@@ -68,6 +75,7 @@ static port_t* PortCreate(process_t* owner, const wchar_t* name, uint32_t flags)
 	port->file.fsd = &port_dev;
 	port->file.pos = 0;
 	port->file.flags = flags;
+	port->is_search = false;
 	port->owner = owner;
 	port->state = 0;
 
@@ -237,7 +245,10 @@ bool PortFsRequest(device_t* dev, request_t* req)
 	request_fs_t *req_fs = (request_fs_t*) req;
 	request_port_t *req_port = (request_port_t*) req;
 	port_t *port, *remote;
+	port_search_t *search;
 	uint32_t *params;
+	dirent_t *buf;
+	size_t len;
 	
 	assert(dev == &port_dev);
 
@@ -298,9 +309,31 @@ bool PortFsRequest(device_t* dev, request_t* req)
 			return false;
 		}
 
-		HndRemovePtrEntries(NULL, &port->hdr);
-		/*HndFreePtr(&port->hdr);*/
-		PortDelete(port);
+		if (port->is_search)
+			HndClose(NULL, req_fs->params.fs_close.file, 'file');
+		else
+		{
+			HndRemovePtrEntries(NULL, &port->hdr);
+			/*HndFreePtr(&port->hdr);*/
+			PortDelete(port);
+		}
+		return true;
+
+	case FS_OPENSEARCH:
+		req_fs->params.fs_opensearch.file = 
+			HndAlloc(NULL, sizeof(port_search_t), 'file');
+		search = HndLock(NULL, req_fs->params.fs_opensearch.file, 'file');
+		if (search == NULL)
+		{
+			req->code = EINVALID;
+			return false;
+		}
+
+		search->file.fsd = dev;
+		search->file.flags = FILE_READ;
+		search->file.pos = (uint64_t) (addr_t) server_first;
+		search->is_search = true;
+		HndUnlock(NULL, req_fs->params.fs_opensearch.file, 'file');
 		return true;
 
 	case FS_WRITE:
@@ -309,6 +342,12 @@ bool PortFsRequest(device_t* dev, request_t* req)
 		if (port == NULL)
 		{
 			req->code = EINVALID;
+			return false;
+		}
+
+		if (port->is_search)
+		{
+			req->code = EACCESS;
 			return false;
 		}
 
@@ -342,31 +381,64 @@ bool PortFsRequest(device_t* dev, request_t* req)
 			return false;
 		}
 
-		if ((port->state & PORT_CONNECTED) == 0 ||
-			port->u.client.remote == NULL)
+		if (port->is_search)
 		{
-			wprintf(L"%s: not connected\n", port->name);
-			req->code = EINVALID;
-			return false;
+			search = (port_search_t*) port;
+			port = (port_t*) (addr_t) search->file.pos;
+
+			if (port == NULL)
+			{
+				req->result = EEOF;
+				return false;
+			}
+			
+			len = req_fs->params.fs_read.length;
+
+			req_fs->params.fs_read.length = 0;
+			buf = req_fs->params.fs_read.buffer;
+			while (req_fs->params.fs_read.length < len)
+			{
+				wcscpy(buf->name, port->name);
+				buf->length = 0;
+				buf->standard_attributes = FILE_ATTR_DEVICE;
+
+				buf++;
+				req_fs->params.fs_read.length += sizeof(dirent_t);
+
+				port = port->next;
+				search->file.pos = (uint64_t) (addr_t) port;
+				if (port == NULL)
+					break;
+			}
 		}
+		else
+		{
+			if ((port->state & PORT_CONNECTED) == 0 ||
+				port->u.client.remote == NULL)
+			{
+				wprintf(L"%s: not connected\n", port->name);
+				req->code = EINVALID;
+				return false;
+			}
 
-		req_fs->params.fs_read.length = 
-			min(req_fs->params.fs_read.length, port->u.client.buffer_length);
-		memcpy((void*) req_fs->params.fs_read.buffer, 
-			port->u.client.buffer,
-			req_fs->params.fs_read.length);
+			req_fs->params.fs_read.length = 
+				min(req_fs->params.fs_read.length, port->u.client.buffer_length);
+			memcpy((void*) req_fs->params.fs_read.buffer, 
+				port->u.client.buffer,
+				req_fs->params.fs_read.length);
 
-		port->u.client.buffer_length -= req_fs->params.fs_read.length;
-		memmove(port->u.client.buffer, 
-			port->u.client.buffer + req_fs->params.fs_read.length,
-			port->u.client.buffer_length);
-		/*HndSignalPtr(&port->hdr, port->u.client.buffer_length > 0);*/
-		if (port->hdr.signals > 0 &&
-			port->u.client.buffer_length)
-			HndSignalPtr(&port->hdr, false);
+			port->u.client.buffer_length -= req_fs->params.fs_read.length;
+			memmove(port->u.client.buffer, 
+				port->u.client.buffer + req_fs->params.fs_read.length,
+				port->u.client.buffer_length);
+			/*HndSignalPtr(&port->hdr, port->u.client.buffer_length > 0);*/
+			if (port->hdr.signals > 0 &&
+				port->u.client.buffer_length)
+				HndSignalPtr(&port->hdr, false);
 
-		/*wprintf(L"port: read from %s->%s\n",
-			port->name, port->u.client.remote->name);*/
+			/*wprintf(L"port: read from %s->%s\n",
+				port->name, port->u.client.remote->name);*/
+		}
 		return true;
 
 	case FS_IOCTL:

@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.8 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: main.c,v 1.9 2002/02/24 19:13:28 pavlovskii Exp $ */
 
 /*!
  *	\defgroup	kernel	Kernel
@@ -29,74 +29,46 @@ void SemInit(semaphore_t *sem)
 	sem->owner = NULL;
 }
 
-/*
-typedef struct
-{
-	const wchar_t *name;
-	unsigned wait;
-} kti;
-
-kti i[3] =
-{
-	{ L"Thread A", 5000 },
-	{ L"Thread B", 2000 },
-	{ L"Thread C", 10000 }
-};
-
-void KernelThread(void *param)
-{
-	kti *i = param;
-	for (;;)
-	{
-		wprintf(L"%u Hello, %s!\n", sc_uptime, i->name);
-		ThrSleep(current, i->wait);
-		ArchProcessorIdle();
-	}
-}
-*/
-
 void KernelMain(void)
 {
-	process_t *proc;
 	device_t *dev;
 	
 	MemInit();
 	ArchInit();
 	
-	DbgDumpBuffer((void*) 0xc000ffcf, 16);
-
-	wprintf(L"ProcInit\n");
+	TRACE0("ProcInit\n");
 	ProcInit();
-	wprintf(L"RdInit\n");
+	TRACE0("RdInit\n");
 	RdInit();
-	wprintf(L"FsInit\n");
+	TRACE0("FsInit\n");
 	FsInit();
 
-	/*wprintf(L"ThrCreateThread\n");
-	ThrCreateThread(&proc_idle, true, KernelThread, true, i + 0, 16);
-	ThrCreateThread(&proc_idle, true, KernelThread, true, i + 1, 16);
-	ThrCreateThread(&proc_idle, true, KernelThread, true, i + 2, 16);*/
+	dev = IoOpenDevice(L"ide0a");
+	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
+	FsMount(L"/hd", L"fat", dev);
 
-	/*proc = ProcCreateProcess(SYS_BOOT L"/console.exe");
-	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
-
+	DevInstallDevice(L"keyboard", L"keyboard", NULL);
+	DevInstallDevice(L"tty", L"tty0", NULL);
+	DevInstallDevice(L"tty", L"tty1", NULL);
+	DevInstallDevice(L"tty", L"tty2", NULL);
+	DevInstallDevice(L"tty", L"tty3", NULL);
+	DevInstallDevice(L"tty", L"tty4", NULL);
+	DevInstallDevice(L"tty", L"tty5", NULL);
+	DevInstallDevice(L"tty", L"tty6", NULL);
+	DevInstallDevice(L"tty", L"tty7", NULL);
+	DevInstallDevice(L"cmos", L"cmos", NULL);
+	
 	dev = IoOpenDevice(L"fdc0");
 	wprintf(L"KernelMain: Mounting fdc0(%p) on /fd using fat\n", dev);
 	FsMount(L"/fd", L"fat", dev);
 
-	/*dev = IoOpenDevice(L"ide0a");
-	wprintf(L"FsInit: Mounting ide0a(%p) on /hd using fat\n", dev);
-	FsMount(L"/hd", L"fat", dev);*/
+	/*proc = ProcCreateProcess(SYS_BOOT L"/shell.exe");
+	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);*/
+	ProcSpawnProcess(SYS_BOOT L"/shell.exe");
+	/*proc_idle.info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+	proc_idle.info->std_out = FsOpen(SYS_DEVICES L"/tty1", FILE_WRITE);
+	ProcSpawnProcess(SYS_BOOT L"/shell.exe");*/
 
-	DevInstallDevice(L"tty", L"tty0", NULL);
-	DevInstallDevice(L"keyboard", L"keyboard", NULL);
-	
-	proc = ProcCreateProcess(SYS_BOOT L"/shell.exe");
-	ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
-
-	wprintf(L"Kernel ready\n");
-
-	wprintf(L"ScEnableSwitch\n");
 	ScEnableSwitch(true);
 
 	wprintf(L"Idle\n");

@@ -1,10 +1,11 @@
-/* $Id: cmos.c,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: cmos.c,v 1.3 2002/02/24 19:13:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
-#include <sys/error.h>
+#include <kernel/arch.h>
+#include <errno.h>
 
-#define DEBUG
+/* #define DEBUG */
 #include <kernel/debug.h>
 
 /*!
@@ -26,9 +27,9 @@
 #define RTC_YEAR	9
 #define RTC_STATUS_B	11
 
-byte rtcRead(word port, byte reg)
+uint8_t rtcRead(uint16_t port, uint8_t reg)
 {
-	byte high_digit, low_digit;
+	uint8_t high_digit, low_digit;
 	out(port, reg);
 	high_digit = low_digit = in(port + 1);
 	/* convert from BCD to binary */
@@ -196,28 +197,25 @@ instead of being done on every syscall. */
 
 bool rtcRequest(device_t* dev, request_t* req)
 {
-	qword* qw;
+	uint64_t* qw;
+	request_dev_t *req_dev;
 
+	req_dev = (request_dev_t*) req;
 	switch (req->code)
 	{
 	case DEV_REMOVE:
-		hndFree(dev);
-
-	case DEV_OPEN:
-	case DEV_CLOSE:
-		hndSignal(req->event, true);
+		free(dev);
 		return true;
 
 	case DEV_READ:
-		if (req->params.read.length < sizeof(qword))
+		if (req_dev->params.dev_read.length < sizeof(uint64_t))
 		{
 			req->result = EBUFFER;
 			return false;
 		}
 
-		qw = (qword*) req->params.read.buffer;
+		qw = (uint64_t*) req_dev->params.dev_read.buffer;
 		*qw = sys_time();
-		hndSignal(req->event, true);
 		return true;
 	}
 
@@ -225,32 +223,39 @@ bool rtcRequest(device_t* dev, request_t* req)
 	return false;
 }
 
+static const device_vtbl_t cmos_vtbl =
+{
+	rtcRequest,
+	NULL,
+	NULL,
+};
+
 device_t* cmosAddDevice(driver_t* drv, const wchar_t* name, device_config_t* cfg)
 {
 	device_t* dev;
 
-	TRACE2("cmos: %x/%x\n", cfg->vendor_id, cfg->device_id);
+	/*TRACE2("cmos: %x/%x\n", cfg->vendor_id, cfg->device_id);
 	if (cfg->vendor_id != 0xffff)
 		return NULL;
 
 	switch (cfg->device_id)
 	{
-	case PCIDEV_RTC:
-		dev = hndAlloc(sizeof(device_t), NULL);
-		dev->request = rtcRequest;
+	case PCIDEV_RTC:*/
+		dev = malloc(sizeof(device_t));
 		dev->driver = drv;
+		dev->vtbl = &cmos_vtbl;
 
 		TRACE2("CMOS %s installed; time = %u\n", name, sys_time());
 		return dev;
-	}
+	/*}
 
-	return NULL;
+	return NULL;*/
 }
 
-bool STDCALL INIT_CODE drvInit(driver_t* drv)
+bool DrvInit(driver_t* drv)
 {
 	drv->add_device = cmosAddDevice;
 	return true;
 }
 
-//@}
+/*@}*/

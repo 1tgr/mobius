@@ -1,4 +1,4 @@
-/* $Id: device.h,v 1.9 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: device.h,v 1.10 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __OS_DEVICE_H
 #define __OS_DEVICE_H
 
@@ -104,7 +104,7 @@ union params_fs_t
 		const wchar_t *name;
 		handle_t file;
 		uint32_t flags;
-	} fs_open, fs_create;
+	} fs_open, fs_create, fs_opensearch;
 
 	struct
 	{
@@ -171,6 +171,7 @@ union params_port_t
 #define FS_WRITE		REQUEST_CODE(1, 0, 'f', 'w')
 #define FS_IOCTL		REQUEST_CODE(1, 0, 'f', 'i')
 #define FS_GETLENGTH	REQUEST_CODE(0, 0, 'f', 'l')
+#define FS_OPENSEARCH	REQUEST_CODE(1, 0, 'f', 's')
 
 #define BLK_GETSIZE		REQUEST_CODE(1, 0, 'b', 's')
 

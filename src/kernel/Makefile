@@ -4,7 +4,7 @@ OBJS=	start.o main.o thread.o \
 	proc.o handle.o fs.o \
 	device.o io.o vmm.o \
 	mod_pe.o syscall.o port.o \
-	ramdisk.o cache.o cppsup.o \
+	ramdisk_mb.o cache.o cppsup.o \
 	rtlsup.o debug.o 
 LIBS=	$(ARCH) $(LIB)/librtl_s.lib $(LIB)/libc_s.lib
 DEFINES=-Di386 -DKERNEL

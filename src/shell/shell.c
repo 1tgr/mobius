@@ -1,9 +1,10 @@
-/* $Id: shell.c,v 1.4 2002/02/22 16:51:35 pavlovskii Exp $ */
+/* $Id: shell.c,v 1.5 2002/02/24 19:13:30 pavlovskii Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <wchar.h>
+#include <iconv.h>
 
 #include <os/syscall.h>
 #include <os/rtl.h>
@@ -12,6 +13,7 @@ int _cputws(const wchar_t *str, size_t count);
 
 bool sh_exit;
 wchar_t sh_path[MAX_PATH];
+iconv_t sh_iconv;
 
 typedef struct shell_command_t shell_command_t;
 struct shell_command_t
@@ -95,7 +97,7 @@ size_t ShReadLine(wchar_t *buf, size_t max)
 	}
 
 	*buf = '\0';
-	return read;
+	return -1;
 }
 
 const wchar_t *ShPrompt(const wchar_t *prompt, const wchar_t *params)
@@ -190,8 +192,6 @@ void ShCmdDir(const wchar_t *command, const wchar_t *params)
 	}
 
 	search = FsOpenSearch(params);
-	wprintf(L"%s: search = %d\n", command, search);
-
 	if (search != NULL)
 	{
 		op.event = NULL;
@@ -200,35 +200,32 @@ void ShCmdDir(const wchar_t *command, const wchar_t *params)
 			if (op.result == SIOPENDING)
 				ThrWaitHandle(op.event);
 
-			wprintf(L"%s\t%lu\t%x08%x\n", 
-				dir.name, 
-				(uint32_t) dir.length, 
-				(uint32_t) dir.standard_attributes,
-				(uint32_t) (dir.standard_attributes >> 32));
+			if (dir.standard_attributes & FILE_ATTR_DIRECTORY)
+				wprintf(L"[Directory]\t");
+			else if (dir.standard_attributes & FILE_ATTR_DEVICE)
+				wprintf(L"   [Device]\t");
+			else
+				wprintf(L"%10lu\t", (uint32_t) dir.length);
+
+			wprintf(L"\t%s\n", dir.name);
 		}
 
 		FsClose(search);
 	}
 }
 
-void ShCmdType(const wchar_t *command, const wchar_t *params)
+static void ShDumpFile(const wchar_t *name, void (*fn)(const void*, size_t))
 {
-	static char buf[2048];
-	static wchar_t str[_countof(buf)];
+	static char buf[8];
 
 	handle_t file;
 	size_t len;
 	fileop_t op;
-	unsigned i;
 	
-	params = ShPrompt(L" File? ", params);
-	if (*params == '\0')
-		return;
-
-	file = FsOpen(params, FILE_READ);
+	file = FsOpen(name, FILE_READ);
 	if (file == NULL)
 	{
-		wprintf(L"Failed to open %s\n", params);
+		wprintf(L"Failed to open %s\n", name);
 		return;
 	}
 
@@ -237,7 +234,7 @@ void ShCmdType(const wchar_t *command, const wchar_t *params)
 	{
 		if (!FsRead(file, buf, sizeof(buf), &op))
 		{
-			wprintf(L"%s: read failed (%d)\n", params, op.result);
+			wprintf(L"%s: read failed (%d)\n", name, op.result);
 			break;
 		}
 
@@ -250,23 +247,97 @@ void ShCmdType(const wchar_t *command, const wchar_t *params)
 		
 		if (len < _countof(buf))
 			buf[len] = '\0';
-		/*len = mbstowcs(str, buf, _countof(buf) - 1);
-		if (len == -1)
-			wprintf(L"invalid multibyte sequence\n");
-		else
-			_cputws(str, len);*/
-		for (i = 0; i < len; i++)
-			str[i] = (wchar_t) (unsigned char) buf[i];
-		_cputws(str, len);
+		fn(buf, len);
 	}
 	
 	HndClose(op.event);
 	FsClose(file);
 }
 
+static void ShTypeOutput(const void *buf, size_t len)
+{
+	static wchar_t str[2048];
+
+	len = mbstowcs(str, buf, _countof(buf) - 1);
+	if (len == -1)
+		wprintf(L"invalid multibyte sequence\n");
+	else
+		_cputws(str, len);
+	/*for (i = 0; i < len; i++)
+		str[i] = (wchar_t) (unsigned char) buf[i];
+	_cputws(str, len);*/
+}
+
+void ShCmdType(const wchar_t *command, const wchar_t *params)
+{
+	params = ShPrompt(L" File? ", params);
+	if (*params == '\0')
+		return;
+
+	ShDumpFile(params, ShTypeOutput);
+}
+
+static void ShDumpOutput(const void *buf, size_t size)
+{
+	const uint8_t *ptr;
+	int i, j;
+
+	ptr = (const uint8_t*) buf;
+	for (j = 0; j < size; j += i, ptr += i)
+	{
+		wprintf(L"%8x ", j);
+		for (i = 0; i < 16; i++)
+		{
+			wprintf(L"%02x ", ptr[i]);
+			if (i + j >= size)
+				break;
+		}
+
+		wprintf(L"\n");
+	}
+}
+
+void ShCmdDump(const wchar_t *command, const wchar_t *params)
+{
+	params = ShPrompt(L" File? ", params);
+	if (*params == '\0')
+		return;
+
+	ShDumpFile(params, ShDumpOutput);
+}
+
 void ShCmdCls(const wchar_t *command, const wchar_t *params)
 {
 	_cputws(L"\x1b[2J", 4);
+}
+
+void ShCmdPoke(const wchar_t *command, const wchar_t *params)
+{
+	handle_t file;
+	wchar_t str[] = L"Hello, world!\n";
+	fileop_t op;
+
+	params = ShPrompt(L" Device? ", params);
+	if (*params == '\0')
+		return;
+
+	file = FsOpen(params, FILE_WRITE);
+	if (file == NULL)
+	{
+		wprintf(L"Failed to open %s for writing\n", params);
+		return;
+	}
+
+	op.event = file;
+	if (FsWrite(file, str, sizeof(str), &op))
+	{
+		if (op.result == SIOPENDING)
+			ThrWaitHandle(op.event);
+	}
+	else
+		wprintf(L"Failed to write (%u)\n", op.result);
+
+	FsClose(file);
 }
 
 shell_command_t sh_commands[] =
@@ -277,6 +348,8 @@ shell_command_t sh_commands[] =
 	{ L"dir",	ShCmdDir,	4 },
 	{ L"type",	ShCmdType,	5 },
 	{ L"cls",	ShCmdCls,	6 },
+	{ L"poke",	ShCmdPoke,	7 },
+	{ L"dump",	ShCmdDump,	8 },
 	{ NULL,		NULL,		0 },
 };
 
@@ -303,12 +376,15 @@ int main(void)
 	handle_t spawned;
 
 	proc = ProcGetProcessInfo();
-	wprintf(L"The Möbius: command-line shell\n");
+	if (ResLoadString(proc->base, 4096, buf, _countof(buf)))
+		_cputws(buf, wcslen(buf));
+	/*sh_iconv = iconv_open("UCS-2", "ISO-8859-1");*/
 
 	while (!sh_exit)
 	{
 		wprintf(L"[%s] ", proc->cwd);
-		ShReadLine(buf, _countof(buf));
+		if (ShReadLine(buf, _countof(buf)) == -1)
+			break;
 		
 		space = wcschr(buf, ' ');
 		if (space)
@@ -322,13 +398,22 @@ int main(void)
 		if (!ShInternalCommand(buf, space))
 		{
 			wcscat(buf, L".exe");
-			wprintf(L"Starting %s...\n", buf);
-			spawned = ProcSpawnProcess(buf);
-			wprintf(L"Handle is %d\n", spawned);
-			ThrSleep(2000);
-			HndClose(spawned);
+
+			spawned = FsOpen(buf, 0);
+			if (spawned)
+			{
+				FsClose(spawned);
+				wprintf(L"Starting %s...\n", buf);
+				spawned = ProcSpawnProcess(buf);
+				wprintf(L"Handle is %d\n", spawned);
+				ThrSleep(2000);
+				HndClose(spawned);
+			}
+			else
+				wprintf(L"%s: program not found\n", buf);
 		}
 	}
 
+	/*iconv_close(sh_iconv);*/
 	return EXIT_SUCCESS;
 }

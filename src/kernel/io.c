@@ -1,4 +1,4 @@
-/* $Id: io.c,v 1.5 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: io.c,v 1.6 2002/02/24 19:13:13 pavlovskii Exp $ */
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
 #include <kernel/io.h>
@@ -127,7 +127,7 @@ bool IoRequestSync(device_t *dev, request_t *req)
 
 				if (true || current == &thr_idle)
 				{
-					wprintf(L"IoRequestSync: busy-waiting\n");
+					TRACE0("IoRequestSync: busy-waiting\n");
 					while (!sync.is_completed/*!EvtIsSignalled(NULL, req->event)*/)
 						ArchProcessorIdle();
 				}

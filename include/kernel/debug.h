@@ -1,4 +1,4 @@
-/* $Id: debug.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: debug.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_DEBUG_H
 #define __KERNEL_DEBUG_H
 
@@ -55,6 +55,7 @@ void	DbgDumpContext(const struct context_t* ctx);
 void	DbgLookupLineNumber(addr_t base, void *rawdata, void *symbol, 
 							unsigned *line, char** file);
 void	DbgDumpVmm(struct process_t *proc);
+void	DbgDumpBuffer(const void* buf, size_t size);
 
 /*! @} */
 

@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.6 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.7 2002/02/24 19:13:28 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -6,9 +6,11 @@
 #include <kernel/vmm.h>
 #include <kernel/thread.h>
 #include <kernel/fs.h>
+#include <kernel/sched.h>
 
 /*#define DEBUG*/
 #include <kernel/debug.h>
+#include <os/rtl.h>
 
 #include <stdlib.h>
 #include <wchar.h>
@@ -63,6 +65,7 @@ process_t proc_idle =
 	/*kernel_pagedir,*/				/* page_dir */
 	NULL,						/* handles */
 	0,							/* handle_count */
+	0,							/* handle_allocated */
 	&mod_kernel,				/* mod_first */
 	&mod_kernel,				/* mod_last */
 	NULL,						/* area_first */
@@ -74,10 +77,40 @@ process_t proc_idle =
 	&proc_idle_info,			/* info */
 };
 
+handle_t ProcSpawnProcess(const wchar_t *exe)
+{
+	process_t *proc;
+	thread_t *thr;
+	context_t *ctx;
+	wchar_t temp[MAX_PATH];
+	
+	FsFullPath(exe, temp);
+	current->process->hdr.copies++;
+	proc = ProcCreateProcess(temp);
+	if (proc == NULL)
+		return NULL;
+
+	proc->creator = current->process;
+	proc->info = malloc(sizeof(*proc->info));
+	memcpy(proc->info, proc->creator->info, sizeof(*proc->info));
+
+	thr = ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
+	ctx = ThrGetContext(thr);
+	/*ctx->eflags |= EFLAG_TF;*/
+	ScNeedSchedule(true);
+	return HndDuplicate(current->process, &proc->hdr);
+}
+
 process_t *ProcCreateProcess(const wchar_t *exe)
 {
 	process_t *proc;
+	handle_t file;
 	
+	/*file = FsOpen(exe, 0);
+	if (file == NULL)
+		return NULL;
+	FsClose(file);*/
+
 	proc = malloc(sizeof(process_t));
 	if (proc == NULL)
 		return NULL;
@@ -91,8 +124,10 @@ process_t *ProcCreateProcess(const wchar_t *exe)
 	/* Copy number 1 is the process's handle to itself */
 	proc->hdr.copies = 1;
 	proc->handle_count = 2;
-	proc->handles = malloc(proc->handle_count * sizeof(void*));
-	proc->handles[0] = NULL;
+	proc->handle_allocated = 16;
+	proc->handles = malloc(proc->handle_allocated * sizeof(void*));
+	memset(proc->handles, 0, proc->handle_allocated * sizeof(void*));
+	/*proc->handles[0] = NULL;*/
 	proc->handles[1] = proc;
 	proc->vmm_end = PAGE_SIZE;
 	proc->stack_end = 0x80000000;
@@ -119,9 +154,8 @@ bool ProcFirstTimeInit(process_t *proc)
 	__asm__("mov %%cr3,%0" : "=r" (cr3));
 	TRACE3("Creating process from %s: page dir = %x = %x\n", 
 		proc->exe, proc->page_dir_phys, cr3);
-	wprintf(L"401000 => %x\n", MemTranslate((void*) 0x401000));
-
-	proc->info = info = VmmAlloc(1, NULL, 
+	
+	info = VmmAlloc(1, NULL, 
 		3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
 	if (info == NULL)
 	{
@@ -129,17 +163,46 @@ bool ProcFirstTimeInit(process_t *proc)
 		return false;
 	}
 
-	ch = wcsrchr(proc->exe, '/');
-	if (ch == NULL)
-		wcscpy(info->cwd, L"/");
+	if (proc->info != NULL)
+	{
+		handle_hdr_t *ptr;
+		memcpy(info, proc->info, sizeof(*info));
+		
+		ptr = HndGetPtr(proc->creator, info->std_in, 0);
+		if (ptr)
+			info->std_in = HndDuplicate(proc, ptr);
+		else
+			info->std_in = NULL;
+
+		ptr = HndGetPtr(proc->creator, info->std_out, 0);
+		if (ptr)
+			info->std_out = HndDuplicate(proc, ptr);
+		else
+			info->std_out = NULL;
+
+		free(proc->info);
+	}
 	else
-		wcsncpy(info->cwd, proc->exe, ch - proc->exe);
-	
+	{
+		ch = wcsrchr(proc->exe, '/');
+
+		if (ch == NULL)
+			wcscpy(info->cwd, L"/");
+		else
+			wcsncpy(info->cwd, proc->exe, ch - proc->exe);
+	}
+
+	if (info->std_in == NULL)
+		info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
+	if (info->std_out == NULL)
+		info->std_out = FsOpen(SYS_DEVICES L"/tty0", FILE_WRITE);
+
+	if (proc->creator)
+		proc->creator->hdr.copies--;
+
+	proc->info = info;
 	info->id = proc->id;
 
-	info->std_in = FsOpen(SYS_DEVICES L"/keyboard", FILE_READ);
-	info->std_out = FsOpen(SYS_DEVICES L"/tty0", FILE_WRITE);
-	
 	for (thr = thr_first; thr; thr = thr->all_next)
 		if (thr->process == proc)
 		{
@@ -194,7 +257,7 @@ void ProcExitProcess(int code)
 		{
 			handle_hdr_t *hdr;
 			hdr = proc->handles[i];
-			wprintf(L"ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
+			TRACE3("ProcExitProcess: (notionally) closing handle %ld(%S, %d)\n", 
 				i, hdr->file, hdr->line);
 			/*HndClose(proc, i, 0);*/
 		}
@@ -302,7 +365,8 @@ bool ProcPageFault(process_t *proc, addr_t addr)
 bool ProcInit(void)
 {
 	proc_idle.handle_count = 2;
-	proc_idle.handles = malloc(proc_idle.handle_count * sizeof(void*));
+	proc_idle.handle_allocated = 16;
+	proc_idle.handles = malloc(proc_idle.handle_allocated * sizeof(void*));
 	proc_idle.handles[0] = NULL;
 	proc_idle.handles[1] = &proc_idle;
 	proc_idle.page_dir_phys = (addr_t) kernel_pagedir/*proc_idle.page_dir */

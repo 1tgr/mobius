@@ -5,4 +5,4 @@ rtlsup.o: rtlsup.c /mn/include/kernel/memory.h /mn/include/sys/types.h \
  /mn/include/kernel/thread.h /mn/include/kernel/handle.h \
  /mn/include/kernel/proc.h /mn/include/kernel/sched.h \
  /mn/include/os/rtl.h /mn/include/string.h /mn/include/stdio.h \
- /mn/include/sys/version.h
+ /mn/include/sys/version.h /mn/include/errno.h

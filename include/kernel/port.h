@@ -1,4 +1,4 @@
-/* $Id: port.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: port.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_PORT_H
 #define __KERNEL_PORT_H
 
@@ -28,6 +28,7 @@ struct port_t
 	handle_hdr_t hdr;
 
 	file_t file;
+	bool is_search;
 	port_t *prev, *next;
 	wchar_t* name;
 	process_t* owner;

@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.10 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.11 2002/02/24 19:13:29 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -6,12 +6,13 @@
 #include <kernel/sched.h>
 #include <kernel/proc.h>
 #include <kernel/init.h>
+#include <kernel/multiboot.h>
 
 #include <stdio.h>
 
 #include "wrappers.h"
 
-extern char scode[], _data_end__[];
+extern char scode[], sbss[], _data_end__[];
 extern thread_info_t idle_thread_info;
 extern uint16_t con_attribs;
 extern thread_t thr_idle;
@@ -24,13 +25,15 @@ idtr_t arch_idtr;
 tss_t arch_tss;
 struct tss0_t arch_df_tss;
 
+void i386PitInit(unsigned hz);
+void i386PicInit(uint8_t master_vector, uint8_t slave_vector);
+
+#if 0
+
 /*!	\brief Adjusts the value of a pointer so that it can be used before the 
  *	initial kernel GDT is set up.
  */
 #define MANGLE_PTR(type, ptr)	((type) ((char*) ptr - scode))
-
-void i386PitInit(unsigned hz);
-void i386PicInit(uint8_t master_vector, uint8_t slave_vector);
 
 void ArchStartup(kernel_startup_t* s)
 {
@@ -74,12 +77,74 @@ void ArchStartup(kernel_startup_t* s)
 	__asm__("lgdt (%0)" : : "r" (gdtr));
 
 	__asm__("mov %0,%%ds\n"
-		"mov %0,%%ss" : : "r" (KERNEL_BASED_DATA));
+		"mov %0,%%ss\n" : : "r" (KERNEL_BASED_DATA));
 
 	__asm__("mov %0,%%es\n"
 		"mov %0,%%gs\n"
 		"mov %0,%%fs" : : "r" (KERNEL_FLAT_DATA));
 	__asm__("add $_scode, %%esp" : : : "esp");
+	
+	__asm__("ljmp %0,$_KernelMain"
+		:
+		: "i" (KERNEL_BASED_CODE));
+}
+#endif
+
+void ArchStartup(multiboot_header_t *header, multiboot_info_t *info)
+{
+	descriptor_t *gdt = MANGLE_PTR(descriptor_t*, arch_gdt);
+	gdtr_t *gdtr = MANGLE_PTR(gdtr_t*, &arch_gdtr);
+	kernel_startup_t *startup = MANGLE_PTR(kernel_startup_t*, &kernel_startup);
+
+	startup->memory_size = 0x100000 + info->mem_upper * 1024;
+	startup->kernel_phys = KERNEL_PHYS;
+	startup->kernel_size = sbss - scode;
+	startup->multiboot_info = DEMANGLE_PTR(multiboot_info_t*, info);
+	info->mods_addr = DEMANGLE_PTR(uint32_t, info->mods_addr);
+	info->mmap_addr = DEMANGLE_PTR(uint32_t, info->mmap_addr);
+
+	i386SetDescriptor(gdt + 0, 0, 0, 0, 0);
+	/* Based kernel code = 0x8 */
+	i386SetDescriptor(gdt + 1, startup->kernel_phys - (addr_t) scode, 
+		0xfffff, ACS_CODE | ACS_DPL_0, ATTR_GRANULARITY | ATTR_DEFAULT);
+	/* Based kernel data/stack = 0x10 */
+	i386SetDescriptor(gdt + 2, startup->kernel_phys - (addr_t) scode, 
+		0xfffff, ACS_DATA | ACS_DPL_0, ATTR_GRANULARITY | ATTR_BIG);
+	/* Flat kernel code = 0x18 */
+	i386SetDescriptor(gdt + 3, 0, 
+		0xfffff, ACS_CODE | ACS_DPL_0, ATTR_DEFAULT | ATTR_GRANULARITY);
+	/* Flat kernel data = 0x20 */
+	i386SetDescriptor(gdt + 4, 0, 
+		0xfffff, ACS_DATA | ACS_DPL_0, ATTR_BIG | ATTR_GRANULARITY);
+	/* Flat user code = 0x28 */
+	i386SetDescriptor(gdt + 5, 0, 
+		0xfffff, ACS_CODE | ACS_DPL_3, ATTR_GRANULARITY | ATTR_DEFAULT);
+	/* Flat user data = 0x30 */
+	i386SetDescriptor(gdt + 6, 0, 
+		0xfffff, ACS_DATA | ACS_DPL_3, ATTR_GRANULARITY | ATTR_BIG);
+	/* TSS = 0x38 */
+	i386SetDescriptor(gdt + 7, 0, 0, 0, 0);
+	/* Thread info struct = 0x40 */
+	i386SetDescriptor(gdt + 8, (addr_t) &idle_thread_info, 
+		sizeof(idle_thread_info) - 1, ACS_DATA | ACS_DPL_3, ATTR_BIG);
+	/* Double fault TSS = 0x48 */
+	i386SetDescriptor(gdt + 9, 
+		(addr_t) &arch_df_tss, 
+		sizeof(arch_df_tss) - 1, 
+		ACS_TSS, 
+		ATTR_BIG);
+	
+	gdtr->base = (addr_t) gdt/* + startup->kernel_phys*/;
+	gdtr->limit = sizeof(arch_gdt) - 1;
+	__asm__("lgdt (%0)" : : "r" (gdtr));
+
+	__asm__("mov %0,%%ds\n"
+		"mov %0,%%ss\n" : : "r" (KERNEL_BASED_DATA));
+
+	__asm__("mov %0,%%es\n"
+		"mov %0,%%gs\n"
+		"mov %0,%%fs" : : "r" (KERNEL_FLAT_DATA));
+	__asm__("add %0, %%esp" : : "g" (scode - KERNEL_PHYS) : "esp");
 	
 	__asm__("ljmp %0,$_KernelMain"
 		:
@@ -204,7 +269,7 @@ bool ArchInit(void)
 		break;
 
 	case 5:*/
-		/*i386CpuId(0, &cpuid1);
+		i386CpuId(0, &cpuid1);
 		if (cpuid1.eax_0.max_eax > 0)
 			i386CpuId(1, &cpuid2);
 		else
@@ -212,7 +277,7 @@ bool ArchInit(void)
 
 		wprintf(L"Detected %.12S CPU, %u:%u:%u\n",
 			cpuid1.eax_0.vendorid, 
-			cpuid2.eax_1.stepping, cpuid2.eax_1.model, cpuid2.eax_1.family);*/
+			cpuid2.eax_1.stepping, cpuid2.eax_1.model, cpuid2.eax_1.family);
 		/*break;
 	}*/
 

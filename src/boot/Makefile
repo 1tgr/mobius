@@ -13,7 +13,7 @@ $(TARGET):	$(OBJS) Makefile
 	ndisasmw $(TARGET) > listing.txt
 
 %.obj:	%.c Makefile
-	tcc -c $(CFLAGS) -o$@ $< > nul
+	tcc -c $(CFLAGS) -o$@ $<
 
 %.obj:	%.asm
 	nasm -DNODOS -f obj -o$@ $<

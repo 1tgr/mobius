@@ -92,9 +92,6 @@ EXPORTS
 	ProcGetCwd
 	ProcPageFault
 	ProcSpawnProcess
-	RdFileLength
-	RdMountFs
-	RdOpen
 	ScEnableSwitch
 	ScNeedSchedule
 	ScSchedule
@@ -142,6 +139,7 @@ EXPORTS
 	__strdup
 	__wcsdup
 	_cputws
+	_geterrno
 	_stricmp
 	_wcsicmp
 	_wcsmatch

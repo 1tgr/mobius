@@ -8,17 +8,17 @@ memset16__FPUsUsUi():
 800f1000:	55                   	push   %ebp
 800f1001:	89 e5                	mov    %esp,%ebp
 800f1003:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:65
-800f1004:	8b 55 10             	mov    0x10(%ebp),%edx
 /mn/src/drivers/tty/tty.cpp:66
+800f1004:	8b 55 10             	mov    0x10(%ebp),%edx
+/mn/src/drivers/tty/tty.cpp:67
 800f1007:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/tty/tty.cpp:65
+/mn/src/drivers/tty/tty.cpp:66
 800f1009:	8b 4d 08             	mov    0x8(%ebp),%ecx
 800f100c:	8b 5d 0c             	mov    0xc(%ebp),%ebx
-/mn/src/drivers/tty/tty.cpp:66
+/mn/src/drivers/tty/tty.cpp:67
 800f100f:	eb 0b                	jmp    800f101c <_memset16__FPUsUsUi+0x1c>
 800f1011:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:67
+/mn/src/drivers/tty/tty.cpp:68
 800f1014:	66 89 19             	mov    %bx,(%ecx)
 800f1017:	89 d0                	mov    %edx,%eax
 800f1019:	83 c1 02             	add    $0x2,%ecx
@@ -35,1036 +35,1047 @@ memset16__FPUsUsUi():
 __3tty():
 800f1028:	55                   	push   %ebp
 800f1029:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/tty/tty.cpp:71
-800f102b:	8b 55 08             	mov    0x8(%ebp),%edx
 /mn/src/drivers/tty/tty.cpp:72
-800f102e:	89 d0                	mov    %edx,%eax
-/mn/src/drivers/tty/tty.cpp:71
-800f1030:	c7 42 10 84 22 0f 80 	movl   $0x800f2284,0x10(%edx)
-/mn/src/drivers/tty/tty.cpp:72
-800f1037:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
+800f102b:	8b 4d 08             	mov    0x8(%ebp),%ecx
 /mn/src/drivers/tty/tty.cpp:73
-800f103c:	66 c7 42 18 00 17    	movw   $0x1700,0x18(%edx)
+800f102e:	89 c8                	mov    %ecx,%eax
 /mn/src/drivers/tty/tty.cpp:72
-800f1042:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
-/mn/src/drivers/tty/tty.cpp:74
-800f1048:	c7 42 1c 00 00 00 00 	movl   $0x0,0x1c(%edx)
-/mn/src/drivers/tty/tty.cpp:72
-800f104f:	c1 f8 04             	sar    $0x4,%eax
-/mn/src/drivers/tty/tty.cpp:75
-800f1052:	c7 42 20 00 00 00 00 	movl   $0x0,0x20(%edx)
-/mn/src/drivers/tty/tty.cpp:72
-800f1059:	69 c0 a0 0f 00 00    	imul   $0xfa0,%eax,%eax
+800f1030:	c7 41 10 84 22 0f 80 	movl   $0x800f2284,0x10(%ecx)
+/mn/src/drivers/tty/tty.cpp:73
+800f1037:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
 /mn/src/drivers/tty/tty.cpp:76
-800f105f:	c7 42 24 50 00 00 00 	movl   $0x50,0x24(%edx)
-/mn/src/drivers/tty/tty.cpp:72
-800f1066:	05 00 80 0b f0       	add    $0xf00b8000,%eax
+800f103c:	c7 41 1c 00 00 00 00 	movl   $0x0,0x1c(%ecx)
+/mn/src/drivers/tty/tty.cpp:73
+800f1043:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
 /mn/src/drivers/tty/tty.cpp:77
-800f106b:	c7 42 28 19 00 00 00 	movl   $0x19,0x28(%edx)
-/mn/src/drivers/tty/tty.cpp:72
-800f1072:	89 42 14             	mov    %eax,0x14(%edx)
-/mn/src/drivers/tty/tty.cpp:80
-800f1075:	89 ec                	mov    %ebp,%esp
+800f1049:	c7 41 20 00 00 00 00 	movl   $0x0,0x20(%ecx)
+/mn/src/drivers/tty/tty.cpp:73
+800f1050:	c1 f8 04             	sar    $0x4,%eax
 /mn/src/drivers/tty/tty.cpp:78
-800f1077:	c7 42 34 00 00 00 00 	movl   $0x0,0x34(%edx)
-/mn/src/drivers/tty/tty.cpp:80
-800f107e:	89 d0                	mov    %edx,%eax
+800f1053:	c7 41 24 50 00 00 00 	movl   $0x50,0x24(%ecx)
+/mn/src/drivers/tty/tty.cpp:74
+800f105a:	69 d0 a0 0f 00 00    	imul   $0xfa0,%eax,%edx
 /mn/src/drivers/tty/tty.cpp:79
-800f1080:	c7 42 4c 00 00 00 00 	movl   $0x0,0x4c(%edx)
+800f1060:	c7 41 28 19 00 00 00 	movl   $0x19,0x28(%ecx)
+/mn/src/drivers/tty/tty.cpp:75
+800f1067:	c1 e0 0c             	shl    $0xc,%eax
+/mn/src/drivers/tty/tty.cpp:74
+800f106a:	81 c2 00 80 0b f0    	add    $0xf00b8000,%edx
+/mn/src/drivers/tty/tty.cpp:75
+800f1070:	80 cc 07             	or     $0x7,%ah
+/mn/src/drivers/tty/tty.cpp:74
+800f1073:	89 51 14             	mov    %edx,0x14(%ecx)
+/mn/src/drivers/tty/tty.cpp:75
+800f1076:	66 89 41 18          	mov    %ax,0x18(%ecx)
+/mn/src/drivers/tty/tty.cpp:82
+800f107a:	89 ec                	mov    %ebp,%esp
 /mn/src/drivers/tty/tty.cpp:80
-800f1087:	c7 42 48 00 00 00 00 	movl   $0x0,0x48(%edx)
-800f108e:	5d                   	pop    %ebp
-800f108f:	c3                   	ret    
+800f107c:	c7 41 34 00 00 00 00 	movl   $0x0,0x34(%ecx)
+/mn/src/drivers/tty/tty.cpp:82
+800f1083:	89 c8                	mov    %ecx,%eax
+/mn/src/drivers/tty/tty.cpp:81
+800f1085:	c7 41 4c 00 00 00 00 	movl   $0x0,0x4c(%ecx)
+/mn/src/drivers/tty/tty.cpp:82
+800f108c:	c7 41 48 00 00 00 00 	movl   $0x0,0x48(%ecx)
+800f1093:	5d                   	pop    %ebp
+800f1094:	c3                   	ret    
+800f1095:	8d 76 00             	lea    0x0(%esi),%esi
 
-800f1090 <_updateCursor__3tty>:
+800f1098 <_updateCursor__3tty>:
 updateCursor__3tty():
-800f1090:	55                   	push   %ebp
-800f1091:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/tty/tty.cpp:84
-800f1093:	8b 4d 08             	mov    0x8(%ebp),%ecx
-800f1096:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:87
-800f1097:	89 c8                	mov    %ecx,%eax
-800f1099:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
-800f109e:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
-800f10a4:	c1 f8 04             	sar    $0x4,%eax
-800f10a7:	3b 05 cc 33 0f 80    	cmp    0x800f33cc,%eax
-800f10ad:	75 3c                	jne    800f10eb <_updateCursor__3tty+0x5b>
-/mn/src/drivers/tty/tty.cpp:90
-800f10af:	8b 41 14             	mov    0x14(%ecx),%eax
-800f10b2:	8b 51 20             	mov    0x20(%ecx),%edx
-800f10b5:	05 00 80 f4 0f       	add    $0xff48000,%eax
-800f10ba:	0f af 51 24          	imul   0x24(%ecx),%edx
-800f10be:	d1 f8                	sar    %eax
-800f10c0:	8d 1c 02             	lea    (%edx,%eax,1),%ebx
-800f10c3:	66 03 59 1c          	add    0x1c(%ecx),%bx
-/mn/include/kernel/i386.h:314
-800f10c7:	b0 0e                	mov    $0xe,%al
-800f10c9:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
-/mn/include/kernel/i386.h:315
-800f10ce:	89 ca                	mov    %ecx,%edx
-800f10d0:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f10d1:	41                   	inc    %ecx
-800f10d2:	89 d8                	mov    %ebx,%eax
-800f10d4:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:315
-800f10d8:	89 ca                	mov    %ecx,%edx
-800f10da:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f10db:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
-800f10e0:	b0 0f                	mov    $0xf,%al
-/mn/include/kernel/i386.h:315
-800f10e2:	89 ca                	mov    %ecx,%edx
-800f10e4:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f10e5:	41                   	inc    %ecx
-/mn/include/kernel/i386.h:315
-800f10e6:	88 d8                	mov    %bl,%al
-800f10e8:	89 ca                	mov    %ecx,%edx
-800f10ea:	ee                   	out    %al,(%dx)
-/mn/src/drivers/tty/tty.cpp:94
-800f10eb:	5b                   	pop    %ebx
-800f10ec:	89 ec                	mov    %ebp,%esp
-800f10ee:	5d                   	pop    %ebp
-800f10ef:	c3                   	ret    
+800f1098:	55                   	push   %ebp
+800f1099:	89 e5                	mov    %esp,%ebp
+/mn/src/drivers/tty/tty.cpp:86
+800f109b:	8b 4d 08             	mov    0x8(%ebp),%ecx
+800f109e:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:89
+800f109f:	89 c8                	mov    %ecx,%eax
+800f10a1:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
+800f10a6:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
+800f10ac:	c1 f8 04             	sar    $0x4,%eax
+800f10af:	3b 05 cc 33 0f 80    	cmp    0x800f33cc,%eax
+800f10b5:	75 3c                	jne    800f10f3 <_updateCursor__3tty+0x5b>
+/mn/src/drivers/tty/tty.cpp:92
+800f10b7:	8b 41 14             	mov    0x14(%ecx),%eax
+800f10ba:	8b 51 20             	mov    0x20(%ecx),%edx
+800f10bd:	05 00 80 f4 0f       	add    $0xff48000,%eax
+800f10c2:	0f af 51 24          	imul   0x24(%ecx),%edx
+800f10c6:	d1 f8                	sar    %eax
+800f10c8:	8d 1c 02             	lea    (%edx,%eax,1),%ebx
+800f10cb:	66 03 59 1c          	add    0x1c(%ecx),%bx
+/mn/include/kernel/i386.h:321
+800f10cf:	b0 0e                	mov    $0xe,%al
+800f10d1:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
+/mn/include/kernel/i386.h:322
+800f10d6:	89 ca                	mov    %ecx,%edx
+800f10d8:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f10d9:	41                   	inc    %ecx
+800f10da:	89 d8                	mov    %ebx,%eax
+800f10dc:	66 c1 e8 08          	shr    $0x8,%ax
+/mn/include/kernel/i386.h:322
+800f10e0:	89 ca                	mov    %ecx,%edx
+800f10e2:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f10e3:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
+800f10e8:	b0 0f                	mov    $0xf,%al
+/mn/include/kernel/i386.h:322
+800f10ea:	89 ca                	mov    %ecx,%edx
+800f10ec:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f10ed:	41                   	inc    %ecx
+/mn/include/kernel/i386.h:322
+800f10ee:	88 d8                	mov    %bl,%al
+800f10f0:	89 ca                	mov    %ecx,%edx
+800f10f2:	ee                   	out    %al,(%dx)
+/mn/src/drivers/tty/tty.cpp:96
+800f10f3:	5b                   	pop    %ebx
+800f10f4:	89 ec                	mov    %ebp,%esp
+800f10f6:	5d                   	pop    %ebp
+800f10f7:	c3                   	ret    
 
-800f10f0 <_switchTo__3tty>:
+800f10f8 <_switchTo__3tty>:
 switchTo__3tty():
-800f10f0:	55                   	push   %ebp
-/mn/include/kernel/i386.h:314
-800f10f1:	ba d4 03 00 00       	mov    $0x3d4,%edx
-800f10f6:	89 e5                	mov    %esp,%ebp
-800f10f8:	83 ec 10             	sub    $0x10,%esp
-800f10fb:	56                   	push   %esi
-/mn/src/drivers/tty/tty.cpp:99
-800f10fc:	8b 75 08             	mov    0x8(%ebp),%esi
-800f10ff:	53                   	push   %ebx
+800f10f8:	55                   	push   %ebp
+/mn/include/kernel/i386.h:321
+800f10f9:	ba d4 03 00 00       	mov    $0x3d4,%edx
+800f10fe:	89 e5                	mov    %esp,%ebp
+800f1100:	83 ec 10             	sub    $0x10,%esp
+800f1103:	56                   	push   %esi
 /mn/src/drivers/tty/tty.cpp:101
-800f1100:	8b 46 14             	mov    0x14(%esi),%eax
-800f1103:	05 00 80 f4 0f       	add    $0xff48000,%eax
-800f1108:	89 c3                	mov    %eax,%ebx
-800f110a:	d1 eb                	shr    %ebx
-/mn/include/kernel/i386.h:314
-800f110c:	b0 0c                	mov    $0xc,%al
-/mn/include/kernel/i386.h:315
-800f110e:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f110f:	b9 d5 03 00 00       	mov    $0x3d5,%ecx
-800f1114:	89 d8                	mov    %ebx,%eax
-800f1116:	66 c1 e8 08          	shr    $0x8,%ax
-/mn/include/kernel/i386.h:315
-800f111a:	89 ca                	mov    %ecx,%edx
-800f111c:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f111d:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
-800f1122:	b0 0d                	mov    $0xd,%al
-/mn/include/kernel/i386.h:315
-800f1124:	89 ca                	mov    %ecx,%edx
-800f1126:	ee                   	out    %al,(%dx)
-/mn/include/kernel/i386.h:314
-800f1127:	41                   	inc    %ecx
-/mn/include/kernel/i386.h:315
-800f1128:	88 d8                	mov    %bl,%al
-800f112a:	89 ca                	mov    %ecx,%edx
-800f112c:	ee                   	out    %al,(%dx)
-/mn/src/drivers/tty/tty.cpp:107
-800f112d:	89 f0                	mov    %esi,%eax
+800f1104:	8b 75 08             	mov    0x8(%ebp),%esi
+800f1107:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:103
+800f1108:	8b 46 14             	mov    0x14(%esi),%eax
+800f110b:	05 00 80 f4 0f       	add    $0xff48000,%eax
+800f1110:	89 c3                	mov    %eax,%ebx
+800f1112:	d1 eb                	shr    %ebx
+/mn/include/kernel/i386.h:321
+800f1114:	b0 0c                	mov    $0xc,%al
+/mn/include/kernel/i386.h:322
+800f1116:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f1117:	b9 d5 03 00 00       	mov    $0x3d5,%ecx
+800f111c:	89 d8                	mov    %ebx,%eax
+800f111e:	66 c1 e8 08          	shr    $0x8,%ax
+/mn/include/kernel/i386.h:322
+800f1122:	89 ca                	mov    %ecx,%edx
+800f1124:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f1125:	b9 d4 03 00 00       	mov    $0x3d4,%ecx
+800f112a:	b0 0d                	mov    $0xd,%al
+/mn/include/kernel/i386.h:322
+800f112c:	89 ca                	mov    %ecx,%edx
+800f112e:	ee                   	out    %al,(%dx)
+/mn/include/kernel/i386.h:321
+800f112f:	41                   	inc    %ecx
+/mn/include/kernel/i386.h:322
+800f1130:	88 d8                	mov    %bl,%al
+800f1132:	89 ca                	mov    %ecx,%edx
+800f1134:	ee                   	out    %al,(%dx)
 /mn/src/drivers/tty/tty.cpp:109
-800f112f:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:107
-800f1132:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
-800f1137:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
-800f113d:	c1 f8 04             	sar    $0x4,%eax
-800f1140:	a3 cc 33 0f 80       	mov    %eax,0x800f33cc
+800f1135:	89 f0                	mov    %esi,%eax
+/mn/src/drivers/tty/tty.cpp:111
+800f1137:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/tty/tty.cpp:109
-800f1145:	56                   	push   %esi
-800f1146:	e8 45 ff ff ff       	call   800f1090 <_updateCursor__3tty>
-800f114b:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f114e:	5b                   	pop    %ebx
-800f114f:	5e                   	pop    %esi
-800f1150:	89 ec                	mov    %ebp,%esp
-800f1152:	5d                   	pop    %ebp
-800f1153:	c3                   	ret    
+800f113a:	2d 00 30 0f 80       	sub    $0x800f3000,%eax
+800f113f:	69 c0 cd cc cc cc    	imul   $0xcccccccd,%eax,%eax
+800f1145:	c1 f8 04             	sar    $0x4,%eax
+800f1148:	a3 cc 33 0f 80       	mov    %eax,0x800f33cc
+/mn/src/drivers/tty/tty.cpp:111
+800f114d:	56                   	push   %esi
+800f114e:	e8 45 ff ff ff       	call   800f1098 <_updateCursor__3tty>
+800f1153:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f1156:	5b                   	pop    %ebx
+800f1157:	5e                   	pop    %esi
+800f1158:	89 ec                	mov    %ebp,%esp
+800f115a:	5d                   	pop    %ebp
+800f115b:	c3                   	ret    
 
-800f1154 <_scroll__3tty>:
+800f115c <_scroll__3tty>:
 scroll__3tty():
-800f1154:	55                   	push   %ebp
-800f1155:	89 e5                	mov    %esp,%ebp
-800f1157:	83 ec 10             	sub    $0x10,%esp
-800f115a:	56                   	push   %esi
-/mn/src/drivers/tty/tty.cpp:113
-800f115b:	8b 75 08             	mov    0x8(%ebp),%esi
-800f115e:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:117
-800f115f:	8b 56 28             	mov    0x28(%esi),%edx
-800f1162:	39 56 20             	cmp    %edx,0x20(%esi)
-800f1165:	72 58                	jb     800f11bf <_scroll__3tty+0x6b>
-800f1167:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:120
-800f1168:	8d 42 ff             	lea    0xffffffff(%edx),%eax
+800f115c:	55                   	push   %ebp
+800f115d:	89 e5                	mov    %esp,%ebp
+800f115f:	83 ec 10             	sub    $0x10,%esp
+800f1162:	56                   	push   %esi
+/mn/src/drivers/tty/tty.cpp:115
+800f1163:	8b 75 08             	mov    0x8(%ebp),%esi
+800f1166:	53                   	push   %ebx
 /mn/src/drivers/tty/tty.cpp:119
-800f116b:	8b 5e 14             	mov    0x14(%esi),%ebx
-/mn/src/drivers/tty/tty.cpp:120
-800f116e:	8b 56 24             	mov    0x24(%esi),%edx
-800f1171:	83 c4 fc             	add    $0xfffffffc,%esp
-800f1174:	0f af c2             	imul   %edx,%eax
-800f1177:	01 c0                	add    %eax,%eax
-800f1179:	8d 14 53             	lea    (%ebx,%edx,2),%edx
-800f117c:	50                   	push   %eax
-800f117d:	52                   	push   %edx
-800f117e:	53                   	push   %ebx
-800f117f:	e8 58 09 00 00       	call   800f1adc <_memmove>
-/mn/src/drivers/tty/tty.cpp:121
-800f1184:	8b 46 28             	mov    0x28(%esi),%eax
+800f1167:	8b 56 28             	mov    0x28(%esi),%edx
+800f116a:	39 56 20             	cmp    %edx,0x20(%esi)
+800f116d:	72 58                	jb     800f11c7 <_scroll__3tty+0x6b>
+800f116f:	90                   	nop    
 /mn/src/drivers/tty/tty.cpp:122
-800f1187:	83 c4 10             	add    $0x10,%esp
+800f1170:	8d 42 ff             	lea    0xffffffff(%edx),%eax
 /mn/src/drivers/tty/tty.cpp:121
-800f118a:	48                   	dec    %eax
-800f118b:	8b 56 24             	mov    0x24(%esi),%edx
-800f118e:	0f af c2             	imul   %edx,%eax
-800f1191:	8d 1c 43             	lea    (%ebx,%eax,2),%ebx
+800f1173:	8b 5e 14             	mov    0x14(%esi),%ebx
 /mn/src/drivers/tty/tty.cpp:122
-800f1194:	31 c0                	xor    %eax,%eax
-800f1196:	39 d0                	cmp    %edx,%eax
-800f1198:	73 13                	jae    800f11ad <_scroll__3tty+0x59>
-800f119a:	89 f6                	mov    %esi,%esi
+800f1176:	8b 56 24             	mov    0x24(%esi),%edx
+800f1179:	83 c4 fc             	add    $0xfffffffc,%esp
+800f117c:	0f af c2             	imul   %edx,%eax
+800f117f:	01 c0                	add    %eax,%eax
+800f1181:	8d 14 53             	lea    (%ebx,%edx,2),%edx
+800f1184:	50                   	push   %eax
+800f1185:	52                   	push   %edx
+800f1186:	53                   	push   %ebx
+800f1187:	e8 50 09 00 00       	call   800f1adc <_memmove>
 /mn/src/drivers/tty/tty.cpp:123
-800f119c:	0f b7 56 18          	movzwl 0x18(%esi),%edx
-800f11a0:	83 ca 20             	or     $0x20,%edx
-800f11a3:	66 89 14 43          	mov    %dx,(%ebx,%eax,2)
-800f11a7:	40                   	inc    %eax
-800f11a8:	3b 46 24             	cmp    0x24(%esi),%eax
-800f11ab:	72 ef                	jb     800f119c <_scroll__3tty+0x48>
+800f118c:	8b 46 28             	mov    0x28(%esi),%eax
+/mn/src/drivers/tty/tty.cpp:124
+800f118f:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:123
+800f1192:	48                   	dec    %eax
+800f1193:	8b 56 24             	mov    0x24(%esi),%edx
+800f1196:	0f af c2             	imul   %edx,%eax
+800f1199:	8d 1c 43             	lea    (%ebx,%eax,2),%ebx
+/mn/src/drivers/tty/tty.cpp:124
+800f119c:	31 c0                	xor    %eax,%eax
+800f119e:	39 d0                	cmp    %edx,%eax
+800f11a0:	73 13                	jae    800f11b5 <_scroll__3tty+0x59>
+800f11a2:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:125
-800f11ad:	8b 46 20             	mov    0x20(%esi),%eax
-800f11b0:	8d 50 ff             	lea    0xffffffff(%eax),%edx
-800f11b3:	89 56 20             	mov    %edx,0x20(%esi)
-800f11b6:	89 d0                	mov    %edx,%eax
-800f11b8:	8b 56 28             	mov    0x28(%esi),%edx
-800f11bb:	39 d0                	cmp    %edx,%eax
-800f11bd:	73 a9                	jae    800f1168 <_scroll__3tty+0x14>
-/mn/src/drivers/tty/tty.cpp:128
-800f11bf:	83 c4 f4             	add    $0xfffffff4,%esp
-800f11c2:	56                   	push   %esi
-800f11c3:	e8 c8 fe ff ff       	call   800f1090 <_updateCursor__3tty>
-800f11c8:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f11cb:	5b                   	pop    %ebx
-800f11cc:	5e                   	pop    %esi
-800f11cd:	89 ec                	mov    %ebp,%esp
-800f11cf:	5d                   	pop    %ebp
-800f11d0:	c3                   	ret    
-800f11d1:	8d 76 00             	lea    0x0(%esi),%esi
+800f11a4:	0f b7 56 18          	movzwl 0x18(%esi),%edx
+800f11a8:	83 ca 20             	or     $0x20,%edx
+800f11ab:	66 89 14 43          	mov    %dx,(%ebx,%eax,2)
+800f11af:	40                   	inc    %eax
+800f11b0:	3b 46 24             	cmp    0x24(%esi),%eax
+800f11b3:	72 ef                	jb     800f11a4 <_scroll__3tty+0x48>
+/mn/src/drivers/tty/tty.cpp:127
+800f11b5:	8b 46 20             	mov    0x20(%esi),%eax
+800f11b8:	8d 50 ff             	lea    0xffffffff(%eax),%edx
+800f11bb:	89 56 20             	mov    %edx,0x20(%esi)
+800f11be:	89 d0                	mov    %edx,%eax
+800f11c0:	8b 56 28             	mov    0x28(%esi),%edx
+800f11c3:	39 d0                	cmp    %edx,%eax
+800f11c5:	73 a9                	jae    800f1170 <_scroll__3tty+0x14>
+/mn/src/drivers/tty/tty.cpp:130
+800f11c7:	83 c4 f4             	add    $0xfffffff4,%esp
+800f11ca:	56                   	push   %esi
+800f11cb:	e8 c8 fe ff ff       	call   800f1098 <_updateCursor__3tty>
+800f11d0:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f11d3:	5b                   	pop    %ebx
+800f11d4:	5e                   	pop    %esi
+800f11d5:	89 ec                	mov    %ebp,%esp
+800f11d7:	5d                   	pop    %ebp
+800f11d8:	c3                   	ret    
+800f11d9:	8d 76 00             	lea    0x0(%esi),%esi
 
-800f11d4 <_flush__3tty>:
+800f11dc <_flush__3tty>:
 flush__3tty():
-800f11d4:	55                   	push   %ebp
-800f11d5:	89 e5                	mov    %esp,%ebp
-800f11d7:	83 ec 6c             	sub    $0x6c,%esp
-800f11da:	57                   	push   %edi
-800f11db:	56                   	push   %esi
-/mn/src/drivers/tty/tty.cpp:132
-800f11dc:	8b 75 08             	mov    0x8(%ebp),%esi
-800f11df:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:137
-800f11e0:	83 c4 fc             	add    $0xfffffffc,%esp
-800f11e3:	8b 46 4c             	mov    0x4c(%esi),%eax
-800f11e6:	83 f8 51             	cmp    $0x51,%eax
-800f11e9:	76 05                	jbe    800f11f0 <_flush__3tty+0x1c>
-800f11eb:	b8 51 00 00 00       	mov    $0x51,%eax
-800f11f0:	50                   	push   %eax
-800f11f1:	8d 5d a0             	lea    0xffffffa0(%ebp),%ebx
-800f11f4:	8b 46 48             	mov    0x48(%esi),%eax
-800f11f7:	50                   	push   %eax
-800f11f8:	53                   	push   %ebx
-800f11f9:	e8 46 08 00 00       	call   800f1a44 <_wcsto437>
-800f11fe:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/tty/tty.cpp:138
-800f1200:	8b 56 14             	mov    0x14(%esi),%edx
-800f1203:	8b 46 24             	mov    0x24(%esi),%eax
+800f11dc:	55                   	push   %ebp
+800f11dd:	89 e5                	mov    %esp,%ebp
+800f11df:	83 ec 6c             	sub    $0x6c,%esp
+800f11e2:	57                   	push   %edi
+800f11e3:	56                   	push   %esi
+/mn/src/drivers/tty/tty.cpp:134
+800f11e4:	8b 75 08             	mov    0x8(%ebp),%esi
+800f11e7:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:139
+800f11e8:	83 c4 fc             	add    $0xfffffffc,%esp
+800f11eb:	8b 46 4c             	mov    0x4c(%esi),%eax
+800f11ee:	83 f8 51             	cmp    $0x51,%eax
+800f11f1:	76 05                	jbe    800f11f8 <_flush__3tty+0x1c>
+800f11f3:	b8 51 00 00 00       	mov    $0x51,%eax
+800f11f8:	50                   	push   %eax
+800f11f9:	8d 5d a0             	lea    0xffffffa0(%ebp),%ebx
+800f11fc:	8b 46 48             	mov    0x48(%esi),%eax
+800f11ff:	50                   	push   %eax
+800f1200:	53                   	push   %ebx
+800f1201:	e8 3e 08 00 00       	call   800f1a44 <_wcsto437>
+800f1206:	89 c7                	mov    %eax,%edi
 /mn/src/drivers/tty/tty.cpp:140
-800f1206:	83 c4 10             	add    $0x10,%esp
-800f1209:	eb 58                	jmp    800f1263 <_flush__3tty+0x8f>
-800f120b:	90                   	nop    
+800f1208:	8b 56 14             	mov    0x14(%esi),%edx
+800f120b:	8b 46 24             	mov    0x24(%esi),%eax
 /mn/src/drivers/tty/tty.cpp:142
-800f120c:	66 0f b6 03          	movzbw (%ebx),%ax
-/mn/src/drivers/tty/tty.cpp:143
-800f1210:	4f                   	dec    %edi
-/mn/src/drivers/tty/tty.cpp:142
-800f1211:	66 0b 46 18          	or     0x18(%esi),%ax
-800f1215:	43                   	inc    %ebx
-800f1216:	66 89 01             	mov    %ax,(%ecx)
+800f120e:	83 c4 10             	add    $0x10,%esp
+800f1211:	eb 58                	jmp    800f126b <_flush__3tty+0x8f>
+800f1213:	90                   	nop    
+/mn/src/drivers/tty/tty.cpp:144
+800f1214:	66 0f b6 03          	movzbw (%ebx),%ax
 /mn/src/drivers/tty/tty.cpp:145
-800f1219:	8b 46 1c             	mov    0x1c(%esi),%eax
-/mn/src/drivers/tty/tty.cpp:142
-800f121c:	83 c1 02             	add    $0x2,%ecx
-/mn/src/drivers/tty/tty.cpp:145
-800f121f:	8d 50 01             	lea    0x1(%eax),%edx
-800f1222:	89 56 1c             	mov    %edx,0x1c(%esi)
-/mn/src/drivers/tty/tty.cpp:146
-800f1225:	89 d0                	mov    %edx,%eax
-800f1227:	8b 56 24             	mov    0x24(%esi),%edx
-800f122a:	39 d0                	cmp    %edx,%eax
-800f122c:	72 1b                	jb     800f1249 <_flush__3tty+0x75>
-/mn/src/drivers/tty/tty.cpp:149
-800f122e:	8b 46 20             	mov    0x20(%esi),%eax
+800f1218:	4f                   	dec    %edi
+/mn/src/drivers/tty/tty.cpp:144
+800f1219:	66 0b 46 18          	or     0x18(%esi),%ax
+800f121d:	43                   	inc    %ebx
+800f121e:	66 89 01             	mov    %ax,(%ecx)
+/mn/src/drivers/tty/tty.cpp:147
+800f1221:	8b 46 1c             	mov    0x1c(%esi),%eax
+/mn/src/drivers/tty/tty.cpp:144
+800f1224:	83 c1 02             	add    $0x2,%ecx
+/mn/src/drivers/tty/tty.cpp:147
+800f1227:	8d 50 01             	lea    0x1(%eax),%edx
+800f122a:	89 56 1c             	mov    %edx,0x1c(%esi)
 /mn/src/drivers/tty/tty.cpp:148
-800f1231:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
-/mn/src/drivers/tty/tty.cpp:149
-800f1238:	8d 48 01             	lea    0x1(%eax),%ecx
+800f122d:	89 d0                	mov    %edx,%eax
+800f122f:	8b 56 24             	mov    0x24(%esi),%edx
+800f1232:	39 d0                	cmp    %edx,%eax
+800f1234:	72 1b                	jb     800f1251 <_flush__3tty+0x75>
+/mn/src/drivers/tty/tty.cpp:151
+800f1236:	8b 46 20             	mov    0x20(%esi),%eax
 /mn/src/drivers/tty/tty.cpp:150
-800f123b:	89 c8                	mov    %ecx,%eax
-/mn/src/drivers/tty/tty.cpp:149
-800f123d:	89 4e 20             	mov    %ecx,0x20(%esi)
-/mn/src/drivers/tty/tty.cpp:150
-800f1240:	0f af d0             	imul   %eax,%edx
-800f1243:	8b 46 14             	mov    0x14(%esi),%eax
-800f1246:	8d 0c 50             	lea    (%eax,%edx,2),%ecx
-/mn/src/drivers/tty/tty.cpp:153
-800f1249:	8b 46 28             	mov    0x28(%esi),%eax
-800f124c:	39 46 20             	cmp    %eax,0x20(%esi)
-800f124f:	72 21                	jb     800f1272 <_flush__3tty+0x9e>
+800f1239:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
+/mn/src/drivers/tty/tty.cpp:151
+800f1240:	8d 48 01             	lea    0x1(%eax),%ecx
+/mn/src/drivers/tty/tty.cpp:152
+800f1243:	89 c8                	mov    %ecx,%eax
+/mn/src/drivers/tty/tty.cpp:151
+800f1245:	89 4e 20             	mov    %ecx,0x20(%esi)
+/mn/src/drivers/tty/tty.cpp:152
+800f1248:	0f af d0             	imul   %eax,%edx
+800f124b:	8b 46 14             	mov    0x14(%esi),%eax
+800f124e:	8d 0c 50             	lea    (%eax,%edx,2),%ecx
 /mn/src/drivers/tty/tty.cpp:155
-800f1251:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1254:	56                   	push   %esi
-800f1255:	e8 fa fe ff ff       	call   800f1154 <_scroll__3tty>
-/mn/src/drivers/tty/tty.cpp:156
-800f125a:	8b 46 24             	mov    0x24(%esi),%eax
-800f125d:	83 c4 10             	add    $0x10,%esp
-800f1260:	8b 56 14             	mov    0x14(%esi),%edx
-800f1263:	0f af 46 20          	imul   0x20(%esi),%eax
-800f1267:	8d 04 42             	lea    (%edx,%eax,2),%eax
-800f126a:	8b 56 1c             	mov    0x1c(%esi),%edx
-800f126d:	01 d2                	add    %edx,%edx
-800f126f:	8d 0c 02             	lea    (%edx,%eax,1),%ecx
-800f1272:	85 ff                	test   %edi,%edi
-800f1274:	75 96                	jne    800f120c <_flush__3tty+0x38>
-/mn/src/drivers/tty/tty.cpp:160
-800f1276:	8b 46 4c             	mov    0x4c(%esi),%eax
+800f1251:	8b 46 28             	mov    0x28(%esi),%eax
+800f1254:	39 46 20             	cmp    %eax,0x20(%esi)
+800f1257:	72 21                	jb     800f127a <_flush__3tty+0x9e>
+/mn/src/drivers/tty/tty.cpp:157
+800f1259:	83 c4 f4             	add    $0xfffffff4,%esp
+800f125c:	56                   	push   %esi
+800f125d:	e8 fa fe ff ff       	call   800f115c <_scroll__3tty>
+/mn/src/drivers/tty/tty.cpp:158
+800f1262:	8b 46 24             	mov    0x24(%esi),%eax
+800f1265:	83 c4 10             	add    $0x10,%esp
+800f1268:	8b 56 14             	mov    0x14(%esi),%edx
+800f126b:	0f af 46 20          	imul   0x20(%esi),%eax
+800f126f:	8d 04 42             	lea    (%edx,%eax,2),%eax
+800f1272:	8b 56 1c             	mov    0x1c(%esi),%edx
+800f1275:	01 d2                	add    %edx,%edx
+800f1277:	8d 0c 02             	lea    (%edx,%eax,1),%ecx
+800f127a:	85 ff                	test   %edi,%edi
+800f127c:	75 96                	jne    800f1214 <_flush__3tty+0x38>
 /mn/src/drivers/tty/tty.cpp:162
-800f1279:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:160
-800f127c:	01 c0                	add    %eax,%eax
-/mn/src/drivers/tty/tty.cpp:161
-800f127e:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
-/mn/src/drivers/tty/tty.cpp:160
-800f1285:	01 46 48             	add    %eax,0x48(%esi)
+800f127e:	8b 46 4c             	mov    0x4c(%esi),%eax
+/mn/src/drivers/tty/tty.cpp:164
+800f1281:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/tty/tty.cpp:162
-800f1288:	56                   	push   %esi
-800f1289:	e8 02 fe ff ff       	call   800f1090 <_updateCursor__3tty>
-800f128e:	8d 65 88             	lea    0xffffff88(%ebp),%esp
-800f1291:	5b                   	pop    %ebx
-800f1292:	5e                   	pop    %esi
-800f1293:	5f                   	pop    %edi
-800f1294:	89 ec                	mov    %ebp,%esp
-800f1296:	5d                   	pop    %ebp
-800f1297:	c3                   	ret    
+800f1284:	01 c0                	add    %eax,%eax
+/mn/src/drivers/tty/tty.cpp:163
+800f1286:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
+/mn/src/drivers/tty/tty.cpp:162
+800f128d:	01 46 48             	add    %eax,0x48(%esi)
+/mn/src/drivers/tty/tty.cpp:164
+800f1290:	56                   	push   %esi
+800f1291:	e8 02 fe ff ff       	call   800f1098 <_updateCursor__3tty>
+800f1296:	8d 65 88             	lea    0xffffff88(%ebp),%esp
+800f1299:	5b                   	pop    %ebx
+800f129a:	5e                   	pop    %esi
+800f129b:	5f                   	pop    %edi
+800f129c:	89 ec                	mov    %ebp,%esp
+800f129e:	5d                   	pop    %ebp
+800f129f:	c3                   	ret    
 
-800f1298 <_clear__3tty>:
+800f12a0 <_clear__3tty>:
 clear__3tty():
-800f1298:	55                   	push   %ebp
-800f1299:	89 e5                	mov    %esp,%ebp
-800f129b:	83 ec 14             	sub    $0x14,%esp
-800f129e:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:166
-800f129f:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/tty/tty.cpp:167
-800f12a2:	83 c4 fc             	add    $0xfffffffc,%esp
-800f12a5:	8b 43 24             	mov    0x24(%ebx),%eax
-800f12a8:	0f af 43 28          	imul   0x28(%ebx),%eax
-800f12ac:	50                   	push   %eax
-800f12ad:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
-800f12b1:	0c 20                	or     $0x20,%al
-800f12b3:	0f b7 c0             	movzwl %ax,%eax
-800f12b6:	50                   	push   %eax
-800f12b7:	8b 43 14             	mov    0x14(%ebx),%eax
-800f12ba:	50                   	push   %eax
-800f12bb:	e8 40 fd ff ff       	call   800f1000 <_memset16__FPUsUsUi>
+800f12a0:	55                   	push   %ebp
+800f12a1:	89 e5                	mov    %esp,%ebp
+800f12a3:	83 ec 14             	sub    $0x14,%esp
+800f12a6:	53                   	push   %ebx
 /mn/src/drivers/tty/tty.cpp:168
-800f12c0:	c7 43 1c 00 00 00 00 	movl   $0x0,0x1c(%ebx)
-/mn/src/drivers/tty/tty.cpp:170
-800f12c7:	83 c4 f4             	add    $0xfffffff4,%esp
+800f12a7:	8b 5d 08             	mov    0x8(%ebp),%ebx
 /mn/src/drivers/tty/tty.cpp:169
-800f12ca:	c7 43 20 00 00 00 00 	movl   $0x0,0x20(%ebx)
+800f12aa:	83 c4 fc             	add    $0xfffffffc,%esp
+800f12ad:	8b 43 24             	mov    0x24(%ebx),%eax
+800f12b0:	0f af 43 28          	imul   0x28(%ebx),%eax
+800f12b4:	50                   	push   %eax
+800f12b5:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
+800f12b9:	0c 20                	or     $0x20,%al
+800f12bb:	0f b7 c0             	movzwl %ax,%eax
+800f12be:	50                   	push   %eax
+800f12bf:	8b 43 14             	mov    0x14(%ebx),%eax
+800f12c2:	50                   	push   %eax
+800f12c3:	e8 38 fd ff ff       	call   800f1000 <_memset16__FPUsUsUi>
 /mn/src/drivers/tty/tty.cpp:170
-800f12d1:	53                   	push   %ebx
-800f12d2:	e8 b9 fd ff ff       	call   800f1090 <_updateCursor__3tty>
-800f12d7:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
-800f12da:	89 ec                	mov    %ebp,%esp
-800f12dc:	5d                   	pop    %ebp
-800f12dd:	c3                   	ret    
+800f12c8:	c7 43 1c 00 00 00 00 	movl   $0x0,0x1c(%ebx)
+/mn/src/drivers/tty/tty.cpp:172
+800f12cf:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:171
+800f12d2:	c7 43 20 00 00 00 00 	movl   $0x0,0x20(%ebx)
+/mn/src/drivers/tty/tty.cpp:172
+800f12d9:	53                   	push   %ebx
+800f12da:	e8 b9 fd ff ff       	call   800f1098 <_updateCursor__3tty>
+800f12df:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
+800f12e2:	89 ec                	mov    %ebp,%esp
+800f12e4:	5d                   	pop    %ebp
+800f12e5:	c3                   	ret    
 
-800f12de <_ansi_to_vga.101>:
+800f12e6 <_ansi_to_vga.101>:
 ansi_to_vga():
-800f12de:	00 04 02             	add    %al,(%edx,%eax,1)
-800f12e1:	06                   	push   %es
-800f12e2:	01 05 03 07 89 f6    	add    %eax,0xf6890703
+800f12e6:	00 04 02             	add    %al,(%edx,%eax,1)
+800f12e9:	06                   	push   %es
+800f12ea:	01 05 03 07 89 f6    	add    %eax,0xf6890703
 
-800f12e8 <_doEscape__3ttycUiPCUi>:
+800f12f0 <_doEscape__3ttycUiPCUi>:
 doEscape__3ttycUiPCUi():
-800f12e8:	55                   	push   %ebp
-800f12e9:	89 e5                	mov    %esp,%ebp
-800f12eb:	83 ec 0c             	sub    $0xc,%esp
-800f12ee:	57                   	push   %edi
-800f12ef:	56                   	push   %esi
-800f12f0:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:181
-800f12f1:	8a 45 0c             	mov    0xc(%ebp),%al
-800f12f4:	04 bf                	add    $0xbf,%al
-/mn/src/drivers/tty/tty.cpp:174
-800f12f6:	8b 5d 08             	mov    0x8(%ebp),%ebx
-800f12f9:	8b 7d 10             	mov    0x10(%ebp),%edi
-/mn/src/drivers/tty/tty.cpp:181
-800f12fc:	0f be c0             	movsbl %al,%eax
-800f12ff:	83 f8 34             	cmp    $0x34,%eax
-800f1302:	0f 87 e8 02 00 00    	ja     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f1308:	ff 24 85 10 13 0f 80 	jmp    *0x800f1310(,%eax,4)
-800f130f:	90                   	nop    
-800f1310:	1c 14                	sbb    $0x14,%al
-800f1312:	0f 80 44 14 0f 80    	jo     1e275c <__size_of_heap_reserve__+0xe275c>
-800f1318:	6c                   	insb   (%dx),%es:(%edi)
-800f1319:	14 0f                	adc    $0xf,%al
-800f131b:	80 94 14 0f 80 f0 15 	adcb   $0xf,0x15f0800f(%esp,%edx,1)
-800f1322:	0f 
-800f1323:	80 f0 15             	xor    $0x15,%al
-800f1326:	0f 80 f0 15 0f 80    	jo     1e291c <__size_of_heap_reserve__+0xe291c>
-800f132c:	e4 13                	in     $0x13,%al
-800f132e:	0f 80 f0 15 0f 80    	jo     1e2924 <__size_of_heap_reserve__+0xe2924>
-800f1334:	e4 14                	in     $0x14,%al
-800f1336:	0f 80 f4 14 0f 80    	jo     1e2830 <__size_of_heap_reserve__+0xe2830>
-800f133c:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f1342:	0f 80 f0 15 0f 80    	jo     1e2938 <__size_of_heap_reserve__+0xe2938>
-800f1348:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f134e:	0f 80 f0 15 0f 80    	jo     1e2944 <__size_of_heap_reserve__+0xe2944>
-800f1354:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f135a:	0f 80 f0 15 0f 80    	jo     1e2950 <__size_of_heap_reserve__+0xe2950>
-800f1360:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f1366:	0f 80 f0 15 0f 80    	jo     1e295c <__size_of_heap_reserve__+0xe295c>
-800f136c:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f1372:	0f 80 f0 15 0f 80    	jo     1e2968 <__size_of_heap_reserve__+0xe2968>
-800f1378:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f137e:	0f 80 f0 15 0f 80    	jo     1e2974 <__size_of_heap_reserve__+0xe2974>
-800f1384:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f138a:	0f 80 f0 15 0f 80    	jo     1e2980 <__size_of_heap_reserve__+0xe2980>
-800f1390:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f1396:	0f 80 f0 15 0f 80    	jo     1e298c <__size_of_heap_reserve__+0xe298c>
-800f139c:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f13a2:	0f 80 e4 13 0f 80    	jo     1e278c <__size_of_heap_reserve__+0xe278c>
-800f13a8:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f13ae:	0f 80 f0 15 0f 80    	jo     1e29a4 <__size_of_heap_reserve__+0xe29a4>
-800f13b4:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f13ba:	0f 80 f0 15 0f 80    	jo     1e29b0 <__size_of_heap_reserve__+0xe29b0>
-800f13c0:	24 15                	and    $0x15,%al
-800f13c2:	0f 80 f0 15 0f 80    	jo     1e29b8 <__size_of_heap_reserve__+0xe29b8>
-800f13c8:	f0 15 0f 80 f0 15    	lock adc $0x15f0800f,%eax
-800f13ce:	0f 80 f0 15 0f 80    	jo     1e29c4 <__size_of_heap_reserve__+0xe29c4>
-800f13d4:	f0 15 0f 80 b4 14    	lock adc $0x14b4800f,%eax
-800f13da:	0f 80 f0 15 0f 80    	jo     1e29d0 <__size_of_heap_reserve__+0xe29d0>
-800f13e0:	c8 14 0f 80          	enter  $0xf14,$0x80
-/mn/src/drivers/tty/tty.cpp:185
-800f13e4:	85 ff                	test   %edi,%edi
-800f13e6:	74 12                	je     800f13fa <_doEscape__3ttycUiPCUi+0x112>
-/mn/src/drivers/tty/tty.cpp:186
-800f13e8:	8b 4d 14             	mov    0x14(%ebp),%ecx
-800f13eb:	8b 43 28             	mov    0x28(%ebx),%eax
-800f13ee:	48                   	dec    %eax
-800f13ef:	8b 11                	mov    (%ecx),%edx
-800f13f1:	39 d0                	cmp    %edx,%eax
-800f13f3:	76 02                	jbe    800f13f7 <_doEscape__3ttycUiPCUi+0x10f>
-800f13f5:	89 d0                	mov    %edx,%eax
-800f13f7:	89 43 20             	mov    %eax,0x20(%ebx)
-/mn/src/drivers/tty/tty.cpp:187
-800f13fa:	83 ff 01             	cmp    $0x1,%edi
-800f13fd:	76 13                	jbe    800f1412 <_doEscape__3ttycUiPCUi+0x12a>
+800f12f0:	55                   	push   %ebp
+800f12f1:	89 e5                	mov    %esp,%ebp
+800f12f3:	83 ec 0c             	sub    $0xc,%esp
+800f12f6:	57                   	push   %edi
+800f12f7:	56                   	push   %esi
+800f12f8:	53                   	push   %ebx
+/mn/src/drivers/tty/tty.cpp:183
+800f12f9:	8a 45 0c             	mov    0xc(%ebp),%al
+800f12fc:	04 bf                	add    $0xbf,%al
+/mn/src/drivers/tty/tty.cpp:176
+800f12fe:	8b 5d 08             	mov    0x8(%ebp),%ebx
+800f1301:	8b 7d 10             	mov    0x10(%ebp),%edi
+/mn/src/drivers/tty/tty.cpp:183
+800f1304:	0f be c0             	movsbl %al,%eax
+800f1307:	83 f8 34             	cmp    $0x34,%eax
+800f130a:	0f 87 e8 02 00 00    	ja     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f1310:	ff 24 85 18 13 0f 80 	jmp    *0x800f1318(,%eax,4)
+800f1317:	90                   	nop    
+800f1318:	24 14                	and    $0x14,%al
+800f131a:	0f 80 4c 14 0f 80    	jo     1e276c <__size_of_heap_reserve__+0xe276c>
+800f1320:	74 14                	je     800f1336 <_doEscape__3ttycUiPCUi+0x46>
+800f1322:	0f 80 9c 14 0f 80    	jo     1e27c4 <__size_of_heap_reserve__+0xe27c4>
+800f1328:	f8                   	clc    
+800f1329:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f132e:	0f 80 f8 15 0f 80    	jo     1e292c <__size_of_heap_reserve__+0xe292c>
+800f1334:	ec                   	in     (%dx),%al
+800f1335:	13 0f                	adc    (%edi),%ecx
+800f1337:	80 f8 15             	cmp    $0x15,%al
+800f133a:	0f 80 ec 14 0f 80    	jo     1e282c <__size_of_heap_reserve__+0xe282c>
+800f1340:	fc                   	cld    
+800f1341:	14 0f                	adc    $0xf,%al
+800f1343:	80 f8 15             	cmp    $0x15,%al
+800f1346:	0f 80 f8 15 0f 80    	jo     1e2944 <__size_of_heap_reserve__+0xe2944>
+800f134c:	f8                   	clc    
+800f134d:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f1352:	0f 80 f8 15 0f 80    	jo     1e2950 <__size_of_heap_reserve__+0xe2950>
+800f1358:	f8                   	clc    
+800f1359:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f135e:	0f 80 f8 15 0f 80    	jo     1e295c <__size_of_heap_reserve__+0xe295c>
+800f1364:	f8                   	clc    
+800f1365:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f136a:	0f 80 f8 15 0f 80    	jo     1e2968 <__size_of_heap_reserve__+0xe2968>
+800f1370:	f8                   	clc    
+800f1371:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f1376:	0f 80 f8 15 0f 80    	jo     1e2974 <__size_of_heap_reserve__+0xe2974>
+800f137c:	f8                   	clc    
+800f137d:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f1382:	0f 80 f8 15 0f 80    	jo     1e2980 <__size_of_heap_reserve__+0xe2980>
+800f1388:	f8                   	clc    
+800f1389:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f138e:	0f 80 f8 15 0f 80    	jo     1e298c <__size_of_heap_reserve__+0xe298c>
+800f1394:	f8                   	clc    
+800f1395:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f139a:	0f 80 f8 15 0f 80    	jo     1e2998 <__size_of_heap_reserve__+0xe2998>
+800f13a0:	f8                   	clc    
+800f13a1:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f13a6:	0f 80 f8 15 0f 80    	jo     1e29a4 <__size_of_heap_reserve__+0xe29a4>
+800f13ac:	ec                   	in     (%dx),%al
+800f13ad:	13 0f                	adc    (%edi),%ecx
+800f13af:	80 f8 15             	cmp    $0x15,%al
+800f13b2:	0f 80 f8 15 0f 80    	jo     1e29b0 <__size_of_heap_reserve__+0xe29b0>
+800f13b8:	f8                   	clc    
+800f13b9:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f13be:	0f 80 f8 15 0f 80    	jo     1e29bc <__size_of_heap_reserve__+0xe29bc>
+800f13c4:	f8                   	clc    
+800f13c5:	15 0f 80 2c 15       	adc    $0x152c800f,%eax
+800f13ca:	0f 80 f8 15 0f 80    	jo     1e29c8 <__size_of_heap_reserve__+0xe29c8>
+800f13d0:	f8                   	clc    
+800f13d1:	15 0f 80 f8 15       	adc    $0x15f8800f,%eax
+800f13d6:	0f 80 f8 15 0f 80    	jo     1e29d4 <__size_of_heap_reserve__+0xe29d4>
+800f13dc:	f8                   	clc    
+800f13dd:	15 0f 80 bc 14       	adc    $0x14bc800f,%eax
+800f13e2:	0f 80 f8 15 0f 80    	jo     1e29e0 <__size_of_heap_reserve__+0xe29e0>
+800f13e8:	d0 14 0f             	rclb   (%edi,%ecx,1)
+800f13eb:	80 85 ff 74 12 8b 4d 	addb   $0x4d,0x8b1274ff(%ebp)
 /mn/src/drivers/tty/tty.cpp:188
-800f13ff:	8b 4d 14             	mov    0x14(%ebp),%ecx
-800f1402:	8b 43 24             	mov    0x24(%ebx),%eax
-800f1405:	48                   	dec    %eax
-800f1406:	8b 51 04             	mov    0x4(%ecx),%edx
-800f1409:	39 d0                	cmp    %edx,%eax
-800f140b:	76 02                	jbe    800f140f <_doEscape__3ttycUiPCUi+0x127>
-800f140d:	89 d0                	mov    %edx,%eax
-800f140f:	89 43 1c             	mov    %eax,0x1c(%ebx)
+800f13f2:	14 8b                	adc    $0x8b,%al
+800f13f4:	43                   	inc    %ebx
+800f13f5:	28 48 8b             	sub    %cl,0xffffff8b(%eax)
+800f13f8:	11 39                	adc    %edi,(%ecx)
+800f13fa:	d0                   	(bad)  
+800f13fb:	76 02                	jbe    800f13ff <_doEscape__3ttycUiPCUi+0x10f>
+800f13fd:	89 d0                	mov    %edx,%eax
+800f13ff:	89 43 20             	mov    %eax,0x20(%ebx)
 /mn/src/drivers/tty/tty.cpp:189
-800f1412:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1402:	83 ff 01             	cmp    $0x1,%edi
+800f1405:	76 13                	jbe    800f141a <_doEscape__3ttycUiPCUi+0x12a>
 /mn/src/drivers/tty/tty.cpp:190
-800f1415:	e9 bd 00 00 00       	jmp    800f14d7 <_doEscape__3ttycUiPCUi+0x1ef>
-800f141a:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:193
-800f141c:	85 ff                	test   %edi,%edi
-800f141e:	0f 84 cc 01 00 00    	je     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f1424:	8b 4d 14             	mov    0x14(%ebp),%ecx
-800f1427:	8b 53 20             	mov    0x20(%ebx),%edx
-800f142a:	8b 01                	mov    (%ecx),%eax
-800f142c:	39 c2                	cmp    %eax,%edx
-800f142e:	0f 82 bc 01 00 00    	jb     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
+800f1407:	8b 4d 14             	mov    0x14(%ebp),%ecx
+800f140a:	8b 43 24             	mov    0x24(%ebx),%eax
+800f140d:	48                   	dec    %eax
+800f140e:	8b 51 04             	mov    0x4(%ecx),%edx
+800f1411:	39 d0                	cmp    %edx,%eax
+800f1413:	76 02                	jbe    800f1417 <_doEscape__3ttycUiPCUi+0x127>
+800f1415:	89 d0                	mov    %edx,%eax
+800f1417:	89 43 1c             	mov    %eax,0x1c(%ebx)
+/mn/src/drivers/tty/tty.cpp:191
+800f141a:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:192
+800f141d:	e9 bd 00 00 00       	jmp    800f14df <_doEscape__3ttycUiPCUi+0x1ef>
+800f1422:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:195
-800f1434:	29 c2                	sub    %eax,%edx
-/mn/src/drivers/tty/tty.cpp:196
-800f1436:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:195
-800f1439:	89 53 20             	mov    %edx,0x20(%ebx)
+800f1424:	85 ff                	test   %edi,%edi
+800f1426:	0f 84 cc 01 00 00    	je     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f142c:	8b 4d 14             	mov    0x14(%ebp),%ecx
+800f142f:	8b 53 20             	mov    0x20(%ebx),%edx
+800f1432:	8b 01                	mov    (%ecx),%eax
+800f1434:	39 c2                	cmp    %eax,%edx
+800f1436:	0f 82 bc 01 00 00    	jb     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+/mn/src/drivers/tty/tty.cpp:197
+800f143c:	29 c2                	sub    %eax,%edx
 /mn/src/drivers/tty/tty.cpp:198
-800f143c:	e9 96 00 00 00       	jmp    800f14d7 <_doEscape__3ttycUiPCUi+0x1ef>
-800f1441:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:201
-800f1444:	85 ff                	test   %edi,%edi
-800f1446:	0f 84 a4 01 00 00    	je     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f144c:	8b 45 14             	mov    0x14(%ebp),%eax
-800f144f:	8b 53 20             	mov    0x20(%ebx),%edx
-800f1452:	8b 08                	mov    (%eax),%ecx
-800f1454:	89 c8                	mov    %ecx,%eax
-800f1456:	03 43 28             	add    0x28(%ebx),%eax
-800f1459:	39 c2                	cmp    %eax,%edx
-800f145b:	0f 83 8f 01 00 00    	jae    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
+800f143e:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:197
+800f1441:	89 53 20             	mov    %edx,0x20(%ebx)
+/mn/src/drivers/tty/tty.cpp:200
+800f1444:	e9 96 00 00 00       	jmp    800f14df <_doEscape__3ttycUiPCUi+0x1ef>
+800f1449:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/tty/tty.cpp:203
-800f1461:	01 ca                	add    %ecx,%edx
-/mn/src/drivers/tty/tty.cpp:204
-800f1463:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:203
-800f1466:	89 53 20             	mov    %edx,0x20(%ebx)
+800f144c:	85 ff                	test   %edi,%edi
+800f144e:	0f 84 a4 01 00 00    	je     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f1454:	8b 45 14             	mov    0x14(%ebp),%eax
+800f1457:	8b 53 20             	mov    0x20(%ebx),%edx
+800f145a:	8b 08                	mov    (%eax),%ecx
+800f145c:	89 c8                	mov    %ecx,%eax
+800f145e:	03 43 28             	add    0x28(%ebx),%eax
+800f1461:	39 c2                	cmp    %eax,%edx
+800f1463:	0f 83 8f 01 00 00    	jae    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+/mn/src/drivers/tty/tty.cpp:205
+800f1469:	01 ca                	add    %ecx,%edx
 /mn/src/drivers/tty/tty.cpp:206
-800f1469:	eb 6c                	jmp    800f14d7 <_doEscape__3ttycUiPCUi+0x1ef>
-800f146b:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:209
-800f146c:	85 ff                	test   %edi,%edi
-800f146e:	0f 84 7c 01 00 00    	je     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f1474:	8b 55 14             	mov    0x14(%ebp),%edx
-800f1477:	8b 0a                	mov    (%edx),%ecx
-800f1479:	89 c8                	mov    %ecx,%eax
-800f147b:	8b 53 1c             	mov    0x1c(%ebx),%edx
-800f147e:	03 43 24             	add    0x24(%ebx),%eax
-800f1481:	39 c2                	cmp    %eax,%edx
-800f1483:	0f 83 67 01 00 00    	jae    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
+800f146b:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:205
+800f146e:	89 53 20             	mov    %edx,0x20(%ebx)
+/mn/src/drivers/tty/tty.cpp:208
+800f1471:	eb 6c                	jmp    800f14df <_doEscape__3ttycUiPCUi+0x1ef>
+800f1473:	90                   	nop    
 /mn/src/drivers/tty/tty.cpp:211
-800f1489:	01 ca                	add    %ecx,%edx
-/mn/src/drivers/tty/tty.cpp:212
-800f148b:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:211
-800f148e:	89 53 1c             	mov    %edx,0x1c(%ebx)
+800f1474:	85 ff                	test   %edi,%edi
+800f1476:	0f 84 7c 01 00 00    	je     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f147c:	8b 55 14             	mov    0x14(%ebp),%edx
+800f147f:	8b 0a                	mov    (%edx),%ecx
+800f1481:	89 c8                	mov    %ecx,%eax
+800f1483:	8b 53 1c             	mov    0x1c(%ebx),%edx
+800f1486:	03 43 24             	add    0x24(%ebx),%eax
+800f1489:	39 c2                	cmp    %eax,%edx
+800f148b:	0f 83 67 01 00 00    	jae    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+/mn/src/drivers/tty/tty.cpp:213
+800f1491:	01 ca                	add    %ecx,%edx
 /mn/src/drivers/tty/tty.cpp:214
-800f1491:	eb 44                	jmp    800f14d7 <_doEscape__3ttycUiPCUi+0x1ef>
-800f1493:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:217
-800f1494:	85 ff                	test   %edi,%edi
-800f1496:	0f 84 54 01 00 00    	je     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f149c:	8b 4d 14             	mov    0x14(%ebp),%ecx
-800f149f:	8b 01                	mov    (%ecx),%eax
-800f14a1:	39 43 20             	cmp    %eax,0x20(%ebx)
-800f14a4:	0f 82 46 01 00 00    	jb     800f15f0 <_doEscape__3ttycUiPCUi+0x308>
+800f1493:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:213
+800f1496:	89 53 1c             	mov    %edx,0x1c(%ebx)
+/mn/src/drivers/tty/tty.cpp:216
+800f1499:	eb 44                	jmp    800f14df <_doEscape__3ttycUiPCUi+0x1ef>
+800f149b:	90                   	nop    
 /mn/src/drivers/tty/tty.cpp:219
-800f14aa:	29 43 1c             	sub    %eax,0x1c(%ebx)
-/mn/src/drivers/tty/tty.cpp:220
-800f14ad:	83 c4 f4             	add    $0xfffffff4,%esp
+800f149c:	85 ff                	test   %edi,%edi
+800f149e:	0f 84 54 01 00 00    	je     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f14a4:	8b 4d 14             	mov    0x14(%ebp),%ecx
+800f14a7:	8b 01                	mov    (%ecx),%eax
+800f14a9:	39 43 20             	cmp    %eax,0x20(%ebx)
+800f14ac:	0f 82 46 01 00 00    	jb     800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+/mn/src/drivers/tty/tty.cpp:221
+800f14b2:	29 43 1c             	sub    %eax,0x1c(%ebx)
 /mn/src/drivers/tty/tty.cpp:222
-800f14b0:	eb 25                	jmp    800f14d7 <_doEscape__3ttycUiPCUi+0x1ef>
-800f14b2:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:225
-800f14b4:	8b 43 1c             	mov    0x1c(%ebx),%eax
-800f14b7:	89 43 2c             	mov    %eax,0x2c(%ebx)
-/mn/src/drivers/tty/tty.cpp:226
-800f14ba:	8b 43 20             	mov    0x20(%ebx),%eax
-800f14bd:	89 43 30             	mov    %eax,0x30(%ebx)
+800f14b5:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:224
+800f14b8:	eb 25                	jmp    800f14df <_doEscape__3ttycUiPCUi+0x1ef>
+800f14ba:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:227
-800f14c0:	e9 2b 01 00 00       	jmp    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f14c5:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:230
-800f14c8:	8b 43 2c             	mov    0x2c(%ebx),%eax
+800f14bc:	8b 43 1c             	mov    0x1c(%ebx),%eax
+800f14bf:	89 43 2c             	mov    %eax,0x2c(%ebx)
+/mn/src/drivers/tty/tty.cpp:228
+800f14c2:	8b 43 20             	mov    0x20(%ebx),%eax
+800f14c5:	89 43 30             	mov    %eax,0x30(%ebx)
+/mn/src/drivers/tty/tty.cpp:229
+800f14c8:	e9 2b 01 00 00       	jmp    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f14cd:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/tty/tty.cpp:232
-800f14cb:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:230
-800f14ce:	89 43 1c             	mov    %eax,0x1c(%ebx)
-/mn/src/drivers/tty/tty.cpp:231
-800f14d1:	8b 43 30             	mov    0x30(%ebx),%eax
-800f14d4:	89 43 20             	mov    %eax,0x20(%ebx)
+800f14d0:	8b 43 2c             	mov    0x2c(%ebx),%eax
+/mn/src/drivers/tty/tty.cpp:234
+800f14d3:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/tty/tty.cpp:232
-800f14d7:	53                   	push   %ebx
-800f14d8:	e8 b3 fb ff ff       	call   800f1090 <_updateCursor__3tty>
+800f14d6:	89 43 1c             	mov    %eax,0x1c(%ebx)
 /mn/src/drivers/tty/tty.cpp:233
-800f14dd:	e9 0e 01 00 00       	jmp    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f14e2:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:236
-800f14e4:	83 c4 f4             	add    $0xfffffff4,%esp
-800f14e7:	53                   	push   %ebx
-800f14e8:	e8 ab fd ff ff       	call   800f1298 <_clear__3tty>
-/mn/src/drivers/tty/tty.cpp:237
-800f14ed:	e9 fe 00 00 00       	jmp    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f14f2:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:242
-800f14f4:	8b 53 24             	mov    0x24(%ebx),%edx
-800f14f7:	83 c4 fc             	add    $0xfffffffc,%esp
-800f14fa:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
-800f14fd:	89 d0                	mov    %edx,%eax
-800f14ff:	29 c8                	sub    %ecx,%eax
-800f1501:	50                   	push   %eax
-800f1502:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
-800f1506:	0c 20                	or     $0x20,%al
-800f1508:	0f b7 c0             	movzwl %ax,%eax
-800f150b:	50                   	push   %eax
-800f150c:	0f af 53 20          	imul   0x20(%ebx),%edx
-800f1510:	8b 43 14             	mov    0x14(%ebx),%eax
-800f1513:	8d 14 50             	lea    (%eax,%edx,2),%edx
-800f1516:	8d 0c 4a             	lea    (%edx,%ecx,2),%ecx
-800f1519:	51                   	push   %ecx
-800f151a:	e8 e1 fa ff ff       	call   800f1000 <_memset16__FPUsUsUi>
-/mn/src/drivers/tty/tty.cpp:243
-800f151f:	e9 cc 00 00 00       	jmp    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-/mn/src/drivers/tty/tty.cpp:246
-800f1524:	31 f6                	xor    %esi,%esi
-800f1526:	39 fe                	cmp    %edi,%esi
-800f1528:	0f 83 c2 00 00 00    	jae    800f15f0 <_doEscape__3ttycUiPCUi+0x308>
-800f152e:	89 f6                	mov    %esi,%esi
+800f14d9:	8b 43 30             	mov    0x30(%ebx),%eax
+800f14dc:	89 43 20             	mov    %eax,0x20(%ebx)
+/mn/src/drivers/tty/tty.cpp:234
+800f14df:	53                   	push   %ebx
+800f14e0:	e8 b3 fb ff ff       	call   800f1098 <_updateCursor__3tty>
+/mn/src/drivers/tty/tty.cpp:235
+800f14e5:	e9 0e 01 00 00       	jmp    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f14ea:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.cpp:238
+800f14ec:	83 c4 f4             	add    $0xfffffff4,%esp
+800f14ef:	53                   	push   %ebx
+800f14f0:	e8 ab fd ff ff       	call   800f12a0 <_clear__3tty>
+/mn/src/drivers/tty/tty.cpp:239
+800f14f5:	e9 fe 00 00 00       	jmp    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f14fa:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.cpp:244
+800f14fc:	8b 53 24             	mov    0x24(%ebx),%edx
+800f14ff:	83 c4 fc             	add    $0xfffffffc,%esp
+800f1502:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+800f1505:	89 d0                	mov    %edx,%eax
+800f1507:	29 c8                	sub    %ecx,%eax
+800f1509:	50                   	push   %eax
+800f150a:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
+800f150e:	0c 20                	or     $0x20,%al
+800f1510:	0f b7 c0             	movzwl %ax,%eax
+800f1513:	50                   	push   %eax
+800f1514:	0f af 53 20          	imul   0x20(%ebx),%edx
+800f1518:	8b 43 14             	mov    0x14(%ebx),%eax
+800f151b:	8d 14 50             	lea    (%eax,%edx,2),%edx
+800f151e:	8d 0c 4a             	lea    (%edx,%ecx,2),%ecx
+800f1521:	51                   	push   %ecx
+800f1522:	e8 d9 fa ff ff       	call   800f1000 <_memset16__FPUsUsUi>
+/mn/src/drivers/tty/tty.cpp:245
+800f1527:	e9 cc 00 00 00       	jmp    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
 /mn/src/drivers/tty/tty.cpp:248
-800f1530:	8b 55 14             	mov    0x14(%ebp),%edx
-800f1533:	8b 04 b2             	mov    (%edx,%esi,4),%eax
-800f1536:	83 f8 07             	cmp    $0x7,%eax
-800f1539:	77 69                	ja     800f15a4 <_doEscape__3ttycUiPCUi+0x2bc>
+800f152c:	31 f6                	xor    %esi,%esi
+800f152e:	39 fe                	cmp    %edi,%esi
+800f1530:	0f 83 c2 00 00 00    	jae    800f15f8 <_doEscape__3ttycUiPCUi+0x308>
+800f1536:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:250
-800f153b:	83 f8 08             	cmp    $0x8,%eax
-800f153e:	0f 87 a3 00 00 00    	ja     800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
-800f1544:	ff 24 85 4c 15 0f 80 	jmp    *0x800f154c(,%eax,4)
-800f154b:	90                   	nop    
-800f154c:	70 15                	jo     800f1563 <_doEscape__3ttycUiPCUi+0x27b>
-800f154e:	0f 80 78 15 0f 80    	jo     1e2acc <__size_of_heap_reserve__+0xe2acc>
-800f1554:	e7 15                	out    %eax,$0x15
-800f1556:	0f 80 e7 15 0f 80    	jo     1e2b43 <__size_of_heap_reserve__+0xe2b43>
-800f155c:	e7 15                	out    %eax,$0x15
-800f155e:	0f 80 80 15 0f 80    	jo     1e2ae4 <__size_of_heap_reserve__+0xe2ae4>
-800f1564:	e7 15                	out    %eax,$0x15
-800f1566:	0f 80 88 15 0f 80    	jo     1e2af4 <__size_of_heap_reserve__+0xe2af4>
-800f156c:	9c                   	pushf  
-800f156d:	15 0f 80 66 81       	adc    $0x8166800f,%eax
-/mn/src/drivers/tty/tty.cpp:253
-800f1572:	63 18                	arpl   %bx,(%eax)
-800f1574:	00 77 eb             	add    %dh,0xffffffeb(%edi)
-/mn/src/drivers/tty/tty.cpp:254
-800f1577:	6f                   	outsl  %ds:(%esi),(%dx)
+800f1538:	8b 55 14             	mov    0x14(%ebp),%edx
+800f153b:	8b 04 b2             	mov    (%edx,%esi,4),%eax
+800f153e:	83 f8 07             	cmp    $0x7,%eax
+800f1541:	77 69                	ja     800f15ac <_doEscape__3ttycUiPCUi+0x2bc>
+/mn/src/drivers/tty/tty.cpp:252
+800f1543:	83 f8 08             	cmp    $0x8,%eax
+800f1546:	0f 87 a3 00 00 00    	ja     800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
+800f154c:	ff 24 85 54 15 0f 80 	jmp    *0x800f1554(,%eax,4)
+800f1553:	90                   	nop    
+800f1554:	78 15                	js     800f156b <_doEscape__3ttycUiPCUi+0x27b>
+800f1556:	0f 80 80 15 0f 80    	jo     1e2adc <__size_of_heap_reserve__+0xe2adc>
+800f155c:	ef                   	out    %eax,(%dx)
+800f155d:	15 0f 80 ef 15       	adc    $0x15ef800f,%eax
+800f1562:	0f 80 ef 15 0f 80    	jo     1e2b57 <__size_of_heap_reserve__+0xe2b57>
+800f1568:	88 15 0f 80 ef 15    	mov    %dl,0x15ef800f
+800f156e:	0f 80 90 15 0f 80    	jo     1e2b04 <__size_of_heap_reserve__+0xe2b04>
+800f1574:	a4                   	movsb  %ds:(%esi),%es:(%edi)
+800f1575:	15 0f 80 66 81       	adc    $0x8166800f,%eax
+/mn/src/drivers/tty/tty.cpp:255
+800f157a:	63 18                	arpl   %bx,(%eax)
+800f157c:	00 77 eb             	add    %dh,0xffffffeb(%edi)
 /mn/src/drivers/tty/tty.cpp:256
-800f1578:	80 4b 19 08          	orb    $0x8,0x19(%ebx)
-/mn/src/drivers/tty/tty.cpp:257
-800f157c:	eb 69                	jmp    800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
-800f157e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:261
-800f1580:	80 4b 19 80          	orb    $0x80,0x19(%ebx)
-/mn/src/drivers/tty/tty.cpp:262
-800f1584:	eb 61                	jmp    800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
+800f157f:	6f                   	outsl  %ds:(%esi),(%dx)
+/mn/src/drivers/tty/tty.cpp:258
+800f1580:	80 4b 19 08          	orb    $0x8,0x19(%ebx)
+/mn/src/drivers/tty/tty.cpp:259
+800f1584:	eb 69                	jmp    800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
 800f1586:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/tty/tty.cpp:265
-800f1588:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
-800f158c:	66 c1 c0 08          	rol    $0x8,%ax
-800f1590:	83 e0 0f             	and    $0xf,%eax
-800f1593:	66 89 43 18          	mov    %ax,0x18(%ebx)
-/mn/src/drivers/tty/tty.cpp:266
-800f1597:	eb 4e                	jmp    800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
-800f1599:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:269
-800f159c:	66 81 63 18 00 0f    	andw   $0xf00,0x18(%ebx)
-/mn/src/drivers/tty/tty.cpp:270
-800f15a2:	eb 43                	jmp    800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
-/mn/src/drivers/tty/tty.cpp:273
-800f15a4:	8d 48 e2             	lea    0xffffffe2(%eax),%ecx
-800f15a7:	83 f9 07             	cmp    $0x7,%ecx
-800f15aa:	77 18                	ja     800f15c4 <_doEscape__3ttycUiPCUi+0x2dc>
-/mn/src/drivers/tty/tty.cpp:276
-800f15ac:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
-800f15b0:	66 0f be 81 de 12 0f 	movsbw 0x800f12de(%ecx),%ax
-800f15b7:	80 
-800f15b8:	81 e2 00 f0 ff ff    	and    $0xfffff000,%edx
-800f15be:	c1 e0 08             	shl    $0x8,%eax
-800f15c1:	eb 1e                	jmp    800f15e1 <_doEscape__3ttycUiPCUi+0x2f9>
-800f15c3:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:277
-800f15c4:	83 c0 d8             	add    $0xffffffd8,%eax
-800f15c7:	83 f8 07             	cmp    $0x7,%eax
-800f15ca:	77 1b                	ja     800f15e7 <_doEscape__3ttycUiPCUi+0x2ff>
-/mn/src/drivers/tty/tty.cpp:280
-800f15cc:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
-800f15d0:	66 0f be 80 de 12 0f 	movsbw 0x800f12de(%eax),%ax
-800f15d7:	80 
-800f15d8:	81 e2 00 0f 00 00    	and    $0xf00,%edx
-800f15de:	c1 e0 0c             	shl    $0xc,%eax
-800f15e1:	09 c2                	or     %eax,%edx
-800f15e3:	66 89 53 18          	mov    %dx,0x18(%ebx)
-/mn/src/drivers/tty/tty.cpp:281
-800f15e7:	46                   	inc    %esi
-800f15e8:	39 fe                	cmp    %edi,%esi
-800f15ea:	0f 82 40 ff ff ff    	jb     800f1530 <_doEscape__3ttycUiPCUi+0x248>
-/mn/src/drivers/tty/tty.cpp:288
-800f15f0:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f15f3:	5b                   	pop    %ebx
-800f15f4:	5e                   	pop    %esi
-800f15f5:	5f                   	pop    %edi
-800f15f6:	89 ec                	mov    %ebp,%esp
-800f15f8:	5d                   	pop    %ebp
-800f15f9:	c3                   	ret    
-800f15fa:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.cpp:263
+800f1588:	80 4b 19 80          	orb    $0x80,0x19(%ebx)
+/mn/src/drivers/tty/tty.cpp:264
+800f158c:	eb 61                	jmp    800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
+800f158e:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/tty/tty.cpp:267
+800f1590:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
+800f1594:	66 c1 c0 08          	rol    $0x8,%ax
+800f1598:	83 e0 0f             	and    $0xf,%eax
+800f159b:	66 89 43 18          	mov    %ax,0x18(%ebx)
+/mn/src/drivers/tty/tty.cpp:268
+800f159f:	eb 4e                	jmp    800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
+800f15a1:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:271
+800f15a4:	66 81 63 18 00 0f    	andw   $0xf00,0x18(%ebx)
+/mn/src/drivers/tty/tty.cpp:272
+800f15aa:	eb 43                	jmp    800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
+/mn/src/drivers/tty/tty.cpp:275
+800f15ac:	8d 48 e2             	lea    0xffffffe2(%eax),%ecx
+800f15af:	83 f9 07             	cmp    $0x7,%ecx
+800f15b2:	77 18                	ja     800f15cc <_doEscape__3ttycUiPCUi+0x2dc>
+/mn/src/drivers/tty/tty.cpp:278
+800f15b4:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
+800f15b8:	66 0f be 81 e6 12 0f 	movsbw 0x800f12e6(%ecx),%ax
+800f15bf:	80 
+800f15c0:	81 e2 00 f0 ff ff    	and    $0xfffff000,%edx
+800f15c6:	c1 e0 08             	shl    $0x8,%eax
+800f15c9:	eb 1e                	jmp    800f15e9 <_doEscape__3ttycUiPCUi+0x2f9>
+800f15cb:	90                   	nop    
+/mn/src/drivers/tty/tty.cpp:279
+800f15cc:	83 c0 d8             	add    $0xffffffd8,%eax
+800f15cf:	83 f8 07             	cmp    $0x7,%eax
+800f15d2:	77 1b                	ja     800f15ef <_doEscape__3ttycUiPCUi+0x2ff>
+/mn/src/drivers/tty/tty.cpp:282
+800f15d4:	0f b7 53 18          	movzwl 0x18(%ebx),%edx
+800f15d8:	66 0f be 80 e6 12 0f 	movsbw 0x800f12e6(%eax),%ax
+800f15df:	80 
+800f15e0:	81 e2 00 0f 00 00    	and    $0xf00,%edx
+800f15e6:	c1 e0 0c             	shl    $0xc,%eax
+800f15e9:	09 c2                	or     %eax,%edx
+800f15eb:	66 89 53 18          	mov    %dx,0x18(%ebx)
+/mn/src/drivers/tty/tty.cpp:283
+800f15ef:	46                   	inc    %esi
+800f15f0:	39 fe                	cmp    %edi,%esi
+800f15f2:	0f 82 40 ff ff ff    	jb     800f1538 <_doEscape__3ttycUiPCUi+0x248>
+/mn/src/drivers/tty/tty.cpp:290
+800f15f8:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f15fb:	5b                   	pop    %ebx
+800f15fc:	5e                   	pop    %esi
+800f15fd:	5f                   	pop    %edi
+800f15fe:	89 ec                	mov    %ebp,%esp
+800f1600:	5d                   	pop    %ebp
+800f1601:	c3                   	ret    
+800f1602:	89 f6                	mov    %esi,%esi
 
-800f15fc <_writeString__3ttyPCUwUi>:
+800f1604 <_writeString__3ttyPCUwUi>:
 writeString__3ttyPCUwUi():
-800f15fc:	55                   	push   %ebp
-800f15fd:	89 e5                	mov    %esp,%ebp
-800f15ff:	83 ec 0c             	sub    $0xc,%esp
-800f1602:	57                   	push   %edi
-800f1603:	56                   	push   %esi
-800f1604:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:293
-800f1605:	8b 75 08             	mov    0x8(%ebp),%esi
-800f1608:	8b 7d 0c             	mov    0xc(%ebp),%edi
-/mn/src/drivers/tty/tty.cpp:294
-800f160b:	89 7e 48             	mov    %edi,0x48(%esi)
+800f1604:	55                   	push   %ebp
+800f1605:	89 e5                	mov    %esp,%ebp
+800f1607:	83 ec 0c             	sub    $0xc,%esp
+800f160a:	57                   	push   %edi
+800f160b:	56                   	push   %esi
+800f160c:	53                   	push   %ebx
 /mn/src/drivers/tty/tty.cpp:295
-800f160e:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
+800f160d:	8b 75 08             	mov    0x8(%ebp),%esi
+800f1610:	8b 7d 0c             	mov    0xc(%ebp),%edi
 /mn/src/drivers/tty/tty.cpp:296
-800f1615:	83 7d 10 00          	cmpl   $0x0,0x10(%ebp)
-800f1619:	0f 84 01 02 00 00    	je     800f1820 <_writeString__3ttyPCUwUi+0x224>
+800f1613:	89 7e 48             	mov    %edi,0x48(%esi)
+/mn/src/drivers/tty/tty.cpp:297
+800f1616:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
 /mn/src/drivers/tty/tty.cpp:298
-800f161f:	8b 46 34             	mov    0x34(%esi),%eax
-800f1622:	83 f8 0a             	cmp    $0xa,%eax
-800f1625:	0f 87 e7 01 00 00    	ja     800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f162b:	ff 24 85 34 16 0f 80 	jmp    *0x800f1634(,%eax,4)
-800f1632:	89 f6                	mov    %esi,%esi
-800f1634:	60                   	pusha  
-800f1635:	16                   	push   %ss
-800f1636:	0f 80 64 17 0f 80    	jo     1e2da0 <__size_of_heap_reserve__+0xe2da0>
-800f163c:	90                   	nop    
-800f163d:	17                   	pop    %ss
-800f163e:	0f 80 90 17 0f 80    	jo     1e2dd4 <__size_of_heap_reserve__+0xe2dd4>
-800f1644:	90                   	nop    
-800f1645:	17                   	pop    %ss
-800f1646:	0f 80 12 18 0f 80    	jo     1e2e5e <__size_of_heap_reserve__+0xe2e5e>
-800f164c:	12 18                	adc    (%eax),%bl
-800f164e:	0f 80 12 18 0f 80    	jo     1e2e66 <__size_of_heap_reserve__+0xe2e66>
-800f1654:	12 18                	adc    (%eax),%bl
-800f1656:	0f 80 12 18 0f 80    	jo     1e2e6e <__size_of_heap_reserve__+0xe2e6e>
-800f165c:	e8 17 0f 80 0f       	call   8f8f2578 <.stab+0xf7faaf0>
-/mn/src/drivers/tty/tty.cpp:301
-800f1661:	b7 07                	mov    $0x7,%bh
-800f1663:	83 f8 09             	cmp    $0x9,%eax
-800f1666:	74 34                	je     800f169c <_writeString__3ttyPCUwUi+0xa0>
-800f1668:	7f 0e                	jg     800f1678 <_writeString__3ttyPCUwUi+0x7c>
-800f166a:	83 f8 08             	cmp    $0x8,%eax
-800f166d:	0f 84 95 00 00 00    	je     800f1708 <_writeString__3ttyPCUwUi+0x10c>
-800f1673:	e9 c4 00 00 00       	jmp    800f173c <_writeString__3ttyPCUwUi+0x140>
-800f1678:	83 f8 0a             	cmp    $0xa,%eax
-800f167b:	74 5f                	je     800f16dc <_writeString__3ttyPCUwUi+0xe0>
-800f167d:	83 f8 1b             	cmp    $0x1b,%eax
-800f1680:	0f 85 b6 00 00 00    	jne    800f173c <_writeString__3ttyPCUwUi+0x140>
-/mn/src/drivers/tty/tty.cpp:304
-800f1686:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1689:	56                   	push   %esi
-800f168a:	e8 45 fb ff ff       	call   800f11d4 <_flush__3tty>
-/mn/src/drivers/tty/tty.cpp:305
-800f168f:	ff 46 34             	incl   0x34(%esi)
+800f161d:	83 7d 10 00          	cmpl   $0x0,0x10(%ebp)
+800f1621:	0f 84 01 02 00 00    	je     800f1828 <_writeString__3ttyPCUwUi+0x224>
+/mn/src/drivers/tty/tty.cpp:300
+800f1627:	8b 46 34             	mov    0x34(%esi),%eax
+800f162a:	83 f8 0a             	cmp    $0xa,%eax
+800f162d:	0f 87 e7 01 00 00    	ja     800f181a <_writeString__3ttyPCUwUi+0x216>
+800f1633:	ff 24 85 3c 16 0f 80 	jmp    *0x800f163c(,%eax,4)
+800f163a:	89 f6                	mov    %esi,%esi
+800f163c:	68 16 0f 80 6c       	push   $0x6c800f16
+800f1641:	17                   	pop    %ss
+800f1642:	0f 80 98 17 0f 80    	jo     1e2de0 <__size_of_heap_reserve__+0xe2de0>
+800f1648:	98                   	cwtl   
+800f1649:	17                   	pop    %ss
+800f164a:	0f 80 98 17 0f 80    	jo     1e2de8 <__size_of_heap_reserve__+0xe2de8>
+800f1650:	1a 18                	sbb    (%eax),%bl
+800f1652:	0f 80 1a 18 0f 80    	jo     1e2e72 <__size_of_heap_reserve__+0xe2e72>
+800f1658:	1a 18                	sbb    (%eax),%bl
+800f165a:	0f 80 1a 18 0f 80    	jo     1e2e7a <__size_of_heap_reserve__+0xe2e7a>
+800f1660:	1a 18                	sbb    (%eax),%bl
+800f1662:	0f 80 f0 17 0f 80    	jo     1e2e58 <__size_of_heap_reserve__+0xe2e58>
+/mn/src/drivers/tty/tty.cpp:303
+800f1668:	0f b7 07             	movzwl (%edi),%eax
+800f166b:	83 f8 09             	cmp    $0x9,%eax
+800f166e:	74 34                	je     800f16a4 <_writeString__3ttyPCUwUi+0xa0>
+800f1670:	7f 0e                	jg     800f1680 <_writeString__3ttyPCUwUi+0x7c>
+800f1672:	83 f8 08             	cmp    $0x8,%eax
+800f1675:	0f 84 95 00 00 00    	je     800f1710 <_writeString__3ttyPCUwUi+0x10c>
+800f167b:	e9 c4 00 00 00       	jmp    800f1744 <_writeString__3ttyPCUwUi+0x140>
+800f1680:	83 f8 0a             	cmp    $0xa,%eax
+800f1683:	74 5f                	je     800f16e4 <_writeString__3ttyPCUwUi+0xe0>
+800f1685:	83 f8 1b             	cmp    $0x1b,%eax
+800f1688:	0f 85 b6 00 00 00    	jne    800f1744 <_writeString__3ttyPCUwUi+0x140>
 /mn/src/drivers/tty/tty.cpp:306
-800f1692:	83 c4 10             	add    $0x10,%esp
-800f1695:	e9 78 01 00 00       	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f169a:	89 f6                	mov    %esi,%esi
+800f168e:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1691:	56                   	push   %esi
+800f1692:	e8 45 fb ff ff       	call   800f11dc <_flush__3tty>
+/mn/src/drivers/tty/tty.cpp:307
+800f1697:	ff 46 34             	incl   0x34(%esi)
 /mn/src/drivers/tty/tty.cpp:308
-800f169c:	83 c4 f4             	add    $0xfffffff4,%esp
-800f169f:	56                   	push   %esi
-800f16a0:	e8 2f fb ff ff       	call   800f11d4 <_flush__3tty>
-/mn/src/drivers/tty/tty.cpp:309
-800f16a5:	8d 47 02             	lea    0x2(%edi),%eax
-/mn/src/drivers/tty/tty.cpp:311
-800f16a8:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/tty/tty.cpp:309
-800f16ab:	89 46 48             	mov    %eax,0x48(%esi)
+800f169a:	83 c4 10             	add    $0x10,%esp
+800f169d:	e9 78 01 00 00       	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f16a2:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:310
-800f16ae:	8b 46 1c             	mov    0x1c(%esi),%eax
-800f16b1:	83 c0 04             	add    $0x4,%eax
-800f16b4:	24 fc                	and    $0xfc,%al
-800f16b6:	89 46 1c             	mov    %eax,0x1c(%esi)
+800f16a4:	83 c4 f4             	add    $0xfffffff4,%esp
+800f16a7:	56                   	push   %esi
+800f16a8:	e8 2f fb ff ff       	call   800f11dc <_flush__3tty>
 /mn/src/drivers/tty/tty.cpp:311
-800f16b9:	3b 46 24             	cmp    0x24(%esi),%eax
-800f16bc:	72 16                	jb     800f16d4 <_writeString__3ttyPCUwUi+0xd8>
-/mn/src/drivers/tty/tty.cpp:315
-800f16be:	83 c4 f4             	add    $0xfffffff4,%esp
+800f16ad:	8d 47 02             	lea    0x2(%edi),%eax
 /mn/src/drivers/tty/tty.cpp:313
-800f16c1:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
-/mn/src/drivers/tty/tty.cpp:314
-800f16c8:	ff 46 20             	incl   0x20(%esi)
-/mn/src/drivers/tty/tty.cpp:315
-800f16cb:	56                   	push   %esi
-800f16cc:	e8 83 fa ff ff       	call   800f1154 <_scroll__3tty>
-800f16d1:	83 c4 10             	add    $0x10,%esp
+800f16b0:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:311
+800f16b3:	89 46 48             	mov    %eax,0x48(%esi)
+/mn/src/drivers/tty/tty.cpp:312
+800f16b6:	8b 46 1c             	mov    0x1c(%esi),%eax
+800f16b9:	83 c0 04             	add    $0x4,%eax
+800f16bc:	24 fc                	and    $0xfc,%al
+800f16be:	89 46 1c             	mov    %eax,0x1c(%esi)
+/mn/src/drivers/tty/tty.cpp:313
+800f16c1:	3b 46 24             	cmp    0x24(%esi),%eax
+800f16c4:	72 16                	jb     800f16dc <_writeString__3ttyPCUwUi+0xd8>
 /mn/src/drivers/tty/tty.cpp:317
-800f16d4:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:318
-800f16d7:	eb 53                	jmp    800f172c <_writeString__3ttyPCUwUi+0x130>
-800f16d9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:320
+800f16c6:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:315
+800f16c9:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
+/mn/src/drivers/tty/tty.cpp:316
+800f16d0:	ff 46 20             	incl   0x20(%esi)
+/mn/src/drivers/tty/tty.cpp:317
+800f16d3:	56                   	push   %esi
+800f16d4:	e8 83 fa ff ff       	call   800f115c <_scroll__3tty>
+800f16d9:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:319
 800f16dc:	83 c4 f4             	add    $0xfffffff4,%esp
-800f16df:	56                   	push   %esi
-800f16e0:	e8 ef fa ff ff       	call   800f11d4 <_flush__3tty>
-/mn/src/drivers/tty/tty.cpp:321
-800f16e5:	8d 57 02             	lea    0x2(%edi),%edx
-/mn/src/drivers/tty/tty.cpp:324
-800f16e8:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:321
-800f16eb:	89 56 48             	mov    %edx,0x48(%esi)
-/mn/src/drivers/tty/tty.cpp:323
-800f16ee:	ff 46 20             	incl   0x20(%esi)
+/mn/src/drivers/tty/tty.cpp:320
+800f16df:	eb 53                	jmp    800f1734 <_writeString__3ttyPCUwUi+0x130>
+800f16e1:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/tty/tty.cpp:322
-800f16f1:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
-/mn/src/drivers/tty/tty.cpp:324
-800f16f8:	56                   	push   %esi
-800f16f9:	e8 56 fa ff ff       	call   800f1154 <_scroll__3tty>
-/mn/src/drivers/tty/tty.cpp:325
-800f16fe:	83 c4 20             	add    $0x20,%esp
-800f1701:	83 c4 f4             	add    $0xfffffff4,%esp
+800f16e4:	83 c4 f4             	add    $0xfffffff4,%esp
+800f16e7:	56                   	push   %esi
+800f16e8:	e8 ef fa ff ff       	call   800f11dc <_flush__3tty>
+/mn/src/drivers/tty/tty.cpp:323
+800f16ed:	8d 57 02             	lea    0x2(%edi),%edx
 /mn/src/drivers/tty/tty.cpp:326
-800f1704:	eb 26                	jmp    800f172c <_writeString__3ttyPCUwUi+0x130>
-800f1706:	89 f6                	mov    %esi,%esi
+800f16f0:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:323
+800f16f3:	89 56 48             	mov    %edx,0x48(%esi)
+/mn/src/drivers/tty/tty.cpp:325
+800f16f6:	ff 46 20             	incl   0x20(%esi)
+/mn/src/drivers/tty/tty.cpp:324
+800f16f9:	c7 46 1c 00 00 00 00 	movl   $0x0,0x1c(%esi)
+/mn/src/drivers/tty/tty.cpp:326
+800f1700:	56                   	push   %esi
+800f1701:	e8 56 fa ff ff       	call   800f115c <_scroll__3tty>
+/mn/src/drivers/tty/tty.cpp:327
+800f1706:	83 c4 20             	add    $0x20,%esp
+800f1709:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/tty/tty.cpp:328
-800f1708:	83 c4 f4             	add    $0xfffffff4,%esp
-800f170b:	56                   	push   %esi
-800f170c:	e8 c3 fa ff ff       	call   800f11d4 <_flush__3tty>
-/mn/src/drivers/tty/tty.cpp:329
-800f1711:	8d 47 02             	lea    0x2(%edi),%eax
+800f170c:	eb 26                	jmp    800f1734 <_writeString__3ttyPCUwUi+0x130>
+800f170e:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:330
-800f1714:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/tty/tty.cpp:329
-800f1717:	89 46 48             	mov    %eax,0x48(%esi)
-/mn/src/drivers/tty/tty.cpp:330
-800f171a:	8b 46 1c             	mov    0x1c(%esi),%eax
-800f171d:	85 c0                	test   %eax,%eax
-800f171f:	0f 84 ed 00 00 00    	je     800f1812 <_writeString__3ttyPCUwUi+0x216>
+800f1710:	83 c4 f4             	add    $0xfffffff4,%esp
+800f1713:	56                   	push   %esi
+800f1714:	e8 c3 fa ff ff       	call   800f11dc <_flush__3tty>
+/mn/src/drivers/tty/tty.cpp:331
+800f1719:	8d 47 02             	lea    0x2(%edi),%eax
 /mn/src/drivers/tty/tty.cpp:332
-800f1725:	48                   	dec    %eax
-/mn/src/drivers/tty/tty.cpp:333
-800f1726:	83 c4 f4             	add    $0xfffffff4,%esp
+800f171c:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:331
+800f171f:	89 46 48             	mov    %eax,0x48(%esi)
 /mn/src/drivers/tty/tty.cpp:332
-800f1729:	89 46 1c             	mov    %eax,0x1c(%esi)
-/mn/src/drivers/tty/tty.cpp:333
-800f172c:	56                   	push   %esi
-800f172d:	e8 5e f9 ff ff       	call   800f1090 <_updateCursor__3tty>
-800f1732:	83 c4 10             	add    $0x10,%esp
+800f1722:	8b 46 1c             	mov    0x1c(%esi),%eax
+800f1725:	85 c0                	test   %eax,%eax
+800f1727:	0f 84 ed 00 00 00    	je     800f181a <_writeString__3ttyPCUwUi+0x216>
+/mn/src/drivers/tty/tty.cpp:334
+800f172d:	48                   	dec    %eax
 /mn/src/drivers/tty/tty.cpp:335
-800f1735:	e9 d8 00 00 00       	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f173a:	89 f6                	mov    %esi,%esi
+800f172e:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/tty/tty.cpp:334
+800f1731:	89 46 1c             	mov    %eax,0x1c(%esi)
+/mn/src/drivers/tty/tty.cpp:335
+800f1734:	56                   	push   %esi
+800f1735:	e8 5e f9 ff ff       	call   800f1098 <_updateCursor__3tty>
+800f173a:	83 c4 10             	add    $0x10,%esp
 /mn/src/drivers/tty/tty.cpp:337
-800f173c:	8b 46 4c             	mov    0x4c(%esi),%eax
-800f173f:	8d 50 01             	lea    0x1(%eax),%edx
-800f1742:	89 56 4c             	mov    %edx,0x4c(%esi)
-/mn/src/drivers/tty/tty.cpp:338
-800f1745:	89 d0                	mov    %edx,%eax
-800f1747:	83 f8 4f             	cmp    $0x4f,%eax
-800f174a:	0f 86 c2 00 00 00    	jbe    800f1812 <_writeString__3ttyPCUwUi+0x216>
+800f173d:	e9 d8 00 00 00       	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f1742:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/tty/tty.cpp:339
-800f1750:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1753:	56                   	push   %esi
-800f1754:	e8 7b fa ff ff       	call   800f11d4 <_flush__3tty>
-800f1759:	83 c4 10             	add    $0x10,%esp
+800f1744:	8b 46 4c             	mov    0x4c(%esi),%eax
+800f1747:	8d 50 01             	lea    0x1(%eax),%edx
+800f174a:	89 56 4c             	mov    %edx,0x4c(%esi)
+/mn/src/drivers/tty/tty.cpp:340
+800f174d:	89 d0                	mov    %edx,%eax
+800f174f:	83 f8 4f             	cmp    $0x4f,%eax
+800f1752:	0f 86 c2 00 00 00    	jbe    800f181a <_writeString__3ttyPCUwUi+0x216>
 /mn/src/drivers/tty/tty.cpp:341
-800f175c:	e9 b1 00 00 00       	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f1761:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:344
-800f1764:	66 83 3f 5b          	cmpw   $0x5b,(%edi)
-800f1768:	75 1a                	jne    800f1784 <_writeString__3ttyPCUwUi+0x188>
+800f1758:	83 c4 f4             	add    $0xfffffff4,%esp
+800f175b:	56                   	push   %esi
+800f175c:	e8 7b fa ff ff       	call   800f11dc <_flush__3tty>
+800f1761:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:343
+800f1764:	e9 b1 00 00 00       	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f1769:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/tty/tty.cpp:346
-800f176a:	40                   	inc    %eax
-/mn/src/drivers/tty/tty.cpp:347
-800f176b:	c7 46 44 00 00 00 00 	movl   $0x0,0x44(%esi)
-/mn/src/drivers/tty/tty.cpp:346
-800f1772:	89 46 34             	mov    %eax,0x34(%esi)
+800f176c:	66 83 3f 5b          	cmpw   $0x5b,(%edi)
+800f1770:	75 1a                	jne    800f178c <_writeString__3ttyPCUwUi+0x188>
 /mn/src/drivers/tty/tty.cpp:348
-800f1775:	c7 46 38 00 00 00 00 	movl   $0x0,0x38(%esi)
-800f177c:	e9 91 00 00 00       	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f1781:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:352
-800f1784:	c7 46 34 00 00 00 00 	movl   $0x0,0x34(%esi)
-/mn/src/drivers/tty/tty.cpp:353
-800f178b:	e9 85 fe ff ff       	jmp    800f1615 <_writeString__3ttyPCUwUi+0x19>
-/mn/src/drivers/tty/tty.cpp:360
-800f1790:	0f b7 17             	movzwl (%edi),%edx
-800f1793:	8d 42 d0             	lea    0xffffffd0(%edx),%eax
-800f1796:	66 83 f8 09          	cmp    $0x9,%ax
-800f179a:	77 1c                	ja     800f17b8 <_writeString__3ttyPCUwUi+0x1bc>
+800f1772:	40                   	inc    %eax
+/mn/src/drivers/tty/tty.cpp:349
+800f1773:	c7 46 44 00 00 00 00 	movl   $0x0,0x44(%esi)
+/mn/src/drivers/tty/tty.cpp:348
+800f177a:	89 46 34             	mov    %eax,0x34(%esi)
+/mn/src/drivers/tty/tty.cpp:350
+800f177d:	c7 46 38 00 00 00 00 	movl   $0x0,0x38(%esi)
+800f1784:	e9 91 00 00 00       	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f1789:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:354
+800f178c:	c7 46 34 00 00 00 00 	movl   $0x0,0x34(%esi)
+/mn/src/drivers/tty/tty.cpp:355
+800f1793:	e9 85 fe ff ff       	jmp    800f161d <_writeString__3ttyPCUwUi+0x19>
 /mn/src/drivers/tty/tty.cpp:362
-800f179c:	8b 5e 44             	mov    0x44(%esi),%ebx
-800f179f:	8d 4e 38             	lea    0x38(%esi),%ecx
-800f17a2:	c1 e3 02             	shl    $0x2,%ebx
-800f17a5:	0f b7 d2             	movzwl %dx,%edx
-800f17a8:	8b 04 0b             	mov    (%ebx,%ecx,1),%eax
-800f17ab:	8d 04 80             	lea    (%eax,%eax,4),%eax
-800f17ae:	8d 44 42 d0          	lea    0xffffffd0(%edx,%eax,2),%eax
-800f17b2:	89 04 0b             	mov    %eax,(%ebx,%ecx,1)
-800f17b5:	eb 5b                	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f17b7:	90                   	nop    
+800f1798:	0f b7 17             	movzwl (%edi),%edx
+800f179b:	8d 42 d0             	lea    0xffffffd0(%edx),%eax
+800f179e:	66 83 f8 09          	cmp    $0x9,%ax
+800f17a2:	77 1c                	ja     800f17c0 <_writeString__3ttyPCUwUi+0x1bc>
 /mn/src/drivers/tty/tty.cpp:364
-800f17b8:	66 83 fa 3b          	cmp    $0x3b,%dx
-800f17bc:	75 1e                	jne    800f17dc <_writeString__3ttyPCUwUi+0x1e0>
-800f17be:	8b 46 44             	mov    0x44(%esi),%eax
-800f17c1:	83 f8 01             	cmp    $0x1,%eax
-800f17c4:	77 16                	ja     800f17dc <_writeString__3ttyPCUwUi+0x1e0>
+800f17a4:	8b 5e 44             	mov    0x44(%esi),%ebx
+800f17a7:	8d 4e 38             	lea    0x38(%esi),%ecx
+800f17aa:	c1 e3 02             	shl    $0x2,%ebx
+800f17ad:	0f b7 d2             	movzwl %dx,%edx
+800f17b0:	8b 04 0b             	mov    (%ebx,%ecx,1),%eax
+800f17b3:	8d 04 80             	lea    (%eax,%eax,4),%eax
+800f17b6:	8d 44 42 d0          	lea    0xffffffd0(%edx,%eax,2),%eax
+800f17ba:	89 04 0b             	mov    %eax,(%ebx,%ecx,1)
+800f17bd:	eb 5b                	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f17bf:	90                   	nop    
 /mn/src/drivers/tty/tty.cpp:366
-800f17c6:	8d 50 01             	lea    0x1(%eax),%edx
-800f17c9:	89 56 44             	mov    %edx,0x44(%esi)
-/mn/src/drivers/tty/tty.cpp:367
-800f17cc:	c7 44 86 3c 00 00 00 	movl   $0x0,0x3c(%esi,%eax,4)
-800f17d3:	00 
+800f17c0:	66 83 fa 3b          	cmp    $0x3b,%dx
+800f17c4:	75 1e                	jne    800f17e4 <_writeString__3ttyPCUwUi+0x1e0>
+800f17c6:	8b 46 44             	mov    0x44(%esi),%eax
+800f17c9:	83 f8 01             	cmp    $0x1,%eax
+800f17cc:	77 16                	ja     800f17e4 <_writeString__3ttyPCUwUi+0x1e0>
 /mn/src/drivers/tty/tty.cpp:368
-800f17d4:	ff 46 34             	incl   0x34(%esi)
-800f17d7:	eb 39                	jmp    800f1812 <_writeString__3ttyPCUwUi+0x216>
-800f17d9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:372
-800f17dc:	c7 46 34 0a 00 00 00 	movl   $0xa,0x34(%esi)
-/mn/src/drivers/tty/tty.cpp:373
-800f17e3:	e9 2d fe ff ff       	jmp    800f1615 <_writeString__3ttyPCUwUi+0x19>
-/mn/src/drivers/tty/tty.cpp:383
-800f17e8:	8d 46 38             	lea    0x38(%esi),%eax
-800f17eb:	50                   	push   %eax
-800f17ec:	8b 46 44             	mov    0x44(%esi),%eax
-800f17ef:	40                   	inc    %eax
-800f17f0:	50                   	push   %eax
-800f17f1:	0f be 07             	movsbl (%edi),%eax
-800f17f4:	50                   	push   %eax
-800f17f5:	56                   	push   %esi
-800f17f6:	e8 ed fa ff ff       	call   800f12e8 <_doEscape__3ttycUiPCUi>
+800f17ce:	8d 50 01             	lea    0x1(%eax),%edx
+800f17d1:	89 56 44             	mov    %edx,0x44(%esi)
+/mn/src/drivers/tty/tty.cpp:369
+800f17d4:	c7 44 86 3c 00 00 00 	movl   $0x0,0x3c(%esi,%eax,4)
+800f17db:	00 
+/mn/src/drivers/tty/tty.cpp:370
+800f17dc:	ff 46 34             	incl   0x34(%esi)
+800f17df:	eb 39                	jmp    800f181a <_writeString__3ttyPCUwUi+0x216>
+800f17e1:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:374
+800f17e4:	c7 46 34 0a 00 00 00 	movl   $0xa,0x34(%esi)
+/mn/src/drivers/tty/tty.cpp:375
+800f17eb:	e9 2d fe ff ff       	jmp    800f161d <_writeString__3ttyPCUwUi+0x19>
 /mn/src/drivers/tty/tty.cpp:385
-800f17fb:	8d 47 02             	lea    0x2(%edi),%eax
-/mn/src/drivers/tty/tty.cpp:384
-800f17fe:	c7 46 34 00 00 00 00 	movl   $0x0,0x34(%esi)
-/mn/src/drivers/tty/tty.cpp:385
-800f1805:	89 46 48             	mov    %eax,0x48(%esi)
+800f17f0:	8d 46 38             	lea    0x38(%esi),%eax
+800f17f3:	50                   	push   %eax
+800f17f4:	8b 46 44             	mov    0x44(%esi),%eax
+800f17f7:	40                   	inc    %eax
+800f17f8:	50                   	push   %eax
+800f17f9:	0f be 07             	movsbl (%edi),%eax
+800f17fc:	50                   	push   %eax
+800f17fd:	56                   	push   %esi
+800f17fe:	e8 ed fa ff ff       	call   800f12f0 <_doEscape__3ttycUiPCUi>
 /mn/src/drivers/tty/tty.cpp:387
-800f1808:	83 c4 10             	add    $0x10,%esp
+800f1803:	8d 47 02             	lea    0x2(%edi),%eax
 /mn/src/drivers/tty/tty.cpp:386
-800f180b:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
-/mn/src/drivers/tty/tty.cpp:391
-800f1812:	ff 4d 10             	decl   0x10(%ebp)
-/mn/src/drivers/tty/tty.cpp:390
-800f1815:	83 c7 02             	add    $0x2,%edi
-/mn/src/drivers/tty/tty.cpp:391
-800f1818:	e9 f8 fd ff ff       	jmp    800f1615 <_writeString__3ttyPCUwUi+0x19>
-800f181d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/tty/tty.cpp:394
-800f1820:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1823:	56                   	push   %esi
-800f1824:	e8 ab f9 ff ff       	call   800f11d4 <_flush__3tty>
-800f1829:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800f182c:	5b                   	pop    %ebx
-800f182d:	5e                   	pop    %esi
-800f182e:	5f                   	pop    %edi
-800f182f:	89 ec                	mov    %ebp,%esp
-800f1831:	5d                   	pop    %ebp
-800f1832:	c3                   	ret    
-800f1833:	90                   	nop    
+800f1806:	c7 46 34 00 00 00 00 	movl   $0x0,0x34(%esi)
+/mn/src/drivers/tty/tty.cpp:387
+800f180d:	89 46 48             	mov    %eax,0x48(%esi)
+/mn/src/drivers/tty/tty.cpp:389
+800f1810:	83 c4 10             	add    $0x10,%esp
+/mn/src/drivers/tty/tty.cpp:388
+800f1813:	c7 46 4c 00 00 00 00 	movl   $0x0,0x4c(%esi)
+/mn/src/drivers/tty/tty.cpp:393
+800f181a:	ff 4d 10             	decl   0x10(%ebp)
+/mn/src/drivers/tty/tty.cpp:392
+800f181d:	83 c7 02             	add    $0x2,%edi
+/mn/src/drivers/tty/tty.cpp:393
+800f1820:	e9 f8 fd ff ff       	jmp    800f161d <_writeString__3ttyPCUwUi+0x19>
+800f1825:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:396
+800f1828:	83 c4 f4             	add    $0xfffffff4,%esp
+800f182b:	56                   	push   %esi
+800f182c:	e8 ab f9 ff ff       	call   800f11dc <_flush__3tty>
+800f1831:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+800f1834:	5b                   	pop    %ebx
+800f1835:	5e                   	pop    %esi
+800f1836:	5f                   	pop    %edi
+800f1837:	89 ec                	mov    %ebp,%esp
+800f1839:	5d                   	pop    %ebp
+800f183a:	c3                   	ret    
+800f183b:	90                   	nop    
 
-800f1834 <_isr__3ttyUc>:
+800f183c <_isr__3ttyUc>:
 isr__3ttyUc():
-800f1834:	55                   	push   %ebp
-/mn/include/kernel/i386.h:329
-800f1835:	ba 60 00 00 00       	mov    $0x60,%edx
-800f183a:	89 e5                	mov    %esp,%ebp
-800f183c:	83 ec 08             	sub    $0x8,%esp
-/mn/include/kernel/i386.h:332
-800f183f:	ec                   	in     (%dx),%al
-800f1840:	88 c2                	mov    %al,%dl
-/mn/src/drivers/tty/tty.cpp:401
-800f1842:	8d 42 c5             	lea    0xffffffc5(%edx),%eax
-800f1845:	3c 0b                	cmp    $0xb,%al
-800f1847:	76 07                	jbe    800f1850 <_isr__3ttyUc+0x1c>
-/mn/src/drivers/tty/tty.cpp:407
-800f1849:	b0 00                	mov    $0x0,%al
-800f184b:	eb 1c                	jmp    800f1869 <_isr__3ttyUc+0x35>
-800f184d:	8d 76 00             	lea    0x0(%esi),%esi
+800f183c:	55                   	push   %ebp
+/mn/include/kernel/i386.h:336
+800f183d:	ba 60 00 00 00       	mov    $0x60,%edx
+800f1842:	89 e5                	mov    %esp,%ebp
+800f1844:	83 ec 08             	sub    $0x8,%esp
+/mn/include/kernel/i386.h:339
+800f1847:	ec                   	in     (%dx),%al
+800f1848:	88 c2                	mov    %al,%dl
 /mn/src/drivers/tty/tty.cpp:403
-800f1850:	0f b6 c2             	movzbl %dl,%eax
-800f1853:	83 c4 f4             	add    $0xfffffff4,%esp
-800f1856:	8d 04 80             	lea    (%eax,%eax,4),%eax
-800f1859:	c1 e0 04             	shl    $0x4,%eax
-800f185c:	05 90 1d 0f 80       	add    $0x800f1d90,%eax
-800f1861:	50                   	push   %eax
-800f1862:	e8 89 f8 ff ff       	call   800f10f0 <_switchTo__3tty>
-/mn/src/drivers/tty/tty.cpp:404
-800f1867:	b0 01                	mov    $0x1,%al
-800f1869:	89 ec                	mov    %ebp,%esp
-800f186b:	5d                   	pop    %ebp
-800f186c:	c3                   	ret    
-800f186d:	8d 76 00             	lea    0x0(%esi),%esi
+800f184a:	8d 42 c5             	lea    0xffffffc5(%edx),%eax
+800f184d:	3c 0b                	cmp    $0xb,%al
+800f184f:	76 07                	jbe    800f1858 <_isr__3ttyUc+0x1c>
+/mn/src/drivers/tty/tty.cpp:409
+800f1851:	b0 00                	mov    $0x0,%al
+800f1853:	eb 1c                	jmp    800f1871 <_isr__3ttyUc+0x35>
+800f1855:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:405
+800f1858:	0f b6 c2             	movzbl %dl,%eax
+800f185b:	83 c4 f4             	add    $0xfffffff4,%esp
+800f185e:	8d 04 80             	lea    (%eax,%eax,4),%eax
+800f1861:	c1 e0 04             	shl    $0x4,%eax
+800f1864:	05 90 1d 0f 80       	add    $0x800f1d90,%eax
+800f1869:	50                   	push   %eax
+800f186a:	e8 89 f8 ff ff       	call   800f10f8 <_switchTo__3tty>
+/mn/src/drivers/tty/tty.cpp:406
+800f186f:	b0 01                	mov    $0x1,%al
+800f1871:	89 ec                	mov    %ebp,%esp
+800f1873:	5d                   	pop    %ebp
+800f1874:	c3                   	ret    
+800f1875:	8d 76 00             	lea    0x0(%esi),%esi
 
-800f1870 <_finishio__3ttyPQ26kernel9request_t>:
+800f1878 <_finishio__3ttyPQ26kernel9request_t>:
 finishio__3ttyPQ26kernel9request_t():
-800f1870:	55                   	push   %ebp
-800f1871:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/tty/tty.cpp:412
-800f1873:	89 ec                	mov    %ebp,%esp
-800f1875:	5d                   	pop    %ebp
-800f1876:	c3                   	ret    
-800f1877:	90                   	nop    
-
-800f1878 <_onWrite__3ttyPQ26kernel13request_dev_t>:
-onWrite__3ttyPQ26kernel13request_dev_t():
 800f1878:	55                   	push   %ebp
 800f1879:	89 e5                	mov    %esp,%ebp
-800f187b:	83 ec 08             	sub    $0x8,%esp
-/mn/src/drivers/tty/tty.cpp:415
-800f187e:	8b 55 0c             	mov    0xc(%ebp),%edx
-/mn/src/drivers/tty/tty.cpp:417
-800f1881:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/tty/tty.cpp:415
-800f1884:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/tty/tty.cpp:417
-800f1887:	8b 42 18             	mov    0x18(%edx),%eax
-800f188a:	d1 e8                	shr    %eax
-800f188c:	50                   	push   %eax
-800f188d:	8b 42 1c             	mov    0x1c(%edx),%eax
-800f1890:	50                   	push   %eax
-800f1891:	51                   	push   %ecx
-800f1892:	e8 65 fd ff ff       	call   800f15fc <_writeString__3ttyPCUwUi>
-/mn/src/drivers/tty/tty.cpp:418
-800f1897:	89 ec                	mov    %ebp,%esp
-800f1899:	b0 01                	mov    $0x1,%al
-800f189b:	5d                   	pop    %ebp
-800f189c:	c3                   	ret    
-800f189d:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/tty/tty.cpp:414
+800f187b:	89 ec                	mov    %ebp,%esp
+800f187d:	5d                   	pop    %ebp
+800f187e:	c3                   	ret    
+800f187f:	90                   	nop    
 
-800f18a0 <_TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t>:
+800f1880 <_onWrite__3ttyPQ26kernel13request_dev_t>:
+onWrite__3ttyPQ26kernel13request_dev_t():
+800f1880:	55                   	push   %ebp
+800f1881:	89 e5                	mov    %esp,%ebp
+800f1883:	83 ec 08             	sub    $0x8,%esp
+/mn/src/drivers/tty/tty.cpp:417
+800f1886:	8b 55 0c             	mov    0xc(%ebp),%edx
+/mn/src/drivers/tty/tty.cpp:419
+800f1889:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/tty/tty.cpp:417
+800f188c:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mn/src/drivers/tty/tty.cpp:419
+800f188f:	8b 42 18             	mov    0x18(%edx),%eax
+800f1892:	d1 e8                	shr    %eax
+800f1894:	50                   	push   %eax
+800f1895:	8b 42 1c             	mov    0x1c(%edx),%eax
+800f1898:	50                   	push   %eax
+800f1899:	51                   	push   %ecx
+800f189a:	e8 65 fd ff ff       	call   800f1604 <_writeString__3ttyPCUwUi>
+/mn/src/drivers/tty/tty.cpp:420
+800f189f:	89 ec                	mov    %ebp,%esp
+800f18a1:	b0 01                	mov    $0x1,%al
+800f18a3:	5d                   	pop    %ebp
+800f18a4:	c3                   	ret    
+800f18a5:	8d 76 00             	lea    0x0(%esi),%esi
+
+800f18a8 <_TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t>:
 TtyAddDevice__FPQ26kernel8driver_tPCUwPQ26kernel15device_config_t():
-800f18a0:	55                   	push   %ebp
-800f18a1:	89 e5                	mov    %esp,%ebp
-800f18a3:	83 ec 14             	sub    $0x14,%esp
-800f18a6:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:425
-800f18a7:	a1 00 20 0f 80       	mov    0x800f2000,%eax
+800f18a8:	55                   	push   %ebp
+800f18a9:	89 e5                	mov    %esp,%ebp
+800f18ab:	83 ec 14             	sub    $0x14,%esp
+800f18ae:	53                   	push   %ebx
 /mn/src/drivers/tty/tty.cpp:427
-800f18ac:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:425
-800f18af:	8d 04 80             	lea    (%eax,%eax,4),%eax
-/mn/src/drivers/tty/tty.cpp:422
-800f18b2:	8b 55 08             	mov    0x8(%ebp),%edx
-/mn/src/drivers/tty/tty.cpp:425
-800f18b5:	c1 e0 04             	shl    $0x4,%eax
-800f18b8:	8d 98 00 30 0f 80    	lea    0x800f3000(%eax),%ebx
-/mn/src/drivers/tty/tty.cpp:426
-800f18be:	89 90 00 30 0f 80    	mov    %edx,0x800f3000(%eax)
+800f18af:	a1 00 20 0f 80       	mov    0x800f2000,%eax
+/mn/src/drivers/tty/tty.cpp:429
+800f18b4:	83 c4 f4             	add    $0xfffffff4,%esp
 /mn/src/drivers/tty/tty.cpp:427
-800f18c4:	53                   	push   %ebx
-800f18c5:	e8 ce f9 ff ff       	call   800f1298 <_clear__3tty>
+800f18b7:	8d 04 80             	lea    (%eax,%eax,4),%eax
+/mn/src/drivers/tty/tty.cpp:424
+800f18ba:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/tty/tty.cpp:427
+800f18bd:	c1 e0 04             	shl    $0x4,%eax
+800f18c0:	8d 98 00 30 0f 80    	lea    0x800f3000(%eax),%ebx
 /mn/src/drivers/tty/tty.cpp:428
-800f18ca:	83 c4 f4             	add    $0xfffffff4,%esp
-800f18cd:	53                   	push   %ebx
-800f18ce:	e8 1d f8 ff ff       	call   800f10f0 <_switchTo__3tty>
-/mn/src/drivers/tty/tty.cpp:430
-800f18d3:	83 c4 20             	add    $0x20,%esp
-800f18d6:	83 c4 f4             	add    $0xfffffff4,%esp
-800f18d9:	68 c0 33 0f 80       	push   $0x800f33c0
-800f18de:	e8 f1 01 00 00       	call   800f1ad4 <_SemAcquire>
+800f18c6:	89 90 00 30 0f 80    	mov    %edx,0x800f3000(%eax)
+/mn/src/drivers/tty/tty.cpp:429
+800f18cc:	53                   	push   %ebx
+800f18cd:	e8 ce f9 ff ff       	call   800f12a0 <_clear__3tty>
 /mn/src/drivers/tty/tty.cpp:432
-800f18e3:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/tty/tty.cpp:431
-800f18e6:	ff 05 00 20 0f 80    	incl   0x800f2000
-/mn/src/drivers/tty/tty.cpp:432
-800f18ec:	68 c0 33 0f 80       	push   $0x800f33c0
-800f18f1:	e8 d6 01 00 00       	call   800f1acc <_SemRelease>
+800f18d2:	83 c4 f4             	add    $0xfffffff4,%esp
+800f18d5:	68 c0 33 0f 80       	push   $0x800f33c0
+800f18da:	e8 f5 01 00 00       	call   800f1ad4 <_SemAcquire>
 /mn/src/drivers/tty/tty.cpp:434
-800f18f6:	89 d8                	mov    %ebx,%eax
-800f18f8:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
-800f18fb:	89 ec                	mov    %ebp,%esp
-800f18fd:	5d                   	pop    %ebp
-800f18fe:	c3                   	ret    
-800f18ff:	90                   	nop    
+800f18df:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/tty/tty.cpp:433
+800f18e2:	ff 05 00 20 0f 80    	incl   0x800f2000
+/mn/src/drivers/tty/tty.cpp:434
+800f18e8:	83 c4 f4             	add    $0xfffffff4,%esp
+800f18eb:	68 c0 33 0f 80       	push   $0x800f33c0
+800f18f0:	e8 d7 01 00 00       	call   800f1acc <_SemRelease>
+/mn/src/drivers/tty/tty.cpp:436
+800f18f5:	89 d8                	mov    %ebx,%eax
+800f18f7:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
+800f18fa:	89 ec                	mov    %ebp,%esp
+800f18fc:	5d                   	pop    %ebp
+800f18fd:	c3                   	ret    
+800f18fe:	89 f6                	mov    %esi,%esi
 
 800f1900 <_DrvInit>:
 DrvInit():
@@ -1073,9 +1084,9 @@ DrvInit():
 800f1903:	83 ec 10             	sub    $0x10,%esp
 800f1906:	56                   	push   %esi
 800f1907:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:441
+/mn/src/drivers/tty/tty.cpp:443
 800f1908:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/tty/tty.cpp:445
+/mn/src/drivers/tty/tty.cpp:447
 800f190b:	bb 14 1b 0f 80       	mov    $0x800f1b14,%ebx
 800f1910:	83 3d 14 1b 0f 80 00 	cmpl   $0x0,0x800f1b14
 800f1917:	74 0b                	je     800f1924 <_DrvInit+0x24>
@@ -1083,24 +1094,24 @@ DrvInit():
 800f191c:	83 c3 04             	add    $0x4,%ebx
 800f191f:	83 3b 00             	cmpl   $0x0,(%ebx)
 800f1922:	75 f8                	jne    800f191c <_DrvInit+0x1c>
-/mn/src/drivers/tty/tty.cpp:447
+/mn/src/drivers/tty/tty.cpp:449
 800f1924:	83 c3 fc             	add    $0xfffffffc,%ebx
 800f1927:	81 fb 10 1b 0f 80    	cmp    $0x800f1b10,%ebx
 800f192d:	76 10                	jbe    800f193f <_DrvInit+0x3f>
 800f192f:	90                   	nop    
-/mn/src/drivers/tty/tty.cpp:448
+/mn/src/drivers/tty/tty.cpp:450
 800f1930:	8b 03                	mov    (%ebx),%eax
 800f1932:	83 c3 fc             	add    $0xfffffffc,%ebx
 800f1935:	ff d0                	call   *%eax
 800f1937:	81 fb 10 1b 0f 80    	cmp    $0x800f1b10,%ebx
 800f193d:	77 f1                	ja     800f1930 <_DrvInit+0x30>
-/mn/src/drivers/tty/tty.cpp:450
-800f193f:	c7 46 0c a0 18 0f 80 	movl   $0x800f18a0,0xc(%esi)
 /mn/src/drivers/tty/tty.cpp:452
+800f193f:	c7 46 0c a8 18 0f 80 	movl   $0x800f18a8,0xc(%esi)
+/mn/src/drivers/tty/tty.cpp:454
 800f1946:	b0 01                	mov    $0x1,%al
-/mn/src/drivers/tty/tty.cpp:451
+/mn/src/drivers/tty/tty.cpp:453
 800f1948:	89 35 00 30 0f 80    	mov    %esi,0x800f3000
-/mn/src/drivers/tty/tty.cpp:452
+/mn/src/drivers/tty/tty.cpp:454
 800f194e:	5b                   	pop    %ebx
 800f194f:	5e                   	pop    %esi
 800f1950:	89 ec                	mov    %ebp,%esp
@@ -1112,15 +1123,15 @@ TtySwitchConsoles():
 800f1954:	55                   	push   %ebp
 800f1955:	89 e5                	mov    %esp,%ebp
 800f1957:	83 ec 08             	sub    $0x8,%esp
-/mn/src/drivers/tty/tty.cpp:456
+/mn/src/drivers/tty/tty.cpp:458
 800f195a:	8b 45 08             	mov    0x8(%ebp),%eax
-/mn/src/drivers/tty/tty.cpp:457
+/mn/src/drivers/tty/tty.cpp:459
 800f195d:	83 c4 f4             	add    $0xfffffff4,%esp
 800f1960:	8d 04 80             	lea    (%eax,%eax,4),%eax
 800f1963:	c1 e0 04             	shl    $0x4,%eax
 800f1966:	05 00 30 0f 80       	add    $0x800f3000,%eax
 800f196b:	50                   	push   %eax
-800f196c:	e8 7f f7 ff ff       	call   800f10f0 <_switchTo__3tty>
+800f196c:	e8 87 f7 ff ff       	call   800f10f8 <_switchTo__3tty>
 800f1971:	89 ec                	mov    %ebp,%esp
 800f1973:	5d                   	pop    %ebp
 800f1974:	c3                   	ret    
@@ -1133,12 +1144,12 @@ __static_initialization_and_destruction_0():
 800f197b:	83 ec 10             	sub    $0x10,%esp
 800f197e:	56                   	push   %esi
 800f197f:	53                   	push   %ebx
-/mn/src/drivers/tty/tty.cpp:458
+/mn/src/drivers/tty/tty.cpp:460
 800f1980:	81 7d 0c ff ff 00 00 	cmpl   $0xffff,0xc(%ebp)
 800f1987:	75 27                	jne    800f19b0 <___static_initialization_and_destruction_0+0x38>
 800f1989:	83 7d 08 00          	cmpl   $0x0,0x8(%ebp)
 800f198d:	74 21                	je     800f19b0 <___static_initialization_and_destruction_0+0x38>
-/mn/src/drivers/tty/tty.cpp:52
+/mn/src/drivers/tty/tty.cpp:53
 800f198f:	be 00 30 0f 80       	mov    $0x800f3000,%esi
 800f1994:	bb 0b 00 00 00       	mov    $0xb,%ebx
 800f1999:	8d 76 00             	lea    0x0(%esi),%esi
@@ -1329,18 +1340,18 @@ request__3ttyPQ26kernel9request_t():
 800f1ae4:	55                   	push   %ebp
 800f1ae5:	89 e5                	mov    %esp,%ebp
 800f1ae7:	83 ec 08             	sub    $0x8,%esp
-/mn/src/drivers/tty/tty.cpp:22
+/mn/src/drivers/tty/tty.cpp:23
 800f1aea:	8b 45 0c             	mov    0xc(%ebp),%eax
 800f1aed:	81 38 77 64 00 80    	cmpl   $0x80006477,(%eax)
 800f1af3:	75 0f                	jne    800f1b04 <_request__3ttyPQ26kernel9request_t+0x20>
-/mn/src/drivers/tty/tty.cpp:23
+/mn/src/drivers/tty/tty.cpp:24
 800f1af5:	83 c4 f8             	add    $0xfffffff8,%esp
 800f1af8:	50                   	push   %eax
 800f1af9:	8b 45 08             	mov    0x8(%ebp),%eax
 800f1afc:	50                   	push   %eax
-800f1afd:	e8 76 fd ff ff       	call   800f1878 <_onWrite__3ttyPQ26kernel13request_dev_t>
+800f1afd:	e8 7e fd ff ff       	call   800f1880 <_onWrite__3ttyPQ26kernel13request_dev_t>
 800f1b02:	eb 08                	jmp    800f1b0c <_request__3ttyPQ26kernel9request_t+0x28>
-/mn/src/drivers/tty/tty.cpp:24
+/mn/src/drivers/tty/tty.cpp:25
 800f1b04:	c7 00 04 00 00 00    	movl   $0x4,(%eax)
 800f1b0a:	b0 00                	mov    $0x0,%al
 800f1b0c:	89 ec                	mov    %ebp,%esp

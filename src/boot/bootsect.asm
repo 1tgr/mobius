@@ -27,11 +27,13 @@ bsSectSize  dw 512                      ; Bytes per sector
 bsClustSize db 1                        ; Sectors per cluster
 bsRessect   dw 1                        ; # of reserved sectors
 bsFatCnt    db 2                        ; # of fat copies
-bsRootSize  dw 224                      ; size of root directory
+;bsRootSize  dw 224                      ; size of root directory
+bsRootSize  dw 176
 bsTotalSect dw 2880                     ; total # of sectors if < 32 meg
 bsMedia     db 0xF0                     ; Media Descriptor
 bsFatSize   dw 9                        ; Size of each FAT
-bsTrackSect dw 18                       ; Sectors per track
+;bsTrackSect dw 18                       ; Sectors per track
+bsTrackSect dw 80
 bsHeadCnt   dw 2                        ; number of read-write heads
 bsHidenSect dd 0                        ; number of hidden sectors
 bsHugeSect  dd 0                        ; if bsTotalSect is 0 this value is
@@ -43,10 +45,10 @@ bsVolID     dd 0                        ; Disk volume ID also used for temp
                                         ; sector # / # sectors to load
 bsVoLabel
 
-  root_strt  db "  "                    ; volume label is used internally
-  root_scts  db "  "                    ; while in memory for storage
-  file_strt  db "  "                    ; of other variables.
-  file_scts  db "  "                    ; this is just done to save space.
+  root_strt  db "NO"                    ; volume label is used internally
+  root_scts  db " N"                    ; while in memory for storage
+  file_strt  db "AM"                    ; of other variables.
+  file_scts  db "E "                    ; this is just done to save space.
              db "  "
   rs_fail    db " "
 

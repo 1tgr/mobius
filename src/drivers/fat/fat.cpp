@@ -1,4 +1,4 @@
-/* $Id: fat.cpp,v 1.5 2002/02/22 15:31:19 pavlovskii Exp $ */
+/* $Id: fat.cpp,v 1.6 2002/02/24 19:13:12 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
@@ -60,7 +60,7 @@ protected:
 	bool		ReadWriteFile(FatFile *file, request_fs_t *req_fs);
 
 	static unsigned AssembleName(fat_dirent_t *entries, wchar_t *name);
-	static size_t SizeOfDir(const fat_dirent_t *di);
+	size_t SizeOfDir(const fat_dirent_t *di);
 
 	device_t *m_device;
 	fat_bootsector_t m_bpb;
@@ -70,6 +70,7 @@ protected:
 	unsigned m_root_start;
 	unsigned m_data_start;
 	unsigned m_cluster_shift;
+	unsigned m_sectors;
 	uint8_t *m_fat;
 };
 
@@ -98,7 +99,8 @@ CASSERT(sizeof(fat_dirent_t) == sizeof(fat_lfnslot_t));
 bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
 {
 	size_t bytes, size;
-	size = SizeOfDir(di);
+	
+	size = SizeOfDir(di) - sizeof(FatDirectory);
 	dir->fsd = this;
 	dir->pos = 0;
 	dir->flags = FILE_READ;
@@ -123,7 +125,40 @@ bool Fat::ConstructDir(FatDirectory *dir, const fat_dirent_t *di)
 		}
 	}
 	else
-		assert(false);
+	{
+		uint32_t cluster;
+		uint8_t *ptr;
+		size_t bytes_read;
+
+		cluster = di->first_cluster;
+		ptr = (uint8_t*) (dir + 1);
+		bytes_read = 0;
+		TRACE2("\tReading sub directory: %u bytes at cluster %u\n",
+			size,
+			cluster);
+		while (bytes_read < size &&
+			!IS_EOC_CLUSTER(cluster))
+		{
+			bytes = IoReadSync(m_device, 
+				ClusterToOffset(cluster), 
+				ptr, 
+				m_bytes_per_cluster);
+			
+			if (bytes < m_bytes_per_cluster)
+			{
+				wprintf(L"fat: failed to read sub-directory: read %u bytes\n", 
+					bytes);
+				return false;
+			}
+
+			ptr += bytes;
+			bytes_read += bytes;
+			cluster = GetNextCluster(cluster);
+		}
+
+		((fat_dirent_t*) (dir + 1))[0].name[0] = 0xe5;
+		((fat_dirent_t*) (dir + 1))[1].name[0] = 0xe5;
+	}
 
 	return true;
 }
@@ -135,12 +170,12 @@ uint32_t Fat::GetNextCluster(uint32_t cluster)
 	uint8_t* b;
 
 	if (cluster >=
-		(uint32_t) (m_bpb.sectors / m_bpb.sectors_per_cluster))
+		(uint32_t) (m_sectors / m_bpb.sectors_per_cluster))
 	{
-		wprintf(L"Cluster 0x%x (%d) beyond than total clusters 0x%x (%d)\n",
+		wprintf(L"Cluster 0x%x (%d) beyond total clusters 0x%x (%d)\n",
 			cluster, cluster,
-			m_bpb.sectors / m_bpb.sectors_per_cluster,
-			m_bpb.sectors / m_bpb.sectors_per_cluster);
+			m_sectors / m_bpb.sectors_per_cluster,
+			m_sectors / m_bpb.sectors_per_cluster);
 		assert(false);
 	}
 
@@ -185,7 +220,7 @@ handle_t Fat::AllocFile(const fat_dirent_t *di, uint32_t flags)
 	num_clusters = 
 		(di->file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster;
 	num_clusters /= m_bytes_per_cluster;
-	fd = HndAlloc(NULL, sizeof(FatDirectory) + num_clusters * sizeof(uint32_t), 'file');
+	fd = HndAlloc(NULL, sizeof(FatFile) + num_clusters * sizeof(uint32_t), 'file');
 	file = (FatFile*) HndLock(NULL, fd, 'file');
 	if (file == NULL)
 	{
@@ -277,7 +312,24 @@ unsigned Fat::AssembleName(fat_dirent_t *entries, wchar_t *name)
 
 size_t Fat::SizeOfDir(const fat_dirent_t *di)
 {
-	return sizeof(FatDirectory) + (di->file_length + SECTOR_SIZE - 1) & -SECTOR_SIZE;
+	if (di->first_cluster == FAT_CLUSTER_ROOT)
+		return sizeof(FatDirectory) 
+			+ ((di->file_length + m_bytes_per_cluster - 1) & -m_bytes_per_cluster);
+	else
+	{
+		uint32_t cluster;
+		size_t size;
+
+		cluster = di->first_cluster;
+		size = 0;
+		while (!IS_EOC_CLUSTER(cluster))
+		{
+			size += m_bytes_per_cluster;
+			cluster = GetNextCluster(cluster);
+		}
+
+		return sizeof(FatDirectory) + size;
+	}	
 }
 
 bool Fat::LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di)
@@ -298,8 +350,6 @@ bool Fat::LookupFile(FatDirectory *dir, wchar_t *path, fat_dirent_t *di)
 	
 	i = 0;
 	entries = ((fat_dirent_t*) (dir + 1));
-	TRACE2("FatLookupFile: directory %s has %u entries\n",
-		path, dir->num_entries);
 	while (i < dir->num_entries && entries[i].name[0] != '\0')
 	{
 		if (entries[i].name[0] == 0xe5 ||
@@ -540,6 +590,11 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 	if (dir->pos >= dir->num_entries ||
 		di->name[0] == '\0')
 	{
+		if (di->name[0] == '\0')
+			TRACE0("fat: directory is empty\n");
+		else
+			TRACE0("fat: end of file\n");
+
 		req_fs->header.result = EEOF;
 		HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
 		return false;
@@ -554,6 +609,7 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 		if (di->name[0] == 0xe5 ||
 			di->attribs & ATTR_LONG_NAME)
 		{
+			TRACE1("%u: long file name or deleted\n", (unsigned) dir->pos);
 			di++;
 			dir->pos++;
 		}
@@ -562,6 +618,7 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 			count = AssembleName(di, buf->name);
 			buf->length = di->file_length;
 			buf->standard_attributes = di->attribs;
+			TRACE2("%u: \"%s\"\n", (unsigned) dir->pos, buf->name);
 
 			di += count;
 			buf++;
@@ -571,7 +628,14 @@ bool Fat::ReadDir(FatDirectory *dir, request_fs_t *req_fs)
 
 		if (dir->pos >= dir->num_entries || 
 			di->name[0] == '\0')
+		{
+			if (di->name[0] == '\0')
+				TRACE0("fat: finished because of directory\n");
+			else
+				TRACE0("fat: finished because of end of request\n");
+
 			break;
+		}
 	}
 
 	HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
@@ -664,7 +728,7 @@ bool Fat::request(request_t *req)
 			wildcard++;
 			wprintf(L"fat: open search: path = %s, wildcard = %s\n",
 				path + 1, wildcard);
-			if (!LookupFile(m_root, path, &di))
+			if (!LookupFile(m_root, path + 1, &di))
 			{
 				req->code = ENOTFOUND;
 				free(path);
@@ -678,9 +742,10 @@ bool Fat::request(request_t *req)
 			/*root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);*/
 			di.file_length = m_root->num_entries * sizeof(fat_dirent_t);
 			di.first_cluster = FAT_CLUSTER_ROOT;
+			wprintf(L"fat: opening search for root directory\n");
 		}
 
-		TRACE2("fat: opening search %s at cluster %u\n", path, di.first_cluster);
+		wprintf(L"fat: opening search %s at cluster %u\n", path, di.first_cluster);
 		free(path);
 
 		req_fs->params.fs_opensearch.file = HndAlloc(NULL, SizeOfDir(&di), 'file');
@@ -778,8 +843,14 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
 	}
 
 	TRACE1("\tDone: length = %u\n", length);
+	m_sectors = m_bpb.sectors == 0 ? m_bpb.total_sectors : m_bpb.sectors;
+	TRACE1("\tTotal of %u sectors\n", m_sectors);
+	
+	if (m_sectors > 20740)
+		m_fat_bits = 16;
+	else
+		m_fat_bits = 12;
 
-	m_fat_bits = 12;
 	m_bytes_per_cluster = 
 		m_bpb.bytes_per_sector * m_bpb.sectors_per_cluster;
 	temp = m_bytes_per_cluster;
@@ -824,12 +895,12 @@ device_t *Fat::Init(driver_t *drv, const wchar_t *path, device_t *dev)
 		RootDirSectors;
 
 	m_root_start = m_bpb.reserved_sectors + 
-		m_bpb.hidden_sectors + 
+		/*m_bpb.hidden_sectors + */
 		m_bpb.sectors_per_fat * m_bpb.num_fats;
 
 	memset(&root_entry, 0, sizeof(root_entry));
-	/*root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);*/
-	root_entry.file_length = SECTOR_SIZE * 4;
+	root_entry.file_length = m_bpb.num_root_entries * sizeof(fat_dirent_t);
+	/*root_entry.file_length = SECTOR_SIZE * 4;*/
 	root_entry.first_cluster = FAT_CLUSTER_ROOT;
 	m_root = (FatDirectory*) malloc(SizeOfDir(&root_entry));
 	if (m_root == NULL ||

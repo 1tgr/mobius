@@ -1,4 +1,4 @@
-/* $Id: stdio.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: stdio.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
 /* Copyright (C) 1998 DJ Delorie, see COPYING.DJ for details */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 
@@ -36,7 +36,7 @@ extern "C" {
    are here at all is to comply with ANSI specifictions. */
    
 typedef struct FILE {
-  handle_t _osfhnd;
+  unsigned long _osfhnd;
 } FILE;
 
 typedef unsigned long			fpos_t;

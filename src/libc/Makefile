@@ -60,7 +60,7 @@ $(TARGET_S):	$(OBJS)
 	ar rcs $(TARGET_S) $(OBJS)
 
 $(TARGET_D):	$(TARGET_S) dllmain.o $(EXP) $(LIBS) .base
-	$(LD) --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
+	$(LD) -g --dll -o $(TARGET_D) --entry _DllMainCRTStartup \
 		--image-base `cat .base` \
 		$(EXP) dllmain.o \
 		$(TARGET_S) $(LIBS)

@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.7 2002/01/15 00:13:06 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.8 2002/02/24 19:13:28 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -9,6 +9,7 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <errno.h>
 
 addr_t kernel_sbrk = 0xe0000000;
 unsigned con_x, con_y;
@@ -31,6 +32,7 @@ uint16_t con_attribs = 0x0700;
 #define VGA_CRTC_DATA		0x3D5
 #define VGA_INSTAT_READ		0x3DA
 
+#if 0
 static void TextUpdateCursor(void)
 {
 	unsigned short Off;
@@ -42,6 +44,7 @@ static void TextUpdateCursor(void)
 	out(VGA_CRTC_INDEX, 15);
 	out(VGA_CRTC_DATA, Off >> 1);
 }
+#endif
 
 void TextSwitchToKernel(void)
 {
@@ -49,7 +52,7 @@ void TextSwitchToKernel(void)
 	out(VGA_CRTC_DATA, 0);
 	out(VGA_CRTC_INDEX, 13);
 	out(VGA_CRTC_DATA, 0);
-	TextUpdateCursor();
+	/*TextUpdateCursor();*/
 }
 
 void __dj_assert(const char *test, const char *file, int line)
@@ -113,7 +116,7 @@ int name(const ct *str, size_t count) \
 		} \
 	} \
  \
-	TextUpdateCursor(); \
+	/*TextUpdateCursor();*/ \
 	return 0; \
 }
 
@@ -165,4 +168,9 @@ void *sbrk_virtual(size_t diff)
 	start = kernel_sbrk;
 	kernel_sbrk += diff;
 	return (void*) start;
+}
+
+int *_geterrno()
+{
+	return &current->info->status;
 }

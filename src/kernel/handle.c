@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.6 2002/02/22 15:31:20 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.7 2002/02/24 19:13:13 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -172,8 +172,18 @@ handle_t HndDuplicate(process_t *proc, handle_hdr_t *ptr)
 		proc->handles, proc->handle_count);*/
 
 	proc->handle_count++;
-	proc->handles = realloc(proc->handles, proc->handle_count * sizeof(void*));
-	assert(proc->handles != NULL);
+	if (proc->handle_count > proc->handle_allocated)
+	{
+		proc->handle_allocated += 16;
+		proc->handles = realloc(proc->handles, proc->handle_allocated * sizeof(void*));
+		if (proc->handles == NULL)
+		{
+			wprintf(L"handle_count = %u, handle_allocated = %u\n", 
+				proc->handle_count, proc->handle_allocated);
+			assert(proc->handles != NULL);
+		}
+	}
+
 	proc->handles[proc->handle_count - 1] = ptr;
 	ptr->copies++;
 

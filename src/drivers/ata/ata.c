@@ -1,4 +1,4 @@
-/* $Id: ata.c,v 1.12 2002/01/15 00:12:56 pavlovskii Exp $ */
+/* $Id: ata.c,v 1.13 2002/02/24 19:13:11 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/driver.h>
@@ -8,6 +8,7 @@
 #include <kernel/memory.h>
 #include <kernel/cache.h>
 #include <kernel/io.h>
+#include <kernel/debug.h>
 
 #include <os/syscall.h>
 
@@ -585,7 +586,7 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 		{
 			ptr = (addr_t*) (io + 1);
 			
-			wprintf(L"Finish ATA command: count = %u length = %u phys = %x ",
+			TRACE3("Finish ATA command: count = %u length = %u phys = %x ",
 				req_ctrl->params.ata_command.cmd.count,
 				io->length,
 				*ptr);
@@ -594,7 +595,7 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
 
 			assert(buf != NULL);
-			wprintf(L"buf = %p + %x\n", buf, io->mod_buffer_start);
+			TRACE2("buf = %p + %x\n", buf, io->mod_buffer_start);
 			ins16(ctrl->base + REG_DATA, buf + io->mod_buffer_start, io->length);
 			
 			MemUnmapTemp();
@@ -604,7 +605,7 @@ bool AtaCtrlIsr(device_t *dev, uint8_t irq)
 			finish = AtapiPacketInterrupt(ctrl, req_ctrl);
 		else
 		{
-			wprintf(L"AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
+			TRACE1("AtaCtrlIsr: got code %x\n", req_ctrl->header.code);
 			assert(req_ctrl->header.code == ATA_COMMAND ||
 				req_ctrl->header.code == ATAPI_PACKET);
 		}
@@ -639,7 +640,7 @@ bool AtaCtrlRequest(device_t *dev, request_t *req)
 			ATAPI_SECTOR_SIZE * req_ctrl->params.atapi_packet.count);
 		if (ctrl->command == CMD_IDLE)
 			AtaServiceCtrlRequest(ctrl);
-		break;
+		return true;
 	
 	case ATA_COMMAND:
 		req_ctrl = (ata_ctrlreq_t*) req;
@@ -760,7 +761,7 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 	unsigned i;
 	ata_part_t *part;
 
-	union
+	/*union
 	{
 		uint8_t bytes[512];
 		struct
@@ -769,33 +770,38 @@ void AtaPartitionDevice(device_t *dev, const wchar_t *base_name)
 			partition_t parts[4];
 			uint16_t _55aa;
 		} ptab;
-	} sec0;
+	} sec0;*/
 
-	wprintf(L"bytes = %p\n", sec0.bytes);
-	if (!IoReadSync(dev, 0, sec0.bytes, sizeof(sec0.bytes)))
+	uint8_t bytes[512];
+	partition_t *parts;
+
+	parts = (partition_t*) (bytes + 0x1be);
+	TRACE1("bytes = %p\n", bytes);
+	if (!IoReadSync(dev, 0, bytes, sizeof(bytes)))
 		return;
 
 	wcscpy(name, base_name);
 	suffix = name + wcslen(base_name);
 	suffix[1] = '\0';
 	
-	for (i = 0; i < _countof(sec0.ptab.parts); i++)
-	{
-		part = malloc(sizeof(ata_part_t));
-		memset(part, 0, sizeof(ata_part_t));
-		
-		part->dev.vtbl = &ata_partition_vtbl;
-		part->dev.driver = dev->driver;
-		
-		part->start_sector = sec0.ptab.parts[i].start_sector_abs;
-		part->sector_count = sec0.ptab.parts[i].sector_count;
-		part->drive = dev;
-		wprintf(L"partition %c: start = %u, count = %u\n",
-			i + 'a', part->start_sector, part->sector_count);
+	for (i = 0; i < 4; i++)
+		if (parts[i].system != 0)
+		{
+			part = malloc(sizeof(ata_part_t));
+			memset(part, 0, sizeof(ata_part_t));
+			
+			part->dev.vtbl = &ata_partition_vtbl;
+			part->dev.driver = dev->driver;
+			
+			part->start_sector = parts[i].start_sector_abs;
+			part->sector_count = parts[i].sector_count;
+			part->drive = dev;
+			wprintf(L"partition %c: start = %lu, count = %lu\n",
+				i + 'a', part->start_sector, part->sector_count);
 
-		suffix[0] = i + 'a';
-		DevAddDevice(&part->dev, name, NULL);
-	}
+			suffix[0] = i + 'a';
+			DevAddDevice(&part->dev, name, NULL);
+		}
 }
 
 void _swab(const char *src, char *dest, int n)
@@ -982,7 +988,7 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 	bda = MemMapTemp(&phys, 1, PRIV_KERN | PRIV_RD | PRIV_PRES);
 	assert(bda != NULL);
 	num_bios_drives = bda[0x475];
-	wprintf(L"ata: num_bios_drives = %u\n", num_bios_drives);
+	TRACE1("ata: num_bios_drives = %u\n", num_bios_drives);
 	
 	/*memcpy(vector, ((uint32_t*) bda)[0x41], sizeof(vector));
 	phys = vector[1] << 16 | vector[0];
@@ -995,7 +1001,7 @@ device_t* AtaAddController(driver_t *drv, const wchar_t *name,
 	memcpy(vector, ((uint32_t*) bda)[0x46], sizeof(vector));*/
 	MemUnmapTemp();
 
-	if (num_bios_drives > 0)
+	if (/*num_bios_drives > 0*/ true)
 	{
 		ctrl = malloc(sizeof(ata_ctrl_t));
 		ctrl->dev.vtbl = &ata_controller_vtbl;

@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.6 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.7 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -62,7 +62,8 @@ thread_t *	ThrCreateThread(struct process_t *proc, bool isKernel,
 							void (*entry)(void*), bool useParam, void *param, 
 							unsigned priority);
 void	ThrDeleteThread(thread_t *thr);
-struct context_t *	ThrGetContext(thread_t* thr);
+struct context_t *ThrGetContext(thread_t* thr);
+struct context_t *ThrGetUserContext(thread_t *thr);
 bool	ThrRun(thread_t *thr);
 void	ThrPause(thread_t *thr);
 void	ThrSleep(thread_t *thr, unsigned ms);

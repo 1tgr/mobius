@@ -11,6 +11,7 @@ typedef char bool;
 #define true	1
 
 #define countof(a)	(sizeof(a) / sizeof((a)[0]))
+#define UNUSED(p)	p = p;
 
 extern char boot_buf[64];
 

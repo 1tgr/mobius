@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -38,9 +38,10 @@ struct process_t
 	handle_hdr_t hdr;
 	process_t *prev, *next;
 	addr_t stack_end;
-	addr_t page_dir_phys, *page_dir;
+	addr_t page_dir_phys/*, *page_dir*/;
 	void **handles;
 	unsigned handle_count;
+	unsigned handle_allocated;
 	module_t *mod_first, *mod_last;
 	struct vm_area_t *area_first, *area_last;
 	addr_t vmm_end;
@@ -49,13 +50,13 @@ struct process_t
 	const wchar_t *exe;
 	struct process_info_t *info;
 	unsigned id;
+	process_t *creator;
 };
 
 extern process_t *proc_first, *proc_last;
 extern process_t proc_idle;
 
 process_t	*ProcCreateProcess(const wchar_t *exe);
-void		ProcDeleteProcess(process_t *proc);
 bool		ProcPageFault(process_t *proc, addr_t addr);
 
 module_t *	PeLoad(process_t* proc, const wchar_t* file, uint32_t base);

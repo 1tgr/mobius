@@ -1,6 +1,11 @@
-/* $Id: errno.c,v 1.2 2001/11/06 01:29:38 pavlovskii Exp $ */
+/* $Id: errno.c,v 1.3 2002/02/24 19:13:30 pavlovskii Exp $ */
 
 /* Copyright (C) 1994 DJ Delorie, see COPYING.DJ for details */
 #include <errno.h>
 
-int errno;
+static int _errno;
+
+int *_geterrno()
+{
+	return &_errno;
+}

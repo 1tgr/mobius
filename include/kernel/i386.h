@@ -1,4 +1,4 @@
-/* $Id: i386.h,v 1.7 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: i386.h,v 1.8 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_I386_H
 #define __KERNEL_I386_H
 
@@ -108,6 +108,13 @@
 #define ADDR_TO_PDE(v)	(addr_t*)(PAGEDIRECTORY_MAP + \
 								(((addr_t) (v) / (1024 * 1024))&(~0x3)))
 #define ADDR_TO_PTE(v)	(addr_t*)(PAGETABLE_MAP + ((((addr_t) (v) / 1024))&(~0x3)))
+
+#define KERNEL_PHYS				0x100000
+/*!	\brief Adjusts the value of a pointer so that it can be used before the 
+ *	initial kernel GDT is set up.
+ */
+#define MANGLE_PTR(type, ptr)	((type) ((char*) ptr - scode + KERNEL_PHYS))
+#define DEMANGLE_PTR(type, ptr)	((type) ((addr_t) ptr + scode - KERNEL_PHYS))
 
 #pragma pack (push, 1)  /* align structures to a uint8_t boundary */
 

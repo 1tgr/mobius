@@ -1,11 +1,10 @@
-/* $Id: syscall.c,v 1.5 2002/02/22 15:31:27 pavlovskii Exp $ */
+/* $Id: syscall.c,v 1.6 2002/02/24 19:13:29 pavlovskii Exp $ */
 #include <kernel/thread.h>
 #include <kernel/sched.h>
 #include <kernel/proc.h>
 #include <kernel/arch.h>
 
 #include <os/syscall.h>
-#include <os/rtl.h>
 
 #include <wchar.h>
 
@@ -39,25 +38,6 @@ void ThrExitThread(int code)
 unsigned SysUpTime(void)
 {
 	return sc_uptime;
-}
-
-handle_t ProcSpawnProcess(const wchar_t *exe)
-{
-	process_t *proc;
-	thread_t *thr;
-	context_t *ctx;
-	wchar_t temp[MAX_PATH];
-	
-	FsFullPath(exe, temp);
-	proc = ProcCreateProcess(temp);
-	if (proc == NULL)
-		return NULL;
-
-	thr = ThrCreateThread(proc, false, (void (*)(void*)) 0xdeadbeef, false, NULL, 16);
-	ctx = ThrGetContext(thr);
-	/*ctx->eflags |= EFLAG_TF;*/
-	ScNeedSchedule(true);
-	return HndDuplicate(current->process, &proc->hdr);
 }
 
 bool SysThrWaitHandle(handle_t hnd)

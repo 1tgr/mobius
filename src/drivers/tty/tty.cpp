@@ -2,13 +2,14 @@
 #include <kernel/arch.h>
 
 #include <kernel/device>
+using namespace kernel;
+
+#include <kernel/io.h>
 
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <wchar.h>
-
-using namespace kernel;
 
 /* in map.c */
 extern "C" size_t wcsto437(char *mbstr, const wchar_t *wcstr, size_t count);
@@ -69,8 +70,9 @@ void memset16(uint16_t *ptr, uint16_t c, size_t count)
 
 tty::tty()
 {
-	buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 25 * (this - consoles);
-	attribs = 0x1700;
+	unsigned id = this - consoles;
+	buf_top = (uint16_t*) PHYSICAL(0xb8000) + 80 * 25 * id;
+	attribs = 0x0700 | id << 12;
 	x = 0;
 	y = 0;
 	width = 80;
@@ -425,7 +427,7 @@ device_t *TtyAddDevice(driver_t *drv, const wchar_t *name, device_config_t *cfg)
 	tty = consoles + num_consoles;
 	tty->driver = drv;
 	tty->clear();
-	tty->switchTo();
+	/*tty->switchTo();*/
 
 	SemAcquire(&sem_consoles);
 	num_consoles++;

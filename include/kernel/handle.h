@@ -1,4 +1,4 @@
-/* $Id: handle.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: handle.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_HANDLE_H
 #define __KERNEL_HANDLE_H
 
@@ -45,6 +45,7 @@ struct handle_hdr_t
 	const char *file;
 	unsigned line;
 	uint32_t copies;
+	void (*free_callback)(handle_hdr_t *);
 };
 
 handle_t	_HndAlloc(struct process_t *proc, size_t size, uint32_t tag,
@@ -52,7 +53,7 @@ handle_t	_HndAlloc(struct process_t *proc, size_t size, uint32_t tag,
 #define		HndAlloc(proc, size, tag)	_HndAlloc(proc, size, tag, \
 												__FILE__, __LINE__)
 
-bool	HndFree(struct process_t *proc, handle_t hnd, uint32_t tag);
+bool	HndClose(struct process_t *proc, handle_t hnd, uint32_t tag);
 void *	HndLock(struct process_t *proc, handle_t hnd, uint32_t tag);
 void	HndUnlock(struct process_t *proc, handle_t hnd, uint32_t tag);
 handle_hdr_t *	HndGetPtr(struct process_t *proc, handle_t hnd, uint32_t tag);
@@ -63,13 +64,11 @@ handle_t	HndDuplicate(struct process_t *proc, handle_hdr_t *ptr);
 void	_HndInit(handle_hdr_t *ptr, uint32_t tag, const char *file, 
 				 unsigned line);
 #define	HndInit(ptr, tag)	_HndInit(ptr, tag, __FILE__, __LINE__)
-void	HndFreePtr(handle_hdr_t *ptr);
 void	HndSignalPtr(handle_hdr_t *ptr, bool sig);
 void	HndRemovePtrEntries(struct process_t *proc, handle_hdr_t *ptr);
 
 handle_t	EvtAlloc(struct process_t *proc);
 void	EvtSignal(struct process_t *proc, handle_t evt);
-bool	EvtFree(struct process_t *proc, handle_t evt);
 bool	EvtIsSignalled(struct process_t *proc, handle_t evt);
 
 /*! @} */

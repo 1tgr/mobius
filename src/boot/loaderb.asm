@@ -1,13 +1,41 @@
-; $Id: loaderb.asm,v 1.3 2002/02/22 15:27:06 pavlovskii Exp $
+; $Id: loaderb.asm,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $
 ; I tried dis-assembling the INT 15h AH=89h function in my BIOS.
 ; It doesn't appear to support 32-bit pmode.
 
 SEGMENT _TEXT PUBLIC CLASS=CODE
 
 %include "gdtnasm.inc"
-%define		ONE_MEG		0x100000
-%define		LOAD_ADDR	ONE_MEG
-%define		RDSK_ADDR	(ONE_MEG * 2)
+
+%if 0
+extern _boot_int15gdt
+
+global _BootDoCopyToExtendedMemory
+_BootDoCopyToExtendedMemory:
+	push bp
+	mov bp,sp
+
+	mov ax, ds
+	mov es, ax
+	
+	mov ah, 0x87
+	mov cx, [bp + 4]
+	shr cx, 1
+	mov si, _boot_int15gdt
+	int 0x15
+	jc .failed
+
+	xor ax, ax
+	mov	sp, bp
+	pop	bp
+	ret
+
+.failed:
+	mov al, ah
+	xor ah, ah
+	mov	sp, bp
+	pop	bp
+	ret
+%endif
 
 %if 1
 
@@ -219,6 +247,7 @@ EXTERN __got_32bit_cpu
 	mov	es, ax			; Extend limit for es
 	mov	fs, ax			; fs and...
 	mov	gs, ax			; gs
+	
 	dec	cx			; switch back to real mode
 	mov	CR0, ecx
 	sti
@@ -237,28 +266,35 @@ EXTERN __got_32bit_cpu
 	pop bp
 	ret
 
-GLOBAL	_copy_to_extended
-_copy_to_extended:
+GLOBAL	_BootCopyToExtendedMemory
+_BootCopyToExtendedMemory:
 	push	bp
-	mov	bp, sp
+	mov		bp, sp
+	push	ds
 
-	mov	edi, dword [bp + 4]
-	xor	ax, ax
-	mov	es, ax
+	mov		edi, dword [bp + 4]
+	xor		ax, ax
+	mov		es, ax
+	mov		ds, ax
 
-	xor	esi, esi
-	mov	si, word [bp + 8]
-	;mov	ax, ds
-	;shl	ax, 4
-	;add	si, ax
+	;xor		esi, esi
+	;mov		si, word [bp + 8]
+	;;mov		ax, ds
+	;;shl		ax, 4
+	;;add		si, ax
+	mov		esi, dword [bp + 8]
 
-	xor	ecx, ecx
-	mov	cx, word [bp + 10]
+	xor		ecx, ecx
+	mov		cx, word [bp + 12]
+	shr		cx, 2
 
-	a32 rep movsb
-
-	mov	sp, bp
-	pop	bp
+	a32 rep movsd
+	jmp $
+		
+	xor		ax, ax
+	pop		ds
+	mov		sp, bp
+	pop		bp
 	ret
 
 GLOBAL	_start_kernel
@@ -334,13 +370,13 @@ pmode1:
 	;popfd
 
 %if 1
-	mov		al, byte [gs:esi+0x1000]
+	mov		al, byte [gs:ecx+0x1005]
 	mov		byte [gs:0b8000h], al
-	mov		al, byte [gs:esi+0x1001]
+	mov		al, byte [gs:ecx+0x1006]
 	mov		byte [gs:0b8002h], al
-	mov		al, byte [gs:esi+0x1002]
+	mov		al, byte [gs:ecx+0x1007]
 	mov		byte [gs:0b8004h], al
-	mov		al, byte [gs:esi+0x1003]
+	mov		al, byte [gs:ecx+0x1008]
 	mov		byte [gs:0b8006h], al
 %endif
 

@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.4 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.5 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -23,8 +23,9 @@ struct kernel_startup_t
 	uint32_t memory_size;
 	uint32_t kernel_size;
 	uint32_t kernel_phys;
-	uint32_t ramdisk_size;
-	uint32_t ramdisk_phys;
+	/*uint32_t ramdisk_size;
+	uint32_t ramdisk_phys;*/
+	struct multiboot_info *multiboot_info;
 	uint32_t kernel_data;
 };
 

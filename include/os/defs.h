@@ -1,4 +1,4 @@
-/* $Id: defs.h,v 1.3 2002/02/20 01:35:52 pavlovskii Exp $ */
+/* $Id: defs.h,v 1.4 2002/02/24 19:13:11 pavlovskii Exp $ */
 #ifndef __OS_DEFS_H
 #define __OS_DEFS_H
 
@@ -66,6 +66,8 @@ struct thread_info_t
 	uint32_t id;
 	/*!	\brief	Pointer to this process's information structure */
 	process_info_t *process;
+	/*! \brief	Result code from the last syscall */
+	int status;
 };
 
 typedef struct fileop_t fileop_t;
@@ -92,6 +94,39 @@ struct fileop_t
 	 */
 	size_t bytes;
 };
+
+#define FILE_ATTR_READ_ONLY 	0x01
+#define FILE_ATTR_HIDDEN		0x02
+#define FILE_ATTR_SYSTEM		0x04
+#define FILE_ATTR_VOLUME_ID 	0x08
+#define FILE_ATTR_DIRECTORY 	0x10
+#define FILE_ATTR_ARCHIVE		0x20
+#define FILE_ATTR_DEVICE		0x1000
+#define FILE_ATTR_LINK			0x2000
+
+typedef struct dirent_t dirent_t;
+/*!
+ *	\brief	Contains information on an entry in a directory
+ */
+struct dirent_t
+{
+	wchar_t name[256];
+	uint64_t length;
+	uint64_t standard_attributes;
+};
+
+/* Resources */
+#define RT_CURSOR           1
+#define RT_BITMAP           2
+#define RT_ICON             3
+#define RT_MENU             4
+#define RT_DIALOG           5
+#define RT_STRING           6
+#define RT_FONTDIR          7
+#define RT_FONT             8
+#define RT_ACCELERATOR      9
+#define RT_RCDATA           10
+#define RT_MESSAGETABLE     11
 
 /*! @} */
 

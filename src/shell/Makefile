@@ -1,6 +1,6 @@
 TARGET=	$(BIN)/shell.exe
 OBJS=	shell.o shell.res.o ../crt0.o
-LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc_s.lib $(LIB)/libsys.lib
+LIBS=	$(LIB)/librtl_s.lib $(LIB)/libc.lib $(LIB)/libsys.lib $(LIB)/libiconv.lib
 
 include ../make.actions
 
