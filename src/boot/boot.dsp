@@ -28,7 +28,7 @@ CFG=boot - Win32 Debug
 
 !IF  "$(CFG)" == "boot - Win32 Release"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
 # PROP BASE Intermediate_Dir "Release"
@@ -37,7 +37,7 @@ CFG=boot - Win32 Debug
 # PROP BASE Target_File "boot.exe"
 # PROP BASE Bsc_Name "boot.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "Release"
 # PROP Intermediate_Dir "Release"
@@ -49,7 +49,7 @@ CFG=boot - Win32 Debug
 
 !ELSEIF  "$(CFG)" == "boot - Win32 Debug"
 
-# PROP BASE Use_MFC
+# PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
 # PROP BASE Output_Dir "Debug"
 # PROP BASE Intermediate_Dir "Debug"
@@ -58,7 +58,7 @@ CFG=boot - Win32 Debug
 # PROP BASE Target_File "boot.exe"
 # PROP BASE Bsc_Name "boot.bsc"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC
+# PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
@@ -86,11 +86,11 @@ CFG=boot - Win32 Debug
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\disk.c
+SOURCE=.\fat.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\fat.c
+SOURCE=.\io.c
 # End Source File
 # Begin Source File
 
@@ -98,15 +98,7 @@ SOURCE=.\loaderb.asm
 # End Source File
 # Begin Source File
 
-SOURCE=.\mobel_pe.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\startup.asm
-# End Source File
-# Begin Source File
-
-SOURCE=.\vfs.c
+SOURCE=.\main.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -114,7 +106,7 @@ SOURCE=.\vfs.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=.\mobel.h
+SOURCE=.\mobel_pe.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -144,7 +136,15 @@ SOURCE=.\mobel.asm
 
 SOURCE=.\mobel_pe.asm
 # End Source File
+# Begin Source File
+
+SOURCE=.\startup.asm
+# End Source File
 # End Group
+# Begin Source File
+
+SOURCE=C:\BOCHS\bochs.out
+# End Source File
 # Begin Source File
 
 SOURCE=.\listing.txt

@@ -19,13 +19,17 @@ GLOBAL begin
 begin:
 
 ..start:
-	mov ax,ds			; zero the BSS
-	mov es,ax
+	mov ax,cs			; zero the BSS
+	mov ss,ax
+	mov sp,0xffff
 	xor ax,ax
 	mov di,bdata
 	mov cx,edata
 	sub cx,di
 	rep stosb
+
+EXTERN _boot_dev
+	mov [_boot_dev], dl
 
 	call cpu_is_32bit
 EXTERN __got_32bit_cpu

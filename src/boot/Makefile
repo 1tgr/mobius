@@ -1,8 +1,7 @@
 BIN=	..\..\bin
 TARGET=	$(BIN)\mobel_pe.com
 BOOTSECT=	$(BIN)\bootsect.com
-OBJS=	startup.obj mobel_pe.obj disk.obj vfs.obj \
-	fat.obj loaderb.obj 
+OBJS=	startup.obj main.obj io.obj fat.obj loaderb.obj
 LIBPATH=f:\tc\lib
 CFLAGS=	-w -mt -O2 -d -Z -1 -vi
 LFLAGS	=/x /c
@@ -14,7 +13,7 @@ $(TARGET):	$(OBJS) Makefile
 	ndisasmw $(TARGET) > listing.txt
 
 %.obj:	%.c Makefile
-	tcc -c $(CFLAGS) -o$@ $<
+	tcc -c $(CFLAGS) -o$@ $< > nul
 
 %.obj:	%.asm
 	nasm -DNODOS -f obj -o$@ $<

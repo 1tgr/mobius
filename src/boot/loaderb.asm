@@ -1,4 +1,4 @@
-; $Id: loaderb.asm,v 1.2 2002/01/03 01:24:01 pavlovskii Exp $
+; $Id: loaderb.asm,v 1.3 2002/02/22 15:27:06 pavlovskii Exp $
 ; I tried dis-assembling the INT 15h AH=89h function in my BIOS.
 ; It doesn't appear to support 32-bit pmode.
 
@@ -151,7 +151,8 @@ enable_a20_ps2:
 ; notes:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-enable_a20:
+GLOBAL _enable_a20
+_enable_a20:
 	call enable_a20_at	; try 'AT' method
 	call verify_a20		; did it work?
 	jne enable_a20_1
@@ -184,7 +185,7 @@ EXTERN __got_32bit_cpu
 ; turn on A20 gate if necessary
 	test word [bp + 4],0FFFFh
 	je .pmode_a20
-	call enable_a20
+	call _enable_a20
 	or ax,ax
 	mov ax,2
 	jne .pmode_err
@@ -305,10 +306,11 @@ _start_kernel:
 	; Interrupts make this thing go *bang* from now on
 
 	cli
-
+	
 	mov	eax, cr0
 	inc	ax					; Set CR0.PE for the last time...
 	mov	cr0, eax
+
 	mov	ax, loader_data - gdt
 	mov	fs, ax					; fs = loader data
 	mov	ax, flat_data - gdt
@@ -328,8 +330,8 @@ _start_kernel:
 
 [bits 32]
 pmode1:
-	push	dword 2				; clear EFLAGS apart from bit 1
-	popfd
+	;push	dword 2				; clear EFLAGS apart from bit 1
+	;popfd
 
 %if 1
 	mov		al, byte [gs:esi+0x1000]
