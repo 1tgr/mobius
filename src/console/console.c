@@ -92,10 +92,10 @@ void conClientThread(addr_t param)
 	{
 		wprintf(L"[%d] reading...", thrGetId());
 		length = sizeof(req);
-		if (FAILED(fsRead(con->port, &req, &length)) ||
+		if (!fsRead(con->port, &req, &length) ||
 			length < sizeof(req))
 		{
-			wprintf(L"failed\n");
+			_pwerror(L"console");
 			continue;
 		}
 
@@ -108,7 +108,7 @@ void conClientThread(addr_t param)
 			while (written < req.params.write.length)
 			{
 				length = min(req.params.write.length, sizeof(buf));
-				if (FAILED(fsRead(con->port, buf, &length)))
+				if (!fsRead(con->port, buf, &length))
 					break;
 
 				conWrite(con, buf, length);

@@ -1,8 +1,4 @@
 #include <conio.h>
-#include <os/stream.h>
-
-#if 0
-extern IStream *keyboard;
 
 //! Returns true if there is a key waiting in the keyboard buffer, false otherwise.
 /*!
@@ -12,11 +8,5 @@ extern IStream *keyboard;
  */
 int _kbhit()
 {
-	return (IStream_IsReady(keyboard) == S_OK) ? 1 : 0;
-}
-#else
-int _kbhit()
-{
 	return 0;
 }
-#endif

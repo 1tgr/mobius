@@ -1,5 +1,4 @@
-#include <os/stream.h>
-#include <string.h>
+#include <os/os.h>
 
 //! Writes one character to the console.
 /*!
