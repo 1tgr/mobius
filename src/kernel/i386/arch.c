@@ -1,4 +1,4 @@
-/* $Id: arch.c,v 1.5 2002/01/06 22:46:09 pavlovskii Exp $ */
+/* $Id: arch.c,v 1.6 2002/01/08 01:20:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -276,9 +276,11 @@ void ArchDbgDumpContext(const context_t* ctx)
 
 thread_t *ArchAttachToThread(thread_t *thr)
 {
-	thread_t *old = current;
+	thread_t *old;
 	context_t *new;
+	void (*apc)(void*);
 	
+	old = current;
 	current = thr;
 	if (old->process != thr->process)
 		__asm__("mov %0, %%cr3"
@@ -304,5 +306,12 @@ thread_t *ArchAttachToThread(thread_t *thr)
 		0);
 
 	/*DevRunHandlers();*/
+	if (thr->kernel_apc)
+	{
+		apc = thr->kernel_apc;
+		thr->kernel_apc = NULL;
+		apc(thr->kernel_apc_param);
+	}
+
 	return old;
 }

@@ -5,6 +5,7 @@ BIN=		$(ROOT)/bin
 
 #DEFINES+=	-D__STRICT_ANSI__
 CFLAGS+=	-Wall -Wno-multichar -g -nostdinc -ansi $(DEFINES)
+CPPFLAGS+=	$(CFLAGS) -fno-rtti
 ASFLAGS+=	--gstabs
 CC=		gcc
 LD=		ld
@@ -14,6 +15,12 @@ LD=		ld
 
 %.d:	%.c
 	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(CFLAGS)
+
+%.o:	%.cpp
+	$(CC) -c $< -o $@ -I$(INCLUDE) -I./include $(CPPFLAGS)
+
+%.d:	%.cpp
+	$(CC) -c -M $< -o $@ -I$(INCLUDE) -I./include $(CPPFLAGS)
 
 %.o:	%.asm
 	nasm -f win32 $< -o $@

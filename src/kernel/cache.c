@@ -1,4 +1,4 @@
-/* $Id: cache.c,v 1.5 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: cache.c,v 1.6 2002/01/08 01:20:31 pavlovskii Exp $ */
 
 /* xxx - what if block_size > PAGE_SIZE? */
 
@@ -54,6 +54,7 @@ void CcDeleteFileCache(cache_t *cc)
 
 	free(cc->blocks);
 	free(cc->pages);
+	SemRelease(&cc->lock);
 	free(cc);
 }
 

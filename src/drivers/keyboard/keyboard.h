@@ -1,3 +1,5 @@
+/* $Id: keyboard.h,v 1.2 2002/01/08 01:20:31 pavlovskii Exp $ */
+
 #ifndef __KEYBOARD_H
 #define __KEYBOARD_H
 

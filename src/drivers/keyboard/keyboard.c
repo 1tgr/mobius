@@ -1,3 +1,5 @@
+/* $Id: keyboard.c,v 1.6 2002/01/08 01:20:31 pavlovskii Exp $ */
+
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
 #include <kernel/handle.h>
@@ -26,14 +28,14 @@ void TtySwitchConsoles(unsigned n);
  *  @{
  */
 
-typedef struct Keyboard Keyboard;
-struct Keyboard
+typedef struct keyboard_t keyboard_t;
+struct keyboard_t
 {
 	device_t dev;
 	uint32_t keys;
 	wchar_t compose;
 	uint32_t *write, *read;
-	uint32_t buffer[128];
+	uint32_t buffer[16];
 	bool isps2;
 	uint16_t port, ctrl;
 };
@@ -46,7 +48,7 @@ struct Keyboard
 			var &= ~bit; \
 	}
 
-void kbdHwWrite(Keyboard* keyb, uint16_t port, uint8_t data)
+void kbdHwWrite(keyboard_t* keyb, uint16_t port, uint8_t data)
 {
 	uint32_t timeout;
 	uint8_t stat;
@@ -63,7 +65,7 @@ void kbdHwWrite(Keyboard* keyb, uint16_t port, uint8_t data)
 		out(port, data);
 }
 
-uint8_t kbdHwRead(Keyboard* keyb)
+uint8_t kbdHwRead(keyboard_t* keyb)
 {
 	unsigned long Timeout;
 	uint8_t Stat, Data;
@@ -86,7 +88,7 @@ uint8_t kbdHwRead(Keyboard* keyb)
 	return -1;
 }
 
-uint8_t kbdHwWriteRead(Keyboard* keyb, uint16_t port, uint8_t data, const char* expect)
+uint8_t kbdHwWriteRead(keyboard_t* keyb, uint16_t port, uint8_t data, const char* expect)
 {
 	int RetVal;
 
@@ -105,7 +107,7 @@ uint8_t kbdHwWriteRead(Keyboard* keyb, uint16_t port, uint8_t data, const char* 
 	return 0;
 }
 
-uint32_t kbdScancodeToKey(Keyboard* keyb, uint8_t scancode)
+uint32_t KbdScancodeToKey(keyboard_t* keyb, uint8_t scancode)
 {
 	static int keypad[RAW_NUM0 - RAW_NUM7 + 1] =
 	{
@@ -217,31 +219,7 @@ leds:
 	return key | keyb->keys;
 }
 
-/*size_t kbdRead(Keyboard* keyb, void* buffer, size_t length)
-{
-	uint32_t ch, *buf = (uint32_t*) buffer;
-	size_t read = 0;
-
-	while (length > 0)
-	{
-		if (keyb->read == keyb->write)
-			return read;
-		
-		ch = *keyb->read;
-		keyb->read++;
-		if (keyb->read >= keyb->buffer + _countof(keyb->buffer))
-			keyb->read = keyb->buffer;
-
-		*buf = ch;
-		buf++;
-		length -= sizeof(uint32_t);
-		read += sizeof(uint32_t);
-	}
-
-	return read;
-}*/
-
-uint32_t kbdRead(Keyboard* keyb)
+uint32_t kbdRead(keyboard_t* keyb)
 {
 	uint32_t ch;
 	
@@ -256,32 +234,29 @@ uint32_t kbdRead(Keyboard* keyb)
 	return ch;
 }
 
-void kbdDoRequests(Keyboard* keyb)
+void KbdStartIo(keyboard_t* keyb)
 {
 	asyncio_t *io, *ionext;
 	request_dev_t *req;
 	uint32_t key;
-	addr_t *ptr;
 	uint8_t *buf;
 
-	while (keyb->dev.io_first && (key = kbdRead(keyb)))
+	while (keyb->dev.io_first && keyb->read != keyb->write)
 	{
+		key = kbdRead(keyb);
 		for (io = keyb->dev.io_first; io; io = ionext)
 		{
 			req = (request_dev_t*) io->req;
-			ptr = (addr_t*) (io + 1);
-			buf = MemMapTemp(ptr, io->length_pages, 
-				PRIV_KERN | PRIV_RD | PRIV_WR | PRIV_PRES);
-
-			wprintf(L"req = %p phys = %p buffer = %p + %x: ", 
-				req, *ptr,
-				buf, io->mod_buffer_start);
+			buf = DevMapBuffer(io);
+			
+			wprintf(L"req = %p buffer = %p + %x: ", 
+				req, buf, io->mod_buffer_start);
 
 			*(uint32_t*) (buf + io->mod_buffer_start + io->length) = key;
 			MemUnmapTemp();
 
 			io->length += sizeof(uint32_t);
-			
+
 			ionext = io->next;
 			if (io->length >= req->params.dev_read.length)
 			{
@@ -294,26 +269,48 @@ void kbdDoRequests(Keyboard* keyb)
 	}
 }
 
-void kbdKey(Keyboard* keyb, uint8_t scancode)
+void KbdReboot(void)
 {
-	uint32_t key;
+	unsigned char temp;
+	disable();
 
+	/* flush the keyboard controller */
+	do
+	{
+		temp = in(KEYB_CTRL);
+		if ((temp & 0x01) != 0)
+		{
+			(void) in(KEYB_PORT);
+			continue;
+		}
+	} while((temp & 0x02) != 0);
+
+	/* pulse the CPU reset line */
+	out(KEYB_CTRL, 0xFE);
+
+	/* ...and if that didn't work, just halt */
+	ArchProcessorIdle();
+}
+
+bool KbdIsr(device_t *dev, uint8_t irq)
+{
+	keyboard_t* keyb = (keyboard_t*) dev;
+	uint32_t key;
+	uint8_t scancode;
+
+	scancode = kbdHwRead(keyb);
 	if (keyb->write >= keyb->read)
 	{
-		key = kbdScancodeToKey(keyb, scancode);
+		key = KbdScancodeToKey(keyb, scancode);
 
-		/*if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
-			keShutdown(SHUTDOWN_REBOOT);
-		else if (key == KEY_F11)
+		if (key == (KBD_BUCKY_CTRL | KBD_BUCKY_ALT | KEY_DEL))
+			KbdReboot();
+		/*else if (key == KEY_F11)
 			if (dbgInvoke(thrCurrent(), thrContext(thrCurrent()), 0))
 				return;*/
 		
 		if (key >= KEY_F1 && key <= KEY_F12)
-		{
-			TRACE1("[keyboard] Switching to console %d\n",
-				key - KEY_F1);
 			TtySwitchConsoles(key - KEY_F1);
-		}
 		else if (key)
 		{
 			*keyb->write = key;
@@ -323,19 +320,12 @@ void kbdKey(Keyboard* keyb, uint8_t scancode)
 			if (keyb->write >= keyb->buffer + _countof(keyb->buffer))
 				keyb->write = keyb->buffer;
 
-			/*wprintf(L"read = %d, write = %d\n", keyb->read - keyb->buffer, keyb->write - keyb->buffer); */
-			/*Read(&key, sizeof(key)); */
-			/*wprintf(L"%c", key); */
+			wprintf(L"read = %d, write = %d\n", 
+				keyb->read - keyb->buffer, keyb->write - keyb->buffer);
+			KbdStartIo(keyb);
 		}
-
-		kbdDoRequests(keyb);
 	}
-}
 
-bool KbdIsr(device_t *dev, uint8_t irq)
-{
-	Keyboard* keyb = (Keyboard*) dev;
-	kbdKey(keyb, kbdHwRead(keyb));
 	return true;
 }
 
@@ -350,7 +340,7 @@ bool KbdIsr(device_t *dev, uint8_t irq)
 
 bool kbdRequest(device_t* dev, request_t* req)
 {
-	Keyboard* keyb = (Keyboard*) dev;
+	keyboard_t* keyb = (keyboard_t*) dev;
 	request_dev_t *req_dev = (request_dev_t*) req;
 	asyncio_t *io;
 
@@ -358,15 +348,23 @@ bool kbdRequest(device_t* dev, request_t* req)
 	switch (req->code)
 	{
 	case DEV_READ:
+		if (req_dev->params.dev_read.length % sizeof(uint32_t))
+		{
+			req_dev->header.code = EINVALID;
+			return false;
+		}
+
 		io = DevQueueRequest(dev, req, sizeof(request_dev_t),
 			req_dev->params.dev_read.buffer,
 			req_dev->params.dev_read.length);
+		assert(io != NULL);
 		io->length = 0;
-		kbdDoRequests(keyb);
+		KbdStartIo(keyb);
 		return true;
 
 	case CHR_GETSIZE:
-		*((size_t*) req_dev->params.buffered.buffer) = keyb->write - keyb->read;
+		*((size_t*) req_dev->params.buffered.buffer) = 
+			keyb->write - keyb->read;
 		return true;
 	}
 
@@ -382,13 +380,13 @@ static const IDeviceVtbl keyboard_vtbl =
 
 device_t *KbdAddDevice(driver_t* drv, const wchar_t *name, device_config_t *cfg)
 {
-	Keyboard* keyb;
+	keyboard_t* keyb;
 	/*uint32_t i;*/
 	uint16_t port, ctrl;
 	/*device_t* kdebug;*/
-	uint8_t status;
+	/*uint8_t status;*/
 
-	keyb = malloc(sizeof(Keyboard));
+	keyb = malloc(sizeof(keyboard_t));
 
 	/*if (cfg)
 		i = devFindResource(cfg, dresIo, 0);

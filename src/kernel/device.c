@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.10 2002/01/06 22:46:08 pavlovskii Exp $ */
+/* $Id: device.c,v 1.11 2002/01/08 01:20:31 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -218,23 +218,32 @@ bool DevRequestSync(device_t *dev, request_t *req)
 		{
 			if (!EvtIsSignalled(NULL, req->event))
 			{
-				if (true || current == &thr_idle)
+				semaphore_t temp;
+				SemInit(&temp);
+				SemAcquire(&temp);
+				enable();
+					
+				if (/*true || */current == &thr_idle)
 				{
-					semaphore_t temp;
-					SemInit(&temp);
-					SemAcquire(&temp);
-					enable();
 					TRACE0("DevRequestSync: busy-waiting\n");
 					while (!EvtIsSignalled(NULL, req->event))
 						ArchProcessorIdle();
-					SemRelease(&temp);
 				}
 				else
 				{
 					wprintf(L"DevRequestSync: doing proper wait\n");
 					ThrWaitHandle(current, req->event, 'evnt');
-					assert(false && "Reached this bit");
+					
+					while (!EvtIsSignalled(NULL, req->event))
+					{
+						ArchProcessorIdle();
+						wprintf(L"X");
+					}
+
+					/*assert(false && "Reached this bit");*/
 				}
+
+				SemRelease(&temp);
 			}
 
 			EvtFree(NULL, req->event);
@@ -332,6 +341,36 @@ asyncio_t *DevQueueRequest(device_t *dev, request_t *req, size_t size,
 	return io;
 }
 
+void DevFinishIoApc(void *ptr)
+{
+	asyncio_t *io;
+
+	io = ptr;
+	wprintf(L"DevFinishIoApc(%p): ", ptr);
+	wprintf(L"io->req = %p ", io->req);
+	wprintf(L"io->req->original = %p\n", io->req->original);
+	if (io->req->original != NULL)
+	{
+		assert(io->owner == current);
+		memcpy(io->req->original, io->req, io->req_size);
+	}
+
+	DevNotifyCompletion(io->dev, io->req);
+	EvtSignal(io->owner->process, io->req->event);
+
+	if (io->req->original != NULL)
+	{
+		request_t *req;
+		req = io->req;
+		io->req = io->req->original;
+		free(req);
+	}
+
+	free(io);
+	/* Need to free io->req->event */
+	/* No we don't, that's left to the caller */
+}
+
 void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 {
 	addr_t *ptr;
@@ -345,24 +384,18 @@ void DevFinishIo(device_t *dev, asyncio_t *io, status_t result)
 	/*LIST_ADD(io->owner->fio, io);*/
 	/*ThrInsertQueue(io->owner, &thr_finished, NULL);*/
 
-	if (io->req->original != NULL)
-		memcpy(io->req->original, io->req, io->req_size);
-	
-	DevNotifyCompletion(dev, io->req);
-	EvtSignal(io->owner->process, io->req->event);
-	
-	if (io->req->original != NULL)
-	{
-		request_t *req;
-		req = io->req;
-		io->req = io->req->original;
-		free(req);
-	}
-
 	io->req->result = result;
 
-	free(io);
-	/* Need to free io->req->event */
+	if (io->owner == current)
+	{
+		wprintf(L"Not queueing APC\n");
+		DevFinishIoApc(io);
+	}
+	else
+	{
+		wprintf(L"Queueing APC\n");
+		ThrQueueKernelApc(io->owner, DevFinishIoApc, io);
+	}
 }
 
 uint8_t DevCfgFindIrq(const device_config_t *cfg, unsigned n, uint8_t dflt)

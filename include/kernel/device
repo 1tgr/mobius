@@ -1,4 +1,4 @@
-/* $Id: device,v 1.2 2002/01/07 00:14:05 pavlovskii Exp $ */
+/* $Id: device,v 1.3 2002/01/08 01:20:30 pavlovskii Exp $ */
 
 #ifndef __KERNEL_DEVICE
 #define __KERNEL_DEVICE
@@ -6,6 +6,8 @@
 #ifndef __cplusplus
 #error <kernel/device> requires C++
 #endif
+
+#include <errno.h>
 
 #define DEV_BEGIN_REQUEST()	\
 	bool request(request_t *req) \

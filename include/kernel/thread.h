@@ -1,4 +1,4 @@
-/* $Id: thread.h,v 1.3 2002/01/02 21:15:22 pavlovskii Exp $ */
+/* $Id: thread.h,v 1.4 2002/01/08 01:20:30 pavlovskii Exp $ */
 #ifndef __KERNEL_THREAD_H
 #define __KERNEL_THREAD_H
 
@@ -34,7 +34,9 @@ struct thread_t
 	unsigned span;
 	unsigned id;
 	unsigned sleep_end;
-	/*struct asyncio_t *fio_first, *fio_last;*/
+
+	void (*kernel_apc)(void*);
+	void *kernel_apc_param;
 };
 
 extern thread_t *thr_first, *thr_last, *current;
@@ -54,6 +56,7 @@ bool	ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag);
 void	ThrInsertQueue(thread_t *thr, thread_queue_t *queue, thread_t *before);
 void	ThrRemoveQueue(thread_t *thr, thread_queue_t *queue);
 bool	ThrAllocateThreadInfo(thread_t *thr);
+void	ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param);
 
 #ifdef __cplusplus
 }

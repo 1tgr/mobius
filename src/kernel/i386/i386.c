@@ -1,4 +1,4 @@
-/* $Id: i386.c,v 1.7 2002/01/06 22:46:09 pavlovskii Exp $ */
+/* $Id: i386.c,v 1.8 2002/01/08 01:20:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/arch.h>
@@ -17,6 +17,8 @@ extern irq_t *irq_first[16], *irq_last[16];
 
 extern tss_t arch_tss;
 extern descriptor_t arch_gdt[];
+
+void TextSwitchToKernel(void);
 
 /*! \brief	Sets up a a code or data entry in the IA32 GDT or LDT
  *	\param	item	Pointer to a descriptor table entry
@@ -178,6 +180,8 @@ uint32_t i386Isr(context_t ctx)
 
 		if (!handled)
 		{
+			TextSwitchToKernel();
+
 			wprintf(L"Thread %s/%u: Interrupt %ld at %lx:%08lx: %08lx\n", 
 				current->process->exe, current->id, 
 				ctx.intr, ctx.cs, ctx.eip, cr2);

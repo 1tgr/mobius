@@ -111,6 +111,7 @@ EXPORTS
 	ThrGetContext
 	ThrInsertQueue
 	ThrPause
+	ThrQueueKernelApc
 	ThrRemoveQueue
 	ThrRun
 	ThrSleep
@@ -126,10 +127,13 @@ EXPORTS
 	VmmUncommit
 	_HndAlloc
 	_HndInit
+	__builtin_delete
+	__builtin_new
 	__calloc
 	__dj_assert
 	__dj_movedata
 	__dj_movedata_rev
+	__get_eh_context
 	__free
 	__m_botch
 	__m_delete_record
@@ -162,8 +166,6 @@ EXPORTS
 	emalloc
 	end
 	erealloc
-	exception_d
-	exception_e
 	exit
 	free
 	i386DispatchSysCall
@@ -176,49 +178,6 @@ EXPORTS
 	i386SetDescriptorInt
 	i386_lpeek32
 	i386_lpoke32
-	interrupt_0
-	interrupt_1
-	interrupt_10
-	interrupt_11
-	interrupt_12
-	interrupt_13
-	interrupt_14
-	interrupt_15
-	interrupt_16
-	interrupt_17
-	interrupt_18
-	interrupt_19
-	interrupt_1a
-	interrupt_1b
-	interrupt_1c
-	interrupt_1d
-	interrupt_1e
-	interrupt_1f
-	interrupt_2
-	interrupt_3
-	interrupt_30
-	interrupt_4
-	interrupt_5
-	interrupt_6
-	interrupt_7
-	interrupt_9
-	interrupt_f
-	irq_0
-	irq_1
-	irq_2
-	irq_3
-	irq_4
-	irq_5
-	irq_6
-	irq_7
-	irq_8
-	irq_9
-	irq_a
-	irq_b
-	irq_c
-	irq_d
-	irq_e
-	irq_f
 	mal_contents
 	mal_dumpleaktrace
 	mal_leaktrace

@@ -1,4 +1,4 @@
-/* $Id: rtlsup.c,v 1.5 2002/01/06 22:46:09 pavlovskii Exp $ */
+/* $Id: rtlsup.c,v 1.6 2002/01/08 01:20:32 pavlovskii Exp $ */
 
 #include <kernel/memory.h>
 #include <kernel/thread.h>
@@ -44,7 +44,7 @@ static void TextUpdateCursor(void)
 	out(VGA_CRTC_DATA, Off >> 1);
 }
 
-static void TextSwitchToKernel(void)
+void TextSwitchToKernel(void)
 {
 	out(VGA_CRTC_INDEX, 12);
 	out(VGA_CRTC_DATA, 0);

@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.3 2002/01/08 01:20:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -24,8 +24,8 @@ thread_queue_t thr_priority[32];
 /* sleeping threads */
 thread_queue_t thr_sleeping;
 
-/* threads that have finished I/O */
-thread_queue_t thr_finished;
+/* threads that have APCs queues */
+thread_queue_t thr_apc;
 
 thread_t thr_idle =
 {
@@ -133,10 +133,11 @@ void ScSchedule(void)
 	}
 
 	/* Run any finishio routines */
-	for (new = thr_finished.first; new; new = next)
+	for (new = thr_apc.first; new; new = next)
 	{
 		next = new->queue_next;
-		wprintf(L"ScSchedule: running finished thread %u\n", new->id);
+		wprintf(L"ScSchedule: running APC thread %u\n", new->id);
+		ThrRemoveQueue(new, &thr_apc);
 		ThrRun(new);
 	}
 
@@ -377,5 +378,14 @@ bool ThrWaitHandle(thread_t *thr, handle_t handle, uint32_t tag)
 		current->process->exe, ptr->file, ptr->line, handle);
 	ThrPause(thr);
 	ThrInsertQueue(thr, &ptr->waiting, NULL);
+	ScNeedSchedule(true);
 	return true;
+}
+
+void ThrQueueKernelApc(thread_t *thr, void (*fn)(void*), void *param)
+{
+	assert(thr->kernel_apc == NULL);
+	thr->kernel_apc = fn;
+	thr->kernel_apc_param = param;
+	ThrInsertQueue(thr, &thr_apc, NULL);
 }

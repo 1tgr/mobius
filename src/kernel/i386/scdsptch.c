@@ -1,4 +1,4 @@
-/* $Id: scdsptch.c,v 1.2 2001/11/05 22:41:07 pavlovskii Exp $ */
+/* $Id: scdsptch.c,v 1.3 2002/01/08 01:20:32 pavlovskii Exp $ */
 
 #include <kernel/i386.h>
 #include <kernel/memory.h>
@@ -44,6 +44,8 @@ systab_t *i386_systab[] =
 #include <os/sysdef.h>
 };
 
+int mal_verify(int fullcheck);
+
 void i386DispatchSysCall(context_t *ctx)
 {
 	unsigned tab, code;
@@ -67,4 +69,6 @@ void i386DispatchSysCall(context_t *ctx)
 	/*wprintf(L"[%S]", i386_systab[tab][code].name);*/
 	ctx->regs.eax = i386DoCall(i386_systab[tab][code].routine,
 		(void*) ctx->regs.edx, i386_systab[tab][code].argbytes);
+
+	mal_verify(1);
 }

@@ -1,4 +1,4 @@
-/* $Id: handle.c,v 1.2 2001/11/05 22:41:06 pavlovskii Exp $ */
+/* $Id: handle.c,v 1.3 2002/01/08 01:20:31 pavlovskii Exp $ */
 
 #include <kernel/handle.h>
 #include <kernel/thread.h>
@@ -196,6 +196,6 @@ void HndSignalPtr(handle_hdr_t *ptr, bool sig)
 
 		wprintf(L"\n");
 		assert(ptr->waiting.first == NULL);
-		ptr->signals--;
+		/*ptr->signals--;*/
 	}
 }

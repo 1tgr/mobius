@@ -340,84 +340,93 @@ kbdHwWrite():
 800812f1:	89 e5                	mov    %esp,%ebp
 800812f3:	57                   	push   %edi
 800812f4:	56                   	push   %esi
-/mn/src/drivers/keyboard/keyboard.c:54
+/mn/src/drivers/keyboard/keyboard.c:56
 800812f5:	bf 20 a1 07 00       	mov    $0x7a120,%edi
 800812fa:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:50
+/mn/src/drivers/keyboard/keyboard.c:52
 800812fb:	8b 45 08             	mov    0x8(%ebp),%eax
 800812fe:	8b 75 0c             	mov    0xc(%ebp),%esi
 80081301:	8a 5d 10             	mov    0x10(%ebp),%bl
-/mn/src/drivers/keyboard/keyboard.c:54
-80081304:	0f b7 88 28 02 00 00 	movzwl 0x228(%eax),%ecx
-8008130b:	eb 06                	jmp    80081313 <_kbdHwWrite+0x23>
-8008130d:	8d 76 00             	lea    0x0(%esi),%esi
-80081310:	4f                   	dec    %edi
-80081311:	74 10                	je     80081323 <_kbdHwWrite+0x33>
+/mn/src/drivers/keyboard/keyboard.c:56
+80081304:	0f b7 48 68          	movzwl 0x68(%eax),%ecx
+80081308:	eb 05                	jmp    8008130f <_kbdHwWrite+0x1f>
+8008130a:	89 f6                	mov    %esi,%esi
+8008130c:	4f                   	dec    %edi
+8008130d:	74 10                	je     8008131f <_kbdHwWrite+0x2f>
 /mn/include/kernel/i386.h:317
-80081313:	89 ca                	mov    %ecx,%edx
-80081315:	ec                   	in     (%dx),%al
-/mn/src/drivers/keyboard/keyboard.c:58
-80081316:	a8 02                	test   $0x2,%al
-80081318:	75 f6                	jne    80081310 <_kbdHwWrite+0x20>
-/mn/src/drivers/keyboard/keyboard.c:62
-8008131a:	85 ff                	test   %edi,%edi
-8008131c:	74 05                	je     80081323 <_kbdHwWrite+0x33>
-/mn/include/kernel/i386.h:300
-8008131e:	89 f2                	mov    %esi,%edx
-80081320:	88 d8                	mov    %bl,%al
-80081322:	ee                   	out    %al,(%dx)
-/mn/src/drivers/keyboard/keyboard.c:63
-80081323:	5b                   	pop    %ebx
-80081324:	5e                   	pop    %esi
-80081325:	5f                   	pop    %edi
-80081326:	89 ec                	mov    %ebp,%esp
-80081328:	5d                   	pop    %ebp
-80081329:	c3                   	ret    
+8008130f:	89 ca                	mov    %ecx,%edx
+80081311:	ec                   	in     (%dx),%al
+/mn/src/drivers/keyboard/keyboard.c:60
+80081312:	a8 02                	test   $0x2,%al
+80081314:	75 f6                	jne    8008130c <_kbdHwWrite+0x1c>
 /mn/src/drivers/keyboard/keyboard.c:64
-8008132a:	89 f6                	mov    %esi,%esi
+80081316:	85 ff                	test   %edi,%edi
+80081318:	74 05                	je     8008131f <_kbdHwWrite+0x2f>
+/mn/include/kernel/i386.h:300
+8008131a:	89 f2                	mov    %esi,%edx
+8008131c:	88 d8                	mov    %bl,%al
+8008131e:	ee                   	out    %al,(%dx)
+/mn/src/drivers/keyboard/keyboard.c:65
+8008131f:	5b                   	pop    %ebx
+80081320:	5e                   	pop    %esi
+80081321:	5f                   	pop    %edi
+80081322:	89 ec                	mov    %ebp,%esp
+80081324:	5d                   	pop    %ebp
+80081325:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:66
+80081326:	89 f6                	mov    %esi,%esi
 
-8008132c <_kbdHwRead>:
+80081328 <_kbdHwRead>:
 kbdHwRead():
-8008132c:	55                   	push   %ebp
-8008132d:	89 e5                	mov    %esp,%ebp
-8008132f:	57                   	push   %edi
-80081330:	56                   	push   %esi
-80081331:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:67
-80081332:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/keyboard/keyboard.c:71
-80081335:	bb 50 c3 00 00       	mov    $0xc350,%ebx
-8008133a:	0f b7 be 28 02 00 00 	movzwl 0x228(%esi),%edi
-80081341:	8d 76 00             	lea    0x0(%esi),%esi
+80081328:	55                   	push   %ebp
+80081329:	89 e5                	mov    %esp,%ebp
+8008132b:	57                   	push   %edi
+8008132c:	56                   	push   %esi
+8008132d:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:69
+8008132e:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/keyboard/keyboard.c:73
+80081331:	bb 50 c3 00 00       	mov    $0xc350,%ebx
+80081336:	0f b7 7e 68          	movzwl 0x68(%esi),%edi
+8008133a:	89 f6                	mov    %esi,%esi
 /mn/include/kernel/i386.h:317
-80081344:	89 fa                	mov    %edi,%edx
-80081346:	ec                   	in     (%dx),%al
-80081347:	88 c1                	mov    %al,%cl
-/mn/src/drivers/keyboard/keyboard.c:76
-80081349:	f6 c1 01             	test   $0x1,%cl
-8008134c:	74 12                	je     80081360 <_kbdHwRead+0x34>
+8008133c:	89 fa                	mov    %edi,%edx
+8008133e:	ec                   	in     (%dx),%al
+8008133f:	88 c1                	mov    %al,%cl
+/mn/src/drivers/keyboard/keyboard.c:78
+80081341:	f6 c1 01             	test   $0x1,%cl
+80081344:	74 12                	je     80081358 <_kbdHwRead+0x30>
 /mn/include/kernel/i386.h:314
-8008134e:	0f b7 96 26 02 00 00 	movzwl 0x226(%esi),%edx
+80081346:	0f b7 56 66          	movzwl 0x66(%esi),%edx
 /mn/include/kernel/i386.h:317
-80081355:	ec                   	in     (%dx),%al
-/mn/src/drivers/keyboard/keyboard.c:81
-80081356:	f6 c1 c0             	test   $0xc0,%cl
-80081359:	75 05                	jne    80081360 <_kbdHwRead+0x34>
-/mn/src/drivers/keyboard/keyboard.c:82
-8008135b:	0f b6 c0             	movzbl %al,%eax
-8008135e:	eb 08                	jmp    80081368 <_kbdHwRead+0x3c>
-/mn/src/drivers/keyboard/keyboard.c:71
-80081360:	4b                   	dec    %ebx
-80081361:	75 e1                	jne    80081344 <_kbdHwRead+0x18>
-/mn/src/drivers/keyboard/keyboard.c:86
-80081363:	b8 ff 00 00 00       	mov    $0xff,%eax
-80081368:	5b                   	pop    %ebx
-80081369:	5e                   	pop    %esi
-8008136a:	5f                   	pop    %edi
-8008136b:	89 ec                	mov    %ebp,%esp
-8008136d:	5d                   	pop    %ebp
-8008136e:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:87
+8008134a:	ec                   	in     (%dx),%al
+/mn/src/drivers/keyboard/keyboard.c:83
+8008134b:	f6 c1 c0             	test   $0xc0,%cl
+8008134e:	75 08                	jne    80081358 <_kbdHwRead+0x30>
+/mn/src/drivers/keyboard/keyboard.c:84
+80081350:	0f b6 c0             	movzbl %al,%eax
+80081353:	eb 0b                	jmp    80081360 <_kbdHwRead+0x38>
+/mn/src/drivers/keyboard/keyboard.c:73
+80081355:	8d 76 00             	lea    0x0(%esi),%esi
+80081358:	4b                   	dec    %ebx
+80081359:	75 e1                	jne    8008133c <_kbdHwRead+0x14>
+/mn/src/drivers/keyboard/keyboard.c:88
+8008135b:	b8 ff 00 00 00       	mov    $0xff,%eax
+80081360:	5b                   	pop    %ebx
+80081361:	5e                   	pop    %esi
+80081362:	5f                   	pop    %edi
+80081363:	89 ec                	mov    %ebp,%esp
+80081365:	5d                   	pop    %ebp
+80081366:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:89
+80081367:	90                   	nop    
+80081368:	90                   	nop    
+80081369:	90                   	nop    
+8008136a:	90                   	nop    
+8008136b:	90                   	nop    
+8008136c:	90                   	nop    
+8008136d:	90                   	nop    
+8008136e:	90                   	nop    
 8008136f:	90                   	nop    
 80081370:	90                   	nop    
 80081371:	90                   	nop    
@@ -441,19 +450,19 @@ kbdHwRead():
 80081388:	62 00                	bound  %eax,(%eax)
 8008138a:	6f                   	outsl  %ds:(%esi),(%dx)
 8008138b:	00 61 00             	add    %ah,0x0(%ecx)
-8008138e:	72 00                	jb     80081390 <_kbdHwRead+0x64>
+8008138e:	72 00                	jb     80081390 <_kbdHwRead+0x68>
 80081390:	64 00 5d 00          	add    %bl,%fs:0x0(%ebp)
 80081394:	20 00                	and    %al,(%eax)
 80081396:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
-8008139a:	72 00                	jb     8008139c <_kbdHwRead+0x70>
+8008139a:	72 00                	jb     8008139c <_kbdHwRead+0x74>
 8008139c:	6f                   	outsl  %ds:(%esi),(%dx)
 8008139d:	00 72 00             	add    %dh,0x0(%edx)
 800813a0:	3a 00                	cmp    (%eax),%al
 800813a2:	20 00                	and    %al,(%eax)
 800813a4:	65 00 78 00          	add    %bh,%gs:0x0(%eax)
-800813a8:	70 00                	jo     800813aa <_kbdHwRead+0x7e>
+800813a8:	70 00                	jo     800813aa <_kbdHwRead+0x82>
 800813aa:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
-800813ae:	74 00                	je     800813b0 <_kbdHwRead+0x84>
+800813ae:	74 00                	je     800813b0 <_kbdHwRead+0x88>
 800813b0:	65 00 64 00 20       	add    %ah,%gs:0x20(%eax,%eax,1)
 800813b5:	00 30                	add    %dh,(%eax)
 800813b7:	00 78 00             	add    %bh,0x0(%eax)
@@ -476,48 +485,48 @@ kbdHwWriteRead():
 800813de:	57                   	push   %edi
 800813df:	56                   	push   %esi
 800813e0:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:93
+/mn/src/drivers/keyboard/keyboard.c:95
 800813e1:	83 c4 fc             	add    $0xfffffffc,%esp
 800813e4:	0f b6 45 10          	movzbl 0x10(%ebp),%eax
-/mn/src/drivers/keyboard/keyboard.c:90
+/mn/src/drivers/keyboard/keyboard.c:92
 800813e8:	8b 7d 08             	mov    0x8(%ebp),%edi
 800813eb:	8b 5d 14             	mov    0x14(%ebp),%ebx
-/mn/src/drivers/keyboard/keyboard.c:93
+/mn/src/drivers/keyboard/keyboard.c:95
 800813ee:	50                   	push   %eax
 800813ef:	0f b7 45 0c          	movzwl 0xc(%ebp),%eax
 800813f3:	50                   	push   %eax
 800813f4:	57                   	push   %edi
 800813f5:	e8 f6 fe ff ff       	call   800812f0 <_kbdHwWrite>
-/mn/src/drivers/keyboard/keyboard.c:94
+/mn/src/drivers/keyboard/keyboard.c:96
 800813fa:	83 c4 10             	add    $0x10,%esp
 800813fd:	80 3b 00             	cmpb   $0x0,(%ebx)
 80081400:	74 34                	je     80081436 <_kbdHwWriteRead+0x5e>
 80081402:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:96
+/mn/src/drivers/keyboard/keyboard.c:98
 80081404:	83 c4 f4             	add    $0xfffffff4,%esp
 80081407:	57                   	push   %edi
-80081408:	e8 1f ff ff ff       	call   8008132c <_kbdHwRead>
-/mn/src/drivers/keyboard/keyboard.c:97
+80081408:	e8 1b ff ff ff       	call   80081328 <_kbdHwRead>
+/mn/src/drivers/keyboard/keyboard.c:99
 8008140d:	0f b6 f0             	movzbl %al,%esi
 80081410:	83 c4 10             	add    $0x10,%esp
 80081413:	38 03                	cmp    %al,(%ebx)
 80081415:	74 19                	je     80081430 <_kbdHwWriteRead+0x58>
-/mn/src/drivers/keyboard/keyboard.c:99
+/mn/src/drivers/keyboard/keyboard.c:101
 80081417:	83 c4 fc             	add    $0xfffffffc,%esp
 8008141a:	56                   	push   %esi
 8008141b:	0f b6 03             	movzbl (%ebx),%eax
 8008141e:	50                   	push   %eax
 8008141f:	68 80 13 08 80       	push   $0x80081380
-80081424:	e8 ef 06 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:101
+80081424:	e8 3f 07 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:103
 80081429:	89 f2                	mov    %esi,%edx
 8008142b:	0f b6 c2             	movzbl %dl,%eax
 8008142e:	eb 08                	jmp    80081438 <_kbdHwWriteRead+0x60>
-/mn/src/drivers/keyboard/keyboard.c:94
+/mn/src/drivers/keyboard/keyboard.c:96
 80081430:	43                   	inc    %ebx
 80081431:	80 3b 00             	cmpb   $0x0,(%ebx)
 80081434:	75 ce                	jne    80081404 <_kbdHwWriteRead+0x2c>
-/mn/src/drivers/keyboard/keyboard.c:105
+/mn/src/drivers/keyboard/keyboard.c:107
 80081436:	31 c0                	xor    %eax,%eax
 80081438:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
 8008143b:	5b                   	pop    %ebx
@@ -526,865 +535,892 @@ kbdHwWriteRead():
 8008143e:	89 ec                	mov    %ebp,%esp
 80081440:	5d                   	pop    %ebp
 80081441:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:106
+/mn/src/drivers/keyboard/keyboard.c:108
 80081442:	89 f6                	mov    %esi,%esi
 
-80081444 <_kbdScancodeToKey>:
-kbdScancodeToKey():
+80081444 <_KbdScancodeToKey>:
+KbdScancodeToKey():
 80081444:	55                   	push   %ebp
 80081445:	89 e5                	mov    %esp,%ebp
 80081447:	83 ec 10             	sub    $0x10,%esp
 8008144a:	56                   	push   %esi
 8008144b:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:120
+/mn/src/drivers/keyboard/keyboard.c:122
 8008144c:	31 f6                	xor    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:109
+/mn/src/drivers/keyboard/keyboard.c:111
 8008144e:	8a 45 0c             	mov    0xc(%ebp),%al
-/mn/src/drivers/keyboard/keyboard.c:118
+/mn/src/drivers/keyboard/keyboard.c:120
 80081451:	88 c2                	mov    %al,%dl
-/mn/src/drivers/keyboard/keyboard.c:119
+/mn/src/drivers/keyboard/keyboard.c:121
 80081453:	88 c1                	mov    %al,%cl
-/mn/src/drivers/keyboard/keyboard.c:118
+/mn/src/drivers/keyboard/keyboard.c:120
 80081455:	c0 ea 07             	shr    $0x7,%dl
-/mn/src/drivers/keyboard/keyboard.c:119
+/mn/src/drivers/keyboard/keyboard.c:121
 80081458:	80 e1 7f             	and    $0x7f,%cl
-/mn/src/drivers/keyboard/keyboard.c:109
+/mn/src/drivers/keyboard/keyboard.c:111
 8008145b:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/keyboard/keyboard.c:118
+/mn/src/drivers/keyboard/keyboard.c:120
 8008145e:	80 f2 01             	xor    $0x1,%dl
-/mn/src/drivers/keyboard/keyboard.c:123
+/mn/src/drivers/keyboard/keyboard.c:125
 80081461:	0f b6 c1             	movzbl %cl,%eax
 80081464:	83 f8 38             	cmp    $0x38,%eax
-80081467:	74 73                	je     800814dc <_kbdScancodeToKey+0x98>
-80081469:	7f 25                	jg     80081490 <_kbdScancodeToKey+0x4c>
+80081467:	74 73                	je     800814dc <_KbdScancodeToKey+0x98>
+80081469:	7f 25                	jg     80081490 <_KbdScancodeToKey+0x4c>
 8008146b:	83 f8 2a             	cmp    $0x2a,%eax
-8008146e:	0f 84 a0 00 00 00    	je     80081514 <_kbdScancodeToKey+0xd0>
-80081474:	7f 0a                	jg     80081480 <_kbdScancodeToKey+0x3c>
+8008146e:	0f 84 a0 00 00 00    	je     80081514 <_KbdScancodeToKey+0xd0>
+80081474:	7f 0a                	jg     80081480 <_KbdScancodeToKey+0x3c>
 80081476:	83 f8 1d             	cmp    $0x1d,%eax
-80081479:	74 45                	je     800814c0 <_kbdScancodeToKey+0x7c>
-8008147b:	e9 30 01 00 00       	jmp    800815b0 <_kbdScancodeToKey+0x16c>
+80081479:	74 45                	je     800814c0 <_KbdScancodeToKey+0x7c>
+8008147b:	e9 2c 01 00 00       	jmp    800815ac <_KbdScancodeToKey+0x168>
 80081480:	83 f8 36             	cmp    $0x36,%eax
-80081483:	0f 84 8b 00 00 00    	je     80081514 <_kbdScancodeToKey+0xd0>
-80081489:	e9 22 01 00 00       	jmp    800815b0 <_kbdScancodeToKey+0x16c>
+80081483:	0f 84 8b 00 00 00    	je     80081514 <_KbdScancodeToKey+0xd0>
+80081489:	e9 1e 01 00 00       	jmp    800815ac <_KbdScancodeToKey+0x168>
 8008148e:	89 f6                	mov    %esi,%esi
 80081490:	83 f8 45             	cmp    $0x45,%eax
-80081493:	0f 84 97 00 00 00    	je     80081530 <_kbdScancodeToKey+0xec>
-80081499:	7f 11                	jg     800814ac <_kbdScancodeToKey+0x68>
+80081493:	0f 84 97 00 00 00    	je     80081530 <_KbdScancodeToKey+0xec>
+80081499:	7f 11                	jg     800814ac <_KbdScancodeToKey+0x68>
 8008149b:	83 f8 3a             	cmp    $0x3a,%eax
-8008149e:	0f 84 9c 00 00 00    	je     80081540 <_kbdScancodeToKey+0xfc>
-800814a4:	e9 07 01 00 00       	jmp    800815b0 <_kbdScancodeToKey+0x16c>
+8008149e:	0f 84 9c 00 00 00    	je     80081540 <_KbdScancodeToKey+0xfc>
+800814a4:	e9 03 01 00 00       	jmp    800815ac <_KbdScancodeToKey+0x168>
 800814a9:	8d 76 00             	lea    0x0(%esi),%esi
 800814ac:	83 f8 46             	cmp    $0x46,%eax
-800814af:	0f 84 9b 00 00 00    	je     80081550 <_kbdScancodeToKey+0x10c>
+800814af:	0f 84 9b 00 00 00    	je     80081550 <_KbdScancodeToKey+0x10c>
 800814b5:	3d ff 00 00 00       	cmp    $0xff,%eax
-800814ba:	0f 85 f0 00 00 00    	jne    800815b0 <_kbdScancodeToKey+0x16c>
-/mn/src/drivers/keyboard/keyboard.c:127
+800814ba:	0f 85 ec 00 00 00    	jne    800815ac <_KbdScancodeToKey+0x168>
+/mn/src/drivers/keyboard/keyboard.c:129
 800814c0:	84 d2                	test   %dl,%dl
-800814c2:	74 0c                	je     800814d0 <_kbdScancodeToKey+0x8c>
+800814c2:	74 0c                	je     800814d0 <_KbdScancodeToKey+0x8c>
 800814c4:	80 4b 16 40          	orb    $0x40,0x16(%ebx)
-800814c8:	e9 86 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+800814c8:	e9 82 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 800814cd:	8d 76 00             	lea    0x0(%esi),%esi
 800814d0:	80 63 16 bf          	andb   $0xbf,0x16(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:128
-800814d4:	e9 7a 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+/mn/src/drivers/keyboard/keyboard.c:130
+800814d4:	e9 76 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 800814d9:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/keyboard/keyboard.c:132
-800814dc:	84 d2                	test   %dl,%dl
-800814de:	74 10                	je     800814f0 <_kbdScancodeToKey+0xac>
-800814e0:	f6 43 16 20          	testb  $0x20,0x16(%ebx)
-800814e4:	75 18                	jne    800814fe <_kbdScancodeToKey+0xba>
-/mn/src/drivers/keyboard/keyboard.c:133
-800814e6:	66 c7 43 18 00 00    	movw   $0x0,0x18(%ebx)
-800814ec:	eb 0c                	jmp    800814fa <_kbdScancodeToKey+0xb6>
 /mn/src/drivers/keyboard/keyboard.c:134
+800814dc:	84 d2                	test   %dl,%dl
+800814de:	74 10                	je     800814f0 <_KbdScancodeToKey+0xac>
+800814e0:	f6 43 16 20          	testb  $0x20,0x16(%ebx)
+800814e4:	75 18                	jne    800814fe <_KbdScancodeToKey+0xba>
+/mn/src/drivers/keyboard/keyboard.c:135
+800814e6:	66 c7 43 18 00 00    	movw   $0x0,0x18(%ebx)
+800814ec:	eb 0c                	jmp    800814fa <_KbdScancodeToKey+0xb6>
+/mn/src/drivers/keyboard/keyboard.c:136
 800814ee:	89 f6                	mov    %esi,%esi
 800814f0:	f6 43 16 20          	testb  $0x20,0x16(%ebx)
-800814f4:	74 04                	je     800814fa <_kbdScancodeToKey+0xb6>
-/mn/src/drivers/keyboard/keyboard.c:135
-800814f6:	0f b7 73 18          	movzwl 0x18(%ebx),%esi
+800814f4:	74 04                	je     800814fa <_KbdScancodeToKey+0xb6>
 /mn/src/drivers/keyboard/keyboard.c:137
+800814f6:	0f b7 73 18          	movzwl 0x18(%ebx),%esi
+/mn/src/drivers/keyboard/keyboard.c:139
 800814fa:	84 d2                	test   %dl,%dl
-800814fc:	74 0a                	je     80081508 <_kbdScancodeToKey+0xc4>
+800814fc:	74 0a                	je     80081508 <_KbdScancodeToKey+0xc4>
 800814fe:	80 4b 16 20          	orb    $0x20,0x16(%ebx)
-80081502:	e9 4c 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+80081502:	e9 48 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 80081507:	90                   	nop    
 80081508:	80 63 16 df          	andb   $0xdf,0x16(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:138
-8008150c:	e9 42 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+/mn/src/drivers/keyboard/keyboard.c:140
+8008150c:	e9 3e 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 80081511:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/keyboard/keyboard.c:142
+/mn/src/drivers/keyboard/keyboard.c:144
 80081514:	84 d2                	test   %dl,%dl
-80081516:	74 0c                	je     80081524 <_kbdScancodeToKey+0xe0>
+80081516:	74 0c                	je     80081524 <_KbdScancodeToKey+0xe0>
 80081518:	80 4b 16 80          	orb    $0x80,0x16(%ebx)
-8008151c:	e9 32 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+8008151c:	e9 2e 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 80081521:	8d 76 00             	lea    0x0(%esi),%esi
 80081524:	80 63 16 7f          	andb   $0x7f,0x16(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:143
-80081528:	e9 26 01 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
+/mn/src/drivers/keyboard/keyboard.c:145
+80081528:	e9 22 01 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
 8008152d:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/keyboard/keyboard.c:146
-80081530:	84 d2                	test   %dl,%dl
-80081532:	0f 85 1b 01 00 00    	jne    80081653 <_kbdScancodeToKey+0x20f>
 /mn/src/drivers/keyboard/keyboard.c:148
+80081530:	84 d2                	test   %dl,%dl
+80081532:	0f 85 17 01 00 00    	jne    8008164f <_KbdScancodeToKey+0x20b>
+/mn/src/drivers/keyboard/keyboard.c:150
 80081538:	80 73 17 02          	xorb   $0x2,0x17(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:149
-8008153c:	eb 1e                	jmp    8008155c <_kbdScancodeToKey+0x118>
+/mn/src/drivers/keyboard/keyboard.c:151
+8008153c:	eb 1e                	jmp    8008155c <_KbdScancodeToKey+0x118>
 8008153e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:154
-80081540:	84 d2                	test   %dl,%dl
-80081542:	0f 85 0b 01 00 00    	jne    80081653 <_kbdScancodeToKey+0x20f>
 /mn/src/drivers/keyboard/keyboard.c:156
+80081540:	84 d2                	test   %dl,%dl
+80081542:	0f 85 07 01 00 00    	jne    8008164f <_KbdScancodeToKey+0x20b>
+/mn/src/drivers/keyboard/keyboard.c:158
 80081548:	80 73 17 01          	xorb   $0x1,0x17(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:157
-8008154c:	eb 0e                	jmp    8008155c <_kbdScancodeToKey+0x118>
+/mn/src/drivers/keyboard/keyboard.c:159
+8008154c:	eb 0e                	jmp    8008155c <_KbdScancodeToKey+0x118>
 8008154e:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:162
-80081550:	84 d2                	test   %dl,%dl
-80081552:	0f 85 fb 00 00 00    	jne    80081653 <_kbdScancodeToKey+0x20f>
 /mn/src/drivers/keyboard/keyboard.c:164
+80081550:	84 d2                	test   %dl,%dl
+80081552:	0f 85 f7 00 00 00    	jne    8008164f <_KbdScancodeToKey+0x20b>
+/mn/src/drivers/keyboard/keyboard.c:166
 80081558:	80 73 17 04          	xorb   $0x4,0x17(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:170
+/mn/src/drivers/keyboard/keyboard.c:172
 8008155c:	83 c4 fc             	add    $0xfffffffc,%esp
 8008155f:	68 ed 00 00 00       	push   $0xed
-80081564:	0f b7 83 26 02 00 00 	movzwl 0x226(%ebx),%eax
-8008156b:	50                   	push   %eax
-8008156c:	53                   	push   %ebx
-8008156d:	e8 7e fd ff ff       	call   800812f0 <_kbdHwWrite>
-/mn/src/drivers/keyboard/keyboard.c:172
-80081572:	8b 53 14             	mov    0x14(%ebx),%edx
-80081575:	83 c4 10             	add    $0x10,%esp
-80081578:	f7 c2 00 00 00 04    	test   $0x4000000,%edx
-8008157e:	0f 95 c0             	setne  %al
+80081564:	0f b7 43 66          	movzwl 0x66(%ebx),%eax
+80081568:	50                   	push   %eax
+80081569:	53                   	push   %ebx
+8008156a:	e8 81 fd ff ff       	call   800812f0 <_kbdHwWrite>
 /mn/src/drivers/keyboard/keyboard.c:174
-80081581:	f7 c2 00 00 00 02    	test   $0x2000000,%edx
-80081587:	74 02                	je     8008158b <_kbdScancodeToKey+0x147>
-/mn/src/drivers/keyboard/keyboard.c:175
-80081589:	0c 02                	or     $0x2,%al
+8008156f:	8b 53 14             	mov    0x14(%ebx),%edx
+80081572:	83 c4 10             	add    $0x10,%esp
+80081575:	f7 c2 00 00 00 04    	test   $0x4000000,%edx
+8008157b:	0f 95 c0             	setne  %al
 /mn/src/drivers/keyboard/keyboard.c:176
-8008158b:	f7 c2 00 00 00 01    	test   $0x1000000,%edx
-80081591:	74 02                	je     80081595 <_kbdScancodeToKey+0x151>
+8008157e:	f7 c2 00 00 00 02    	test   $0x2000000,%edx
+80081584:	74 02                	je     80081588 <_KbdScancodeToKey+0x144>
 /mn/src/drivers/keyboard/keyboard.c:177
-80081593:	0c 04                	or     $0x4,%al
+80081586:	0c 02                	or     $0x2,%al
 /mn/src/drivers/keyboard/keyboard.c:178
-80081595:	83 c4 fc             	add    $0xfffffffc,%esp
-80081598:	0f b6 c0             	movzbl %al,%eax
-8008159b:	50                   	push   %eax
-8008159c:	0f b7 83 26 02 00 00 	movzwl 0x226(%ebx),%eax
-800815a3:	50                   	push   %eax
-800815a4:	53                   	push   %ebx
-800815a5:	e8 46 fd ff ff       	call   800812f0 <_kbdHwWrite>
+80081588:	f7 c2 00 00 00 01    	test   $0x1000000,%edx
+8008158e:	74 02                	je     80081592 <_KbdScancodeToKey+0x14e>
 /mn/src/drivers/keyboard/keyboard.c:179
-800815aa:	e9 a4 00 00 00       	jmp    80081653 <_kbdScancodeToKey+0x20f>
-800815af:	90                   	nop    
-/mn/src/drivers/keyboard/keyboard.c:182
-800815b0:	84 d2                	test   %dl,%dl
-800815b2:	0f 84 9b 00 00 00    	je     80081653 <_kbdScancodeToKey+0x20f>
+80081590:	0c 04                	or     $0x4,%al
+/mn/src/drivers/keyboard/keyboard.c:180
+80081592:	83 c4 fc             	add    $0xfffffffc,%esp
+80081595:	0f b6 c0             	movzbl %al,%eax
+80081598:	50                   	push   %eax
+80081599:	0f b7 43 66          	movzwl 0x66(%ebx),%eax
+8008159d:	50                   	push   %eax
+8008159e:	53                   	push   %ebx
+8008159f:	e8 4c fd ff ff       	call   800812f0 <_kbdHwWrite>
+/mn/src/drivers/keyboard/keyboard.c:181
+800815a4:	e9 a6 00 00 00       	jmp    8008164f <_KbdScancodeToKey+0x20b>
+800815a9:	8d 76 00             	lea    0x0(%esi),%esi
 /mn/src/drivers/keyboard/keyboard.c:184
-800815b8:	8d 41 b9             	lea    0xffffffb9(%ecx),%eax
-800815bb:	3c 0b                	cmp    $0xb,%al
-800815bd:	77 55                	ja     80081614 <_kbdScancodeToKey+0x1d0>
-800815bf:	80 f9 4a             	cmp    $0x4a,%cl
-800815c2:	74 50                	je     80081614 <_kbdScancodeToKey+0x1d0>
-800815c4:	80 f9 4e             	cmp    $0x4e,%cl
-800815c7:	74 4b                	je     80081614 <_kbdScancodeToKey+0x1d0>
-/mn/src/drivers/keyboard/keyboard.c:189
-800815c9:	0f b6 c1             	movzbl %cl,%eax
-800815cc:	f6 43 16 20          	testb  $0x20,0x16(%ebx)
-800815d0:	74 2e                	je     80081600 <_kbdScancodeToKey+0x1bc>
-800815d2:	8d 14 85 e4 fe ff ff 	lea    0xfffffee4(,%eax,4),%edx
-800815d9:	b9 00 20 08 80       	mov    $0x80082000,%ecx
-800815de:	83 3c 0a ff          	cmpl   $0xffffffff,(%edx,%ecx,1)
-800815e2:	74 1c                	je     80081600 <_kbdScancodeToKey+0x1bc>
-/mn/src/drivers/keyboard/keyboard.c:192
-800815e4:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
-800815e8:	8d 04 80             	lea    (%eax,%eax,4),%eax
-800815eb:	01 c0                	add    %eax,%eax
-800815ed:	66 89 43 18          	mov    %ax,0x18(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:193
-800815f1:	0f b7 0c 0a          	movzwl (%edx,%ecx,1),%ecx
-800815f5:	01 c1                	add    %eax,%ecx
-800815f7:	66 89 4b 18          	mov    %cx,0x18(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:196
-800815fb:	eb 35                	jmp    80081632 <_kbdScancodeToKey+0x1ee>
-800815fd:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/keyboard/keyboard.c:197
-80081600:	f6 43 17 02          	testb  $0x2,0x17(%ebx)
-80081604:	74 25                	je     8008162b <_kbdScancodeToKey+0x1e7>
+800815ac:	84 d2                	test   %dl,%dl
+800815ae:	0f 84 9b 00 00 00    	je     8008164f <_KbdScancodeToKey+0x20b>
+/mn/src/drivers/keyboard/keyboard.c:186
+800815b4:	8d 41 b9             	lea    0xffffffb9(%ecx),%eax
+800815b7:	3c 0b                	cmp    $0xb,%al
+800815b9:	77 55                	ja     80081610 <_KbdScancodeToKey+0x1cc>
+800815bb:	80 f9 4a             	cmp    $0x4a,%cl
+800815be:	74 50                	je     80081610 <_KbdScancodeToKey+0x1cc>
+800815c0:	80 f9 4e             	cmp    $0x4e,%cl
+800815c3:	74 4b                	je     80081610 <_KbdScancodeToKey+0x1cc>
+/mn/src/drivers/keyboard/keyboard.c:191
+800815c5:	0f b6 c1             	movzbl %cl,%eax
+800815c8:	f6 43 16 20          	testb  $0x20,0x16(%ebx)
+800815cc:	74 2e                	je     800815fc <_KbdScancodeToKey+0x1b8>
+800815ce:	8d 14 85 e4 fe ff ff 	lea    0xfffffee4(,%eax,4),%edx
+800815d5:	b9 00 20 08 80       	mov    $0x80082000,%ecx
+800815da:	83 3c 0a ff          	cmpl   $0xffffffff,(%edx,%ecx,1)
+800815de:	74 1c                	je     800815fc <_KbdScancodeToKey+0x1b8>
+/mn/src/drivers/keyboard/keyboard.c:194
+800815e0:	0f b7 43 18          	movzwl 0x18(%ebx),%eax
+800815e4:	8d 04 80             	lea    (%eax,%eax,4),%eax
+800815e7:	01 c0                	add    %eax,%eax
+800815e9:	66 89 43 18          	mov    %ax,0x18(%ebx)
+/mn/src/drivers/keyboard/keyboard.c:195
+800815ed:	0f b7 0c 0a          	movzwl (%edx,%ecx,1),%ecx
+800815f1:	01 c1                	add    %eax,%ecx
+800815f3:	66 89 4b 18          	mov    %cx,0x18(%ebx)
 /mn/src/drivers/keyboard/keyboard.c:198
-80081606:	8b 34 85 e4 1e 08 80 	mov    0x80081ee4(,%eax,4),%esi
-8008160d:	83 c6 30             	add    $0x30,%esi
-80081610:	eb 20                	jmp    80081632 <_kbdScancodeToKey+0x1ee>
-80081612:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:202
-80081614:	f6 43 16 80          	testb  $0x80,0x16(%ebx)
-80081618:	74 0e                	je     80081628 <_kbdScancodeToKey+0x1e4>
-/mn/src/drivers/keyboard/keyboard.c:203
-8008161a:	0f b6 c1             	movzbl %cl,%eax
-8008161d:	8b 34 85 78 11 08 80 	mov    0x80081178(,%eax,4),%esi
-80081624:	eb 0c                	jmp    80081632 <_kbdScancodeToKey+0x1ee>
-80081626:	89 f6                	mov    %esi,%esi
+800815f7:	eb 35                	jmp    8008162e <_KbdScancodeToKey+0x1ea>
+800815f9:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/keyboard/keyboard.c:199
+800815fc:	f6 43 17 02          	testb  $0x2,0x17(%ebx)
+80081600:	74 25                	je     80081627 <_KbdScancodeToKey+0x1e3>
+/mn/src/drivers/keyboard/keyboard.c:200
+80081602:	8b 34 85 e4 1e 08 80 	mov    0x80081ee4(,%eax,4),%esi
+80081609:	83 c6 30             	add    $0x30,%esi
+8008160c:	eb 20                	jmp    8008162e <_KbdScancodeToKey+0x1ea>
+8008160e:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/keyboard/keyboard.c:204
+80081610:	f6 43 16 80          	testb  $0x80,0x16(%ebx)
+80081614:	74 0e                	je     80081624 <_KbdScancodeToKey+0x1e0>
 /mn/src/drivers/keyboard/keyboard.c:205
-80081628:	0f b6 c1             	movzbl %cl,%eax
-8008162b:	8b 34 85 00 10 08 80 	mov    0x80081000(,%eax,4),%esi
+80081616:	0f b6 c1             	movzbl %cl,%eax
+80081619:	8b 34 85 78 11 08 80 	mov    0x80081178(,%eax,4),%esi
+80081620:	eb 0c                	jmp    8008162e <_KbdScancodeToKey+0x1ea>
+80081622:	89 f6                	mov    %esi,%esi
 /mn/src/drivers/keyboard/keyboard.c:207
-80081632:	f6 43 17 01          	testb  $0x1,0x17(%ebx)
-80081636:	74 1b                	je     80081653 <_kbdScancodeToKey+0x20f>
+80081624:	0f b6 c1             	movzbl %cl,%eax
+80081627:	8b 34 85 00 10 08 80 	mov    0x80081000(,%eax,4),%esi
 /mn/src/drivers/keyboard/keyboard.c:209
-80081638:	8d 46 bf             	lea    0xffffffbf(%esi),%eax
-8008163b:	83 f8 19             	cmp    $0x19,%eax
-8008163e:	77 08                	ja     80081648 <_kbdScancodeToKey+0x204>
-/mn/src/drivers/keyboard/keyboard.c:210
-80081640:	83 c6 20             	add    $0x20,%esi
-80081643:	eb 0e                	jmp    80081653 <_kbdScancodeToKey+0x20f>
-80081645:	8d 76 00             	lea    0x0(%esi),%esi
+8008162e:	f6 43 17 01          	testb  $0x1,0x17(%ebx)
+80081632:	74 1b                	je     8008164f <_KbdScancodeToKey+0x20b>
 /mn/src/drivers/keyboard/keyboard.c:211
-80081648:	8d 46 9f             	lea    0xffffff9f(%esi),%eax
-8008164b:	83 f8 19             	cmp    $0x19,%eax
-8008164e:	77 03                	ja     80081653 <_kbdScancodeToKey+0x20f>
+80081634:	8d 46 bf             	lea    0xffffffbf(%esi),%eax
+80081637:	83 f8 19             	cmp    $0x19,%eax
+8008163a:	77 08                	ja     80081644 <_KbdScancodeToKey+0x200>
 /mn/src/drivers/keyboard/keyboard.c:212
-80081650:	83 c6 e0             	add    $0xffffffe0,%esi
-/mn/src/drivers/keyboard/keyboard.c:217
-80081653:	0b 73 14             	or     0x14(%ebx),%esi
-80081656:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-80081659:	89 f0                	mov    %esi,%eax
-8008165b:	5b                   	pop    %ebx
-8008165c:	5e                   	pop    %esi
-8008165d:	89 ec                	mov    %ebp,%esp
-8008165f:	5d                   	pop    %ebp
-80081660:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:218
-80081661:	8d 76 00             	lea    0x0(%esi),%esi
+8008163c:	83 c6 20             	add    $0x20,%esi
+8008163f:	eb 0e                	jmp    8008164f <_KbdScancodeToKey+0x20b>
+80081641:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/keyboard/keyboard.c:213
+80081644:	8d 46 9f             	lea    0xffffff9f(%esi),%eax
+80081647:	83 f8 19             	cmp    $0x19,%eax
+8008164a:	77 03                	ja     8008164f <_KbdScancodeToKey+0x20b>
+/mn/src/drivers/keyboard/keyboard.c:214
+8008164c:	83 c6 e0             	add    $0xffffffe0,%esi
+/mn/src/drivers/keyboard/keyboard.c:219
+8008164f:	0b 73 14             	or     0x14(%ebx),%esi
+80081652:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80081655:	89 f0                	mov    %esi,%eax
+80081657:	5b                   	pop    %ebx
+80081658:	5e                   	pop    %esi
+80081659:	89 ec                	mov    %ebp,%esp
+8008165b:	5d                   	pop    %ebp
+8008165c:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:220
+8008165d:	8d 76 00             	lea    0x0(%esi),%esi
 
-80081664 <_kbdRead>:
+80081660 <_kbdRead>:
 kbdRead():
-80081664:	55                   	push   %ebp
-80081665:	89 e5                	mov    %esp,%ebp
-80081667:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:245
-80081668:	8b 4d 08             	mov    0x8(%ebp),%ecx
-/mn/src/drivers/keyboard/keyboard.c:248
-8008166b:	8b 41 20             	mov    0x20(%ecx),%eax
-8008166e:	3b 41 1c             	cmp    0x1c(%ecx),%eax
-80081671:	75 05                	jne    80081678 <_kbdRead+0x14>
-/mn/src/drivers/keyboard/keyboard.c:249
-80081673:	31 c0                	xor    %eax,%eax
-80081675:	eb 1e                	jmp    80081695 <_kbdRead+0x31>
-80081677:	90                   	nop    
-/mn/src/drivers/keyboard/keyboard.c:252
-80081678:	8d 50 04             	lea    0x4(%eax),%edx
-/mn/src/drivers/keyboard/keyboard.c:251
-8008167b:	8b 18                	mov    (%eax),%ebx
-/mn/src/drivers/keyboard/keyboard.c:252
-8008167d:	89 51 20             	mov    %edx,0x20(%ecx)
-/mn/src/drivers/keyboard/keyboard.c:253
-80081680:	83 c0 04             	add    $0x4,%eax
-80081683:	8d 91 24 02 00 00    	lea    0x224(%ecx),%edx
-80081689:	39 d0                	cmp    %edx,%eax
-8008168b:	72 06                	jb     80081693 <_kbdRead+0x2f>
-/mn/src/drivers/keyboard/keyboard.c:254
-8008168d:	8d 41 24             	lea    0x24(%ecx),%eax
-80081690:	89 41 20             	mov    %eax,0x20(%ecx)
-/mn/src/drivers/keyboard/keyboard.c:256
-80081693:	89 d8                	mov    %ebx,%eax
-80081695:	5b                   	pop    %ebx
-80081696:	89 ec                	mov    %ebp,%esp
-80081698:	5d                   	pop    %ebp
-80081699:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:257
-8008169a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
-800816a0:	72 00                	jb     800816a2 <_kbdRead+0x3e>
+80081660:	55                   	push   %ebp
+80081661:	89 e5                	mov    %esp,%ebp
+80081663:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:223
+80081664:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mn/src/drivers/keyboard/keyboard.c:226
+80081667:	8b 41 20             	mov    0x20(%ecx),%eax
+8008166a:	3b 41 1c             	cmp    0x1c(%ecx),%eax
+8008166d:	75 05                	jne    80081674 <_kbdRead+0x14>
+/mn/src/drivers/keyboard/keyboard.c:227
+8008166f:	31 c0                	xor    %eax,%eax
+80081671:	eb 1b                	jmp    8008168e <_kbdRead+0x2e>
+80081673:	90                   	nop    
+/mn/src/drivers/keyboard/keyboard.c:230
+80081674:	8d 50 04             	lea    0x4(%eax),%edx
+/mn/src/drivers/keyboard/keyboard.c:229
+80081677:	8b 18                	mov    (%eax),%ebx
+/mn/src/drivers/keyboard/keyboard.c:230
+80081679:	89 51 20             	mov    %edx,0x20(%ecx)
+/mn/src/drivers/keyboard/keyboard.c:231
+8008167c:	83 c0 04             	add    $0x4,%eax
+8008167f:	8d 51 64             	lea    0x64(%ecx),%edx
+80081682:	39 d0                	cmp    %edx,%eax
+80081684:	72 06                	jb     8008168c <_kbdRead+0x2c>
+/mn/src/drivers/keyboard/keyboard.c:232
+80081686:	8d 41 24             	lea    0x24(%ecx),%eax
+80081689:	89 41 20             	mov    %eax,0x20(%ecx)
+/mn/src/drivers/keyboard/keyboard.c:234
+8008168c:	89 d8                	mov    %ebx,%eax
+8008168e:	5b                   	pop    %ebx
+8008168f:	89 ec                	mov    %ebp,%esp
+80081691:	5d                   	pop    %ebp
+80081692:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:235
+80081693:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+80081699:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+800816a0:	72 00                	jb     800816a2 <_kbdRead+0x42>
 800816a2:	65 00 71 00          	add    %dh,%gs:0x0(%ecx)
 800816a6:	20 00                	and    %al,(%eax)
 800816a8:	3d 00 20 00 25       	cmp    $0x25002000,%eax
 800816ad:	00 70 00             	add    %dh,0x0(%eax)
 800816b0:	20 00                	and    %al,(%eax)
-800816b2:	70 00                	jo     800816b4 <_kbdRead+0x50>
-800816b4:	68 00 79 00 73       	push   $0x73007900
-800816b9:	00 20                	add    %ah,(%eax)
-800816bb:	00 3d 00 20 00 25    	add    %bh,0x25002000
-800816c1:	00 70 00             	add    %dh,0x0(%eax)
-800816c4:	20 00                	and    %al,(%eax)
-800816c6:	62 00                	bound  %eax,(%eax)
-800816c8:	75 00                	jne    800816ca <_kbdRead+0x66>
-800816ca:	66                   	data16
-800816cb:	00 66 00             	add    %ah,0x0(%esi)
-800816ce:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
-800816d2:	20 00                	and    %al,(%eax)
-800816d4:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-800816d9:	00 70 00             	add    %dh,0x0(%eax)
-800816dc:	20 00                	and    %al,(%eax)
-800816de:	2b 00                	sub    (%eax),%eax
-800816e0:	20 00                	and    %al,(%eax)
-800816e2:	25 00 78 00 3a       	and    $0x3a007800,%eax
-800816e7:	00 20                	add    %ah,(%eax)
+800816b2:	62 00                	bound  %eax,(%eax)
+800816b4:	75 00                	jne    800816b6 <_kbdRead+0x56>
+800816b6:	66                   	data16
+800816b7:	00 66 00             	add    %ah,0x0(%esi)
+800816ba:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
+800816be:	20 00                	and    %al,(%eax)
+800816c0:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+800816c5:	00 70 00             	add    %dh,0x0(%eax)
+800816c8:	20 00                	and    %al,(%eax)
+800816ca:	2b 00                	sub    (%eax),%eax
+800816cc:	20 00                	and    %al,(%eax)
+800816ce:	25 00 78 00 3a       	and    $0x3a007800,%eax
+800816d3:	00 20                	add    %ah,(%eax)
+800816d5:	00 00                	add    %al,(%eax)
+800816d7:	00 66 00             	add    %ah,0x0(%esi)
+800816da:	69 00 6e 00 69 00    	imul   $0x69006e,(%eax),%eax
+800816e0:	73 00                	jae    800816e2 <_kbdRead+0x82>
+800816e2:	68 00 65 00 64       	push   $0x64006500
+800816e7:	00 0a                	add    %cl,(%edx)
 800816e9:	00 00                	add    %al,(%eax)
-800816eb:	00 66 00             	add    %ah,0x0(%esi)
-800816ee:	69 00 6e 00 69 00    	imul   $0x69006e,(%eax),%eax
-800816f4:	73 00                	jae    800816f6 <_kbdRead+0x92>
-800816f6:	68 00 65 00 64       	push   $0x64006500
-800816fb:	00 0a                	add    %cl,(%edx)
-800816fd:	00 00                	add    %al,(%eax)
-800816ff:	00 6d 00             	add    %ch,0x0(%ebp)
-80081702:	6f                   	outsl  %ds:(%esi),(%dx)
-80081703:	00 72 00             	add    %dh,0x0(%edx)
-80081706:	65 00 20             	add    %ah,%gs:(%eax)
-80081709:	00 74 00 6f          	add    %dh,0x6f(%eax,%eax,1)
-8008170d:	00 20                	add    %ah,(%eax)
-8008170f:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
-80081713:	00 0a                	add    %cl,(%edx)
-80081715:	00 00                	add    %al,(%eax)
+800816eb:	00 6d 00             	add    %ch,0x0(%ebp)
+800816ee:	6f                   	outsl  %ds:(%esi),(%dx)
+800816ef:	00 72 00             	add    %dh,0x0(%edx)
+800816f2:	65 00 20             	add    %ah,%gs:(%eax)
+800816f5:	00 74 00 6f          	add    %dh,0x6f(%eax,%eax,1)
+800816f9:	00 20                	add    %ah,(%eax)
+800816fb:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
+800816ff:	00 0a                	add    %cl,(%edx)
+80081701:	00 00                	add    %al,(%eax)
 	...
 
-80081718 <_kbdDoRequests>:
-kbdDoRequests():
-80081718:	55                   	push   %ebp
-80081719:	89 e5                	mov    %esp,%ebp
-8008171b:	83 ec 1c             	sub    $0x1c,%esp
-8008171e:	57                   	push   %edi
-8008171f:	56                   	push   %esi
-80081720:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:267
-80081721:	e9 a0 00 00 00       	jmp    800817c6 <_kbdDoRequests+0xae>
-80081726:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:269
-80081728:	8b 45 08             	mov    0x8(%ebp),%eax
-8008172b:	8b 70 08             	mov    0x8(%eax),%esi
-8008172e:	85 f6                	test   %esi,%esi
-80081730:	0f 84 90 00 00 00    	je     800817c6 <_kbdDoRequests+0xae>
-80081736:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:271
-80081738:	8b 5e 0c             	mov    0xc(%esi),%ebx
-/mn/src/drivers/keyboard/keyboard.c:273
-8008173b:	83 c4 fc             	add    $0xfffffffc,%esp
-8008173e:	6a 03                	push   $0x3
-/mn/src/drivers/keyboard/keyboard.c:272
-80081740:	8d 56 28             	lea    0x28(%esi),%edx
-/mn/src/drivers/keyboard/keyboard.c:273
-80081743:	8b 46 20             	mov    0x20(%esi),%eax
-80081746:	50                   	push   %eax
-80081747:	52                   	push   %edx
-80081748:	e8 c3 03 00 00       	call   80081b10 <_MemMapTemp>
-8008174d:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/keyboard/keyboard.c:276
-8008174f:	83 c4 f4             	add    $0xfffffff4,%esp
-80081752:	8b 46 24             	mov    0x24(%esi),%eax
-80081755:	50                   	push   %eax
-80081756:	57                   	push   %edi
-80081757:	8b 46 28             	mov    0x28(%esi),%eax
-8008175a:	50                   	push   %eax
+80081704 <_KbdStartIo>:
+KbdStartIo():
+80081704:	55                   	push   %ebp
+80081705:	89 e5                	mov    %esp,%ebp
+80081707:	83 ec 1c             	sub    $0x1c,%esp
+8008170a:	57                   	push   %edi
+8008170b:	56                   	push   %esi
+8008170c:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:244
+8008170d:	8b 45 08             	mov    0x8(%ebp),%eax
+80081710:	83 78 08 00          	cmpl   $0x0,0x8(%eax)
+80081714:	0f 84 bd 00 00 00    	je     800817d7 <_KbdStartIo+0xd3>
+8008171a:	8b 40 1c             	mov    0x1c(%eax),%eax
+8008171d:	8b 55 08             	mov    0x8(%ebp),%edx
+80081720:	39 42 20             	cmp    %eax,0x20(%edx)
+80081723:	0f 84 ae 00 00 00    	je     800817d7 <_KbdStartIo+0xd3>
+80081729:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/keyboard/keyboard.c:246
+8008172c:	83 c4 f4             	add    $0xfffffff4,%esp
+8008172f:	8b 45 08             	mov    0x8(%ebp),%eax
+80081732:	50                   	push   %eax
+80081733:	e8 28 ff ff ff       	call   80081660 <_kbdRead>
+/mn/src/drivers/keyboard/keyboard.c:247
+80081738:	8b 55 08             	mov    0x8(%ebp),%edx
+/mn/src/drivers/keyboard/keyboard.c:246
+8008173b:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
+/mn/src/drivers/keyboard/keyboard.c:247
+8008173e:	83 c4 10             	add    $0x10,%esp
+80081741:	8b 72 08             	mov    0x8(%edx),%esi
+80081744:	85 f6                	test   %esi,%esi
+80081746:	74 7a                	je     800817c2 <_KbdStartIo+0xbe>
+/mn/src/drivers/keyboard/keyboard.c:250
+80081748:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/keyboard/keyboard.c:249
+8008174b:	8b 5e 0c             	mov    0xc(%esi),%ebx
+/mn/src/drivers/keyboard/keyboard.c:250
+8008174e:	56                   	push   %esi
+8008174f:	e8 0c 04 00 00       	call   80081b60 <_DevMapBuffer>
+80081754:	89 c7                	mov    %eax,%edi
+/mn/src/drivers/keyboard/keyboard.c:252
+80081756:	8b 46 24             	mov    0x24(%esi),%eax
+80081759:	50                   	push   %eax
+8008175a:	57                   	push   %edi
 8008175b:	53                   	push   %ebx
 8008175c:	68 a0 16 08 80       	push   $0x800816a0
-80081761:	e8 b2 03 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:280
+80081761:	e8 02 04 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:255
 80081766:	8b 46 1c             	mov    0x1c(%esi),%eax
-/mn/src/drivers/keyboard/keyboard.c:281
-80081769:	83 c4 30             	add    $0x30,%esp
-/mn/src/drivers/keyboard/keyboard.c:280
+/mn/src/drivers/keyboard/keyboard.c:256
+80081769:	83 c4 20             	add    $0x20,%esp
+/mn/src/drivers/keyboard/keyboard.c:255
 8008176c:	03 7e 24             	add    0x24(%esi),%edi
 8008176f:	8b 55 fc             	mov    0xfffffffc(%ebp),%edx
 80081772:	89 14 38             	mov    %edx,(%eax,%edi,1)
-/mn/src/drivers/keyboard/keyboard.c:281
-80081775:	e8 8e 03 00 00       	call   80081b08 <_MemUnmapTemp>
-/mn/src/drivers/keyboard/keyboard.c:283
+/mn/src/drivers/keyboard/keyboard.c:256
+80081775:	e8 de 03 00 00       	call   80081b58 <_MemUnmapTemp>
+/mn/src/drivers/keyboard/keyboard.c:258
 8008177a:	8b 46 1c             	mov    0x1c(%esi),%eax
 8008177d:	83 c0 04             	add    $0x4,%eax
-/mn/src/drivers/keyboard/keyboard.c:285
+/mn/src/drivers/keyboard/keyboard.c:260
 80081780:	8b 7e 04             	mov    0x4(%esi),%edi
-/mn/src/drivers/keyboard/keyboard.c:283
+/mn/src/drivers/keyboard/keyboard.c:258
 80081783:	89 46 1c             	mov    %eax,0x1c(%esi)
-/mn/src/drivers/keyboard/keyboard.c:286
+/mn/src/drivers/keyboard/keyboard.c:261
 80081786:	3b 43 18             	cmp    0x18(%ebx),%eax
-80081789:	72 21                	jb     800817ac <_kbdDoRequests+0x94>
-/mn/src/drivers/keyboard/keyboard.c:288
+80081789:	72 21                	jb     800817ac <_KbdStartIo+0xa8>
+/mn/src/drivers/keyboard/keyboard.c:263
 8008178b:	83 c4 fc             	add    $0xfffffffc,%esp
 8008178e:	6a 00                	push   $0x0
 80081790:	56                   	push   %esi
 80081791:	8b 45 08             	mov    0x8(%ebp),%eax
 80081794:	50                   	push   %eax
-80081795:	e8 66 03 00 00       	call   80081b00 <_DevFinishIo>
-/mn/src/drivers/keyboard/keyboard.c:289
+80081795:	e8 b6 03 00 00       	call   80081b50 <_DevFinishIo>
+/mn/src/drivers/keyboard/keyboard.c:264
 8008179a:	83 c4 f4             	add    $0xfffffff4,%esp
-8008179d:	68 ec 16 08 80       	push   $0x800816ec
-800817a2:	e8 71 03 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:290
+8008179d:	68 d8 16 08 80       	push   $0x800816d8
+800817a2:	e8 c1 03 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:265
 800817a7:	83 c4 20             	add    $0x20,%esp
-800817aa:	eb 10                	jmp    800817bc <_kbdDoRequests+0xa4>
-/mn/src/drivers/keyboard/keyboard.c:292
+800817aa:	eb 10                	jmp    800817bc <_KbdStartIo+0xb8>
+/mn/src/drivers/keyboard/keyboard.c:267
 800817ac:	83 c4 f4             	add    $0xfffffff4,%esp
-800817af:	68 00 17 08 80       	push   $0x80081700
-800817b4:	e8 5f 03 00 00       	call   80081b18 <_wprintf>
+800817af:	68 ec 16 08 80       	push   $0x800816ec
+800817b4:	e8 af 03 00 00       	call   80081b68 <_wprintf>
 800817b9:	83 c4 10             	add    $0x10,%esp
-/mn/src/drivers/keyboard/keyboard.c:269
+/mn/src/drivers/keyboard/keyboard.c:247
 800817bc:	89 fe                	mov    %edi,%esi
 800817be:	85 f6                	test   %esi,%esi
-800817c0:	0f 85 72 ff ff ff    	jne    80081738 <_kbdDoRequests+0x20>
-/mn/src/drivers/keyboard/keyboard.c:294
-800817c6:	8b 55 08             	mov    0x8(%ebp),%edx
-800817c9:	83 7a 08 00          	cmpl   $0x0,0x8(%edx)
-800817cd:	74 17                	je     800817e6 <_kbdDoRequests+0xce>
-800817cf:	83 c4 f4             	add    $0xfffffff4,%esp
-800817d2:	52                   	push   %edx
-800817d3:	e8 8c fe ff ff       	call   80081664 <_kbdRead>
-800817d8:	89 45 fc             	mov    %eax,0xfffffffc(%ebp)
-800817db:	83 c4 10             	add    $0x10,%esp
-800817de:	85 c0                	test   %eax,%eax
-800817e0:	0f 85 42 ff ff ff    	jne    80081728 <_kbdDoRequests+0x10>
-800817e6:	8d 65 d8             	lea    0xffffffd8(%ebp),%esp
-800817e9:	5b                   	pop    %ebx
-800817ea:	5e                   	pop    %esi
-800817eb:	5f                   	pop    %edi
-800817ec:	89 ec                	mov    %ebp,%esp
-800817ee:	5d                   	pop    %ebp
-800817ef:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:295
-800817f0:	90                   	nop    
-800817f1:	90                   	nop    
-800817f2:	90                   	nop    
-800817f3:	90                   	nop    
-800817f4:	90                   	nop    
-800817f5:	90                   	nop    
-800817f6:	90                   	nop    
-800817f7:	90                   	nop    
-800817f8:	90                   	nop    
-800817f9:	90                   	nop    
-800817fa:	90                   	nop    
-800817fb:	90                   	nop    
-800817fc:	90                   	nop    
-800817fd:	90                   	nop    
-800817fe:	90                   	nop    
-800817ff:	90                   	nop    
-80081800:	5b                   	pop    %ebx
-80081801:	00 6b 00             	add    %ch,0x0(%ebx)
-80081804:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
-80081808:	62 00                	bound  %eax,(%eax)
-8008180a:	6f                   	outsl  %ds:(%esi),(%dx)
-8008180b:	00 61 00             	add    %ah,0x0(%ecx)
-8008180e:	72 00                	jb     80081810 <_kbdDoRequests+0xf8>
-80081810:	64 00 5d 00          	add    %bl,%fs:0x0(%ebp)
-80081814:	20 00                	and    %al,(%eax)
-80081816:	53                   	push   %ebx
-80081817:	00 77 00             	add    %dh,0x0(%edi)
-8008181a:	69 00 74 00 63 00    	imul   $0x630074,(%eax),%eax
-80081820:	68 00 69 00 6e       	push   $0x6e006900
-80081825:	00 67 00             	add    %ah,0x0(%edi)
-80081828:	20 00                	and    %al,(%eax)
-8008182a:	74 00                	je     8008182c <_kbdDoRequests+0x114>
-8008182c:	6f                   	outsl  %ds:(%esi),(%dx)
-8008182d:	00 20                	add    %ah,(%eax)
-8008182f:	00 63 00             	add    %ah,0x0(%ebx)
-80081832:	6f                   	outsl  %ds:(%esi),(%dx)
-80081833:	00 6e 00             	add    %ch,0x0(%esi)
-80081836:	73 00                	jae    80081838 <_kbdDoRequests+0x120>
-80081838:	6f                   	outsl  %ds:(%esi),(%dx)
-80081839:	00 6c 00 65          	add    %ch,0x65(%eax,%eax,1)
-8008183d:	00 20                	add    %ah,(%eax)
-8008183f:	00 25 00 64 00 0a    	add    %ah,0xa006400
-80081845:	00 00                	add    %al,(%eax)
-80081847:	00 5b 00             	add    %bl,0x0(%ebx)
-8008184a:	6b 00 5d             	imul   $0x5d,(%eax),%eax
-8008184d:	00 00                	add    %al,(%eax)
-	...
+800817c0:	75 86                	jne    80081748 <_KbdStartIo+0x44>
+/mn/src/drivers/keyboard/keyboard.c:269
+800817c2:	8b 55 08             	mov    0x8(%ebp),%edx
+800817c5:	83 7a 08 00          	cmpl   $0x0,0x8(%edx)
+800817c9:	74 0c                	je     800817d7 <_KbdStartIo+0xd3>
+800817cb:	8b 42 1c             	mov    0x1c(%edx),%eax
+800817ce:	39 42 20             	cmp    %eax,0x20(%edx)
+800817d1:	0f 85 55 ff ff ff    	jne    8008172c <_KbdStartIo+0x28>
+800817d7:	8d 65 d8             	lea    0xffffffd8(%ebp),%esp
+800817da:	5b                   	pop    %ebx
+800817db:	5e                   	pop    %esi
+800817dc:	5f                   	pop    %edi
+800817dd:	89 ec                	mov    %ebp,%esp
+800817df:	5d                   	pop    %ebp
+800817e0:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:270
+800817e1:	8d 76 00             	lea    0x0(%esi),%esi
 
-80081850 <_kbdKey>:
-kbdKey():
-80081850:	55                   	push   %ebp
-80081851:	89 e5                	mov    %esp,%ebp
-80081853:	83 ec 10             	sub    $0x10,%esp
-80081856:	56                   	push   %esi
-80081857:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:298
-80081858:	8b 75 08             	mov    0x8(%ebp),%esi
-8008185b:	8a 55 0c             	mov    0xc(%ebp),%dl
-/mn/src/drivers/keyboard/keyboard.c:301
-8008185e:	8b 46 20             	mov    0x20(%esi),%eax
-80081861:	39 46 1c             	cmp    %eax,0x1c(%esi)
-80081864:	72 71                	jb     800818d7 <_kbdKey+0x87>
-/mn/src/drivers/keyboard/keyboard.c:303
-80081866:	83 c4 f8             	add    $0xfffffff8,%esp
-80081869:	0f b6 c2             	movzbl %dl,%eax
-8008186c:	50                   	push   %eax
-8008186d:	56                   	push   %esi
-8008186e:	e8 d1 fb ff ff       	call   80081444 <_kbdScancodeToKey>
-80081873:	89 c2                	mov    %eax,%edx
-/mn/src/drivers/keyboard/keyboard.c:311
-80081875:	83 c4 10             	add    $0x10,%esp
-80081878:	8d 9a 00 00 ff ff    	lea    0xffff0000(%edx),%ebx
-8008187e:	83 fb 0b             	cmp    $0xb,%ebx
-80081881:	77 1d                	ja     800818a0 <_kbdKey+0x50>
-/mn/src/drivers/keyboard/keyboard.c:313
-80081883:	83 c4 f8             	add    $0xfffffff8,%esp
-80081886:	53                   	push   %ebx
-80081887:	68 00 18 08 80       	push   $0x80081800
-8008188c:	e8 87 02 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:315
-80081891:	83 c4 f4             	add    $0xfffffff4,%esp
-80081894:	53                   	push   %ebx
-80081895:	e8 46 02 00 00       	call   80081ae0 <_TtySwitchConsoles>
-/mn/src/drivers/keyboard/keyboard.c:316
-8008189a:	83 c4 20             	add    $0x20,%esp
-8008189d:	eb 2f                	jmp    800818ce <_kbdKey+0x7e>
-8008189f:	90                   	nop    
-/mn/src/drivers/keyboard/keyboard.c:317
-800818a0:	85 d2                	test   %edx,%edx
-800818a2:	74 2a                	je     800818ce <_kbdKey+0x7e>
-/mn/src/drivers/keyboard/keyboard.c:319
-800818a4:	8b 46 1c             	mov    0x1c(%esi),%eax
-/mn/src/drivers/keyboard/keyboard.c:321
-800818a7:	83 c4 f4             	add    $0xfffffff4,%esp
-/mn/src/drivers/keyboard/keyboard.c:319
-800818aa:	89 10                	mov    %edx,(%eax)
-/mn/src/drivers/keyboard/keyboard.c:320
-800818ac:	83 46 1c 04          	addl   $0x4,0x1c(%esi)
-/mn/src/drivers/keyboard/keyboard.c:321
-800818b0:	68 48 18 08 80       	push   $0x80081848
-800818b5:	e8 5e 02 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:323
-800818ba:	8d 86 24 02 00 00    	lea    0x224(%esi),%eax
-800818c0:	83 c4 10             	add    $0x10,%esp
-800818c3:	39 46 1c             	cmp    %eax,0x1c(%esi)
-800818c6:	72 06                	jb     800818ce <_kbdKey+0x7e>
-/mn/src/drivers/keyboard/keyboard.c:324
-800818c8:	8d 46 24             	lea    0x24(%esi),%eax
-800818cb:	89 46 1c             	mov    %eax,0x1c(%esi)
-/mn/src/drivers/keyboard/keyboard.c:331
-800818ce:	83 c4 f4             	add    $0xfffffff4,%esp
-800818d1:	56                   	push   %esi
-800818d2:	e8 41 fe ff ff       	call   80081718 <_kbdDoRequests>
-/mn/src/drivers/keyboard/keyboard.c:332
-800818d7:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800818da:	5b                   	pop    %ebx
-800818db:	5e                   	pop    %esi
-800818dc:	89 ec                	mov    %ebp,%esp
-800818de:	5d                   	pop    %ebp
-800818df:	c3                   	ret    
+800817e4 <_KbdReboot>:
+KbdReboot():
+800817e4:	55                   	push   %ebp
+800817e5:	89 e5                	mov    %esp,%ebp
+800817e7:	83 ec 0c             	sub    $0xc,%esp
+800817ea:	57                   	push   %edi
+800817eb:	56                   	push   %esi
+800817ec:	53                   	push   %ebx
+/mn/include/kernel/i386.h:292
+800817ed:	fa                   	cli    
+/mn/src/drivers/keyboard/keyboard.c:278
+800817ee:	bb 64 00 00 00       	mov    $0x64,%ebx
+800817f3:	b9 60 00 00 00       	mov    $0x60,%ecx
+/mn/include/kernel/i386.h:317
+800817f8:	89 da                	mov    %ebx,%edx
+800817fa:	ec                   	in     (%dx),%al
+800817fb:	89 c6                	mov    %eax,%esi
+/mn/src/drivers/keyboard/keyboard.c:281
+800817fd:	f7 c6 01 00 00 00    	test   $0x1,%esi
+80081803:	74 03                	je     80081808 <_KbdReboot+0x24>
+/mn/include/kernel/i386.h:316
+80081805:	89 ca                	mov    %ecx,%edx
+80081807:	ec                   	in     (%dx),%al
+/mn/src/drivers/keyboard/keyboard.c:286
+80081808:	f7 c6 02 00 00 00    	test   $0x2,%esi
+8008180e:	75 e8                	jne    800817f8 <_KbdReboot+0x14>
+/mn/include/kernel/i386.h:299
+80081810:	ba 64 00 00 00       	mov    $0x64,%edx
+80081815:	b0 fe                	mov    $0xfe,%al
+/mn/include/kernel/i386.h:300
+80081817:	ee                   	out    %al,(%dx)
+/mn/src/drivers/keyboard/keyboard.c:292
+80081818:	e8 2b 03 00 00       	call   80081b48 <_ArchProcessorIdle>
+8008181d:	5b                   	pop    %ebx
+8008181e:	5e                   	pop    %esi
+8008181f:	5f                   	pop    %edi
+80081820:	89 ec                	mov    %ebp,%esp
+80081822:	5d                   	pop    %ebp
+80081823:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:293
+80081824:	5b                   	pop    %ebx
+80081825:	00 6b 00             	add    %ch,0x0(%ebx)
+80081828:	5d                   	pop    %ebp
+80081829:	00 00                	add    %al,(%eax)
+8008182b:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+80081831:	90                   	nop    
+80081832:	90                   	nop    
+80081833:	90                   	nop    
+80081834:	90                   	nop    
+80081835:	90                   	nop    
+80081836:	90                   	nop    
+80081837:	90                   	nop    
+80081838:	90                   	nop    
+80081839:	90                   	nop    
+8008183a:	90                   	nop    
+8008183b:	90                   	nop    
+8008183c:	90                   	nop    
+8008183d:	90                   	nop    
+8008183e:	90                   	nop    
+8008183f:	90                   	nop    
+80081840:	72 00                	jb     80081842 <_KbdReboot+0x5e>
+80081842:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+80081846:	64 00 20             	add    %ah,%fs:(%eax)
+80081849:	00 3d 00 20 00 25    	add    %bh,0x25002000
+8008184f:	00 64 00 2c          	add    %ah,0x2c(%eax,%eax,1)
+80081853:	00 20                	add    %ah,(%eax)
+80081855:	00 77 00             	add    %dh,0x0(%edi)
+80081858:	72 00                	jb     8008185a <_KbdReboot+0x76>
+8008185a:	69 00 74 00 65 00    	imul   $0x650074,(%eax),%eax
+80081860:	20 00                	and    %al,(%eax)
+80081862:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80081867:	00 64 00 0a          	add    %ah,0xa(%eax,%eax,1)
+8008186b:	00 00                	add    %al,(%eax)
+8008186d:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
 
-800818e0 <_KbdIsr>:
+80081870 <_KbdIsr>:
 KbdIsr():
-800818e0:	55                   	push   %ebp
-800818e1:	89 e5                	mov    %esp,%ebp
-800818e3:	83 ec 14             	sub    $0x14,%esp
-800818e6:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:338
-800818e7:	83 c4 f8             	add    $0xfffffff8,%esp
-/mn/src/drivers/keyboard/keyboard.c:336
-800818ea:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/keyboard/keyboard.c:338
-800818ed:	83 c4 f4             	add    $0xfffffff4,%esp
-800818f0:	53                   	push   %ebx
-800818f1:	e8 36 fa ff ff       	call   8008132c <_kbdHwRead>
-800818f6:	0f b6 c0             	movzbl %al,%eax
-800818f9:	50                   	push   %eax
-800818fa:	53                   	push   %ebx
-800818fb:	e8 50 ff ff ff       	call   80081850 <_kbdKey>
-/mn/src/drivers/keyboard/keyboard.c:339
-80081900:	8b 5d e8             	mov    0xffffffe8(%ebp),%ebx
-80081903:	b8 01 00 00 00       	mov    $0x1,%eax
-80081908:	89 ec                	mov    %ebp,%esp
-8008190a:	5d                   	pop    %ebp
-8008190b:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:340
-8008190c:	5b                   	pop    %ebx
-8008190d:	00 25 00 63 00 25    	add    %ah,0x25006300
-80081913:	00 63 00             	add    %ah,0x0(%ebx)
-80081916:	5d                   	pop    %ebp
-80081917:	00 00                	add    %al,(%eax)
-80081919:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
+80081870:	55                   	push   %ebp
+80081871:	89 e5                	mov    %esp,%ebp
+80081873:	83 ec 10             	sub    $0x10,%esp
+80081876:	56                   	push   %esi
+80081877:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:296
+80081878:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/keyboard/keyboard.c:301
+8008187b:	83 c4 f4             	add    $0xfffffff4,%esp
+8008187e:	56                   	push   %esi
+8008187f:	e8 a4 fa ff ff       	call   80081328 <_kbdHwRead>
+80081884:	88 c2                	mov    %al,%dl
+/mn/src/drivers/keyboard/keyboard.c:302
+80081886:	83 c4 10             	add    $0x10,%esp
+80081889:	8b 46 20             	mov    0x20(%esi),%eax
+8008188c:	39 46 1c             	cmp    %eax,0x1c(%esi)
+8008188f:	0f 82 90 00 00 00    	jb     80081925 <_KbdIsr+0xb5>
+/mn/src/drivers/keyboard/keyboard.c:304
+80081895:	83 c4 f8             	add    $0xfffffff8,%esp
+80081898:	0f b6 c2             	movzbl %dl,%eax
+8008189b:	50                   	push   %eax
+8008189c:	56                   	push   %esi
+8008189d:	e8 a2 fb ff ff       	call   80081444 <_KbdScancodeToKey>
+800818a2:	89 c3                	mov    %eax,%ebx
+/mn/src/drivers/keyboard/keyboard.c:306
+800818a4:	83 c4 10             	add    $0x10,%esp
+800818a7:	81 fb 0d 00 61 00    	cmp    $0x61000d,%ebx
+800818ad:	75 05                	jne    800818b4 <_KbdIsr+0x44>
+/mn/src/drivers/keyboard/keyboard.c:307
+800818af:	e8 30 ff ff ff       	call   800817e4 <_KbdReboot>
+/mn/src/drivers/keyboard/keyboard.c:312
+800818b4:	8d 83 00 00 ff ff    	lea    0xffff0000(%ebx),%eax
+800818ba:	83 f8 0b             	cmp    $0xb,%eax
+800818bd:	77 0d                	ja     800818cc <_KbdIsr+0x5c>
+/mn/src/drivers/keyboard/keyboard.c:313
+800818bf:	83 c4 f4             	add    $0xfffffff4,%esp
+800818c2:	50                   	push   %eax
+800818c3:	e8 58 02 00 00       	call   80081b20 <_TtySwitchConsoles>
+800818c8:	eb 5b                	jmp    80081925 <_KbdIsr+0xb5>
+800818ca:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/keyboard/keyboard.c:314
+800818cc:	85 db                	test   %ebx,%ebx
+800818ce:	74 55                	je     80081925 <_KbdIsr+0xb5>
+/mn/src/drivers/keyboard/keyboard.c:316
+800818d0:	8b 46 1c             	mov    0x1c(%esi),%eax
+/mn/src/drivers/keyboard/keyboard.c:318
+800818d3:	83 c4 f4             	add    $0xfffffff4,%esp
+/mn/src/drivers/keyboard/keyboard.c:316
+800818d6:	89 18                	mov    %ebx,(%eax)
+/mn/src/drivers/keyboard/keyboard.c:317
+800818d8:	83 46 1c 04          	addl   $0x4,0x1c(%esi)
+/mn/src/drivers/keyboard/keyboard.c:318
+800818dc:	68 24 18 08 80       	push   $0x80081824
+800818e1:	e8 82 02 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:320
+800818e6:	8d 46 64             	lea    0x64(%esi),%eax
+800818e9:	83 c4 10             	add    $0x10,%esp
+800818ec:	39 46 1c             	cmp    %eax,0x1c(%esi)
+800818ef:	72 06                	jb     800818f7 <_KbdIsr+0x87>
+/mn/src/drivers/keyboard/keyboard.c:321
+800818f1:	8d 46 24             	lea    0x24(%esi),%eax
+800818f4:	89 46 1c             	mov    %eax,0x1c(%esi)
+/mn/src/drivers/keyboard/keyboard.c:323
+800818f7:	8b 46 1c             	mov    0x1c(%esi),%eax
+800818fa:	83 c4 fc             	add    $0xfffffffc,%esp
+800818fd:	83 c0 dc             	add    $0xffffffdc,%eax
+80081900:	29 f0                	sub    %esi,%eax
+80081902:	c1 f8 02             	sar    $0x2,%eax
+80081905:	50                   	push   %eax
+80081906:	8b 46 20             	mov    0x20(%esi),%eax
+80081909:	83 c0 dc             	add    $0xffffffdc,%eax
+8008190c:	29 f0                	sub    %esi,%eax
+8008190e:	c1 f8 02             	sar    $0x2,%eax
+80081911:	50                   	push   %eax
+80081912:	68 40 18 08 80       	push   $0x80081840
+80081917:	e8 4c 02 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:325
+8008191c:	83 c4 f4             	add    $0xfffffff4,%esp
+8008191f:	56                   	push   %esi
+80081920:	e8 df fd ff ff       	call   80081704 <_KbdStartIo>
+/mn/src/drivers/keyboard/keyboard.c:329
+80081925:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80081928:	b8 01 00 00 00       	mov    $0x1,%eax
+8008192d:	5b                   	pop    %ebx
+8008192e:	5e                   	pop    %esi
+8008192f:	89 ec                	mov    %ebp,%esp
+80081931:	5d                   	pop    %ebp
+80081932:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:330
+80081933:	90                   	nop    
+80081934:	5b                   	pop    %ebx
+80081935:	00 25 00 63 00 25    	add    %ah,0x25006300
+8008193b:	00 63 00             	add    %ah,0x0(%ebx)
+8008193e:	5d                   	pop    %ebp
+8008193f:	00 00                	add    %al,(%eax)
+80081941:	00 6b 65             	add    %ch,0x65(%ebx)
+80081944:	79 62                	jns    800819a8 <_kbdRequest+0x50>
+80081946:	6f                   	outsl  %ds:(%esi),(%dx)
+80081947:	61                   	popa   
+80081948:	72 64                	jb     800819ae <_kbdRequest+0x56>
+8008194a:	2e 63 00             	arpl   %ax,%cs:(%eax)
+8008194d:	69 6f 20 21 3d 20 4e 	imul   $0x4e203d21,0x20(%edi),%ebp
+80081954:	55                   	push   %ebp
+80081955:	4c                   	dec    %esp
+80081956:	4c                   	dec    %esp
+	...
 
-8008191c <_kbdRequest>:
+80081958 <_kbdRequest>:
 kbdRequest():
-8008191c:	55                   	push   %ebp
-8008191d:	89 e5                	mov    %esp,%ebp
-8008191f:	83 ec 10             	sub    $0x10,%esp
-80081922:	56                   	push   %esi
-80081923:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:352
-80081924:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+80081958:	55                   	push   %ebp
+80081959:	89 e5                	mov    %esp,%ebp
+8008195b:	83 ec 10             	sub    $0x10,%esp
+8008195e:	56                   	push   %esi
+8008195f:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:342
+80081960:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+/mn/src/drivers/keyboard/keyboard.c:347
+80081963:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/keyboard/keyboard.c:342
+80081966:	8b 75 08             	mov    0x8(%ebp),%esi
+/mn/src/drivers/keyboard/keyboard.c:347
+80081969:	8b 13                	mov    (%ebx),%edx
+8008196b:	89 d0                	mov    %edx,%eax
+8008196d:	25 ff 00 00 00       	and    $0xff,%eax
+80081972:	c1 ea 08             	shr    $0x8,%edx
+80081975:	50                   	push   %eax
+80081976:	52                   	push   %edx
+80081977:	68 34 19 08 80       	push   $0x80081934
+8008197c:	e8 e7 01 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:348
+80081981:	83 c4 10             	add    $0x10,%esp
+80081984:	8b 03                	mov    (%ebx),%eax
+80081986:	3d 73 63 00 80       	cmp    $0x80006373,%eax
+8008198b:	74 5f                	je     800819ec <_kbdRequest+0x94>
+8008198d:	3d 72 64 00 80       	cmp    $0x80006472,%eax
+80081992:	75 74                	jne    80081a08 <_kbdRequest+0xb0>
+/mn/src/drivers/keyboard/keyboard.c:351
+80081994:	8b 43 18             	mov    0x18(%ebx),%eax
+80081997:	a8 03                	test   $0x3,%al
+80081999:	74 09                	je     800819a4 <_kbdRequest+0x4c>
+/mn/src/drivers/keyboard/keyboard.c:353
+8008199b:	c7 03 07 00 00 00    	movl   $0x7,(%ebx)
+/mn/src/drivers/keyboard/keyboard.c:354
+800819a1:	eb 6c                	jmp    80081a0f <_kbdRequest+0xb7>
+800819a3:	90                   	nop    
 /mn/src/drivers/keyboard/keyboard.c:357
-80081927:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/keyboard/keyboard.c:352
-8008192a:	8b 75 08             	mov    0x8(%ebp),%esi
-/mn/src/drivers/keyboard/keyboard.c:357
-8008192d:	8b 13                	mov    (%ebx),%edx
-8008192f:	89 d0                	mov    %edx,%eax
-80081931:	25 ff 00 00 00       	and    $0xff,%eax
-80081936:	c1 ea 08             	shr    $0x8,%edx
-80081939:	50                   	push   %eax
-8008193a:	52                   	push   %edx
-8008193b:	68 0c 19 08 80       	push   $0x8008190c
-80081940:	e8 d3 01 00 00       	call   80081b18 <_wprintf>
-/mn/src/drivers/keyboard/keyboard.c:358
-80081945:	83 c4 10             	add    $0x10,%esp
-80081948:	8b 03                	mov    (%ebx),%eax
-8008194a:	3d 73 63 00 80       	cmp    $0x80006373,%eax
-8008194f:	74 37                	je     80081988 <_kbdRequest+0x6c>
-80081951:	3d 72 64 00 80       	cmp    $0x80006472,%eax
-80081956:	75 4c                	jne    800819a4 <_kbdRequest+0x88>
-/mn/src/drivers/keyboard/keyboard.c:361
-80081958:	83 c4 f4             	add    $0xfffffff4,%esp
-8008195b:	8b 43 18             	mov    0x18(%ebx),%eax
-8008195e:	50                   	push   %eax
-8008195f:	8b 43 1c             	mov    0x1c(%ebx),%eax
-80081962:	50                   	push   %eax
-80081963:	6a 28                	push   $0x28
-80081965:	53                   	push   %ebx
-80081966:	56                   	push   %esi
-80081967:	e8 8c 01 00 00       	call   80081af8 <_DevQueueRequest>
-/mn/src/drivers/keyboard/keyboard.c:365
-8008196c:	83 c4 20             	add    $0x20,%esp
-/mn/src/drivers/keyboard/keyboard.c:364
-8008196f:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%eax)
-/mn/src/drivers/keyboard/keyboard.c:365
-80081976:	83 c4 f4             	add    $0xfffffff4,%esp
-80081979:	56                   	push   %esi
-8008197a:	e8 99 fd ff ff       	call   80081718 <_kbdDoRequests>
-/mn/src/drivers/keyboard/keyboard.c:366
-8008197f:	b8 01 00 00 00       	mov    $0x1,%eax
-80081984:	eb 27                	jmp    800819ad <_kbdRequest+0x91>
-80081986:	89 f6                	mov    %esi,%esi
-/mn/src/drivers/keyboard/keyboard.c:369
-80081988:	8b 56 20             	mov    0x20(%esi),%edx
-8008198b:	8b 76 1c             	mov    0x1c(%esi),%esi
-8008198e:	29 d6                	sub    %edx,%esi
-80081990:	8b 43 1c             	mov    0x1c(%ebx),%eax
-80081993:	89 f2                	mov    %esi,%edx
-80081995:	c1 fa 02             	sar    $0x2,%edx
-80081998:	89 10                	mov    %edx,(%eax)
-/mn/src/drivers/keyboard/keyboard.c:370
-8008199a:	b8 01 00 00 00       	mov    $0x1,%eax
-8008199f:	eb 0c                	jmp    800819ad <_kbdRequest+0x91>
-800819a1:	8d 76 00             	lea    0x0(%esi),%esi
-/mn/src/drivers/keyboard/keyboard.c:373
-800819a4:	c7 43 04 04 00 00 00 	movl   $0x4,0x4(%ebx)
-/mn/src/drivers/keyboard/keyboard.c:374
-800819ab:	31 c0                	xor    %eax,%eax
-800819ad:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-800819b0:	5b                   	pop    %ebx
-800819b1:	5e                   	pop    %esi
-800819b2:	89 ec                	mov    %ebp,%esp
-800819b4:	5d                   	pop    %ebp
-800819b5:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:375
-800819b6:	89 f6                	mov    %esi,%esi
-
-800819b8 <_keyboard_vtbl>:
-keyboard_vtbl():
-800819b8:	1c 19                	sbb    $0x19,%al
-800819ba:	08 80 e0 18 08 80    	or     %al,0x800818e0(%eax)
-800819c0:	6b 65 79 62          	imul   $0x62,0x79(%ebp),%esp
-800819c4:	6f                   	outsl  %ds:(%esi),(%dx)
-800819c5:	61                   	popa   
-800819c6:	72 64                	jb     80081a2c <_KbdAddDevice+0xc>
-800819c8:	2e 63 00             	arpl   %ax,%cs:(%eax)
-800819cb:	90                   	nop    
-800819cc:	90                   	nop    
-800819cd:	90                   	nop    
-800819ce:	90                   	nop    
-800819cf:	90                   	nop    
-800819d0:	90                   	nop    
-800819d1:	90                   	nop    
-800819d2:	90                   	nop    
+800819a4:	83 c4 f4             	add    $0xfffffff4,%esp
+800819a7:	50                   	push   %eax
+800819a8:	8b 43 1c             	mov    0x1c(%ebx),%eax
+800819ab:	50                   	push   %eax
+800819ac:	6a 28                	push   $0x28
+800819ae:	53                   	push   %ebx
+800819af:	56                   	push   %esi
+800819b0:	e8 8b 01 00 00       	call   80081b40 <_DevQueueRequest>
+/mn/src/drivers/keyboard/keyboard.c:360
+800819b5:	83 c4 20             	add    $0x20,%esp
+800819b8:	85 c0                	test   %eax,%eax
+800819ba:	75 18                	jne    800819d4 <_kbdRequest+0x7c>
+800819bc:	83 c4 fc             	add    $0xfffffffc,%esp
+800819bf:	68 68 01 00 00       	push   $0x168
+800819c4:	68 42 19 08 80       	push   $0x80081942
+800819c9:	68 4d 19 08 80       	push   $0x8008194d
+800819ce:	e8 65 01 00 00       	call   80081b38 <___dj_assert>
 800819d3:	90                   	nop    
-800819d4:	90                   	nop    
-800819d5:	90                   	nop    
-800819d6:	90                   	nop    
-800819d7:	90                   	nop    
-800819d8:	90                   	nop    
-800819d9:	90                   	nop    
-800819da:	90                   	nop    
-800819db:	90                   	nop    
-800819dc:	90                   	nop    
-800819dd:	90                   	nop    
-800819de:	90                   	nop    
-800819df:	90                   	nop    
-800819e0:	6b 00 65             	imul   $0x65,(%eax),%eax
-800819e3:	00 79 00             	add    %bh,0x0(%ecx)
-800819e6:	62 00                	bound  %eax,(%eax)
-800819e8:	6f                   	outsl  %ds:(%esi),(%dx)
-800819e9:	00 61 00             	add    %ah,0x0(%ecx)
-800819ec:	72 00                	jb     800819ee <_keyboard_vtbl+0x36>
-800819ee:	64 00 3a             	add    %bh,%fs:(%edx)
-800819f1:	00 20                	add    %ah,(%eax)
-800819f3:	00 70 00             	add    %dh,0x0(%eax)
-800819f6:	6f                   	outsl  %ds:(%esi),(%dx)
-800819f7:	00 72 00             	add    %dh,0x0(%edx)
-800819fa:	74 00                	je     800819fc <_keyboard_vtbl+0x44>
-800819fc:	20 00                	and    %al,(%eax)
-800819fe:	3d 00 20 00 25       	cmp    $0x25002000,%eax
-80081a03:	00 78 00             	add    %bh,0x0(%eax)
-80081a06:	20 00                	and    %al,(%eax)
-80081a08:	63 00                	arpl   %ax,(%eax)
-80081a0a:	74 00                	je     80081a0c <_keyboard_vtbl+0x54>
-80081a0c:	72 00                	jb     80081a0e <_keyboard_vtbl+0x56>
-80081a0e:	6c                   	insb   (%dx),%es:(%edi)
-80081a0f:	00 20                	add    %ah,(%eax)
-80081a11:	00 3d 00 20 00 25    	add    %bh,0x25002000
-80081a17:	00 78 00             	add    %bh,0x0(%eax)
-80081a1a:	0a 00                	or     (%eax),%al
-80081a1c:	00 00                	add    %al,(%eax)
-80081a1e:	89 f6                	mov    %esi,%esi
+/mn/src/drivers/keyboard/keyboard.c:361
+800819d4:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%eax)
+/mn/src/drivers/keyboard/keyboard.c:362
+800819db:	83 c4 f4             	add    $0xfffffff4,%esp
+800819de:	56                   	push   %esi
+800819df:	e8 20 fd ff ff       	call   80081704 <_KbdStartIo>
+/mn/src/drivers/keyboard/keyboard.c:363
+800819e4:	b8 01 00 00 00       	mov    $0x1,%eax
+800819e9:	eb 26                	jmp    80081a11 <_kbdRequest+0xb9>
+800819eb:	90                   	nop    
+/mn/src/drivers/keyboard/keyboard.c:366
+800819ec:	8b 56 20             	mov    0x20(%esi),%edx
+800819ef:	8b 76 1c             	mov    0x1c(%esi),%esi
+800819f2:	29 d6                	sub    %edx,%esi
+800819f4:	8b 43 1c             	mov    0x1c(%ebx),%eax
+800819f7:	89 f2                	mov    %esi,%edx
+800819f9:	c1 fa 02             	sar    $0x2,%edx
+800819fc:	89 10                	mov    %edx,(%eax)
+/mn/src/drivers/keyboard/keyboard.c:368
+800819fe:	b8 01 00 00 00       	mov    $0x1,%eax
+80081a03:	eb 0c                	jmp    80081a11 <_kbdRequest+0xb9>
+80081a05:	8d 76 00             	lea    0x0(%esi),%esi
+/mn/src/drivers/keyboard/keyboard.c:371
+80081a08:	c7 43 04 04 00 00 00 	movl   $0x4,0x4(%ebx)
+/mn/src/drivers/keyboard/keyboard.c:372
+80081a0f:	31 c0                	xor    %eax,%eax
+80081a11:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80081a14:	5b                   	pop    %ebx
+80081a15:	5e                   	pop    %esi
+80081a16:	89 ec                	mov    %ebp,%esp
+80081a18:	5d                   	pop    %ebp
+80081a19:	c3                   	ret    
+/mn/src/drivers/keyboard/keyboard.c:373
+80081a1a:	89 f6                	mov    %esi,%esi
 
-80081a20 <_KbdAddDevice>:
+80081a1c <_keyboard_vtbl>:
+keyboard_vtbl():
+80081a1c:	58                   	pop    %eax
+80081a1d:	19 08                	sbb    %ecx,(%eax)
+80081a1f:	80 70 18 08          	xorb   $0x8,0x18(%eax)
+80081a23:	80 90 90 90 90 90 90 	adcb   $0x90,0x90909090(%eax)
+80081a2a:	90                   	nop    
+80081a2b:	90                   	nop    
+80081a2c:	90                   	nop    
+80081a2d:	90                   	nop    
+80081a2e:	90                   	nop    
+80081a2f:	90                   	nop    
+80081a30:	90                   	nop    
+80081a31:	90                   	nop    
+80081a32:	90                   	nop    
+80081a33:	90                   	nop    
+80081a34:	90                   	nop    
+80081a35:	90                   	nop    
+80081a36:	90                   	nop    
+80081a37:	90                   	nop    
+80081a38:	90                   	nop    
+80081a39:	90                   	nop    
+80081a3a:	90                   	nop    
+80081a3b:	90                   	nop    
+80081a3c:	90                   	nop    
+80081a3d:	90                   	nop    
+80081a3e:	90                   	nop    
+80081a3f:	90                   	nop    
+80081a40:	6b 00 65             	imul   $0x65,(%eax),%eax
+80081a43:	00 79 00             	add    %bh,0x0(%ecx)
+80081a46:	62 00                	bound  %eax,(%eax)
+80081a48:	6f                   	outsl  %ds:(%esi),(%dx)
+80081a49:	00 61 00             	add    %ah,0x0(%ecx)
+80081a4c:	72 00                	jb     80081a4e <_keyboard_vtbl+0x32>
+80081a4e:	64 00 3a             	add    %bh,%fs:(%edx)
+80081a51:	00 20                	add    %ah,(%eax)
+80081a53:	00 70 00             	add    %dh,0x0(%eax)
+80081a56:	6f                   	outsl  %ds:(%esi),(%dx)
+80081a57:	00 72 00             	add    %dh,0x0(%edx)
+80081a5a:	74 00                	je     80081a5c <_keyboard_vtbl+0x40>
+80081a5c:	20 00                	and    %al,(%eax)
+80081a5e:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80081a63:	00 78 00             	add    %bh,0x0(%eax)
+80081a66:	20 00                	and    %al,(%eax)
+80081a68:	63 00                	arpl   %ax,(%eax)
+80081a6a:	74 00                	je     80081a6c <_keyboard_vtbl+0x50>
+80081a6c:	72 00                	jb     80081a6e <_keyboard_vtbl+0x52>
+80081a6e:	6c                   	insb   (%dx),%es:(%edi)
+80081a6f:	00 20                	add    %ah,(%eax)
+80081a71:	00 3d 00 20 00 25    	add    %bh,0x25002000
+80081a77:	00 78 00             	add    %bh,0x0(%eax)
+80081a7a:	0a 00                	or     (%eax),%al
+80081a7c:	00 00                	add    %al,(%eax)
+80081a7e:	89 f6                	mov    %esi,%esi
+
+80081a80 <_KbdAddDevice>:
 KbdAddDevice():
-80081a20:	55                   	push   %ebp
-80081a21:	89 e5                	mov    %esp,%ebp
-80081a23:	83 ec 0c             	sub    $0xc,%esp
-80081a26:	57                   	push   %edi
-80081a27:	56                   	push   %esi
-80081a28:	53                   	push   %ebx
-/mn/src/drivers/keyboard/keyboard.c:384
-80081a29:	8b 5d 08             	mov    0x8(%ebp),%ebx
-/mn/src/drivers/keyboard/keyboard.c:391
-80081a2c:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/keyboard/keyboard.c:384
-80081a2f:	8b 75 10             	mov    0x10(%ebp),%esi
-/mn/src/drivers/keyboard/keyboard.c:391
-80081a32:	68 87 01 00 00       	push   $0x187
-80081a37:	68 c0 19 08 80       	push   $0x800819c0
-80081a3c:	68 2c 02 00 00       	push   $0x22c
-80081a41:	e8 aa 00 00 00       	call   80081af0 <___malloc>
-80081a46:	89 c7                	mov    %eax,%edi
-/mn/src/drivers/keyboard/keyboard.c:425
-80081a48:	83 c4 fc             	add    $0xfffffffc,%esp
-/mn/src/drivers/keyboard/keyboard.c:421
-80081a4b:	8d 47 24             	lea    0x24(%edi),%eax
-/mn/src/drivers/keyboard/keyboard.c:416
-80081a4e:	89 1f                	mov    %ebx,(%edi)
-/mn/src/drivers/keyboard/keyboard.c:418
-80081a50:	89 77 04             	mov    %esi,0x4(%edi)
-/mn/src/drivers/keyboard/keyboard.c:417
-80081a53:	c7 47 10 b8 19 08 80 	movl   $0x800819b8,0x10(%edi)
-/mn/src/drivers/keyboard/keyboard.c:419
-80081a5a:	c7 47 0c 00 00 00 00 	movl   $0x0,0xc(%edi)
-80081a61:	c7 47 08 00 00 00 00 	movl   $0x0,0x8(%edi)
-/mn/src/drivers/keyboard/keyboard.c:420
-80081a68:	c7 47 14 00 00 00 00 	movl   $0x0,0x14(%edi)
-/mn/src/drivers/keyboard/keyboard.c:421
-80081a6f:	89 47 20             	mov    %eax,0x20(%edi)
-80081a72:	89 47 1c             	mov    %eax,0x1c(%edi)
-/mn/src/drivers/keyboard/keyboard.c:422
-80081a75:	66 c7 87 26 02 00 00 	movw   $0x60,0x226(%edi)
-80081a7c:	60 00 
+80081a80:	55                   	push   %ebp
+80081a81:	89 e5                	mov    %esp,%ebp
+80081a83:	83 ec 0c             	sub    $0xc,%esp
+80081a86:	57                   	push   %edi
+80081a87:	56                   	push   %esi
+80081a88:	53                   	push   %ebx
+/mn/src/drivers/keyboard/keyboard.c:382
+80081a89:	8b 5d 08             	mov    0x8(%ebp),%ebx
+/mn/src/drivers/keyboard/keyboard.c:389
+80081a8c:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/keyboard/keyboard.c:382
+80081a8f:	8b 75 10             	mov    0x10(%ebp),%esi
+/mn/src/drivers/keyboard/keyboard.c:389
+80081a92:	68 85 01 00 00       	push   $0x185
+80081a97:	68 42 19 08 80       	push   $0x80081942
+80081a9c:	6a 6c                	push   $0x6c
+80081a9e:	e8 8d 00 00 00       	call   80081b30 <___malloc>
+80081aa3:	89 c7                	mov    %eax,%edi
 /mn/src/drivers/keyboard/keyboard.c:423
-80081a7e:	66 c7 87 28 02 00 00 	movw   $0x64,0x228(%edi)
-80081a85:	64 00 
-/mn/src/drivers/keyboard/keyboard.c:425
-80081a87:	6a 64                	push   $0x64
-80081a89:	6a 60                	push   $0x60
-80081a8b:	68 e0 19 08 80       	push   $0x800819e0
-80081a90:	e8 83 00 00 00       	call   80081b18 <_wprintf>
+80081aa5:	83 c4 fc             	add    $0xfffffffc,%esp
+/mn/src/drivers/keyboard/keyboard.c:419
+80081aa8:	8d 47 24             	lea    0x24(%edi),%eax
+/mn/src/drivers/keyboard/keyboard.c:414
+80081aab:	89 1f                	mov    %ebx,(%edi)
+/mn/src/drivers/keyboard/keyboard.c:416
+80081aad:	89 77 04             	mov    %esi,0x4(%edi)
+/mn/src/drivers/keyboard/keyboard.c:415
+80081ab0:	c7 47 10 1c 1a 08 80 	movl   $0x80081a1c,0x10(%edi)
+/mn/src/drivers/keyboard/keyboard.c:417
+80081ab7:	c7 47 0c 00 00 00 00 	movl   $0x0,0xc(%edi)
+80081abe:	c7 47 08 00 00 00 00 	movl   $0x0,0x8(%edi)
+/mn/src/drivers/keyboard/keyboard.c:418
+80081ac5:	c7 47 14 00 00 00 00 	movl   $0x0,0x14(%edi)
+/mn/src/drivers/keyboard/keyboard.c:419
+80081acc:	89 47 20             	mov    %eax,0x20(%edi)
+80081acf:	89 47 1c             	mov    %eax,0x1c(%edi)
+/mn/src/drivers/keyboard/keyboard.c:420
+80081ad2:	66 c7 47 66 60 00    	movw   $0x60,0x66(%edi)
+/mn/src/drivers/keyboard/keyboard.c:421
+80081ad8:	66 c7 47 68 64 00    	movw   $0x64,0x68(%edi)
+/mn/src/drivers/keyboard/keyboard.c:423
+80081ade:	6a 64                	push   $0x64
+80081ae0:	6a 60                	push   $0x60
+80081ae2:	68 40 1a 08 80       	push   $0x80081a40
+80081ae7:	e8 7c 00 00 00       	call   80081b68 <_wprintf>
+/mn/src/drivers/keyboard/keyboard.c:511
+80081aec:	83 c4 20             	add    $0x20,%esp
+80081aef:	83 c4 f8             	add    $0xfffffff8,%esp
+80081af2:	57                   	push   %edi
+80081af3:	6a 01                	push   $0x1
+80081af5:	e8 2e 00 00 00       	call   80081b28 <_DevRegisterIrq>
+/mn/src/drivers/keyboard/keyboard.c:512
+80081afa:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
+80081afd:	89 f8                	mov    %edi,%eax
+80081aff:	5b                   	pop    %ebx
+80081b00:	5e                   	pop    %esi
+80081b01:	5f                   	pop    %edi
+80081b02:	89 ec                	mov    %ebp,%esp
+80081b04:	5d                   	pop    %ebp
+80081b05:	c3                   	ret    
 /mn/src/drivers/keyboard/keyboard.c:513
-80081a95:	83 c4 20             	add    $0x20,%esp
-80081a98:	83 c4 f8             	add    $0xfffffff8,%esp
-80081a9b:	57                   	push   %edi
-80081a9c:	6a 01                	push   $0x1
-80081a9e:	e8 45 00 00 00       	call   80081ae8 <_DevRegisterIrq>
-/mn/src/drivers/keyboard/keyboard.c:514
-80081aa3:	8d 65 e8             	lea    0xffffffe8(%ebp),%esp
-80081aa6:	89 f8                	mov    %edi,%eax
-80081aa8:	5b                   	pop    %ebx
-80081aa9:	5e                   	pop    %esi
-80081aaa:	5f                   	pop    %edi
-80081aab:	89 ec                	mov    %ebp,%esp
-80081aad:	5d                   	pop    %ebp
-80081aae:	c3                   	ret    
-/mn/src/drivers/keyboard/keyboard.c:515
-80081aaf:	90                   	nop    
+80081b06:	89 f6                	mov    %esi,%esi
 
-80081ab0 <_DrvInit>:
+80081b08 <_DrvInit>:
 DrvInit():
-80081ab0:	55                   	push   %ebp
-80081ab1:	89 e5                	mov    %esp,%ebp
-/mn/src/drivers/keyboard/keyboard.c:518
-80081ab3:	8b 45 08             	mov    0x8(%ebp),%eax
+80081b08:	55                   	push   %ebp
+80081b09:	89 e5                	mov    %esp,%ebp
+/mn/src/drivers/keyboard/keyboard.c:516
+80081b0b:	8b 45 08             	mov    0x8(%ebp),%eax
+/mn/src/drivers/keyboard/keyboard.c:517
+80081b0e:	c7 40 0c 80 1a 08 80 	movl   $0x80081a80,0xc(%eax)
 /mn/src/drivers/keyboard/keyboard.c:519
-80081ab6:	c7 40 0c 20 1a 08 80 	movl   $0x80081a20,0xc(%eax)
-/mn/src/drivers/keyboard/keyboard.c:521
-80081abd:	89 ec                	mov    %ebp,%esp
-80081abf:	b8 01 00 00 00       	mov    $0x1,%eax
-80081ac4:	5d                   	pop    %ebp
-80081ac5:	c3                   	ret    
-80081ac6:	90                   	nop    
-80081ac7:	90                   	nop    
-80081ac8:	90                   	nop    
-80081ac9:	90                   	nop    
-80081aca:	90                   	nop    
-80081acb:	90                   	nop    
-80081acc:	90                   	nop    
-80081acd:	90                   	nop    
-80081ace:	90                   	nop    
-80081acf:	90                   	nop    
-80081ad0:	90                   	nop    
-80081ad1:	90                   	nop    
-80081ad2:	90                   	nop    
-80081ad3:	90                   	nop    
-80081ad4:	90                   	nop    
-80081ad5:	90                   	nop    
-80081ad6:	90                   	nop    
-80081ad7:	90                   	nop    
-80081ad8:	90                   	nop    
-80081ad9:	90                   	nop    
-80081ada:	90                   	nop    
-80081adb:	90                   	nop    
-80081adc:	90                   	nop    
-80081add:	90                   	nop    
-80081ade:	90                   	nop    
-80081adf:	90                   	nop    
+80081b15:	89 ec                	mov    %ebp,%esp
+80081b17:	b8 01 00 00 00       	mov    $0x1,%eax
+80081b1c:	5d                   	pop    %ebp
+80081b1d:	c3                   	ret    
+80081b1e:	89 f6                	mov    %esi,%esi
 
-80081ae0 <_TtySwitchConsoles>:
-80081ae0:	ff 25 94 30 08 80    	jmp    *0x80083094
-80081ae6:	90                   	nop    
-80081ae7:	90                   	nop    
+80081b20 <_TtySwitchConsoles>:
+80081b20:	ff 25 a4 30 08 80    	jmp    *0x800830a4
+80081b26:	90                   	nop    
+80081b27:	90                   	nop    
 
-80081ae8 <_DevRegisterIrq>:
-80081ae8:	ff 25 78 30 08 80    	jmp    *0x80083078
-80081aee:	90                   	nop    
-80081aef:	90                   	nop    
+80081b28 <_DevRegisterIrq>:
+80081b28:	ff 25 88 30 08 80    	jmp    *0x80083088
+80081b2e:	90                   	nop    
+80081b2f:	90                   	nop    
 
-80081af0 <___malloc>:
-80081af0:	ff 25 84 30 08 80    	jmp    *0x80083084
-80081af6:	90                   	nop    
-80081af7:	90                   	nop    
+80081b30 <___malloc>:
+80081b30:	ff 25 94 30 08 80    	jmp    *0x80083094
+80081b36:	90                   	nop    
+80081b37:	90                   	nop    
 
-80081af8 <_DevQueueRequest>:
-80081af8:	ff 25 74 30 08 80    	jmp    *0x80083074
-80081afe:	90                   	nop    
-80081aff:	90                   	nop    
+80081b38 <___dj_assert>:
+80081b38:	ff 25 90 30 08 80    	jmp    *0x80083090
+80081b3e:	90                   	nop    
+80081b3f:	90                   	nop    
 
-80081b00 <_DevFinishIo>:
-80081b00:	ff 25 70 30 08 80    	jmp    *0x80083070
-80081b06:	90                   	nop    
-80081b07:	90                   	nop    
+80081b40 <_DevQueueRequest>:
+80081b40:	ff 25 84 30 08 80    	jmp    *0x80083084
+80081b46:	90                   	nop    
+80081b47:	90                   	nop    
 
-80081b08 <_MemUnmapTemp>:
-80081b08:	ff 25 80 30 08 80    	jmp    *0x80083080
-80081b0e:	90                   	nop    
-80081b0f:	90                   	nop    
+80081b48 <_ArchProcessorIdle>:
+80081b48:	ff 25 78 30 08 80    	jmp    *0x80083078
+80081b4e:	90                   	nop    
+80081b4f:	90                   	nop    
 
-80081b10 <_MemMapTemp>:
-80081b10:	ff 25 7c 30 08 80    	jmp    *0x8008307c
-80081b16:	90                   	nop    
-80081b17:	90                   	nop    
+80081b50 <_DevFinishIo>:
+80081b50:	ff 25 7c 30 08 80    	jmp    *0x8008307c
+80081b56:	90                   	nop    
+80081b57:	90                   	nop    
 
-80081b18 <_wprintf>:
-80081b18:	ff 25 88 30 08 80    	jmp    *0x80083088
-80081b1e:	90                   	nop    
-80081b1f:	90                   	nop    
+80081b58 <_MemUnmapTemp>:
+80081b58:	ff 25 8c 30 08 80    	jmp    *0x8008308c
+80081b5e:	90                   	nop    
+80081b5f:	90                   	nop    
 
-80081b20 <__CTOR_LIST__>:
-80081b20:	ff                   	(bad)  
-80081b21:	ff                   	(bad)  
-80081b22:	ff                   	(bad)  
-80081b23:	ff 00                	incl   (%eax)
-80081b25:	00 00                	add    %al,(%eax)
+80081b60 <_DevMapBuffer>:
+80081b60:	ff 25 80 30 08 80    	jmp    *0x80083080
+80081b66:	90                   	nop    
+80081b67:	90                   	nop    
+
+80081b68 <_wprintf>:
+80081b68:	ff 25 98 30 08 80    	jmp    *0x80083098
+80081b6e:	90                   	nop    
+80081b6f:	90                   	nop    
+
+80081b70 <__CTOR_LIST__>:
+80081b70:	ff                   	(bad)  
+80081b71:	ff                   	(bad)  
+80081b72:	ff                   	(bad)  
+80081b73:	ff 00                	incl   (%eax)
+80081b75:	00 00                	add    %al,(%eax)
 	...
 
-80081b28 <__DTOR_LIST__>:
-80081b28:	ff                   	(bad)  
-80081b29:	ff                   	(bad)  
-80081b2a:	ff                   	(bad)  
-80081b2b:	ff 00                	incl   (%eax)
-80081b2d:	00 00                	add    %al,(%eax)
+80081b78 <__DTOR_LIST__>:
+80081b78:	ff                   	(bad)  
+80081b79:	ff                   	(bad)  
+80081b7a:	ff                   	(bad)  
+80081b7b:	ff 00                	incl   (%eax)
+80081b7d:	00 00                	add    %al,(%eax)
 	...
 
-80081b30 <etext>:
+80081b80 <etext>:
 	...
