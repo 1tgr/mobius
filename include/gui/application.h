@@ -1,10 +1,11 @@
-/* $Id: application.h,v 1.3 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: application.h,v 1.4 2002/09/08 20:47:03 pavlovskii Exp $ */
 
 #ifndef __GUI_APPLICATION_H
 #define __GUI_APPLICATION_H
 
 #include <mgl/rc.h>
 #include <os/gui.h>
+#include <mgl/fontmanager.h>
 
 namespace os
 {
@@ -27,6 +28,8 @@ namespace os
 
         //! Retrieves a pointer to the process's application object
         static Application *GetApplication();
+
+        mgl::FontManager m_fontManager;
 
         //! Application constructor
         /*!

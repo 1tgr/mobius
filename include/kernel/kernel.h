@@ -1,4 +1,4 @@
-/* $Id: kernel.h,v 1.9 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: kernel.h,v 1.10 2002/09/08 20:47:03 pavlovskii Exp $ */
 #ifndef __KERNEL_KERNEL_H
 #define __KERNEL_KERNEL_H
 
@@ -10,6 +10,7 @@ extern "C"
 #include <stddef.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include <os/defs.h>
 
 /*!
@@ -94,6 +95,17 @@ void KeAtomicInc(unsigned *n);
 void KeAtomicDec(unsigned *n);
 void *KeGetSysCall(unsigned id);
 void *KeSetSysCall(unsigned id, void *ptr);
+
+typedef struct systab_t systab_t;
+struct systab_t
+{
+    uint32_t code;
+    const char *name;
+    void *routine;
+    uint32_t argbytes;
+};
+
+void KeInstallSysCallGroup(uint8_t prefix, systab_t **group, unsigned count);
 
 void *sbrk_virtual(size_t diff);
 

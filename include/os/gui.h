@@ -1,4 +1,4 @@
-/* $Id: gui.h,v 1.2 2002/04/20 12:34:38 pavlovskii Exp $ */
+/* $Id: gui.h,v 1.3 2002/09/08 20:47:03 pavlovskii Exp $ */
 
 #ifndef __OS_GUI_H
 #define __OS_GUI_H
@@ -14,7 +14,7 @@ extern "C"
  *  @{
  */
 
-#include <gl/types.h>
+#include <mgl/types.h>
 
 typedef struct wndattr_t wndattr_t;
 struct wndattr_t
@@ -130,6 +130,10 @@ struct wndinput_t
 #define WND_INPUT_MOUSE_DOWN    3
 #define WND_INPUT_MOUSE_UP      4
 #define WND_INPUT_MOUSE_WHEEL   5
+
+#define SYSCALL_GUI(rtn, name, argbytes, args)	rtn name args;
+
+#include <gui/sysdef.h>
 
 /*! @} */
 

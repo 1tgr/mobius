@@ -1,11 +1,10 @@
-/* $Id: sysdef.h,v 1.19 2002/09/01 16:24:38 pavlovskii Exp $ */
+/* $Id: sysdef.h,v 1.20 2002/09/08 20:47:03 pavlovskii Exp $ */
 #ifdef KERNEL
 
 /* The kernel uses different names for some functions... */
 #define ThrWaitHandle   SysThrWaitHandle
 #define ThrSleep        SysThrSleep
 #define ThrCreateThread SysThrCreateThread
-#define EvtAlloc        SysEvtAlloc
 #define EvtSignal       SysEvtSignal
 #define EvtIsSignalled  SysEvtIsSignalled
 #define HndClose        SysHndClose
@@ -74,25 +73,14 @@
 #define SYS_VmmMapFile          0x503
 #define SYS_VmmOpenSharedArea   0x504
 
-#define SYS_EvtAlloc            0x600
+#define SYS_EvtCreate           0x600
 #define SYS_HndClose            0x601
 #define SYS_EvtSignal           0x602
 #define SYS_EvtIsSignalled      0x603
 #define SYS_HndSetInheritable   0x604
-
-#define SYS_WndCreate           0x700
-#define SYS_WndClose            0x701
-#define SYS_WndPostMessage      0x702
-#define SYS_WndInvalidate       0x703
-#define SYS_WndGetMessage       0x704
-#define SYS_WndGetAttribute     0x705
-#define SYS_WndSetAttribute     0x706
-#define SYS_WndOwnRoot          0x707
-#define SYS_WndQueueInput       0x708
-#define SYS_WndSetFocus         0x709
-#define SYS_WndHasFocus         0x70a
-#define SYS_WndSetCapture       0x70b
-#define SYS_WndGetClip          0x70c
+#define SYS_MuxCreate           0x605
+#define SYS_MuxAcquire          0x606
+#define SYS_MuxRelease          0x607
 
 /* 0 */
 SYS_BEGIN_GROUP(0)
@@ -163,11 +151,14 @@ SYS_END_GROUP(5)
 
 /* 6 */
 SYS_BEGIN_GROUP(6)
-SYSCALL(handle_t, EvtAlloc, 0, (void))
+SYSCALL(handle_t, EvtCreate, 0, (void))
 SYSCALL(bool, HndClose, 4, (handle_t))
 SYSCALL(void, EvtSignal, 4, (handle_t))
 SYSCALL(bool, EvtIsSignalled, 4, (handle_t))
 SYSCALL(bool, HndSetInheritable, 8, (handle_t, bool))
+SYSCALL(handle_t, MuxCreate, 0, (void))
+SYSCALL(bool, MuxAcquire, 4, (handle_t))
+SYSCALL(bool, MuxRelease, 4, (handle_t))
 SYS_END_GROUP(6)
 
 /* 7 */

@@ -1,4 +1,4 @@
-/* $Id: proc.h,v 1.9 2002/08/17 23:09:01 pavlovskii Exp $ */
+/* $Id: proc.h,v 1.10 2002/09/08 20:47:03 pavlovskii Exp $ */
 #ifndef __KERNEL_PROC_H
 #define __KERNEL_PROC_H
 
@@ -36,24 +36,26 @@ struct module_t
 typedef struct process_t process_t;
 struct process_t
 {
-	handle_hdr_t hdr;
-	process_t *prev, *next;
-	addr_t stack_end;
-	addr_t page_dir_phys/*, *page_dir*/;
-	void **handles;
-	unsigned handle_count;
-	unsigned handle_allocated;
-	module_t *mod_first, *mod_last;
-	struct vm_area_t *area_first, *area_last;
-	/*addr_t vmm_end;*/
-	spinlock_t sem_vmm;
-	spinlock_t sem_lock;
-	const wchar_t *exe;
-	struct process_info_t *info;
-	unsigned id;
-	process_t *creator;
+    handle_hdr_t hdr;
+    process_t *prev, *next;
+    addr_t stack_end;
+    addr_t page_dir_phys/*, *page_dir*/;
+    void **handles;
+    unsigned handle_count;
+    unsigned handle_allocated;
+    module_t *mod_first, *mod_last;
+    //struct vm_area_t *area_first, *area_last;
+    struct vm_node_t *vmm_top;
+    /*addr_t vmm_end;*/
+    spinlock_t sem_vmm;
+    spinlock_t sem_lock;
+    const wchar_t *exe;
+    struct process_info_t *info;
+    unsigned id;
+    process_t *creator;
     int exit_code;
     vnode_t root, cur_dir;
+    mstate user_heap;
 };
 
 extern process_t *proc_first, *proc_last;

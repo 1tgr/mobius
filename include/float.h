@@ -1,4 +1,4 @@
-/* $Id: float.h,v 1.2 2001/11/05 18:45:23 pavlovskii Exp $ */
+/* $Id: float.h,v 1.3 2002/09/08 20:47:03 pavlovskii Exp $ */
 /* Copyright (C) 1995 DJ Delorie, see COPYING.DJ for details */
 #ifndef __dj_include_float_h_
 #define __dj_include_float_h_
@@ -102,6 +102,11 @@ unsigned int _clear87(void);
 unsigned int _control87(unsigned int newcw, unsigned int mask);
 void         _fpreset(void);
 unsigned int _status87(void);
+int          _isnan(double __x);
+int          _isnanl(long double __x);
+int          _isinf(double __x);
+int          _finite( double x );
+int          _isinfl(long double __x);
 
 #endif /* !_POSIX_SOURCE */
 #endif /* !__STRICT_ANSI__ */

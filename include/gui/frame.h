@@ -1,4 +1,4 @@
-/* $Id: frame.h,v 1.5 2002/08/04 17:22:39 pavlovskii Exp $ */
+/* $Id: frame.h,v 1.6 2002/09/08 20:47:03 pavlovskii Exp $ */
 
 #ifndef __GUI_FRAME_H
 #define __GUI_FRAME_H
@@ -40,7 +40,7 @@ namespace os
 
     public:
         Frame(const wchar_t *text, const MGLrect &pos);
-        void OnPaint(Rc *rc);
+        void OnPaint(mgl::Rc *rc);
         void OnFocus();
         void OnBlur();
         void OnMouseDown(uint32_t buttons, MGLreal x, MGLreal y);

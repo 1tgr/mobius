@@ -1,4 +1,4 @@
-/* $Id: vmm.h,v 1.8 2002/08/21 12:09:38 pavlovskii Exp $ */
+/* $Id: vmm.h,v 1.9 2002/09/08 20:47:03 pavlovskii Exp $ */
 #ifndef __KERNEL_VMM_H
 #define __KERNEL_VMM_H
 
@@ -15,14 +15,14 @@ extern "C"
  *	\defgroup	vmm	Virtual Memory
  *	@{
  */
-typedef struct vm_area_t vm_area_t;
 
-#define VM_AREA_EMPTY           0
+/*efine VM_AREA_EMPTY           0*/
 #define VM_AREA_NORMAL	        1
 #define VM_AREA_MAP		2
-#define VM_AREA_SHARED	        3
+/*efine VM_AREA_SHARED	        3*/
 #define VM_AREA_FILE	        4
 #define VM_AREA_IMAGE           5
+#define VM_AREA_CALLBACK        6
 
 #define MEM_READ		1
 #define MEM_WRITE		2
@@ -34,7 +34,7 @@ struct page_array_t;
 
 /*! \brief Describes an area of memory allocated within the address space of a 
  *	particular process. */
-struct vm_area_t
+/*struct vm_area_t
 {
     handle_hdr_t hdr;
 
@@ -49,32 +49,86 @@ struct vm_area_t
     fileop_t pagingop;
     struct page_array_t *pages, *read_pages;
     wchar_t *name;
-    
+
     unsigned type;
 
     union
     {
-	addr_t phys_map;
-	vm_area_t* shared_from;
-	handle_t file;
+        addr_t phys_map;
+        vm_area_t* shared_from;
+        handle_t file;
         module_t *mod;
+
+        struct
+        {
+            bool (*handler)(void *, addr_t, bool);
+            void *cookie;
+        } callback;
+    } dest;
+};*/
+
+typedef struct vm_node_t vm_node_t;
+typedef bool (*VMM_CALLBACK)(void *cookie, vm_node_t *node, addr_t start, 
+                             bool is_writing);
+
+typedef struct vm_desc_t vm_desc_t;
+struct vm_desc_t
+{
+    handle_hdr_t hdr;
+
+    unsigned num_pages;
+    vm_desc_t *shared_prev, *shared_next;
+    spinlock_t mtx_allocate;
+    spinlock_t spin;
+    fileop_t pagingop;
+    struct page_array_t *pages, *read_pages;
+    wchar_t *name;
+
+    unsigned type;
+
+    union
+    {
+        addr_t phys_map;
+        vm_desc_t* shared_from;
+        handle_t file;
+        module_t *mod;
+
+        struct
+        {
+            VMM_CALLBACK handler;
+            void *cookie;
+        } callback;
     } dest;
 };
 
+struct vm_node_t
+{
+    vm_node_t *left, *right;
+    addr_t base;
+    uint32_t flags;
+
+    union
+    {
+        vm_desc_t *desc;
+        unsigned empty_pages;
+    } u;
+};
+
+#define VMM_NODE_IS_EMPTY(n)    ((n)->flags == 0)
+
 /* vmmAlloc flags are in os/os.h */
 
-/* create a vm_area_t */
-void*       VmmMap(size_t pages, addr_t virt, void *dest, unsigned type, 
-                   uint32_t flags);
-
+void*       VmmMap(size_t pages, addr_t start, void *dest1, void *dest2, 
+                   unsigned type, uint32_t flags);
 void*       VmmAlloc(size_t pages, addr_t start, uint32_t flags);
 bool        VmmShare(void *base, const wchar_t *name);
+void*       VmmAllocCallback(size_t pages, addr_t start, uint32_t flags, 
+                             VMM_CALLBACK handler,
+                             void *cookie);
 
-void        VmmFree(vm_area_t* area);
-bool        VmmPageFault(vm_area_t* area, addr_t start, bool is_writing);
-void        VmmUncommit(vm_area_t* area);
-void        VmmInvalidate(vm_area_t* area, addr_t start, size_t pages);
-vm_area_t*  VmmArea(process_t* proc, const void* ptr);
+void        VmmFree(const void *ptr);
+bool        VmmPageFault(process_t *proc, addr_t start, bool is_writing);
+vm_node_t*  VmmLookupNode(vm_node_t *parent, const void* ptr);
 
 /*! @} */
 
