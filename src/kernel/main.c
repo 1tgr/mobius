@@ -1,4 +1,4 @@
-/* $Id: main.c,v 1.25 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: main.c,v 1.26 2002/09/08 00:31:16 pavlovskii Exp $ */
 
 /*!
  *    \defgroup    kernel    Kernel
@@ -51,13 +51,28 @@ static void KernelCpuMeter(void)
     }
 }
 
+static void KeInstallAddon(const wchar_t *name)
+{
+    wchar_t path[256];
+    module_t *mod;
+    void (*startup)(void);
+
+    swprintf(path, SYS_BOOT L"/%s.kll", name);
+    mod = PeLoad(NULL, path, 0);
+    if (mod == NULL)
+        wprintf(L"KeInstallAddon(%s): failed to load %s\n", name, path);
+
+    startup = (void*) mod->entry;
+    startup();
+}
+
 static void __initcode KeInstallDevices(void)
 {
     unsigned i, j, count;
     wchar_t value[10], line[256], *tok, *comma, key[50];
     const wchar_t *ptr, *driver, *device_path, *dest;
-    bool is_mount;
     device_config_t *cfg;
+    enum { UNKNOWN, MOUNT, DEVICE, ADDON } action;
 
     wcscpy(value, L"0");
     for (count = 0; (ptr = ProGetString(L"Devices", value, NULL)) != NULL; count++)
@@ -87,18 +102,21 @@ static void __initcode KeInstallDevices(void)
         }
 
         tok = line;
+        action = UNKNOWN;
         while (*tok != '\0')
         {
             switch (j)
             {
             case 0: /* action */
                 if (_wcsicmp(tok, L"device") == 0)
-                    is_mount = false;
+                    action = DEVICE;
                 else if (_wcsicmp(tok, L"mount") == 0)
-                    is_mount = true;
+                    action = MOUNT;
+                else if (_wcsicmp(tok, L"addon") == 0)
+                    action = ADDON;
                 else
                 {
-                    wprintf(L"system.pro/Devices: invalid device/mount option: %s\n", tok);
+                    wprintf(L"system.pro/Devices: invalid action option: %s\n", tok);
                     tok = NULL;
                     continue;
                 }
@@ -107,16 +125,17 @@ static void __initcode KeInstallDevices(void)
 
             case 1: /* driver name */
                 driver = tok;
-                if (!is_mount)
+                if (action == DEVICE)
                     device_path = driver;
                 break;
 
             case 2: /* device name or mount point path */
-                device_path = tok;
+                if (action < ADDON)
+                    device_path = tok;
                 break;
 
             case 3: /* mount point device (optional) */
-                if (is_mount)
+                if (action == MOUNT)
                     dest = tok;
                 else
                     wprintf(L"system.pro/Devices: mount point device name (%s) is only valid for mount points\n",
@@ -130,28 +149,41 @@ static void __initcode KeInstallDevices(void)
 
         if (driver == NULL)
             wprintf(L"system.pro/Devices: need to specify at least driver name\n");
-        else if (is_mount)
-        {
-            wprintf(L"Mounting %s on %s as %s\n", device_path, dest, driver);
-            if (!FsCreateDir(device_path))
-                wprintf(L"warning: failed to create mount point %s\n", device_path);
-            FsMount(device_path, driver, dest);
-        }
         else
         {
-            cfg = malloc(sizeof(device_config_t));
-            cfg->parent = NULL;
-            cfg->num_resources = 0;
-            cfg->resources = NULL;
-            cfg->vendor_id = 0xffff;
-            cfg->device_id = 0xffff;
-            cfg->subsystem = 0;
-            cfg->bus_type = DEV_BUS_UNKNOWN;
-            cfg->device_class = 0;
-            cfg->reserved = 0;
-            wprintf(L"-- %s (%s)\n", device_path, driver);
-            swprintf(key, L"ISA/%s", driver);
-            DevInstallDevice(driver, device_path, cfg, key);
+            switch (action)
+            {
+            case MOUNT:
+                wprintf(L"Mounting %s on %s as %s\n", device_path, dest, driver);
+                if (!FsCreateDir(device_path))
+                    wprintf(L"warning: failed to create mount point %s\n", device_path);
+                FsMount(device_path, driver, dest);
+                break;
+
+            case DEVICE:
+                cfg = malloc(sizeof(device_config_t));
+                cfg->parent = NULL;
+                cfg->num_resources = 0;
+                cfg->resources = NULL;
+                cfg->vendor_id = 0xffff;
+                cfg->device_id = 0xffff;
+                cfg->subsystem = 0;
+                cfg->bus_type = DEV_BUS_UNKNOWN;
+                cfg->device_class = 0;
+                cfg->reserved = 0;
+                wprintf(L"-- %s (%s)\n", device_path, driver);
+                swprintf(key, L"ISA/%s", driver);
+                DevInstallDevice(driver, device_path, cfg, key);
+                break;
+
+            case ADDON:
+                wprintf(L"-- %s (addon)\n", driver);
+                KeInstallAddon(driver);
+                break;
+
+            case UNKNOWN:
+                break;
+            }
         }
 
         TextUpdateProgress(0, i, count - 1);

@@ -1,4 +1,4 @@
-/* $Id: vmm.c,v 1.16 2002/08/20 22:58:00 pavlovskii Exp $ */
+/* $Id: vmm.c,v 1.17 2002/09/08 00:31:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/memory.h>
@@ -17,8 +17,8 @@ extern process_t proc_idle;
 vm_area_t *shared_first, *shared_last;
 spinlock_t sem_share;
 
-void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type, 
-             uint32_t flags)
+void* VmmMap(size_t pages, addr_t start, void *dest1, void *dest2, 
+             unsigned type, uint32_t flags)
 {
     vm_area_t *area, *collide;
     bool is_kernel;
@@ -134,16 +134,20 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
     case VM_AREA_NORMAL:
         break;
     case VM_AREA_MAP:
-        area->dest.phys_map = (addr_t) dest;
+        area->dest.phys_map = (addr_t) dest1;
         break;
     case VM_AREA_SHARED:
-        area->dest.shared_from = dest;
+        area->dest.shared_from = dest1;
         break;
     case VM_AREA_FILE:
-        area->dest.file = (handle_t) dest;
+        area->dest.file = (handle_t) dest1;
         break;
     case VM_AREA_IMAGE:
-        area->dest.mod = dest;
+        area->dest.mod = dest1;
+        break;
+    case VM_AREA_CALLBACK:
+        area->dest.callback.handler = dest1;
+        area->dest.callback.cookie = dest2;
         break;
     }
 
@@ -173,7 +177,14 @@ void* VmmMap(size_t pages, addr_t start, void *dest, unsigned type,
 */
 void* VmmAlloc(size_t pages, addr_t start, uint32_t flags)
 {
-    return VmmMap(pages, start, NULL, VM_AREA_NORMAL, flags);
+    return VmmMap(pages, start, NULL, NULL, VM_AREA_NORMAL, flags);
+}
+
+void* VmmAllocCallback(size_t pages, addr_t start, uint32_t flags, 
+                       bool (*handler)(void *, addr_t, bool),
+                       void *cookie)
+{
+    return VmmMap(pages, start, handler, cookie, VM_AREA_CALLBACK, flags);
 }
 
 /*
@@ -209,12 +220,13 @@ vm_area_t *new_area, *collide;
 void *VmmMapFile(handle_t file, addr_t start, size_t pages, uint32_t flags)
 {
     flags &= ~(MEM_COMMIT | MEM_ZERO);
-    return VmmMap(pages, start, (void*) file, VM_AREA_FILE, flags);
+    return VmmMap(pages, start, (void*) file, NULL, VM_AREA_FILE, flags);
 }
 
 bool VmmShare(void *base, const wchar_t *name)
 {
     vm_area_t *area;
+    wchar_t *name_copy;
 
     area = VmmArea(current()->process, base);
     if (area == NULL)
@@ -223,9 +235,14 @@ bool VmmShare(void *base, const wchar_t *name)
         return false;
     }
 
+    /*
+     * xxx -- video driver stores shared area name in data section...
+     *  we don't want to page it in while holding sem_vmm
+     */
+    name_copy = _wcsdup(name);
     SpinAcquire(&current()->process->sem_vmm);
     free(area->name);
-    area->name = _wcsdup(name);
+    area->name = name_copy;
     
     SpinAcquire(&sem_share);
 
@@ -296,7 +313,7 @@ void *VmmMapSharedArea(handle_t hnd, addr_t start, uint32_t flags)
         return NULL;
 
     dest = (vm_area_t*) ((handle_hdr_t*) ptr - 1);
-    ret = VmmMap(dest->pages->num_pages, start, dest, VM_AREA_SHARED, flags);
+    ret = VmmMap(dest->pages->num_pages, start, dest, NULL, VM_AREA_SHARED, flags);
     HndUnlock(NULL, hnd, 'vmma');
     return ret;
 }
@@ -639,6 +656,7 @@ bool VmmCommit(vm_area_t* area, addr_t start, bool is_writing)
                     {
                         wprintf(L"VmmCommit(%lx): page is not already mapped in shared area\n", 
                             start);
+                        assert(false);
                         return false;
                     }
                 }
@@ -728,6 +746,11 @@ bool VmmPageFault(vm_area_t *area, addr_t page, bool is_writing)
         wprintf(L"VmmPageFault(%x): %s of empty area at %x\n",
             page, is_writing ? L"write" : L"read", area->start);
         break;
+
+    case VM_AREA_CALLBACK:
+        return area->dest.callback.handler(area->dest.callback.cookie,
+            page,
+            is_writing);
     }
 
     return false;
@@ -813,4 +836,11 @@ vm_area_t* VmmArea(process_t* proc, const void* ptr)
         return area;
 
     return NULL;
+}
+
+void *morecore_user(size_t nbytes)
+{
+    return VmmAlloc(PAGE_ALIGN_UP(nbytes) / PAGE_SIZE, 
+        NULL,
+        3 | MEM_READ | MEM_WRITE);
 }

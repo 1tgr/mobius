@@ -1,5 +1,6 @@
-/* $Id: scdsptch.c,v 1.5 2002/08/06 11:02:57 pavlovskii Exp $ */
+/* $Id: scdsptch.c,v 1.6 2002/09/08 00:31:16 pavlovskii Exp $ */
 
+#include <kernel/kernel.h>
 #include <kernel/i386.h>
 #include <kernel/memory.h>
 
@@ -9,15 +10,6 @@
 #include <assert.h>
 
 #include <os/syscall.h>
-
-typedef struct systab_t systab_t;
-struct systab_t
-{
-	uint32_t code;
-	const char *name;
-	void *routine;
-	uint32_t argbytes;
-};
 
 #undef SYS_BEGIN_GROUP
 #define SYS_BEGIN_GROUP(n)	systab_t i386_sys##n[256] = {
@@ -40,65 +32,99 @@ struct systab_t
 #undef SYS_END_GROUP
 #define SYS_END_GROUP(n)
 
-systab_t *i386_systab[] = 
+static spinlock_t i386_spin_systab;
+static systab_t *i386_systab0[] = 
 {
 #include <os/sysdef.h>
 };
 
+systab_t **i386_systab[2] = { i386_systab0, };
+unsigned i386_systab_range[2] = { _countof(i386_systab0), };
+
 void i386DispatchSysCall(context_t *ctx)
 {
-	unsigned tab, code;
+    unsigned prefix, tab, code;
+    systab_t *table;
 
-	assert(MemVerifyBuffer((void*) ctx->regs.edx, ctx->regs.ecx));
+    assert(MemVerifyBuffer((void*) ctx->regs.edx, ctx->regs.ecx));
 
-	tab = (ctx->regs.eax >> 8) & 0xf;
-	code = ctx->regs.eax & 0xff;
-	if (tab > _countof(i386_systab))
-	{
-		wprintf(L"syscall: table %x out of range\n", tab);
-		return;
-	}
+    prefix = (ctx->regs.eax >> 12) & 0xf;
+    tab = (ctx->regs.eax >> 8) & 0xf;
+    code = ctx->regs.eax & 0xff;
 
-	assert(i386_systab[tab][code].code == ctx->regs.eax);
-	assert(i386_systab[tab][code].argbytes == ctx->regs.ecx);
+    if (prefix > _countof(i386_systab_range))
+    {
+        wprintf(L"syscall: invalid prefix %x\n", prefix);
+        return;
+    }
 
-	ctx->regs.eax = i386DoCall(i386_systab[tab][code].routine,
-		(void*) ctx->regs.edx, i386_systab[tab][code].argbytes);
+    if (tab > i386_systab_range[prefix])
+    {
+	wprintf(L"syscall: table %x out of range for prefix %x\n", tab, prefix);
+	return;
+    }
+
+    table = i386_systab[prefix][tab] + code;
+    if (table->code != ctx->regs.eax)
+    {
+        wprintf(L"table->code = %x, eax = %x\n", table->code, ctx->regs.eax);
+        assert(table->code == ctx->regs.eax);
+    }
+
+    assert(table->argbytes == ctx->regs.ecx);
+
+    ctx->regs.eax = i386DoCall(table->routine, (void*) ctx->regs.edx, 
+        table->argbytes);
 }
 
 void *KeGetSysCall(unsigned id)
 {
-    unsigned tab, code;
+    unsigned prefix, tab, code;
+    prefix = (id >> 12) & 0xf;
     tab = (id >> 8) & 0xf;
-	code = id & 0xff;
-	if (tab > _countof(i386_systab) || 
-        i386_systab[tab][code].code != id)
-	{
+    code = id & 0xff;
+    if (prefix > _countof(i386_systab) ||
+        tab > i386_systab_range[prefix] || 
+        i386_systab[prefix][tab][code].code != id)
+    {
         errno = ENOTFOUND;
-		return NULL;
-	}
+        return NULL;
+    }
 
-	return i386_systab[tab][code].routine;
+    return i386_systab[prefix][tab][code].routine;
 }
 
 void *KeSetSysCall(unsigned id, void *ptr)
 {
-    unsigned tab, code;
+    unsigned prefix, tab, code;
     void *old;
 
     old = KeGetSysCall(id);
     if (ptr == NULL)
         return old;
 
+    prefix = (id >> 12) & 0xf;
     tab = (id >> 8) & 0xf;
-	code = id & 0xff;
-	if (tab > _countof(i386_systab) || 
-        i386_systab[tab][code].code != id)
-	{
+    code = id & 0xff;
+    if (prefix > _countof(i386_systab) ||
+        tab > i386_systab_range[prefix] || 
+        i386_systab[prefix][tab][code].code != id)
+    {
         errno = EINVALID;
-		return NULL;
-	}
+        return NULL;
+    }
 
-    i386_systab[tab][code].routine = ptr;
-	return old;
+    i386_systab[prefix][tab][code].routine = ptr;
+    return old;
+}
+
+void KeInstallSysCallGroup(uint8_t prefix, systab_t **group, unsigned count)
+{
+    if (prefix != 1)
+        return;
+
+    SpinAcquire(&i386_spin_systab);
+    i386_systab[prefix] = group;
+    i386_systab_range[prefix] = count;
+    SpinRelease(&i386_spin_systab);
 }

@@ -1,4 +1,4 @@
-/* $Id: thread.c,v 1.24 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: thread.c,v 1.25 2002/09/08 00:31:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -272,7 +272,7 @@ void ScSchedule(void)
 
                 new = newent->thr;
                 KeAtomicInc(&new->span);
-                if (new->span > 10)
+                if (new->span > 5)
                     new->span = 0;
                 else
                 {
@@ -337,6 +337,7 @@ bool ThrAllocateThreadInfo(thread_t *thr)
     thr->info->id = thr->id;
     thr->info->process = thr->process->info;
     thr->info->param = thr->param;
+    thr->info->exception_handler = NULL;
     return true;
 }
 

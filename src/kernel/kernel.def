@@ -80,6 +80,7 @@ EXPORTS
 	KeAtomicDec
 	KeAtomicInc
 	KeInstallHooks
+	KeInstallSysCallGroup
         KeGetSysCall
         KeSetSysCall
 	MemAlloc
@@ -148,6 +149,7 @@ EXPORTS
 	ThrSleep
 	ThrWaitHandle
 	VmmAlloc
+	VmmAllocCallback
 	VmmArea
 	VmmDoMapFile
 	VmmFree

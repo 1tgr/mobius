@@ -1,4 +1,4 @@
-/* $Id: proc.c,v 1.23 2002/09/03 13:13:31 pavlovskii Exp $ */
+/* $Id: proc.c,v 1.24 2002/09/08 00:31:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <wchar.h>
 #include <os/defs.h>
+
+void *morecore_user(size_t nbytes);
 
 //extern char kernel_stack_end[], scode[];
 extern addr_t kernel_pagedir[];
@@ -192,13 +194,19 @@ bool ProcFirstTimeInit(process_t *proc)
     TRACE3("Creating process from %s: page dir = %x = %x\n", 
         proc->exe, proc->page_dir_phys, cr3);
 
-    info = VmmAlloc(1, NULL, 
+    proc->user_heap = malloc_create_heap(&__av_default, morecore_user);
+    if (proc->user_heap == NULL)
+        return false;
+
+    /*info = VmmAlloc(1, NULL, 
         3 | MEM_READ | MEM_WRITE | MEM_ZERO | MEM_COMMIT);
     if (info == NULL)
     {
         //SpinRelease(&proc->sem_lock);
         return false;
-    }
+    }*/
+
+    info = amalloc(proc->user_heap, sizeof(*info));
 
     for (thr = thr_first; thr; thr = thr->all_next)
     {

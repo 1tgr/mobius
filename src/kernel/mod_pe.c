@@ -1,4 +1,4 @@
-/* $Id: mod_pe.c,v 1.14 2002/08/14 16:23:59 pavlovskii Exp $ */
+/* $Id: mod_pe.c,v 1.15 2002/09/08 00:31:16 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/proc.h>
@@ -82,6 +82,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     size_t size;
     const wchar_t *temp;
     wchar_t *search_path, *ch;
+    module_info_t *info;
 
     if (proc == NULL)
         proc = current()->process;
@@ -190,6 +191,7 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
     new_base = (addr_t) VmmMap(PAGE_ALIGN_UP(mod->length) / PAGE_SIZE,
         base,
         mod,
+        NULL,
         VM_AREA_IMAGE,
         0);
 
@@ -200,6 +202,16 @@ module_t* PeLoad(process_t* proc, const wchar_t* file, uint32_t base)
         pe.OptionalHeader.ImageBase);*/
 
     LIST_ADD(proc->mod, mod);
+
+    if (mod->base < 0x80000000 &&
+        proc->user_heap != NULL)
+    {
+        info = amalloc(proc->user_heap, sizeof(*info));
+        wcscpy(info->name, full_file);
+        info->base = mod->base;
+        info->length = mod->length;
+        LIST_ADD(proc->info->module, info);
+    }
 
     PeGetHeaders(mod->base);
 
