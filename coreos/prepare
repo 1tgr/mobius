@@ -1,0 +1,4 @@
+#!/bin/sh
+FRED=`echo $1 | sed s:/\./:/:`
+mkdir -p $FRED
+echo -n $FRED > $2

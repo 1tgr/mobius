@@ -1,0 +1,13 @@
+NAME video.drv
+EXPORTS
+	Bpp8CreateSurface
+	Bpp8GetPalette
+	SurfFillRect
+	SurfHLine
+	SurfLine
+	SurfVLine
+	VidLockVga
+	VidStoreVgaPalette
+	VidUnlockVga
+	VidWriteVgaRegisters
+	

@@ -1,0 +1,18 @@
+$Archive: /keywords.txt $ VSS archive file location 
+$Author: Tim $  User who last changed the file 
+$Date: 7/03/04 15:33 $  Date and time of last check in 
+$Header: /keywords.txt 1     7/03/04 15:33 Tim $  Logfile, Revision, Date, Author 
+$History: keywords.txt $  File history, VSS format 
+ * 
+ * *****************  Version 1  *****************
+ * User: Tim          Date: 7/03/04    Time: 15:33
+ * Created in $/
+$JustDate:  7/03/04 $ Date, without the time addendum. 
+$Log: /keywords.txt $  File history, RCS format 
+ * 
+ * 1     7/03/04 15:33 Tim
+$Logfile: /keywords.txt $  Same as Archive 
+$Modtime: 7/03/04 15:31 $  Date and time of last modification 
+$Revision: 1 $  VSS version number 
+$Workfile: keywords.txt $  File name 
+$NoKeywords: $ No keyword expansion for all keywords that follow  

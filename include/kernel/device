@@ -1,0 +1,54 @@
+/* $Id: device,v 1.1.1.1 2002/12/31 01:26:20 pavlovskii Exp $ */
+
+#ifndef __KERNEL_DEVICE
+#define __KERNEL_DEVICE
+
+#ifndef __cplusplus
+#error <kernel/device> requires C++
+#endif
+
+#include <errno.h>
+
+#define DEV_BEGIN_REQUEST()	\
+	bool request(request_t *req) \
+	{ \
+		switch (req->code) \
+		{
+
+#define DEV_HANDLE_REQUEST(code, fn, type) \
+		case code: \
+			return fn((type*) req);
+
+#define DEV_END_REQUEST() \
+		} \
+		req->code = ENOTIMPL;\
+		return false; \
+	}
+
+namespace kernel
+{
+	#include "driver.h"
+
+	class device : public device_t
+	{
+	protected:
+		bool registerIrq(uint8_t irq)
+		{
+			return DevRegisterIrq(irq, this);
+		}
+
+		asyncio_t *queueRequest(request_t *req, size_t size, 
+			page_array_t *pages, size_t user_buffer_length)
+		{
+			return DevQueueRequest(this, req, size, 
+				pages, user_buffer_length);
+		}
+
+		void finishIo(asyncio_t *io, status_t result)
+		{
+			DevFinishIo(this, io, result);
+		}
+	};
+};
+
+#endif

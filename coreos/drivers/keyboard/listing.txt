@@ -1,0 +1,2207 @@
+
+/mobius/distrib/keyboard.drv:     file format pei-i386
+
+Disassembly of section .text:
+
+80071000 <__RUNTIME_PSEUDO_RELOC_LIST_END__>:
+	...
+keys():
+80071018:	1b 00                	sbb    (%eax),%eax
+8007101a:	00 00                	add    %al,(%eax)
+8007101c:	1b 00                	sbb    (%eax),%eax
+8007101e:	00 00                	add    %al,(%eax)
+80071020:	1b 00                	sbb    (%eax),%eax
+80071022:	00 00                	add    %al,(%eax)
+80071024:	1b 00                	sbb    (%eax),%eax
+	...
+8007102e:	00 00                	add    %al,(%eax)
+80071030:	31 00                	xor    %eax,(%eax)
+80071032:	00 00                	add    %al,(%eax)
+80071034:	21 00                	and    %eax,(%eax)
+80071036:	00 00                	add    %al,(%eax)
+80071038:	31 00                	xor    %eax,(%eax)
+8007103a:	00 00                	add    %al,(%eax)
+8007103c:	21 00                	and    %eax,(%eax)
+	...
+80071046:	00 00                	add    %al,(%eax)
+80071048:	32 00                	xor    (%eax),%al
+8007104a:	00 00                	add    %al,(%eax)
+8007104c:	22 00                	and    (%eax),%al
+8007104e:	00 00                	add    %al,(%eax)
+80071050:	32 00                	xor    (%eax),%al
+80071052:	00 00                	add    %al,(%eax)
+80071054:	22 00                	and    (%eax),%al
+	...
+8007105e:	00 00                	add    %al,(%eax)
+80071060:	33 00                	xor    (%eax),%eax
+80071062:	00 00                	add    %al,(%eax)
+80071064:	a3 00 00 00 33       	mov    %eax,0x33000000
+80071069:	00 00                	add    %al,(%eax)
+8007106b:	00 a3 00 00 00 00    	add    %ah,0x0(%ebx)
+80071071:	00 00                	add    %al,(%eax)
+80071073:	00 00                	add    %al,(%eax)
+80071075:	00 00                	add    %al,(%eax)
+80071077:	00 34 00             	add    %dh,(%eax,%eax,1)
+8007107a:	00 00                	add    %al,(%eax)
+8007107c:	24 00                	and    $0x0,%al
+8007107e:	00 00                	add    %al,(%eax)
+80071080:	34 00                	xor    $0x0,%al
+80071082:	00 00                	add    %al,(%eax)
+80071084:	24 00                	and    $0x0,%al
+80071086:	00 00                	add    %al,(%eax)
+80071088:	ac                   	lods   %ds:(%esi),%al
+80071089:	20 00                	and    %al,(%eax)
+8007108b:	00 00                	add    %al,(%eax)
+8007108d:	00 00                	add    %al,(%eax)
+8007108f:	00 35 00 00 00 25    	add    %dh,0x25000000
+80071095:	00 00                	add    %al,(%eax)
+80071097:	00 35 00 00 00 25    	add    %dh,0x25000000
+	...
+800710a5:	00 00                	add    %al,(%eax)
+800710a7:	00 36                	add    %dh,(%esi)
+800710a9:	00 00                	add    %al,(%eax)
+800710ab:	00 5e 00             	add    %bl,0x0(%esi)
+800710ae:	00 00                	add    %al,(%eax)
+800710b0:	36 00 00             	add    %al,%ss:(%eax)
+800710b3:	00 5e 00             	add    %bl,0x0(%esi)
+	...
+800710be:	00 00                	add    %al,(%eax)
+800710c0:	37                   	aaa    
+800710c1:	00 00                	add    %al,(%eax)
+800710c3:	00 26                	add    %ah,(%esi)
+800710c5:	00 00                	add    %al,(%eax)
+800710c7:	00 37                	add    %dh,(%edi)
+800710c9:	00 00                	add    %al,(%eax)
+800710cb:	00 26                	add    %ah,(%esi)
+	...
+800710d5:	00 00                	add    %al,(%eax)
+800710d7:	00 38                	add    %bh,(%eax)
+800710d9:	00 00                	add    %al,(%eax)
+800710db:	00 2a                	add    %ch,(%edx)
+800710dd:	00 00                	add    %al,(%eax)
+800710df:	00 38                	add    %bh,(%eax)
+800710e1:	00 00                	add    %al,(%eax)
+800710e3:	00 2a                	add    %ch,(%edx)
+	...
+800710ed:	00 00                	add    %al,(%eax)
+800710ef:	00 39                	add    %bh,(%ecx)
+800710f1:	00 00                	add    %al,(%eax)
+800710f3:	00 28                	add    %ch,(%eax)
+800710f5:	00 00                	add    %al,(%eax)
+800710f7:	00 39                	add    %bh,(%ecx)
+800710f9:	00 00                	add    %al,(%eax)
+800710fb:	00 28                	add    %ch,(%eax)
+	...
+80071105:	00 00                	add    %al,(%eax)
+80071107:	00 30                	add    %dh,(%eax)
+80071109:	00 00                	add    %al,(%eax)
+8007110b:	00 29                	add    %ch,(%ecx)
+8007110d:	00 00                	add    %al,(%eax)
+8007110f:	00 30                	add    %dh,(%eax)
+80071111:	00 00                	add    %al,(%eax)
+80071113:	00 29                	add    %ch,(%ecx)
+	...
+8007111d:	00 00                	add    %al,(%eax)
+8007111f:	00 2d 00 00 00 5f    	add    %ch,0x5f000000
+80071125:	00 00                	add    %al,(%eax)
+80071127:	00 2d 00 00 00 5f    	add    %ch,0x5f000000
+	...
+80071135:	00 00                	add    %al,(%eax)
+80071137:	00 3d 00 00 00 2b    	add    %bh,0x2b000000
+8007113d:	00 00                	add    %al,(%eax)
+8007113f:	00 2b                	add    %ch,(%ebx)
+80071141:	00 00                	add    %al,(%eax)
+80071143:	00 2b                	add    %ch,(%ebx)
+	...
+8007114d:	00 00                	add    %al,(%eax)
+8007114f:	00 08                	add    %cl,(%eax)
+80071151:	00 00                	add    %al,(%eax)
+80071153:	00 08                	add    %cl,(%eax)
+80071155:	00 00                	add    %al,(%eax)
+80071157:	00 08                	add    %cl,(%eax)
+80071159:	00 00                	add    %al,(%eax)
+8007115b:	00 08                	add    %cl,(%eax)
+	...
+80071165:	00 00                	add    %al,(%eax)
+80071167:	00 09                	add    %cl,(%ecx)
+80071169:	00 00                	add    %al,(%eax)
+8007116b:	00 09                	add    %cl,(%ecx)
+8007116d:	00 00                	add    %al,(%eax)
+8007116f:	00 09                	add    %cl,(%ecx)
+80071171:	00 00                	add    %al,(%eax)
+80071173:	00 09                	add    %cl,(%ecx)
+	...
+8007117d:	00 00                	add    %al,(%eax)
+8007117f:	00 71 00             	add    %dh,0x0(%ecx)
+80071182:	00 00                	add    %al,(%eax)
+80071184:	51                   	push   %ecx
+80071185:	00 00                	add    %al,(%eax)
+80071187:	00 71 00             	add    %dh,0x0(%ecx)
+8007118a:	00 00                	add    %al,(%eax)
+8007118c:	51                   	push   %ecx
+	...
+80071195:	00 00                	add    %al,(%eax)
+80071197:	00 77 00             	add    %dh,0x0(%edi)
+8007119a:	00 00                	add    %al,(%eax)
+8007119c:	57                   	push   %edi
+8007119d:	00 00                	add    %al,(%eax)
+8007119f:	00 77 00             	add    %dh,0x0(%edi)
+800711a2:	00 00                	add    %al,(%eax)
+800711a4:	57                   	push   %edi
+	...
+800711ad:	00 00                	add    %al,(%eax)
+800711af:	00 65 00             	add    %ah,0x0(%ebp)
+800711b2:	00 00                	add    %al,(%eax)
+800711b4:	45                   	inc    %ebp
+800711b5:	00 00                	add    %al,(%eax)
+800711b7:	00 65 00             	add    %ah,0x0(%ebp)
+800711ba:	00 00                	add    %al,(%eax)
+800711bc:	45                   	inc    %ebp
+	...
+800711c5:	00 00                	add    %al,(%eax)
+800711c7:	00 72 00             	add    %dh,0x0(%edx)
+800711ca:	00 00                	add    %al,(%eax)
+800711cc:	52                   	push   %edx
+800711cd:	00 00                	add    %al,(%eax)
+800711cf:	00 72 00             	add    %dh,0x0(%edx)
+800711d2:	00 00                	add    %al,(%eax)
+800711d4:	52                   	push   %edx
+	...
+800711dd:	00 00                	add    %al,(%eax)
+800711df:	00 74 00 00          	add    %dh,0x0(%eax,%eax,1)
+800711e3:	00 54 00 00          	add    %dl,0x0(%eax,%eax,1)
+800711e7:	00 74 00 00          	add    %dh,0x0(%eax,%eax,1)
+800711eb:	00 54 00 00          	add    %dl,0x0(%eax,%eax,1)
+	...
+800711f7:	00 79 00             	add    %bh,0x0(%ecx)
+800711fa:	00 00                	add    %al,(%eax)
+800711fc:	59                   	pop    %ecx
+800711fd:	00 00                	add    %al,(%eax)
+800711ff:	00 79 00             	add    %bh,0x0(%ecx)
+80071202:	00 00                	add    %al,(%eax)
+80071204:	59                   	pop    %ecx
+	...
+8007120d:	00 00                	add    %al,(%eax)
+8007120f:	00 75 00             	add    %dh,0x0(%ebp)
+80071212:	00 00                	add    %al,(%eax)
+80071214:	55                   	push   %ebp
+80071215:	00 00                	add    %al,(%eax)
+80071217:	00 75 00             	add    %dh,0x0(%ebp)
+8007121a:	00 00                	add    %al,(%eax)
+8007121c:	55                   	push   %ebp
+	...
+80071225:	00 00                	add    %al,(%eax)
+80071227:	00 69 00             	add    %ch,0x0(%ecx)
+8007122a:	00 00                	add    %al,(%eax)
+8007122c:	49                   	dec    %ecx
+8007122d:	00 00                	add    %al,(%eax)
+8007122f:	00 69 00             	add    %ch,0x0(%ecx)
+80071232:	00 00                	add    %al,(%eax)
+80071234:	49                   	dec    %ecx
+	...
+8007123d:	00 00                	add    %al,(%eax)
+8007123f:	00 6f 00             	add    %ch,0x0(%edi)
+80071242:	00 00                	add    %al,(%eax)
+80071244:	4f                   	dec    %edi
+80071245:	00 00                	add    %al,(%eax)
+80071247:	00 6f 00             	add    %ch,0x0(%edi)
+8007124a:	00 00                	add    %al,(%eax)
+8007124c:	4f                   	dec    %edi
+	...
+80071255:	00 00                	add    %al,(%eax)
+80071257:	00 70 00             	add    %dh,0x0(%eax)
+8007125a:	00 00                	add    %al,(%eax)
+8007125c:	50                   	push   %eax
+8007125d:	00 00                	add    %al,(%eax)
+8007125f:	00 70 00             	add    %dh,0x0(%eax)
+80071262:	00 00                	add    %al,(%eax)
+80071264:	50                   	push   %eax
+	...
+8007126d:	00 00                	add    %al,(%eax)
+8007126f:	00 5b 00             	add    %bl,0x0(%ebx)
+80071272:	00 00                	add    %al,(%eax)
+80071274:	7b 00                	jnp    80071276 <__RUNTIME_PSEUDO_RELOC_LIST_END__+0x276>
+80071276:	00 00                	add    %al,(%eax)
+80071278:	5d                   	pop    %ebp
+80071279:	00 00                	add    %al,(%eax)
+8007127b:	00 7d 00             	add    %bh,0x0(%ebp)
+	...
+80071286:	00 00                	add    %al,(%eax)
+80071288:	5d                   	pop    %ebp
+80071289:	00 00                	add    %al,(%eax)
+8007128b:	00 7d 00             	add    %bh,0x0(%ebp)
+8007128e:	00 00                	add    %al,(%eax)
+80071290:	5d                   	pop    %ebp
+80071291:	00 00                	add    %al,(%eax)
+80071293:	00 7d 00             	add    %bh,0x0(%ebp)
+	...
+8007129e:	00 00                	add    %al,(%eax)
+800712a0:	0a 00                	or     (%eax),%al
+800712a2:	00 00                	add    %al,(%eax)
+800712a4:	0a 00                	or     (%eax),%al
+800712a6:	00 00                	add    %al,(%eax)
+800712a8:	0a 00                	or     (%eax),%al
+800712aa:	00 00                	add    %al,(%eax)
+800712ac:	0a 00                	or     (%eax),%al
+	...
+800712ce:	00 00                	add    %al,(%eax)
+800712d0:	61                   	popa   
+800712d1:	00 00                	add    %al,(%eax)
+800712d3:	00 41 00             	add    %al,0x0(%ecx)
+800712d6:	00 00                	add    %al,(%eax)
+800712d8:	61                   	popa   
+800712d9:	00 00                	add    %al,(%eax)
+800712db:	00 41 00             	add    %al,0x0(%ecx)
+	...
+800712e6:	00 00                	add    %al,(%eax)
+800712e8:	73 00                	jae    800712ea <__RUNTIME_PSEUDO_RELOC_LIST_END__+0x2ea>
+800712ea:	00 00                	add    %al,(%eax)
+800712ec:	53                   	push   %ebx
+800712ed:	00 00                	add    %al,(%eax)
+800712ef:	00 73 00             	add    %dh,0x0(%ebx)
+800712f2:	00 00                	add    %al,(%eax)
+800712f4:	53                   	push   %ebx
+	...
+800712fd:	00 00                	add    %al,(%eax)
+800712ff:	00 64 00 00          	add    %ah,0x0(%eax,%eax,1)
+80071303:	00 44 00 00          	add    %al,0x0(%eax,%eax,1)
+80071307:	00 64 00 00          	add    %ah,0x0(%eax,%eax,1)
+8007130b:	00 44 00 00          	add    %al,0x0(%eax,%eax,1)
+	...
+80071317:	00 66 00             	add    %ah,0x0(%esi)
+8007131a:	00 00                	add    %al,(%eax)
+8007131c:	46                   	inc    %esi
+8007131d:	00 00                	add    %al,(%eax)
+8007131f:	00 66 00             	add    %ah,0x0(%esi)
+80071322:	00 00                	add    %al,(%eax)
+80071324:	46                   	inc    %esi
+	...
+8007132d:	00 00                	add    %al,(%eax)
+8007132f:	00 67 00             	add    %ah,0x0(%edi)
+80071332:	00 00                	add    %al,(%eax)
+80071334:	47                   	inc    %edi
+80071335:	00 00                	add    %al,(%eax)
+80071337:	00 67 00             	add    %ah,0x0(%edi)
+8007133a:	00 00                	add    %al,(%eax)
+8007133c:	47                   	inc    %edi
+	...
+80071345:	00 00                	add    %al,(%eax)
+80071347:	00 68 00             	add    %ch,0x0(%eax)
+8007134a:	00 00                	add    %al,(%eax)
+8007134c:	48                   	dec    %eax
+8007134d:	00 00                	add    %al,(%eax)
+8007134f:	00 68 00             	add    %ch,0x0(%eax)
+80071352:	00 00                	add    %al,(%eax)
+80071354:	48                   	dec    %eax
+	...
+8007135d:	00 00                	add    %al,(%eax)
+8007135f:	00 6a 00             	add    %ch,0x0(%edx)
+80071362:	00 00                	add    %al,(%eax)
+80071364:	4a                   	dec    %edx
+80071365:	00 00                	add    %al,(%eax)
+80071367:	00 6a 00             	add    %ch,0x0(%edx)
+8007136a:	00 00                	add    %al,(%eax)
+8007136c:	4a                   	dec    %edx
+	...
+80071375:	00 00                	add    %al,(%eax)
+80071377:	00 6b 00             	add    %ch,0x0(%ebx)
+8007137a:	00 00                	add    %al,(%eax)
+8007137c:	4b                   	dec    %ebx
+8007137d:	00 00                	add    %al,(%eax)
+8007137f:	00 6b 00             	add    %ch,0x0(%ebx)
+80071382:	00 00                	add    %al,(%eax)
+80071384:	4b                   	dec    %ebx
+	...
+8007138d:	00 00                	add    %al,(%eax)
+8007138f:	00 6c 00 00          	add    %ch,0x0(%eax,%eax,1)
+80071393:	00 4c 00 00          	add    %cl,0x0(%eax,%eax,1)
+80071397:	00 6c 00 00          	add    %ch,0x0(%eax,%eax,1)
+8007139b:	00 4c 00 00          	add    %cl,0x0(%eax,%eax,1)
+	...
+800713a7:	00 3b                	add    %bh,(%ebx)
+800713a9:	00 00                	add    %al,(%eax)
+800713ab:	00 3a                	add    %bh,(%edx)
+800713ad:	00 00                	add    %al,(%eax)
+800713af:	00 3b                	add    %bh,(%ebx)
+800713b1:	00 00                	add    %al,(%eax)
+800713b3:	00 3a                	add    %bh,(%edx)
+	...
+800713bd:	00 00                	add    %al,(%eax)
+800713bf:	00 27                	add    %ah,(%edi)
+800713c1:	00 00                	add    %al,(%eax)
+800713c3:	00 40 00             	add    %al,0x0(%eax)
+800713c6:	00 00                	add    %al,(%eax)
+800713c8:	27                   	daa    
+800713c9:	00 00                	add    %al,(%eax)
+800713cb:	00 40 00             	add    %al,0x0(%eax)
+	...
+800713d6:	00 00                	add    %al,(%eax)
+800713d8:	60                   	pusha  
+800713d9:	00 00                	add    %al,(%eax)
+800713db:	00 ac ff ff ff 60 00 	add    %ch,0x60ffff(%edi,%edi,8)
+800713e2:	00 00                	add    %al,(%eax)
+800713e4:	ac                   	lods   %ds:(%esi),%al
+800713e5:	ff                   	(bad)  
+800713e6:	ff                   	(bad)  
+800713e7:	ff a6 ff ff ff 00    	jmp    *0xffffff(%esi)
+	...
+80071405:	00 00                	add    %al,(%eax)
+80071407:	00 23                	add    %ah,(%ebx)
+80071409:	00 00                	add    %al,(%eax)
+8007140b:	00 7e 00             	add    %bh,0x0(%esi)
+8007140e:	00 00                	add    %al,(%eax)
+80071410:	23 00                	and    (%eax),%eax
+80071412:	00 00                	add    %al,(%eax)
+80071414:	7e 00                	jle    80071416 <__RUNTIME_PSEUDO_RELOC_LIST_END__+0x416>
+	...
+8007141e:	00 00                	add    %al,(%eax)
+80071420:	7a 00                	jp     80071422 <__RUNTIME_PSEUDO_RELOC_LIST_END__+0x422>
+80071422:	00 00                	add    %al,(%eax)
+80071424:	5a                   	pop    %edx
+80071425:	00 00                	add    %al,(%eax)
+80071427:	00 7a 00             	add    %bh,0x0(%edx)
+8007142a:	00 00                	add    %al,(%eax)
+8007142c:	5a                   	pop    %edx
+	...
+80071435:	00 00                	add    %al,(%eax)
+80071437:	00 78 00             	add    %bh,0x0(%eax)
+8007143a:	00 00                	add    %al,(%eax)
+8007143c:	58                   	pop    %eax
+8007143d:	00 00                	add    %al,(%eax)
+8007143f:	00 78 00             	add    %bh,0x0(%eax)
+80071442:	00 00                	add    %al,(%eax)
+80071444:	58                   	pop    %eax
+	...
+8007144d:	00 00                	add    %al,(%eax)
+8007144f:	00 63 00             	add    %ah,0x0(%ebx)
+80071452:	00 00                	add    %al,(%eax)
+80071454:	43                   	inc    %ebx
+80071455:	00 00                	add    %al,(%eax)
+80071457:	00 63 00             	add    %ah,0x0(%ebx)
+8007145a:	00 00                	add    %al,(%eax)
+8007145c:	43                   	inc    %ebx
+	...
+80071465:	00 00                	add    %al,(%eax)
+80071467:	00 76 00             	add    %dh,0x0(%esi)
+8007146a:	00 00                	add    %al,(%eax)
+8007146c:	56                   	push   %esi
+8007146d:	00 00                	add    %al,(%eax)
+8007146f:	00 76 00             	add    %dh,0x0(%esi)
+80071472:	00 00                	add    %al,(%eax)
+80071474:	56                   	push   %esi
+	...
+8007147d:	00 00                	add    %al,(%eax)
+8007147f:	00 62 00             	add    %ah,0x0(%edx)
+80071482:	00 00                	add    %al,(%eax)
+80071484:	42                   	inc    %edx
+80071485:	00 00                	add    %al,(%eax)
+80071487:	00 62 00             	add    %ah,0x0(%edx)
+8007148a:	00 00                	add    %al,(%eax)
+8007148c:	42                   	inc    %edx
+	...
+80071495:	00 00                	add    %al,(%eax)
+80071497:	00 6e 00             	add    %ch,0x0(%esi)
+8007149a:	00 00                	add    %al,(%eax)
+8007149c:	4e                   	dec    %esi
+8007149d:	00 00                	add    %al,(%eax)
+8007149f:	00 6e 00             	add    %ch,0x0(%esi)
+800714a2:	00 00                	add    %al,(%eax)
+800714a4:	4e                   	dec    %esi
+	...
+800714ad:	00 00                	add    %al,(%eax)
+800714af:	00 6d 00             	add    %ch,0x0(%ebp)
+800714b2:	00 00                	add    %al,(%eax)
+800714b4:	4d                   	dec    %ebp
+800714b5:	00 00                	add    %al,(%eax)
+800714b7:	00 6d 00             	add    %ch,0x0(%ebp)
+800714ba:	00 00                	add    %al,(%eax)
+800714bc:	4d                   	dec    %ebp
+	...
+800714c5:	00 00                	add    %al,(%eax)
+800714c7:	00 2c 00             	add    %ch,(%eax,%eax,1)
+800714ca:	00 00                	add    %al,(%eax)
+800714cc:	3c 00                	cmp    $0x0,%al
+800714ce:	00 00                	add    %al,(%eax)
+800714d0:	2c 00                	sub    $0x0,%al
+800714d2:	00 00                	add    %al,(%eax)
+800714d4:	3c 00                	cmp    $0x0,%al
+	...
+800714de:	00 00                	add    %al,(%eax)
+800714e0:	2e 00 00             	add    %al,%cs:(%eax)
+800714e3:	00 3e                	add    %bh,(%esi)
+800714e5:	00 00                	add    %al,(%eax)
+800714e7:	00 2e                	add    %ch,(%esi)
+800714e9:	00 00                	add    %al,(%eax)
+800714eb:	00 3e                	add    %bh,(%esi)
+	...
+800714f5:	00 00                	add    %al,(%eax)
+800714f7:	00 2f                	add    %ch,(%edi)
+800714f9:	00 00                	add    %al,(%eax)
+800714fb:	00 3f                	add    %bh,(%edi)
+800714fd:	00 00                	add    %al,(%eax)
+800714ff:	00 2f                	add    %ch,(%edi)
+80071501:	00 00                	add    %al,(%eax)
+80071503:	00 3f                	add    %bh,(%edi)
+	...
+80071525:	00 00                	add    %al,(%eax)
+80071527:	00 16                	add    %dl,(%esi)
+80071529:	00 01                	add    %al,(%ecx)
+	...
+80071557:	00 20                	add    %ah,(%eax)
+80071559:	00 00                	add    %al,(%eax)
+8007155b:	00 20                	add    %ah,(%eax)
+8007155d:	00 00                	add    %al,(%eax)
+8007155f:	00 20                	add    %ah,(%eax)
+80071561:	00 00                	add    %al,(%eax)
+80071563:	00 20                	add    %ah,(%eax)
+	...
+80071589:	00 01                	add    %al,(%ecx)
+8007158b:	00 00                	add    %al,(%eax)
+8007158d:	00 01                	add    %al,(%ecx)
+8007158f:	00 00                	add    %al,(%eax)
+80071591:	00 01                	add    %al,(%ecx)
+80071593:	00 00                	add    %al,(%eax)
+80071595:	00 01                	add    %al,(%ecx)
+	...
+8007159f:	00 01                	add    %al,(%ecx)
+800715a1:	00 01                	add    %al,(%ecx)
+800715a3:	00 01                	add    %al,(%ecx)
+800715a5:	00 01                	add    %al,(%ecx)
+800715a7:	00 01                	add    %al,(%ecx)
+800715a9:	00 01                	add    %al,(%ecx)
+800715ab:	00 01                	add    %al,(%ecx)
+800715ad:	00 01                	add    %al,(%ecx)
+	...
+800715b7:	00 02                	add    %al,(%edx)
+800715b9:	00 01                	add    %al,(%ecx)
+800715bb:	00 02                	add    %al,(%edx)
+800715bd:	00 01                	add    %al,(%ecx)
+800715bf:	00 02                	add    %al,(%edx)
+800715c1:	00 01                	add    %al,(%ecx)
+800715c3:	00 02                	add    %al,(%edx)
+800715c5:	00 01                	add    %al,(%ecx)
+	...
+800715cf:	00 03                	add    %al,(%ebx)
+800715d1:	00 01                	add    %al,(%ecx)
+800715d3:	00 03                	add    %al,(%ebx)
+800715d5:	00 01                	add    %al,(%ecx)
+800715d7:	00 03                	add    %al,(%ebx)
+800715d9:	00 01                	add    %al,(%ecx)
+800715db:	00 03                	add    %al,(%ebx)
+800715dd:	00 01                	add    %al,(%ecx)
+	...
+800715e7:	00 04 00             	add    %al,(%eax,%eax,1)
+800715ea:	01 00                	add    %eax,(%eax)
+800715ec:	04 00                	add    $0x0,%al
+800715ee:	01 00                	add    %eax,(%eax)
+800715f0:	04 00                	add    $0x0,%al
+800715f2:	01 00                	add    %eax,(%eax)
+800715f4:	04 00                	add    $0x0,%al
+800715f6:	01 00                	add    %eax,(%eax)
+	...
+80071600:	05 00 01 00 05       	add    $0x5000100,%eax
+80071605:	00 01                	add    %al,(%ecx)
+80071607:	00 05 00 01 00 05    	add    %al,0x5000100
+8007160d:	00 01                	add    %al,(%ecx)
+	...
+80071617:	00 06                	add    %al,(%esi)
+80071619:	00 01                	add    %al,(%ecx)
+8007161b:	00 06                	add    %al,(%esi)
+8007161d:	00 01                	add    %al,(%ecx)
+8007161f:	00 06                	add    %al,(%esi)
+80071621:	00 01                	add    %al,(%ecx)
+80071623:	00 06                	add    %al,(%esi)
+80071625:	00 01                	add    %al,(%ecx)
+	...
+8007162f:	00 07                	add    %al,(%edi)
+80071631:	00 01                	add    %al,(%ecx)
+80071633:	00 07                	add    %al,(%edi)
+80071635:	00 01                	add    %al,(%ecx)
+80071637:	00 07                	add    %al,(%edi)
+80071639:	00 01                	add    %al,(%ecx)
+8007163b:	00 07                	add    %al,(%edi)
+8007163d:	00 01                	add    %al,(%ecx)
+	...
+80071647:	00 08                	add    %cl,(%eax)
+80071649:	00 01                	add    %al,(%ecx)
+8007164b:	00 08                	add    %cl,(%eax)
+8007164d:	00 01                	add    %al,(%ecx)
+8007164f:	00 08                	add    %cl,(%eax)
+80071651:	00 01                	add    %al,(%ecx)
+80071653:	00 08                	add    %cl,(%eax)
+80071655:	00 01                	add    %al,(%ecx)
+	...
+8007165f:	00 09                	add    %cl,(%ecx)
+80071661:	00 01                	add    %al,(%ecx)
+80071663:	00 09                	add    %cl,(%ecx)
+80071665:	00 01                	add    %al,(%ecx)
+80071667:	00 09                	add    %cl,(%ecx)
+80071669:	00 01                	add    %al,(%ecx)
+8007166b:	00 09                	add    %cl,(%ecx)
+8007166d:	00 01                	add    %al,(%ecx)
+	...
+800716a7:	00 0e                	add    %cl,(%esi)
+800716a9:	00 01                	add    %al,(%ecx)
+800716ab:	00 0e                	add    %cl,(%esi)
+800716ad:	00 01                	add    %al,(%ecx)
+800716af:	00 0e                	add    %cl,(%esi)
+800716b1:	00 01                	add    %al,(%ecx)
+800716b3:	00 0e                	add    %cl,(%esi)
+800716b5:	00 01                	add    %al,(%ecx)
+	...
+800716bf:	00 13                	add    %dl,(%ebx)
+800716c1:	00 01                	add    %al,(%ecx)
+800716c3:	00 13                	add    %dl,(%ebx)
+800716c5:	00 01                	add    %al,(%ecx)
+800716c7:	00 13                	add    %dl,(%ebx)
+800716c9:	00 01                	add    %al,(%ecx)
+800716cb:	00 13                	add    %dl,(%ebx)
+800716cd:	00 01                	add    %al,(%ecx)
+	...
+800716d7:	00 10                	add    %dl,(%eax)
+800716d9:	00 01                	add    %al,(%ecx)
+800716db:	00 10                	add    %dl,(%eax)
+800716dd:	00 01                	add    %al,(%ecx)
+800716df:	00 10                	add    %dl,(%eax)
+800716e1:	00 01                	add    %al,(%ecx)
+800716e3:	00 10                	add    %dl,(%eax)
+800716e5:	00 01                	add    %al,(%ecx)
+	...
+800716ef:	00 2d 00 00 00 2d    	add    %ch,0x2d000000
+800716f5:	00 00                	add    %al,(%eax)
+800716f7:	00 13                	add    %dl,(%ebx)
+800716f9:	20 00                	and    %al,(%eax)
+800716fb:	00 13                	add    %dl,(%ebx)
+800716fd:	20 00                	and    %al,(%eax)
+	...
+80071707:	00 12                	add    %dl,(%edx)
+80071709:	00 01                	add    %al,(%ecx)
+8007170b:	00 12                	add    %dl,(%edx)
+8007170d:	00 01                	add    %al,(%ecx)
+8007170f:	00 12                	add    %dl,(%edx)
+80071711:	00 01                	add    %al,(%ecx)
+80071713:	00 12                	add    %dl,(%edx)
+80071715:	00 01                	add    %al,(%ecx)
+	...
+80071737:	00 15 00 01 00 15    	add    %dl,0x15000100
+8007173d:	00 01                	add    %al,(%ecx)
+8007173f:	00 15 00 01 00 15    	add    %dl,0x15000100
+80071745:	00 01                	add    %al,(%ecx)
+	...
+8007174f:	00 2b                	add    %ch,(%ebx)
+80071751:	00 00                	add    %al,(%eax)
+80071753:	00 2b                	add    %ch,(%ebx)
+80071755:	00 00                	add    %al,(%eax)
+80071757:	00 2b                	add    %ch,(%ebx)
+80071759:	00 00                	add    %al,(%eax)
+8007175b:	00 2b                	add    %ch,(%ebx)
+	...
+80071765:	00 00                	add    %al,(%eax)
+80071767:	00 0f                	add    %cl,(%edi)
+80071769:	00 01                	add    %al,(%ecx)
+8007176b:	00 0f                	add    %cl,(%edi)
+8007176d:	00 01                	add    %al,(%ecx)
+8007176f:	00 0f                	add    %cl,(%edi)
+80071771:	00 01                	add    %al,(%ecx)
+80071773:	00 0f                	add    %cl,(%edi)
+80071775:	00 01                	add    %al,(%ecx)
+	...
+8007177f:	00 14 00             	add    %dl,(%eax,%eax,1)
+80071782:	01 00                	add    %eax,(%eax)
+80071784:	14 00                	adc    $0x0,%al
+80071786:	01 00                	add    %eax,(%eax)
+80071788:	14 00                	adc    $0x0,%al
+8007178a:	01 00                	add    %eax,(%eax)
+8007178c:	14 00                	adc    $0x0,%al
+8007178e:	01 00                	add    %eax,(%eax)
+	...
+80071798:	11 00                	adc    %eax,(%eax)
+8007179a:	01 00                	add    %eax,(%eax)
+8007179c:	11 00                	adc    %eax,(%eax)
+8007179e:	01 00                	add    %eax,(%eax)
+800717a0:	11 00                	adc    %eax,(%eax)
+800717a2:	01 00                	add    %eax,(%eax)
+800717a4:	11 00                	adc    %eax,(%eax)
+800717a6:	01 00                	add    %eax,(%eax)
+	...
+800717b0:	0c 00                	or     $0x0,%al
+800717b2:	01 00                	add    %eax,(%eax)
+800717b4:	0c 00                	or     $0x0,%al
+800717b6:	01 00                	add    %eax,(%eax)
+800717b8:	0c 00                	or     $0x0,%al
+800717ba:	01 00                	add    %eax,(%eax)
+800717bc:	0c 00                	or     $0x0,%al
+800717be:	01 00                	add    %eax,(%eax)
+	...
+800717c8:	0d 00 01 00 0d       	or     $0xd000100,%eax
+800717cd:	00 01                	add    %al,(%ecx)
+800717cf:	00 0d 00 01 00 0d    	add    %cl,0xd000100
+800717d5:	00 01                	add    %al,(%ecx)
+	...
+800717df:	00 16                	add    %dl,(%esi)
+800717e1:	00 21                	add    %ah,(%ecx)
+800717e3:	00 16                	add    %dl,(%esi)
+800717e5:	00 21                	add    %ah,(%ecx)
+800717e7:	00 16                	add    %dl,(%esi)
+800717e9:	00 21                	add    %ah,(%ecx)
+800717eb:	00 16                	add    %dl,(%esi)
+800717ed:	00 21                	add    %ah,(%ecx)
+	...
+8007180f:	00 5c 00 00          	add    %bl,0x0(%eax,%eax,1)
+80071813:	00 7c 00 00          	add    %bh,0x0(%eax,%eax,1)
+80071817:	00 5c 00 00          	add    %bl,0x0(%eax,%eax,1)
+8007181b:	00 7c 00 00          	add    %bh,0x0(%eax,%eax,1)
+	...
+80071827:	00 0a                	add    %cl,(%edx)
+80071829:	00 01                	add    %al,(%ecx)
+8007182b:	00 0a                	add    %cl,(%edx)
+8007182d:	00 01                	add    %al,(%ecx)
+8007182f:	00 0a                	add    %cl,(%edx)
+80071831:	00 01                	add    %al,(%ecx)
+80071833:	00 0a                	add    %cl,(%edx)
+80071835:	00 01                	add    %al,(%ecx)
+	...
+8007183f:	00 0b                	add    %cl,(%ebx)
+80071841:	00 01                	add    %al,(%ecx)
+80071843:	00 0b                	add    %cl,(%ebx)
+80071845:	00 01                	add    %al,(%ecx)
+80071847:	00 0b                	add    %cl,(%ebx)
+80071849:	00 01                	add    %al,(%ecx)
+8007184b:	00 0b                	add    %cl,(%ebx)
+8007184d:	00 01                	add    %al,(%ecx)
+	...
+80071887:	00 18                	add    %bl,(%eax)
+80071889:	00 01                	add    %al,(%ecx)
+8007188b:	00 18                	add    %bl,(%eax)
+8007188d:	00 01                	add    %al,(%ecx)
+8007188f:	00 18                	add    %bl,(%eax)
+80071891:	00 01                	add    %al,(%ecx)
+80071893:	00 18                	add    %bl,(%eax)
+80071895:	00 01                	add    %al,(%ecx)
+	...
+8007189f:	00 19                	add    %bl,(%ecx)
+800718a1:	00 01                	add    %al,(%ecx)
+800718a3:	00 19                	add    %bl,(%ecx)
+800718a5:	00 01                	add    %al,(%ecx)
+800718a7:	00 19                	add    %bl,(%ecx)
+800718a9:	00 01                	add    %al,(%ecx)
+800718ab:	00 19                	add    %bl,(%ecx)
+800718ad:	00 01                	add    %al,(%ecx)
+	...
+800718b7:	00 1a                	add    %bl,(%edx)
+800718b9:	00 01                	add    %al,(%ecx)
+800718bb:	00 1a                	add    %bl,(%edx)
+800718bd:	00 01                	add    %al,(%ecx)
+800718bf:	00 1a                	add    %bl,(%edx)
+800718c1:	00 01                	add    %al,(%ecx)
+800718c3:	00 1a                	add    %bl,(%edx)
+800718c5:	00 01                	add    %al,(%ecx)
+	...
+
+800718d0 <_kbdHwWrite>:
+kbdHwWrite():
+/mobius/coreos/drivers/keyboard/keyboard.c:60
+800718d0:	55                   	push   %ebp
+800718d1:	89 e5                	mov    %esp,%ebp
+/mobius/coreos/drivers/keyboard/keyboard.c:64
+800718d3:	8b 45 08             	mov    0x8(%ebp),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:60
+800718d6:	56                   	push   %esi
+/mobius/coreos/drivers/keyboard/keyboard.c:64
+800718d7:	b9 20 a1 07 00       	mov    $0x7a120,%ecx
+/mobius/coreos/drivers/keyboard/keyboard.c:60
+800718dc:	53                   	push   %ebx
+800718dd:	0f b7 75 0c          	movzwl 0xc(%ebp),%esi
+800718e1:	0f b6 5d 10          	movzbl 0x10(%ebp),%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:64
+800718e5:	0f b7 90 30 01 00 00 	movzwl 0x130(%eax),%edx
+800718ec:	8d 74 26 00          	lea    0x0(%esi,1),%esi
+/mobius/include/kernel/i386.h:402
+800718f0:	ec                   	in     (%dx),%al
+/mobius/coreos/drivers/keyboard/keyboard.c:68
+800718f1:	24 02                	and    $0x2,%al
+800718f3:	84 c0                	test   %al,%al
+800718f5:	74 07                	je     800718fe <_kbdHwWrite+0x2e>
+/mobius/coreos/drivers/keyboard/keyboard.c:64
+800718f7:	49                   	dec    %ecx
+800718f8:	75 f6                	jne    800718f0 <_kbdHwWrite+0x20>
+/mobius/coreos/drivers/keyboard/keyboard.c:74
+800718fa:	5b                   	pop    %ebx
+800718fb:	5e                   	pop    %esi
+800718fc:	5d                   	pop    %ebp
+800718fd:	c3                   	ret    
+/mobius/coreos/drivers/keyboard/keyboard.c:72
+800718fe:	85 c9                	test   %ecx,%ecx
+80071900:	74 f8                	je     800718fa <_kbdHwWrite+0x2a>
+/mobius/include/kernel/i386.h:388
+80071902:	89 f2                	mov    %esi,%edx
+80071904:	88 d8                	mov    %bl,%al
+80071906:	ee                   	out    %al,(%dx)
+80071907:	eb f1                	jmp    800718fa <_kbdHwWrite+0x2a>
+80071909:	90                   	nop    
+8007190a:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+
+80071910 <_kbdHwRead>:
+kbdHwRead():
+/mobius/coreos/drivers/keyboard/keyboard.c:77
+80071910:	55                   	push   %ebp
+80071911:	89 e5                	mov    %esp,%ebp
+80071913:	57                   	push   %edi
+80071914:	8b 7d 08             	mov    0x8(%ebp),%edi
+80071917:	56                   	push   %esi
+80071918:	53                   	push   %ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:81
+80071919:	bb 50 c3 00 00       	mov    $0xc350,%ebx
+8007191e:	0f b7 b7 30 01 00 00 	movzwl 0x130(%edi),%esi
+80071925:	8d 74 26 00          	lea    0x0(%esi,1),%esi
+80071929:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+/mobius/include/kernel/i386.h:402
+80071930:	89 f2                	mov    %esi,%edx
+80071932:	ec                   	in     (%dx),%al
+80071933:	88 c1                	mov    %al,%cl
+/mobius/coreos/drivers/keyboard/keyboard.c:86
+80071935:	24 01                	and    $0x1,%al
+80071937:	84 c0                	test   %al,%al
+80071939:	74 10                	je     8007194b <_kbdHwRead+0x3b>
+/mobius/include/kernel/i386.h:402
+8007193b:	0f b7 97 2e 01 00 00 	movzwl 0x12e(%edi),%edx
+80071942:	ec                   	in     (%dx),%al
+/mobius/coreos/drivers/keyboard/keyboard.c:91
+80071943:	f6 c1 c0             	test   $0xc0,%cl
+80071946:	0f b6 c0             	movzbl %al,%eax
+80071949:	74 08                	je     80071953 <_kbdHwRead+0x43>
+/mobius/coreos/drivers/keyboard/keyboard.c:81
+8007194b:	4b                   	dec    %ebx
+8007194c:	75 e2                	jne    80071930 <_kbdHwRead+0x20>
+/mobius/coreos/drivers/keyboard/keyboard.c:96
+8007194e:	b8 ff 00 00 00       	mov    $0xff,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:97
+80071953:	5b                   	pop    %ebx
+80071954:	5e                   	pop    %esi
+80071955:	5f                   	pop    %edi
+80071956:	5d                   	pop    %ebp
+80071957:	c3                   	ret    
+80071958:	90                   	nop    
+80071959:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+80071960:	5b                   	pop    %ebx
+80071961:	00 6b 00             	add    %ch,0x0(%ebx)
+80071964:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
+80071968:	62 00                	bound  %eax,(%eax)
+8007196a:	6f                   	outsl  %ds:(%esi),(%dx)
+8007196b:	00 61 00             	add    %ah,0x0(%ecx)
+8007196e:	72 00                	jb     80071970 <_kbdHwRead+0x60>
+80071970:	64 00 5d 00          	add    %bl,%fs:0x0(%ebp)
+80071974:	20 00                	and    %al,(%eax)
+80071976:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
+8007197a:	72 00                	jb     8007197c <_kbdHwRead+0x6c>
+8007197c:	6f                   	outsl  %ds:(%esi),(%dx)
+8007197d:	00 72 00             	add    %dh,0x0(%edx)
+80071980:	3a 00                	cmp    (%eax),%al
+80071982:	20 00                	and    %al,(%eax)
+80071984:	65 00 78 00          	add    %bh,%gs:0x0(%eax)
+80071988:	70 00                	jo     8007198a <_kbdHwRead+0x7a>
+8007198a:	65 00 63 00          	add    %ah,%gs:0x0(%ebx)
+8007198e:	74 00                	je     80071990 <_kbdHwRead+0x80>
+80071990:	65 00 64 00 20       	add    %ah,%gs:0x20(%eax,%eax,1)
+80071995:	00 30                	add    %dh,(%eax)
+80071997:	00 78 00             	add    %bh,0x0(%eax)
+8007199a:	25 00 78 00 2c       	and    $0x2c007800,%eax
+8007199f:	00 20                	add    %ah,(%eax)
+800719a1:	00 67 00             	add    %ah,0x0(%edi)
+800719a4:	6f                   	outsl  %ds:(%esi),(%dx)
+800719a5:	00 74 00 20          	add    %dh,0x20(%eax,%eax,1)
+800719a9:	00 30                	add    %dh,(%eax)
+800719ab:	00 78 00             	add    %bh,0x0(%eax)
+800719ae:	25 00 78 00 0a       	and    $0xa007800,%eax
+800719b3:	00 00                	add    %al,(%eax)
+800719b5:	00 8d 76 00 8d bc    	add    %cl,0xbc8d0076(%ebp)
+800719bb:	27                   	daa    
+800719bc:	00 00                	add    %al,(%eax)
+	...
+
+800719c0 <_kbdHwWriteRead>:
+kbdHwWriteRead():
+/mobius/coreos/drivers/keyboard/keyboard.c:100
+800719c0:	55                   	push   %ebp
+800719c1:	89 e5                	mov    %esp,%ebp
+800719c3:	57                   	push   %edi
+800719c4:	56                   	push   %esi
+800719c5:	53                   	push   %ebx
+800719c6:	83 ec 0c             	sub    $0xc,%esp
+800719c9:	8b 7d 08             	mov    0x8(%ebp),%edi
+800719cc:	0f b7 45 0c          	movzwl 0xc(%ebp),%eax
+800719d0:	8b 75 14             	mov    0x14(%ebp),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:103
+800719d3:	89 3c 24             	mov    %edi,(%esp,1)
+800719d6:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800719da:	0f b6 45 10          	movzbl 0x10(%ebp),%eax
+800719de:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+800719e2:	e8 e9 fe ff ff       	call   800718d0 <_kbdHwWrite>
+/mobius/coreos/drivers/keyboard/keyboard.c:104
+800719e7:	80 3e 00             	cmpb   $0x0,(%esi)
+800719ea:	75 14                	jne    80071a00 <_kbdHwWriteRead+0x40>
+/mobius/coreos/drivers/keyboard/keyboard.c:115
+800719ec:	31 c0                	xor    %eax,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:116
+800719ee:	83 c4 0c             	add    $0xc,%esp
+800719f1:	5b                   	pop    %ebx
+800719f2:	5e                   	pop    %esi
+800719f3:	5f                   	pop    %edi
+800719f4:	5d                   	pop    %ebp
+800719f5:	c3                   	ret    
+800719f6:	8d 76 00             	lea    0x0(%esi),%esi
+800719f9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+/mobius/coreos/drivers/keyboard/keyboard.c:106
+80071a00:	89 3c 24             	mov    %edi,(%esp,1)
+80071a03:	e8 08 ff ff ff       	call   80071910 <_kbdHwRead>
+80071a08:	0f b6 d8             	movzbl %al,%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:107
+80071a0b:	0f b6 06             	movzbl (%esi),%eax
+80071a0e:	39 d8                	cmp    %ebx,%eax
+80071a10:	75 08                	jne    80071a1a <_kbdHwWriteRead+0x5a>
+/mobius/coreos/drivers/keyboard/keyboard.c:104
+80071a12:	46                   	inc    %esi
+80071a13:	80 3e 00             	cmpb   $0x0,(%esi)
+80071a16:	75 e8                	jne    80071a00 <_kbdHwWriteRead+0x40>
+80071a18:	eb d2                	jmp    800719ec <_kbdHwWriteRead+0x2c>
+/mobius/coreos/drivers/keyboard/keyboard.c:110
+80071a1a:	c7 04 24 60 19 07 80 	movl   $0x80071960,(%esp,1)
+80071a21:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80071a25:	89 5c 24 08          	mov    %ebx,0x8(%esp,1)
+80071a29:	e8 72 0d 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:111
+80071a2e:	0f b6 c3             	movzbl %bl,%eax
+80071a31:	eb bb                	jmp    800719ee <_kbdHwWriteRead+0x2e>
+80071a33:	90                   	nop    
+80071a34:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+80071a3a:	8d bf 00 00 00 00    	lea    0x0(%edi),%edi
+
+80071a40 <_KbdScancodeToKey>:
+KbdScancodeToKey():
+/mobius/coreos/drivers/keyboard/keyboard.c:119
+80071a40:	55                   	push   %ebp
+80071a41:	89 e5                	mov    %esp,%ebp
+80071a43:	56                   	push   %esi
+/mobius/coreos/drivers/keyboard/keyboard.c:130
+80071a44:	31 f6                	xor    %esi,%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:119
+80071a46:	53                   	push   %ebx
+80071a47:	83 ec 10             	sub    $0x10,%esp
+80071a4a:	8b 5d 08             	mov    0x8(%ebp),%ebx
+80071a4d:	0f b6 45 0c          	movzbl 0xc(%ebp),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:128
+80071a51:	88 c2                	mov    %al,%dl
+80071a53:	c0 ea 07             	shr    $0x7,%dl
+80071a56:	88 55 f7             	mov    %dl,0xfffffff7(%ebp)
+/mobius/coreos/drivers/keyboard/keyboard.c:129
+80071a59:	89 c2                	mov    %eax,%edx
+80071a5b:	83 e2 7f             	and    $0x7f,%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:128
+80071a5e:	80 75 f7 01          	xorb   $0x1,0xfffffff7(%ebp)
+/mobius/coreos/drivers/keyboard/keyboard.c:137
+80071a62:	66 83 fa 60          	cmp    $0x60,%dx
+80071a66:	0f 84 24 03 00 00    	je     80071d90 <_KbdScancodeToKey+0x350>
+/mobius/coreos/drivers/keyboard/keyboard.c:144
+80071a6c:	80 bb 2d 01 00 00 00 	cmpb   $0x0,0x12d(%ebx)
+80071a73:	74 06                	je     80071a7b <_KbdScancodeToKey+0x3b>
+/mobius/coreos/drivers/keyboard/keyboard.c:145
+80071a75:	81 ca 00 60 00 00    	or     $0x6000,%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:146
+80071a7b:	c6 83 2d 01 00 00 00 	movb   $0x0,0x12d(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:149
+80071a82:	83 fa 3a             	cmp    $0x3a,%edx
+80071a85:	0f 84 e5 02 00 00    	je     80071d70 <_KbdScancodeToKey+0x330>
+80071a8b:	83 fa 3a             	cmp    $0x3a,%edx
+80071a8e:	0f 8f fc 01 00 00    	jg     80071c90 <_KbdScancodeToKey+0x250>
+80071a94:	83 fa 2a             	cmp    $0x2a,%edx
+80071a97:	0f 84 d3 01 00 00    	je     80071c70 <_KbdScancodeToKey+0x230>
+80071a9d:	83 fa 2a             	cmp    $0x2a,%edx
+80071aa0:	0f 8f 6e 01 00 00    	jg     80071c14 <_KbdScancodeToKey+0x1d4>
+80071aa6:	83 fa 1d             	cmp    $0x1d,%edx
+80071aa9:	0f 84 43 01 00 00    	je     80071bf2 <_KbdScancodeToKey+0x1b2>
+/mobius/coreos/drivers/keyboard/keyboard.c:216
+80071aaf:	81 e2 ff 9f 00 00    	and    $0x9fff,%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:217
+80071ab5:	8d 42 b9             	lea    0xffffffb9(%edx),%eax
+80071ab8:	66 83 f8 0b          	cmp    $0xb,%ax
+80071abc:	0f 87 ae 00 00 00    	ja     80071b70 <_KbdScancodeToKey+0x130>
+80071ac2:	66 83 fa 4a          	cmp    $0x4a,%dx
+80071ac6:	0f 84 a4 00 00 00    	je     80071b70 <_KbdScancodeToKey+0x130>
+80071acc:	66 83 fa 4e          	cmp    $0x4e,%dx
+80071ad0:	0f 84 9a 00 00 00    	je     80071b70 <_KbdScancodeToKey+0x130>
+/mobius/coreos/drivers/keyboard/keyboard.c:222
+80071ad6:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+80071ad9:	f7 c1 00 00 20 00    	test   $0x200000,%ecx
+80071adf:	89 c8                	mov    %ecx,%eax
+80071ae1:	74 65                	je     80071b48 <_KbdScancodeToKey+0x108>
+80071ae3:	83 3c 95 e4 2e 07 80 	cmpl   $0xffffffff,0x80072ee4(,%edx,4)
+80071aea:	ff 
+80071aeb:	74 5b                	je     80071b48 <_KbdScancodeToKey+0x108>
+/mobius/coreos/drivers/keyboard/keyboard.c:225
+80071aed:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071af1:	74 1d                	je     80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:227
+80071af3:	0f b7 43 20          	movzwl 0x20(%ebx),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:228
+80071af7:	0f b7 14 95 e4 2e 07 	movzwl 0x80072ee4(,%edx,4),%edx
+80071afe:	80 
+/mobius/coreos/drivers/keyboard/keyboard.c:227
+80071aff:	8d 04 80             	lea    (%eax,%eax,4),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:228
+80071b02:	8d 04 42             	lea    (%edx,%eax,2),%eax
+80071b05:	66 89 43 20          	mov    %ax,0x20(%ebx)
+80071b09:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:251
+80071b10:	f7 c1 00 00 00 01    	test   $0x1000000,%ecx
+80071b16:	74 0b                	je     80071b23 <_KbdScancodeToKey+0xe3>
+/mobius/coreos/drivers/keyboard/keyboard.c:253
+80071b18:	8d 46 bf             	lea    0xffffffbf(%esi),%eax
+80071b1b:	83 f8 19             	cmp    $0x19,%eax
+80071b1e:	77 1b                	ja     80071b3b <_KbdScancodeToKey+0xfb>
+/mobius/coreos/drivers/keyboard/keyboard.c:254
+80071b20:	83 c6 20             	add    $0x20,%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:259
+80071b23:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071b27:	75 07                	jne    80071b30 <_KbdScancodeToKey+0xf0>
+/mobius/coreos/drivers/keyboard/keyboard.c:260
+80071b29:	81 ce 00 00 10 00    	or     $0x100000,%esi
+80071b2f:	90                   	nop    
+/mobius/coreos/drivers/keyboard/keyboard.c:263
+80071b30:	89 f0                	mov    %esi,%eax
+80071b32:	09 c8                	or     %ecx,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:264
+80071b34:	83 c4 10             	add    $0x10,%esp
+80071b37:	5b                   	pop    %ebx
+80071b38:	5e                   	pop    %esi
+80071b39:	5d                   	pop    %ebp
+80071b3a:	c3                   	ret    
+/mobius/coreos/drivers/keyboard/keyboard.c:255
+80071b3b:	8d 46 9f             	lea    0xffffff9f(%esi),%eax
+80071b3e:	83 f8 19             	cmp    $0x19,%eax
+80071b41:	77 e0                	ja     80071b23 <_KbdScancodeToKey+0xe3>
+/mobius/coreos/drivers/keyboard/keyboard.c:256
+80071b43:	83 ee 20             	sub    $0x20,%esi
+80071b46:	eb db                	jmp    80071b23 <_KbdScancodeToKey+0xe3>
+/mobius/coreos/drivers/keyboard/keyboard.c:231
+80071b48:	a9 00 00 00 02       	test   $0x2000000,%eax
+80071b4d:	74 0c                	je     80071b5b <_KbdScancodeToKey+0x11b>
+/mobius/coreos/drivers/keyboard/keyboard.c:232
+80071b4f:	8b 34 95 e4 2e 07 80 	mov    0x80072ee4(,%edx,4),%esi
+80071b56:	83 c6 30             	add    $0x30,%esi
+80071b59:	eb b5                	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:249
+80071b5b:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071b5e:	8b 34 c5 00 10 07 80 	mov    0x80071000(,%eax,8),%esi
+80071b65:	eb a9                	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+80071b67:	89 f6                	mov    %esi,%esi
+80071b69:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+/mobius/coreos/drivers/keyboard/keyboard.c:236
+80071b70:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+80071b73:	89 c8                	mov    %ecx,%eax
+80071b75:	25 00 00 80 08       	and    $0x8800000,%eax
+80071b7a:	3d 00 00 80 08       	cmp    $0x8800000,%eax
+80071b7f:	74 62                	je     80071be3 <_KbdScancodeToKey+0x1a3>
+/mobius/coreos/drivers/keyboard/keyboard.c:239
+80071b81:	89 c8                	mov    %ecx,%eax
+80071b83:	25 00 00 c0 00       	and    $0xc00000,%eax
+80071b88:	3d 00 00 c0 00       	cmp    $0xc00000,%eax
+80071b8d:	74 45                	je     80071bd4 <_KbdScancodeToKey+0x194>
+/mobius/coreos/drivers/keyboard/keyboard.c:242
+80071b8f:	f7 c1 00 00 00 08    	test   $0x8000000,%ecx
+80071b95:	74 0f                	je     80071ba6 <_KbdScancodeToKey+0x166>
+/mobius/coreos/drivers/keyboard/keyboard.c:243
+80071b97:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071b9a:	8b 34 c5 10 10 07 80 	mov    0x80071010(,%eax,8),%esi
+80071ba1:	e9 6a ff ff ff       	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:244
+80071ba6:	f7 c1 00 00 40 00    	test   $0x400000,%ecx
+80071bac:	74 0f                	je     80071bbd <_KbdScancodeToKey+0x17d>
+/mobius/coreos/drivers/keyboard/keyboard.c:245
+80071bae:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071bb1:	8b 34 c5 08 10 07 80 	mov    0x80071008(,%eax,8),%esi
+80071bb8:	e9 53 ff ff ff       	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:246
+80071bbd:	f7 c1 00 00 80 00    	test   $0x800000,%ecx
+80071bc3:	74 96                	je     80071b5b <_KbdScancodeToKey+0x11b>
+/mobius/coreos/drivers/keyboard/keyboard.c:247
+80071bc5:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071bc8:	8b 34 c5 04 10 07 80 	mov    0x80071004(,%eax,8),%esi
+80071bcf:	e9 3c ff ff ff       	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:241
+80071bd4:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071bd7:	8b 34 c5 0c 10 07 80 	mov    0x8007100c(,%eax,8),%esi
+80071bde:	e9 2d ff ff ff       	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:238
+80071be3:	8d 04 52             	lea    (%edx,%edx,2),%eax
+80071be6:	8b 34 c5 14 10 07 80 	mov    0x80071014(,%eax,8),%esi
+80071bed:	e9 1e ff ff ff       	jmp    80071b10 <_KbdScancodeToKey+0xd0>
+/mobius/coreos/drivers/keyboard/keyboard.c:153
+80071bf2:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071bf6:	74 12                	je     80071c0a <_KbdScancodeToKey+0x1ca>
+80071bf8:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071bfb:	0d 00 00 40 00       	or     $0x400000,%eax
+80071c00:	89 43 1c             	mov    %eax,0x1c(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:177
+80071c03:	89 c1                	mov    %eax,%ecx
+80071c05:	e9 26 ff ff ff       	jmp    80071b30 <_KbdScancodeToKey+0xf0>
+80071c0a:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071c0d:	25 ff ff bf ff       	and    $0xffbfffff,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:154
+80071c12:	eb ec                	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+80071c14:	83 fa 36             	cmp    $0x36,%edx
+80071c17:	74 57                	je     80071c70 <_KbdScancodeToKey+0x230>
+80071c19:	83 fa 38             	cmp    $0x38,%edx
+80071c1c:	0f 85 8d fe ff ff    	jne    80071aaf <_KbdScancodeToKey+0x6f>
+/mobius/coreos/drivers/keyboard/keyboard.c:157
+80071c22:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071c26:	74 29                	je     80071c51 <_KbdScancodeToKey+0x211>
+80071c28:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+80071c2b:	f7 c1 00 00 20 00    	test   $0x200000,%ecx
+80071c31:	75 0c                	jne    80071c3f <_KbdScancodeToKey+0x1ff>
+/mobius/coreos/drivers/keyboard/keyboard.c:158
+80071c33:	66 c7 43 20 00 00    	movw   $0x0,0x20(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:167
+80071c39:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071c3d:	74 09                	je     80071c48 <_KbdScancodeToKey+0x208>
+80071c3f:	89 c8                	mov    %ecx,%eax
+80071c41:	0d 00 00 20 00       	or     $0x200000,%eax
+80071c46:	eb b8                	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+80071c48:	89 c8                	mov    %ecx,%eax
+80071c4a:	25 ff ff df ff       	and    $0xffdfffff,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:168
+80071c4f:	eb af                	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+/mobius/coreos/drivers/keyboard/keyboard.c:159
+80071c51:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+80071c54:	f7 c1 00 00 20 00    	test   $0x200000,%ecx
+80071c5a:	74 dd                	je     80071c39 <_KbdScancodeToKey+0x1f9>
+/mobius/coreos/drivers/keyboard/keyboard.c:161
+80071c5c:	0f b7 43 20          	movzwl 0x20(%ebx),%eax
+80071c60:	66 85 c0             	test   %ax,%ax
+80071c63:	0f b7 f0             	movzwl %ax,%esi
+80071c66:	75 d1                	jne    80071c39 <_KbdScancodeToKey+0x1f9>
+/mobius/coreos/drivers/keyboard/keyboard.c:164
+80071c68:	be 00 00 30 00       	mov    $0x300000,%esi
+80071c6d:	eb ca                	jmp    80071c39 <_KbdScancodeToKey+0x1f9>
+80071c6f:	90                   	nop    
+/mobius/coreos/drivers/keyboard/keyboard.c:176
+80071c70:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071c74:	74 0a                	je     80071c80 <_KbdScancodeToKey+0x240>
+80071c76:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071c79:	0d 00 00 80 00       	or     $0x800000,%eax
+80071c7e:	eb 80                	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+80071c80:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071c83:	25 ff ff 7f ff       	and    $0xff7fffff,%eax
+80071c88:	e9 73 ff ff ff       	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+80071c8d:	8d 76 00             	lea    0x0(%esi),%esi
+80071c90:	83 fa 46             	cmp    $0x46,%edx
+80071c93:	0f 84 be 00 00 00    	je     80071d57 <_KbdScancodeToKey+0x317>
+80071c99:	83 fa 46             	cmp    $0x46,%edx
+80071c9c:	0f 8f 7d 00 00 00    	jg     80071d1f <_KbdScancodeToKey+0x2df>
+80071ca2:	83 fa 45             	cmp    $0x45,%edx
+80071ca5:	0f 85 04 fe ff ff    	jne    80071aaf <_KbdScancodeToKey+0x6f>
+/mobius/coreos/drivers/keyboard/keyboard.c:180
+80071cab:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071caf:	75 66                	jne    80071d17 <_KbdScancodeToKey+0x2d7>
+/mobius/coreos/drivers/keyboard/keyboard.c:182
+80071cb1:	81 73 1c 00 00 00 02 	xorl   $0x2000000,0x1c(%ebx)
+80071cb8:	90                   	nop    
+80071cb9:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:204
+80071cc0:	89 1c 24             	mov    %ebx,(%esp,1)
+80071cc3:	0f b7 83 2e 01 00 00 	movzwl 0x12e(%ebx),%eax
+80071cca:	c7 44 24 08 ed 00 00 	movl   $0xed,0x8(%esp,1)
+80071cd1:	00 
+80071cd2:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80071cd6:	e8 f5 fb ff ff       	call   800718d0 <_kbdHwWrite>
+/mobius/coreos/drivers/keyboard/keyboard.c:206
+80071cdb:	8b 43 1c             	mov    0x1c(%ebx),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:205
+80071cde:	31 d2                	xor    %edx,%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:206
+80071ce0:	a9 00 00 00 04       	test   $0x4000000,%eax
+80071ce5:	74 02                	je     80071ce9 <_KbdScancodeToKey+0x2a9>
+/mobius/coreos/drivers/keyboard/keyboard.c:207
+80071ce7:	b2 01                	mov    $0x1,%dl
+/mobius/coreos/drivers/keyboard/keyboard.c:208
+80071ce9:	a9 00 00 00 02       	test   $0x2000000,%eax
+80071cee:	74 03                	je     80071cf3 <_KbdScancodeToKey+0x2b3>
+/mobius/coreos/drivers/keyboard/keyboard.c:209
+80071cf0:	80 ca 02             	or     $0x2,%dl
+/mobius/coreos/drivers/keyboard/keyboard.c:210
+80071cf3:	a9 00 00 00 01       	test   $0x1000000,%eax
+80071cf8:	74 03                	je     80071cfd <_KbdScancodeToKey+0x2bd>
+/mobius/coreos/drivers/keyboard/keyboard.c:211
+80071cfa:	80 ca 04             	or     $0x4,%dl
+/mobius/coreos/drivers/keyboard/keyboard.c:212
+80071cfd:	89 1c 24             	mov    %ebx,(%esp,1)
+80071d00:	0f b7 83 2e 01 00 00 	movzwl 0x12e(%ebx),%eax
+80071d07:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80071d0b:	0f b6 c2             	movzbl %dl,%eax
+80071d0e:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+80071d12:	e8 b9 fb ff ff       	call   800718d0 <_kbdHwWrite>
+80071d17:	8b 4b 1c             	mov    0x1c(%ebx),%ecx
+80071d1a:	e9 11 fe ff ff       	jmp    80071b30 <_KbdScancodeToKey+0xf0>
+80071d1f:	81 fa 1d 60 00 00    	cmp    $0x601d,%edx
+80071d25:	0f 84 c7 fe ff ff    	je     80071bf2 <_KbdScancodeToKey+0x1b2>
+80071d2b:	81 fa 38 60 00 00    	cmp    $0x6038,%edx
+80071d31:	0f 85 78 fd ff ff    	jne    80071aaf <_KbdScancodeToKey+0x6f>
+/mobius/coreos/drivers/keyboard/keyboard.c:171
+80071d37:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071d3b:	74 0d                	je     80071d4a <_KbdScancodeToKey+0x30a>
+80071d3d:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071d40:	0d 00 00 00 08       	or     $0x8000000,%eax
+80071d45:	e9 b6 fe ff ff       	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+80071d4a:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80071d4d:	25 ff ff ff f7       	and    $0xf7ffffff,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:172
+80071d52:	e9 a9 fe ff ff       	jmp    80071c00 <_KbdScancodeToKey+0x1c0>
+/mobius/coreos/drivers/keyboard/keyboard.c:196
+80071d57:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071d5b:	75 ba                	jne    80071d17 <_KbdScancodeToKey+0x2d7>
+/mobius/coreos/drivers/keyboard/keyboard.c:198
+80071d5d:	81 73 1c 00 00 00 04 	xorl   $0x4000000,0x1c(%ebx)
+80071d64:	e9 57 ff ff ff       	jmp    80071cc0 <_KbdScancodeToKey+0x280>
+80071d69:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:188
+80071d70:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+80071d74:	75 a1                	jne    80071d17 <_KbdScancodeToKey+0x2d7>
+/mobius/coreos/drivers/keyboard/keyboard.c:190
+80071d76:	81 73 1c 00 00 00 01 	xorl   $0x1000000,0x1c(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:191
+80071d7d:	e9 3e ff ff ff       	jmp    80071cc0 <_KbdScancodeToKey+0x280>
+/mobius/coreos/drivers/keyboard/keyboard.c:139
+80071d82:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+80071d89:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+80071d90:	c6 83 2d 01 00 00 01 	movb   $0x1,0x12d(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:140
+80071d97:	31 c0                	xor    %eax,%eax
+80071d99:	e9 96 fd ff ff       	jmp    80071b34 <_KbdScancodeToKey+0xf4>
+80071d9e:	89 f6                	mov    %esi,%esi
+
+80071da0 <_kbdRead>:
+kbdRead():
+/mobius/coreos/drivers/keyboard/keyboard.c:267
+80071da0:	55                   	push   %ebp
+80071da1:	89 e5                	mov    %esp,%ebp
+80071da3:	53                   	push   %ebx
+80071da4:	8b 4d 08             	mov    0x8(%ebp),%ecx
+/mobius/coreos/drivers/keyboard/keyboard.c:270
+80071da7:	8b 41 28             	mov    0x28(%ecx),%eax
+80071daa:	3b 41 24             	cmp    0x24(%ecx),%eax
+80071dad:	74 21                	je     80071dd0 <_kbdRead+0x30>
+/mobius/coreos/drivers/keyboard/keyboard.c:274
+80071daf:	8d 50 04             	lea    0x4(%eax),%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:273
+80071db2:	8b 18                	mov    (%eax),%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:275
+80071db4:	8d 81 2c 01 00 00    	lea    0x12c(%ecx),%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:274
+80071dba:	89 51 28             	mov    %edx,0x28(%ecx)
+/mobius/coreos/drivers/keyboard/keyboard.c:275
+80071dbd:	39 c2                	cmp    %eax,%edx
+80071dbf:	72 06                	jb     80071dc7 <_kbdRead+0x27>
+/mobius/coreos/drivers/keyboard/keyboard.c:276
+80071dc1:	8d 41 2c             	lea    0x2c(%ecx),%eax
+80071dc4:	89 41 28             	mov    %eax,0x28(%ecx)
+/mobius/coreos/drivers/keyboard/keyboard.c:278
+80071dc7:	89 d8                	mov    %ebx,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:279
+80071dc9:	5b                   	pop    %ebx
+80071dca:	5d                   	pop    %ebp
+80071dcb:	c3                   	ret    
+/mobius/coreos/drivers/keyboard/keyboard.c:271
+80071dcc:	8d 74 26 00          	lea    0x0(%esi,1),%esi
+80071dd0:	31 c0                	xor    %eax,%eax
+80071dd2:	eb f5                	jmp    80071dc9 <_kbdRead+0x29>
+80071dd4:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+80071dda:	8d bf 00 00 00 00    	lea    0x0(%edi),%edi
+80071de0:	72 00                	jb     80071de2 <_kbdRead+0x42>
+80071de2:	65 00 71 00          	add    %dh,%gs:0x0(%ecx)
+80071de6:	20 00                	and    %al,(%eax)
+80071de8:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80071ded:	00 70 00             	add    %dh,0x0(%eax)
+80071df0:	20 00                	and    %al,(%eax)
+80071df2:	62 00                	bound  %eax,(%eax)
+80071df4:	75 00                	jne    80071df6 <_kbdRead+0x56>
+80071df6:	66                   	data16
+80071df7:	00 66 00             	add    %ah,0x0(%esi)
+80071dfa:	65 00 72 00          	add    %dh,%gs:0x0(%edx)
+80071dfe:	20 00                	and    %al,(%eax)
+80071e00:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80071e05:	00 70 00             	add    %dh,0x0(%eax)
+80071e08:	20 00                	and    %al,(%eax)
+80071e0a:	2b 00                	sub    (%eax),%eax
+80071e0c:	20 00                	and    %al,(%eax)
+80071e0e:	25 00 78 00 3a       	and    $0x3a007800,%eax
+80071e13:	00 20                	add    %ah,(%eax)
+80071e15:	00 00                	add    %al,(%eax)
+80071e17:	00 66 00             	add    %ah,0x0(%esi)
+80071e1a:	69 00 6e 00 69 00    	imul   $0x69006e,(%eax),%eax
+80071e20:	73 00                	jae    80071e22 <_kbdRead+0x82>
+80071e22:	68 00 65 00 64       	push   $0x64006500
+80071e27:	00 0a                	add    %cl,(%edx)
+80071e29:	00 00                	add    %al,(%eax)
+80071e2b:	00 6d 00             	add    %ch,0x0(%ebp)
+80071e2e:	6f                   	outsl  %ds:(%esi),(%dx)
+80071e2f:	00 72 00             	add    %dh,0x0(%edx)
+80071e32:	65 00 20             	add    %ah,%gs:(%eax)
+80071e35:	00 74 00 6f          	add    %dh,0x6f(%eax,%eax,1)
+80071e39:	00 20                	add    %ah,(%eax)
+80071e3b:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
+80071e3f:	00 0a                	add    %cl,(%edx)
+80071e41:	00 00                	add    %al,(%eax)
+80071e43:	00 8d b6 00 00 00    	add    %cl,0xb6(%ebp)
+80071e49:	00 8d bf 00 00 00    	add    %cl,0xbf(%ebp)
+	...
+
+80071e50 <_KbdStartIo>:
+KbdStartIo():
+/mobius/coreos/drivers/keyboard/keyboard.c:282
+80071e50:	55                   	push   %ebp
+80071e51:	89 e5                	mov    %esp,%ebp
+80071e53:	57                   	push   %edi
+80071e54:	56                   	push   %esi
+80071e55:	53                   	push   %ebx
+80071e56:	83 ec 1c             	sub    $0x1c,%esp
+/mobius/coreos/drivers/keyboard/keyboard.c:288
+80071e59:	8b 45 08             	mov    0x8(%ebp),%eax
+80071e5c:	8b 50 08             	mov    0x8(%eax),%edx
+80071e5f:	85 d2                	test   %edx,%edx
+80071e61:	0f 84 b8 00 00 00    	je     80071f1f <_KbdStartIo+0xcf>
+80071e67:	8b 55 08             	mov    0x8(%ebp),%edx
+80071e6a:	8b 40 24             	mov    0x24(%eax),%eax
+80071e6d:	39 42 28             	cmp    %eax,0x28(%edx)
+80071e70:	0f 84 a9 00 00 00    	je     80071f1f <_KbdStartIo+0xcf>
+/mobius/coreos/drivers/keyboard/keyboard.c:290
+80071e76:	8b 45 08             	mov    0x8(%ebp),%eax
+80071e79:	89 04 24             	mov    %eax,(%esp,1)
+80071e7c:	e8 1f ff ff ff       	call   80071da0 <_kbdRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:291
+80071e81:	8b 55 08             	mov    0x8(%ebp),%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:290
+80071e84:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
+/mobius/coreos/drivers/keyboard/keyboard.c:291
+80071e87:	8b 42 08             	mov    0x8(%edx),%eax
+80071e8a:	85 c0                	test   %eax,%eax
+80071e8c:	89 c7                	mov    %eax,%edi
+80071e8e:	0f 84 8b 00 00 00    	je     80071f1f <_KbdStartIo+0xcf>
+80071e94:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+80071e9a:	8d bf 00 00 00 00    	lea    0x0(%edi),%edi
+/mobius/coreos/drivers/keyboard/keyboard.c:293
+80071ea0:	8b 77 14             	mov    0x14(%edi),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:294
+80071ea3:	89 3c 24             	mov    %edi,(%esp,1)
+80071ea6:	e8 e5 08 00 00       	call   80072790 <_DevMapBuffer>
+/mobius/coreos/drivers/keyboard/keyboard.c:296
+80071eab:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+/mobius/coreos/drivers/keyboard/keyboard.c:294
+80071eaf:	89 c3                	mov    %eax,%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:296
+80071eb1:	c7 04 24 e0 1d 07 80 	movl   $0x80071de0,(%esp,1)
+80071eb8:	89 74 24 04          	mov    %esi,0x4(%esp,1)
+80071ebc:	e8 df 08 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:298
+80071ec1:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+80071ec4:	8b 47 24             	mov    0x24(%edi),%eax
+80071ec7:	89 14 18             	mov    %edx,(%eax,%ebx,1)
+/mobius/coreos/drivers/keyboard/keyboard.c:299
+80071eca:	e8 b1 08 00 00       	call   80072780 <_MemUnmapTemp>
+/mobius/coreos/drivers/keyboard/keyboard.c:303
+80071ecf:	8b 5f 04             	mov    0x4(%edi),%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:301
+80071ed2:	8b 47 24             	mov    0x24(%edi),%eax
+80071ed5:	83 c0 04             	add    $0x4,%eax
+80071ed8:	89 47 24             	mov    %eax,0x24(%edi)
+/mobius/coreos/drivers/keyboard/keyboard.c:304
+80071edb:	3b 46 18             	cmp    0x18(%esi),%eax
+80071ede:	72 50                	jb     80071f30 <_KbdStartIo+0xe0>
+/mobius/coreos/drivers/keyboard/keyboard.c:306
+80071ee0:	89 7c 24 04          	mov    %edi,0x4(%esp,1)
+80071ee4:	8b 45 08             	mov    0x8(%ebp),%eax
+80071ee7:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%esp,1)
+80071eee:	00 
+80071eef:	89 04 24             	mov    %eax,(%esp,1)
+80071ef2:	e8 79 08 00 00       	call   80072770 <_DevFinishIo>
+/mobius/coreos/drivers/keyboard/keyboard.c:307
+80071ef7:	c7 04 24 18 1e 07 80 	movl   $0x80071e18,(%esp,1)
+80071efe:	e8 9d 08 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:291
+80071f03:	85 db                	test   %ebx,%ebx
+80071f05:	89 df                	mov    %ebx,%edi
+80071f07:	75 97                	jne    80071ea0 <_KbdStartIo+0x50>
+80071f09:	8b 55 08             	mov    0x8(%ebp),%edx
+80071f0c:	8b 42 08             	mov    0x8(%edx),%eax
+80071f0f:	85 c0                	test   %eax,%eax
+80071f11:	74 0c                	je     80071f1f <_KbdStartIo+0xcf>
+80071f13:	8b 42 24             	mov    0x24(%edx),%eax
+80071f16:	39 42 28             	cmp    %eax,0x28(%edx)
+80071f19:	0f 85 57 ff ff ff    	jne    80071e76 <_KbdStartIo+0x26>
+/mobius/coreos/drivers/keyboard/keyboard.c:313
+80071f1f:	83 c4 1c             	add    $0x1c,%esp
+80071f22:	5b                   	pop    %ebx
+80071f23:	5e                   	pop    %esi
+80071f24:	5f                   	pop    %edi
+80071f25:	5d                   	pop    %ebp
+80071f26:	c3                   	ret    
+80071f27:	89 f6                	mov    %esi,%esi
+80071f29:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+/mobius/coreos/drivers/keyboard/keyboard.c:310
+80071f30:	c7 04 24 2c 1e 07 80 	movl   $0x80071e2c,(%esp,1)
+80071f37:	eb c5                	jmp    80071efe <_KbdStartIo+0xae>
+80071f39:	90                   	nop    
+80071f3a:	5b                   	pop    %ebx
+80071f3b:	00 6b 00             	add    %ch,0x0(%ebx)
+80071f3e:	5d                   	pop    %ebp
+80071f3f:	00 00                	add    %al,(%eax)
+80071f41:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+80071f47:	90                   	nop    
+80071f48:	90                   	nop    
+80071f49:	90                   	nop    
+80071f4a:	90                   	nop    
+80071f4b:	90                   	nop    
+80071f4c:	90                   	nop    
+80071f4d:	90                   	nop    
+80071f4e:	90                   	nop    
+80071f4f:	90                   	nop    
+80071f50:	90                   	nop    
+80071f51:	90                   	nop    
+80071f52:	90                   	nop    
+80071f53:	90                   	nop    
+80071f54:	90                   	nop    
+80071f55:	90                   	nop    
+80071f56:	90                   	nop    
+80071f57:	90                   	nop    
+80071f58:	90                   	nop    
+80071f59:	90                   	nop    
+80071f5a:	90                   	nop    
+80071f5b:	90                   	nop    
+80071f5c:	90                   	nop    
+80071f5d:	90                   	nop    
+80071f5e:	90                   	nop    
+80071f5f:	90                   	nop    
+80071f60:	72 00                	jb     80071f62 <_KbdStartIo+0x112>
+80071f62:	65 00 61 00          	add    %ah,%gs:0x0(%ecx)
+80071f66:	64 00 20             	add    %ah,%fs:(%eax)
+80071f69:	00 3d 00 20 00 25    	add    %bh,0x25002000
+80071f6f:	00 64 00 2c          	add    %ah,0x2c(%eax,%eax,1)
+80071f73:	00 20                	add    %ah,(%eax)
+80071f75:	00 77 00             	add    %dh,0x0(%edi)
+80071f78:	72 00                	jb     80071f7a <_KbdStartIo+0x12a>
+80071f7a:	69 00 74 00 65 00    	imul   $0x650074,(%eax),%eax
+80071f80:	20 00                	and    %al,(%eax)
+80071f82:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80071f87:	00 64 00 0a          	add    %ah,0xa(%eax,%eax,1)
+80071f8b:	00 00                	add    %al,(%eax)
+80071f8d:	00 89 f6 55 89 e5    	add    %cl,0xe58955f6(%ecx)
+
+80071f90 <_KbdIsr>:
+KbdIsr():
+/mobius/coreos/drivers/keyboard/keyboard.c:316
+80071f90:	55                   	push   %ebp
+80071f91:	89 e5                	mov    %esp,%ebp
+80071f93:	83 ec 18             	sub    $0x18,%esp
+80071f96:	89 5d fc             	mov    %ebx,0xfffffffc(%ebp)
+80071f99:	8b 5d 08             	mov    0x8(%ebp),%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:321
+80071f9c:	89 1c 24             	mov    %ebx,(%esp,1)
+80071f9f:	e8 6c f9 ff ff       	call   80071910 <_kbdHwRead>
+80071fa4:	88 c2                	mov    %al,%dl
+/mobius/coreos/drivers/keyboard/keyboard.c:322
+80071fa6:	8b 43 28             	mov    0x28(%ebx),%eax
+80071fa9:	39 43 24             	cmp    %eax,0x24(%ebx)
+80071fac:	73 12                	jae    80071fc0 <_KbdIsr+0x30>
+/mobius/coreos/drivers/keyboard/keyboard.c:350
+80071fae:	8b 5d fc             	mov    0xfffffffc(%ebp),%ebx
+80071fb1:	89 ec                	mov    %ebp,%esp
+80071fb3:	b8 01 00 00 00       	mov    $0x1,%eax
+80071fb8:	5d                   	pop    %ebp
+80071fb9:	c3                   	ret    
+/mobius/coreos/drivers/keyboard/keyboard.c:324
+80071fba:	8d b6 00 00 00 00    	lea    0x0(%esi),%esi
+80071fc0:	89 1c 24             	mov    %ebx,(%esp,1)
+80071fc3:	0f b6 c2             	movzbl %dl,%eax
+80071fc6:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80071fca:	e8 71 fa ff ff       	call   80071a40 <_KbdScancodeToKey>
+/mobius/coreos/drivers/keyboard/keyboard.c:331
+80071fcf:	3d 0a 00 01 00       	cmp    $0x1000a,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:324
+80071fd4:	89 c2                	mov    %eax,%edx
+/mobius/coreos/drivers/keyboard/keyboard.c:331
+80071fd6:	74 64                	je     8007203c <_KbdIsr+0xac>
+/mobius/coreos/drivers/keyboard/keyboard.c:334
+80071fd8:	85 d2                	test   %edx,%edx
+80071fda:	74 d2                	je     80071fae <_KbdIsr+0x1e>
+/mobius/coreos/drivers/keyboard/keyboard.c:336
+80071fdc:	8b 43 24             	mov    0x24(%ebx),%eax
+80071fdf:	89 10                	mov    %edx,(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:337
+80071fe1:	83 c0 04             	add    $0x4,%eax
+80071fe4:	89 43 24             	mov    %eax,0x24(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:338
+80071fe7:	c7 04 24 3a 1f 07 80 	movl   $0x80071f3a,(%esp,1)
+80071fee:	e8 ad 07 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:340
+80071ff3:	8b 53 24             	mov    0x24(%ebx),%edx
+80071ff6:	8d 83 2c 01 00 00    	lea    0x12c(%ebx),%eax
+80071ffc:	39 c2                	cmp    %eax,%edx
+80071ffe:	72 08                	jb     80072008 <_KbdIsr+0x78>
+/mobius/coreos/drivers/keyboard/keyboard.c:341
+80072000:	8d 43 2c             	lea    0x2c(%ebx),%eax
+80072003:	89 c2                	mov    %eax,%edx
+80072005:	89 43 24             	mov    %eax,0x24(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:344
+80072008:	c7 04 24 60 1f 07 80 	movl   $0x80071f60,(%esp,1)
+8007200f:	8b 43 28             	mov    0x28(%ebx),%eax
+80072012:	29 da                	sub    %ebx,%edx
+80072014:	29 d8                	sub    %ebx,%eax
+80072016:	83 e8 2c             	sub    $0x2c,%eax
+80072019:	c1 f8 02             	sar    $0x2,%eax
+8007201c:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80072020:	8d 42 d4             	lea    0xffffffd4(%edx),%eax
+80072023:	c1 f8 02             	sar    $0x2,%eax
+80072026:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+8007202a:	e8 71 07 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:345
+8007202f:	89 1c 24             	mov    %ebx,(%esp,1)
+80072032:	e8 19 fe ff ff       	call   80071e50 <_KbdStartIo>
+80072037:	e9 72 ff ff ff       	jmp    80071fae <_KbdIsr+0x1e>
+/mobius/coreos/drivers/keyboard/keyboard.c:332
+8007203c:	cc                   	int3   
+8007203d:	eb 99                	jmp    80071fd8 <_KbdIsr+0x48>
+8007203f:	90                   	nop    
+80072040:	5b                   	pop    %ebx
+80072041:	00 25 00 63 00 25    	add    %ah,0x25006300
+80072047:	00 63 00             	add    %ah,0x0(%ebx)
+8007204a:	2f                   	das    
+8007204b:	00 25 00 75 00 5d    	add    %ah,0x5d007500
+80072051:	00 00                	add    %al,(%eax)
+80072053:	00 69 6f             	add    %ch,0x6f(%ecx)
+80072056:	20 21                	and    %ah,(%ecx)
+80072058:	3d 20 4e 55 4c       	cmp    $0x4c554e20,%eax
+8007205d:	4c                   	dec    %esp
+8007205e:	00 6b 65             	add    %ch,0x65(%ebx)
+80072061:	79 62                	jns    800720c5 <_KbdIsr+0x135>
+80072063:	6f                   	outsl  %ds:(%esi),(%dx)
+80072064:	61                   	popa   
+80072065:	72 64                	jb     800720cb <_KbdIsr+0x13b>
+80072067:	2e 63 00             	arpl   %ax,%cs:(%eax)
+8007206a:	90                   	nop    
+8007206b:	90                   	nop    
+8007206c:	90                   	nop    
+8007206d:	90                   	nop    
+8007206e:	90                   	nop    
+8007206f:	90                   	nop    
+80072070:	90                   	nop    
+80072071:	90                   	nop    
+80072072:	90                   	nop    
+80072073:	90                   	nop    
+80072074:	90                   	nop    
+80072075:	90                   	nop    
+80072076:	90                   	nop    
+80072077:	90                   	nop    
+80072078:	90                   	nop    
+80072079:	90                   	nop    
+8007207a:	90                   	nop    
+8007207b:	90                   	nop    
+8007207c:	90                   	nop    
+8007207d:	90                   	nop    
+8007207e:	90                   	nop    
+8007207f:	90                   	nop    
+80072080:	6b 00 65             	imul   $0x65,(%eax),%eax
+80072083:	00 79 00             	add    %bh,0x0(%ecx)
+80072086:	62 00                	bound  %eax,(%eax)
+80072088:	6f                   	outsl  %ds:(%esi),(%dx)
+80072089:	00 61 00             	add    %ah,0x0(%ecx)
+8007208c:	72 00                	jb     8007208e <_KbdIsr+0xfe>
+8007208e:	64 00 3a             	add    %bh,%fs:(%edx)
+80072091:	00 20                	add    %ah,(%eax)
+80072093:	00 49 00             	add    %cl,0x0(%ecx)
+80072096:	4f                   	dec    %edi
+80072097:	00 43 00             	add    %al,0x0(%ebx)
+8007209a:	54                   	push   %esp
+8007209b:	00 4c 00 5f          	add    %cl,0x5f(%eax,%eax,1)
+8007209f:	00 42 00             	add    %al,0x0(%edx)
+800720a2:	59                   	pop    %ecx
+800720a3:	00 54 00 45          	add    %dl,0x45(%eax,%eax,1)
+800720a7:	00 53 00             	add    %dl,0x0(%ebx)
+800720aa:	5f                   	pop    %edi
+800720ab:	00 41 00             	add    %al,0x0(%ecx)
+800720ae:	56                   	push   %esi
+800720af:	00 41 00             	add    %al,0x0(%ecx)
+800720b2:	49                   	dec    %ecx
+800720b3:	00 4c 00 41          	add    %cl,0x41(%eax,%eax,1)
+800720b7:	00 42 00             	add    %al,0x0(%edx)
+800720ba:	4c                   	dec    %esp
+800720bb:	00 45 00             	add    %al,0x0(%ebp)
+800720be:	3a 00                	cmp    (%eax),%al
+800720c0:	20 00                	and    %al,(%eax)
+800720c2:	00 00                	add    %al,(%eax)
+800720c4:	66                   	data16
+800720c5:	00 61 00             	add    %ah,0x0(%ecx)
+800720c8:	69 00 6c 00 65 00    	imul   $0x65006c,(%eax),%eax
+800720ce:	64 00 0a             	add    %cl,%fs:(%edx)
+800720d1:	00 00                	add    %al,(%eax)
+800720d3:	00 25 00 75 00 0a    	add    %ah,0xa007500
+800720d9:	00 00                	add    %al,(%eax)
+800720db:	00 8d 74 26 00 55    	add    %cl,0x55002674(%ebp)
+
+800720e0 <_kbdRequest>:
+kbdRequest():
+/mobius/coreos/drivers/keyboard/keyboard.c:353
+800720e0:	55                   	push   %ebp
+800720e1:	89 e5                	mov    %esp,%ebp
+800720e3:	83 ec 28             	sub    $0x28,%esp
+800720e6:	89 5d f8             	mov    %ebx,0xfffffff8(%ebp)
+800720e9:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+800720ec:	89 75 fc             	mov    %esi,0xfffffffc(%ebp)
+800720ef:	8b 75 08             	mov    0x8(%ebp),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:358
+800720f2:	e8 69 06 00 00       	call   80072760 <_ThrGetCurrent>
+800720f7:	c7 04 24 40 20 07 80 	movl   $0x80072040,(%esp,1)
+800720fe:	8b 13                	mov    (%ebx),%edx
+80072100:	89 d1                	mov    %edx,%ecx
+80072102:	81 e2 ff 00 00 00    	and    $0xff,%edx
+80072108:	c1 e9 08             	shr    $0x8,%ecx
+8007210b:	89 4c 24 04          	mov    %ecx,0x4(%esp,1)
+8007210f:	89 54 24 08          	mov    %edx,0x8(%esp,1)
+80072113:	8b 40 6c             	mov    0x6c(%eax),%eax
+80072116:	89 44 24 0c          	mov    %eax,0xc(%esp,1)
+8007211a:	e8 81 06 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:359
+8007211f:	8b 03                	mov    (%ebx),%eax
+80072121:	3d 69 64 00 80       	cmp    $0x80006469,%eax
+80072126:	0f 84 94 00 00 00    	je     800721c0 <_kbdRequest+0xe0>
+8007212c:	3d 72 64 00 80       	cmp    $0x80006472,%eax
+80072131:	74 1d                	je     80072150 <_kbdRequest+0x70>
+/mobius/coreos/drivers/keyboard/keyboard.c:406
+80072133:	c7 43 04 04 00 00 00 	movl   $0x4,0x4(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:407
+8007213a:	31 c0                	xor    %eax,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:408
+8007213c:	8b 5d f8             	mov    0xfffffff8(%ebp),%ebx
+8007213f:	8b 75 fc             	mov    0xfffffffc(%ebp),%esi
+80072142:	89 ec                	mov    %ebp,%esp
+80072144:	5d                   	pop    %ebp
+80072145:	c3                   	ret    
+/mobius/coreos/drivers/keyboard/keyboard.c:362
+80072146:	8d 76 00             	lea    0x0(%esi),%esi
+80072149:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+80072150:	8b 53 18             	mov    0x18(%ebx),%edx
+80072153:	f7 c2 03 00 00 00    	test   $0x3,%edx
+80072159:	74 08                	je     80072163 <_kbdRequest+0x83>
+/mobius/coreos/drivers/keyboard/keyboard.c:364
+8007215b:	c7 03 07 00 00 00    	movl   $0x7,(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:365
+80072161:	eb d7                	jmp    8007213a <_kbdRequest+0x5a>
+/mobius/coreos/drivers/keyboard/keyboard.c:368
+80072163:	89 5c 24 04          	mov    %ebx,0x4(%esp,1)
+80072167:	89 34 24             	mov    %esi,(%esp,1)
+8007216a:	c7 44 24 08 28 00 00 	movl   $0x28,0x8(%esp,1)
+80072171:	00 
+80072172:	8b 43 1c             	mov    0x1c(%ebx),%eax
+80072175:	89 54 24 10          	mov    %edx,0x10(%esp,1)
+80072179:	89 44 24 0c          	mov    %eax,0xc(%esp,1)
+8007217d:	e8 ce 05 00 00       	call   80072750 <_DevQueueRequest>
+/mobius/coreos/drivers/keyboard/keyboard.c:373
+80072182:	85 c0                	test   %eax,%eax
+/mobius/coreos/drivers/keyboard/keyboard.c:368
+80072184:	89 c3                	mov    %eax,%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:373
+80072186:	74 16                	je     8007219e <_kbdRequest+0xbe>
+/mobius/coreos/drivers/keyboard/keyboard.c:374
+80072188:	c7 43 24 00 00 00 00 	movl   $0x0,0x24(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:375
+8007218f:	89 34 24             	mov    %esi,(%esp,1)
+80072192:	e8 b9 fc ff ff       	call   80071e50 <_KbdStartIo>
+/mobius/coreos/drivers/keyboard/keyboard.c:399
+80072197:	b8 01 00 00 00       	mov    $0x1,%eax
+8007219c:	eb 9e                	jmp    8007213c <_kbdRequest+0x5c>
+8007219e:	c7 04 24 54 20 07 80 	movl   $0x80072054,(%esp,1)
+800721a5:	c7 44 24 04 5f 20 07 	movl   $0x8007205f,0x4(%esp,1)
+800721ac:	80 
+800721ad:	c7 44 24 08 75 01 00 	movl   $0x175,0x8(%esp,1)
+800721b4:	00 
+800721b5:	e8 86 05 00 00       	call   80072740 <___dj_assert>
+800721ba:	eb cc                	jmp    80072188 <_kbdRequest+0xa8>
+800721bc:	8d 74 26 00          	lea    0x0(%esi,1),%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:379
+800721c0:	8b 43 1c             	mov    0x1c(%ebx),%eax
+800721c3:	89 04 24             	mov    %eax,(%esp,1)
+800721c6:	8b 43 18             	mov    0x18(%ebx),%eax
+800721c9:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800721cd:	e8 5e 05 00 00       	call   80072730 <_MemVerifyBuffer>
+800721d2:	84 c0                	test   %al,%al
+800721d4:	75 0c                	jne    800721e2 <_kbdRequest+0x102>
+/mobius/coreos/drivers/keyboard/keyboard.c:382
+800721d6:	c7 43 04 05 00 00 00 	movl   $0x5,0x4(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:383
+800721dd:	e9 58 ff ff ff       	jmp    8007213a <_kbdRequest+0x5a>
+/mobius/coreos/drivers/keyboard/keyboard.c:386
+800721e2:	83 7b 20 01          	cmpl   $0x1,0x20(%ebx)
+800721e6:	0f 85 47 ff ff ff    	jne    80072133 <_kbdRequest+0x53>
+/mobius/coreos/drivers/keyboard/keyboard.c:389
+800721ec:	c7 04 24 80 20 07 80 	movl   $0x80072080,(%esp,1)
+800721f3:	e8 a8 05 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:390
+800721f8:	83 7b 18 03          	cmpl   $0x3,0x18(%ebx)
+800721fc:	77 18                	ja     80072216 <_kbdRequest+0x136>
+/mobius/coreos/drivers/keyboard/keyboard.c:392
+800721fe:	c7 43 04 05 00 00 00 	movl   $0x5,0x4(%ebx)
+/mobius/coreos/drivers/keyboard/keyboard.c:393
+80072205:	c7 04 24 c4 20 07 80 	movl   $0x800720c4,(%esp,1)
+8007220c:	e8 8f 05 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:394
+80072211:	e9 24 ff ff ff       	jmp    8007213a <_kbdRequest+0x5a>
+/mobius/coreos/drivers/keyboard/keyboard.c:397
+80072216:	8b 46 24             	mov    0x24(%esi),%eax
+80072219:	8b 4e 28             	mov    0x28(%esi),%ecx
+8007221c:	8b 53 1c             	mov    0x1c(%ebx),%edx
+8007221f:	29 c8                	sub    %ecx,%eax
+80072221:	c1 f8 02             	sar    $0x2,%eax
+80072224:	89 02                	mov    %eax,(%edx)
+/mobius/coreos/drivers/keyboard/keyboard.c:398
+80072226:	c7 04 24 d4 20 07 80 	movl   $0x800720d4,(%esp,1)
+8007222d:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80072231:	e8 6a 05 00 00       	call   800727a0 <_wprintf>
+80072236:	e9 5c ff ff ff       	jmp    80072197 <_kbdRequest+0xb7>
+8007223b:	90                   	nop    
+
+8007223c <_keyboard_vtbl>:
+keyboard_vtbl():
+8007223c:	e0 20                	loopne 8007225e <_keyboard_vtbl+0x22>
+8007223e:	07                   	pop    %es
+8007223f:	80 90 1f 07 80 00 00 	adcb   $0x0,0x80071f(%eax)
+80072246:	00 00                	add    %al,(%eax)
+80072248:	00 00                	add    %al,(%eax)
+8007224a:	00 00                	add    %al,(%eax)
+8007224c:	90                   	nop    
+8007224d:	90                   	nop    
+8007224e:	90                   	nop    
+8007224f:	90                   	nop    
+80072250:	90                   	nop    
+80072251:	90                   	nop    
+80072252:	90                   	nop    
+80072253:	90                   	nop    
+80072254:	90                   	nop    
+80072255:	90                   	nop    
+80072256:	90                   	nop    
+80072257:	90                   	nop    
+80072258:	90                   	nop    
+80072259:	90                   	nop    
+8007225a:	90                   	nop    
+8007225b:	90                   	nop    
+8007225c:	90                   	nop    
+8007225d:	90                   	nop    
+8007225e:	90                   	nop    
+8007225f:	90                   	nop    
+80072260:	6b 00 65             	imul   $0x65,(%eax),%eax
+80072263:	00 79 00             	add    %bh,0x0(%ecx)
+80072266:	62 00                	bound  %eax,(%eax)
+80072268:	6f                   	outsl  %ds:(%esi),(%dx)
+80072269:	00 61 00             	add    %ah,0x0(%ecx)
+8007226c:	72 00                	jb     8007226e <_keyboard_vtbl+0x32>
+8007226e:	64 00 3a             	add    %bh,%fs:(%edx)
+80072271:	00 20                	add    %ah,(%eax)
+80072273:	00 70 00             	add    %dh,0x0(%eax)
+80072276:	6f                   	outsl  %ds:(%esi),(%dx)
+80072277:	00 72 00             	add    %dh,0x0(%edx)
+8007227a:	74 00                	je     8007227c <_keyboard_vtbl+0x40>
+8007227c:	20 00                	and    %al,(%eax)
+8007227e:	3d 00 20 00 25       	cmp    $0x25002000,%eax
+80072283:	00 78 00             	add    %bh,0x0(%eax)
+80072286:	20 00                	and    %al,(%eax)
+80072288:	63 00                	arpl   %ax,(%eax)
+8007228a:	74 00                	je     8007228c <_keyboard_vtbl+0x50>
+8007228c:	72 00                	jb     8007228e <_keyboard_vtbl+0x52>
+8007228e:	6c                   	insb   (%dx),%es:(%edi)
+8007228f:	00 20                	add    %ah,(%eax)
+80072291:	00 3d 00 20 00 25    	add    %bh,0x25002000
+80072297:	00 78 00             	add    %bh,0x0(%eax)
+8007229a:	0a 00                	or     (%eax),%al
+8007229c:	00 00                	add    %al,(%eax)
+8007229e:	44                   	inc    %esp
+8007229f:	00 69 00             	add    %ch,0x0(%ecx)
+800722a2:	73 00                	jae    800722a4 <_keyboard_vtbl+0x68>
+800722a4:	61                   	popa   
+800722a5:	00 62 00             	add    %ah,0x0(%edx)
+800722a8:	6c                   	insb   (%dx),%es:(%edi)
+800722a9:	00 65 00             	add    %ah,0x0(%ebp)
+800722ac:	2e 00 2e             	add    %ch,%cs:(%esi)
+800722af:	00 2e                	add    %ch,(%esi)
+800722b1:	00 00                	add    %al,(%eax)
+800722b3:	00 fa                	add    %bh,%dl
+800722b5:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
+800722b9:	00 6e 00             	add    %ch,0x0(%esi)
+800722bc:	65 00 0a             	add    %cl,%gs:(%edx)
+800722bf:	00 46 00             	add    %al,0x0(%esi)
+800722c2:	6c                   	insb   (%dx),%es:(%edi)
+800722c3:	00 61 00             	add    %ah,0x0(%ecx)
+800722c6:	67 00 73 00          	addr16 add %dh,0(%bp,%di)
+800722ca:	2e 00 2e             	add    %ch,%cs:(%esi)
+800722cd:	00 2e                	add    %ch,(%esi)
+800722cf:	00 00                	add    %al,(%eax)
+800722d1:	00 8d b4 26 00 00    	add    %cl,0x26b4(%ebp)
+800722d7:	00 00                	add    %al,(%eax)
+800722d9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+800722e0:	64 00 6f 00          	add    %ch,%fs:0x0(%edi)
+800722e4:	6e                   	outsb  %ds:(%esi),(%dx)
+800722e5:	00 65 00             	add    %ah,0x0(%ebp)
+800722e8:	0a 00                	or     (%eax),%al
+800722ea:	49                   	dec    %ecx
+800722eb:	00 64 00 65          	add    %ah,0x65(%eax,%eax,1)
+800722ef:	00 6e 00             	add    %ch,0x0(%esi)
+800722f2:	74 00                	je     800722f4 <_keyboard_vtbl+0xb8>
+800722f4:	69 00 66 00 79 00    	imul   $0x790066,(%eax),%eax
+800722fa:	2e 00 2e             	add    %ch,%cs:(%esi)
+800722fd:	00 2e                	add    %ch,(%esi)
+800722ff:	00 00                	add    %al,(%eax)
+80072301:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+80072307:	90                   	nop    
+80072308:	90                   	nop    
+80072309:	90                   	nop    
+8007230a:	90                   	nop    
+8007230b:	90                   	nop    
+8007230c:	90                   	nop    
+8007230d:	90                   	nop    
+8007230e:	90                   	nop    
+8007230f:	90                   	nop    
+80072310:	90                   	nop    
+80072311:	90                   	nop    
+80072312:	90                   	nop    
+80072313:	90                   	nop    
+80072314:	90                   	nop    
+80072315:	90                   	nop    
+80072316:	90                   	nop    
+80072317:	90                   	nop    
+80072318:	90                   	nop    
+80072319:	90                   	nop    
+8007231a:	90                   	nop    
+8007231b:	90                   	nop    
+8007231c:	90                   	nop    
+8007231d:	90                   	nop    
+8007231e:	90                   	nop    
+8007231f:	90                   	nop    
+80072320:	5b                   	pop    %ebx
+80072321:	00 6b 00             	add    %ch,0x0(%ebx)
+80072324:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
+80072328:	62 00                	bound  %eax,(%eax)
+8007232a:	6f                   	outsl  %ds:(%esi),(%dx)
+8007232b:	00 61 00             	add    %ah,0x0(%ecx)
+8007232e:	72 00                	jb     80072330 <_keyboard_vtbl+0xf4>
+80072330:	64 00 5d 00          	add    %bl,%fs:0x0(%ebp)
+80072334:	20 00                	and    %al,(%eax)
+80072336:	41                   	inc    %ecx
+80072337:	00 54 00 20          	add    %dl,0x20(%eax,%eax,1)
+8007233b:	00 6b 00             	add    %ch,0x0(%ebx)
+8007233e:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
+80072342:	62 00                	bound  %eax,(%eax)
+80072344:	6f                   	outsl  %ds:(%esi),(%dx)
+80072345:	00 61 00             	add    %ah,0x0(%ecx)
+80072348:	72 00                	jb     8007234a <_keyboard_vtbl+0x10e>
+8007234a:	64 00 20             	add    %ah,%fs:(%eax)
+8007234d:	00 64 00 65          	add    %ah,0x65(%eax,%eax,1)
+80072351:	00 74 00 65          	add    %dh,0x65(%eax,%eax,1)
+80072355:	00 63 00             	add    %ah,0x0(%ebx)
+80072358:	74 00                	je     8007235a <_keyboard_vtbl+0x11e>
+8007235a:	65 00 64 00 0a       	add    %ah,%gs:0xa(%eax,%eax,1)
+8007235f:	00 00                	add    %al,(%eax)
+80072361:	00 54 00 79          	add    %dl,0x79(%eax,%eax,1)
+80072365:	00 70 00             	add    %dh,0x0(%eax)
+80072368:	65 00 6d 00          	add    %ch,%gs:0x0(%ebp)
+8007236c:	61                   	popa   
+8007236d:	00 74 00 69          	add    %dh,0x69(%eax,%eax,1)
+80072371:	00 63 00             	add    %ah,0x0(%ebx)
+80072374:	2e 00 2e             	add    %ch,%cs:(%esi)
+80072377:	00 2e                	add    %ch,(%esi)
+80072379:	00 00                	add    %al,(%eax)
+8007237b:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
+8007237f:	00 6e 00             	add    %ch,0x0(%esi)
+80072382:	65 00 0a             	add    %cl,%gs:(%edx)
+80072385:	00 45 00             	add    %al,0x0(%ebp)
+80072388:	6e                   	outsb  %ds:(%esi),(%dx)
+80072389:	00 61 00             	add    %ah,0x0(%ecx)
+8007238c:	62 00                	bound  %eax,(%eax)
+8007238e:	6c                   	insb   (%dx),%es:(%edi)
+8007238f:	00 65 00             	add    %ah,0x0(%ebp)
+80072392:	2e 00 2e             	add    %ch,%cs:(%esi)
+80072395:	00 2e                	add    %ch,(%esi)
+80072397:	00 00                	add    %al,(%eax)
+80072399:	00 64 00 6f          	add    %ah,0x6f(%eax,%eax,1)
+8007239d:	00 6e 00             	add    %ch,0x0(%esi)
+800723a0:	65 00 0a             	add    %cl,%gs:(%edx)
+800723a3:	00 00                	add    %al,(%eax)
+800723a5:	00 90 90 90 90 90    	add    %dl,0x90909090(%eax)
+800723ab:	90                   	nop    
+800723ac:	90                   	nop    
+800723ad:	90                   	nop    
+800723ae:	90                   	nop    
+800723af:	90                   	nop    
+800723b0:	90                   	nop    
+800723b1:	90                   	nop    
+800723b2:	90                   	nop    
+800723b3:	90                   	nop    
+800723b4:	90                   	nop    
+800723b5:	90                   	nop    
+800723b6:	90                   	nop    
+800723b7:	90                   	nop    
+800723b8:	90                   	nop    
+800723b9:	90                   	nop    
+800723ba:	90                   	nop    
+800723bb:	90                   	nop    
+800723bc:	90                   	nop    
+800723bd:	90                   	nop    
+800723be:	90                   	nop    
+800723bf:	90                   	nop    
+800723c0:	5b                   	pop    %ebx
+800723c1:	00 6b 00             	add    %ch,0x0(%ebx)
+800723c4:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
+800723c8:	62 00                	bound  %eax,(%eax)
+800723ca:	6f                   	outsl  %ds:(%esi),(%dx)
+800723cb:	00 61 00             	add    %ah,0x0(%ecx)
+800723ce:	72 00                	jb     800723d0 <_keyboard_vtbl+0x194>
+800723d0:	64 00 5d 00          	add    %bl,%fs:0x0(%ebp)
+800723d4:	20 00                	and    %al,(%eax)
+800723d6:	50                   	push   %eax
+800723d7:	00 53 00             	add    %dl,0x0(%ebx)
+800723da:	2f                   	das    
+800723db:	00 32                	add    %dh,(%edx)
+800723dd:	00 20                	add    %ah,(%eax)
+800723df:	00 6b 00             	add    %ch,0x0(%ebx)
+800723e2:	65 00 79 00          	add    %bh,%gs:0x0(%ecx)
+800723e6:	62 00                	bound  %eax,(%eax)
+800723e8:	6f                   	outsl  %ds:(%esi),(%dx)
+800723e9:	00 61 00             	add    %ah,0x0(%ecx)
+800723ec:	72 00                	jb     800723ee <_keyboard_vtbl+0x1b2>
+800723ee:	64 00 20             	add    %ah,%fs:(%eax)
+800723f1:	00 64 00 65          	add    %ah,0x65(%eax,%eax,1)
+800723f5:	00 74 00 65          	add    %dh,0x65(%eax,%eax,1)
+800723f9:	00 63 00             	add    %ah,0x0(%ebx)
+800723fc:	74 00                	je     800723fe <_keyboard_vtbl+0x1c2>
+800723fe:	65 00 64 00 0a       	add    %ah,%gs:0xa(%eax,%eax,1)
+80072403:	00 00                	add    %al,(%eax)
+80072405:	00 8d 76 00 8d bc    	add    %cl,0xbc8d0076(%ebp)
+8007240b:	27                   	daa    
+8007240c:	00 00                	add    %al,(%eax)
+	...
+
+80072410 <_KbdAddDevice>:
+KbdAddDevice():
+/mobius/coreos/drivers/keyboard/keyboard.c:417
+80072410:	55                   	push   %ebp
+80072411:	89 e5                	mov    %esp,%ebp
+80072413:	57                   	push   %edi
+80072414:	56                   	push   %esi
+80072415:	53                   	push   %ebx
+80072416:	83 ec 1c             	sub    $0x1c,%esp
+80072419:	8b 45 0c             	mov    0xc(%ebp),%eax
+8007241c:	8b 5d 08             	mov    0x8(%ebp),%ebx
+8007241f:	8b 7d 10             	mov    0x10(%ebp),%edi
+80072422:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
+/mobius/coreos/drivers/keyboard/keyboard.c:423
+80072425:	c7 04 24 34 01 00 00 	movl   $0x134,(%esp,1)
+8007242c:	c7 44 24 04 5f 20 07 	movl   $0x8007205f,0x4(%esp,1)
+80072433:	80 
+80072434:	c7 44 24 08 a7 01 00 	movl   $0x1a7,0x8(%esp,1)
+8007243b:	00 
+8007243c:	e8 df 02 00 00       	call   80072720 <___malloc>
+/mobius/coreos/drivers/keyboard/keyboard.c:428
+80072441:	89 18                	mov    %ebx,(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:423
+80072443:	89 c6                	mov    %eax,%esi
+/mobius/coreos/drivers/keyboard/keyboard.c:436
+80072445:	bb 64 00 00 00       	mov    $0x64,%ebx
+/mobius/coreos/drivers/keyboard/keyboard.c:429
+8007244a:	c7 40 18 3c 22 07 80 	movl   $0x8007223c,0x18(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:430
+80072451:	89 78 04             	mov    %edi,0x4(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:431
+80072454:	c7 40 0c 00 00 00 00 	movl   $0x0,0xc(%eax)
+8007245b:	c7 40 08 00 00 00 00 	movl   $0x0,0x8(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:432
+80072462:	c7 40 14 00 00 00 00 	movl   $0x0,0x14(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:433
+80072469:	c7 40 1c 00 00 00 00 	movl   $0x0,0x1c(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:434
+80072470:	8d 40 2c             	lea    0x2c(%eax),%eax
+80072473:	89 46 28             	mov    %eax,0x28(%esi)
+80072476:	89 46 24             	mov    %eax,0x24(%esi)
+/mobius/coreos/drivers/keyboard/keyboard.c:435
+80072479:	b8 60 00 00 00       	mov    $0x60,%eax
+8007247e:	66 89 86 2e 01 00 00 	mov    %ax,0x12e(%esi)
+/mobius/coreos/drivers/keyboard/keyboard.c:436
+80072485:	66 89 9e 30 01 00 00 	mov    %bx,0x130(%esi)
+/mobius/coreos/drivers/keyboard/keyboard.c:437
+8007248c:	c6 86 2d 01 00 00 00 	movb   $0x0,0x12d(%esi)
+/mobius/coreos/drivers/keyboard/keyboard.c:439
+80072493:	c7 04 24 60 22 07 80 	movl   $0x80072260,(%esp,1)
+8007249a:	c7 44 24 04 60 00 00 	movl   $0x60,0x4(%esp,1)
+800724a1:	00 
+800724a2:	c7 44 24 08 64 00 00 	movl   $0x64,0x8(%esp,1)
+800724a9:	00 
+800724aa:	e8 f1 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:442
+800724af:	c7 04 24 9e 22 07 80 	movl   $0x8007229e,(%esp,1)
+800724b6:	e8 e5 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:443
+800724bb:	89 34 24             	mov    %esi,(%esp,1)
+800724be:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+800724c5:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+800724cc:	80 
+800724cd:	c7 44 24 08 f5 00 00 	movl   $0xf5,0x8(%esp,1)
+800724d4:	00 
+800724d5:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800724d9:	e8 e2 f4 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:448
+800724de:	c7 04 24 b6 22 07 80 	movl   $0x800722b6,(%esp,1)
+800724e5:	e8 b6 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:449
+800724ea:	89 34 24             	mov    %esi,(%esp,1)
+800724ed:	0f b7 86 30 01 00 00 	movzwl 0x130(%esi),%eax
+800724f4:	c7 44 24 08 60 00 00 	movl   $0x60,0x8(%esp,1)
+800724fb:	00 
+800724fc:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+80072500:	e8 cb f3 ff ff       	call   800718d0 <_kbdHwWrite>
+/mobius/coreos/drivers/keyboard/keyboard.c:450
+80072505:	89 34 24             	mov    %esi,(%esp,1)
+80072508:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+8007250f:	c7 44 24 08 07 00 00 	movl   $0x7,0x8(%esp,1)
+80072516:	00 
+80072517:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+8007251b:	e8 b0 f3 ff ff       	call   800718d0 <_kbdHwWrite>
+/mobius/coreos/drivers/keyboard/keyboard.c:452
+80072520:	c7 04 24 e0 22 07 80 	movl   $0x800722e0,(%esp,1)
+80072527:	e8 74 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:453
+8007252c:	89 34 24             	mov    %esi,(%esp,1)
+8007252f:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+80072536:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+8007253d:	80 
+8007253e:	c7 44 24 08 f2 00 00 	movl   $0xf2,0x8(%esp,1)
+80072545:	00 
+80072546:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+8007254a:	e8 71 f4 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:454
+8007254f:	89 34 24             	mov    %esi,(%esp,1)
+80072552:	e8 b9 f3 ff ff       	call   80071910 <_kbdHwRead>
+80072557:	3c ab                	cmp    $0xab,%al
+80072559:	0f 84 d1 00 00 00    	je     80072630 <_KbdAddDevice+0x220>
+/mobius/coreos/drivers/keyboard/keyboard.c:474
+8007255f:	c7 04 24 20 23 07 80 	movl   $0x80072320,(%esp,1)
+80072566:	e8 35 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:475
+8007256b:	c6 86 2c 01 00 00 00 	movb   $0x0,0x12c(%esi)
+/mobius/coreos/drivers/keyboard/keyboard.c:480
+80072572:	c7 04 24 62 23 07 80 	movl   $0x80072362,(%esp,1)
+80072579:	e8 22 02 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:481
+8007257e:	89 34 24             	mov    %esi,(%esp,1)
+80072581:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+80072588:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+8007258f:	80 
+80072590:	c7 44 24 08 f3 00 00 	movl   $0xf3,0x8(%esp,1)
+80072597:	00 
+80072598:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+8007259c:	e8 1f f4 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:485
+800725a1:	89 34 24             	mov    %esi,(%esp,1)
+800725a4:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+800725ab:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+800725b2:	80 
+800725b3:	c7 44 24 08 00 00 00 	movl   $0x0,0x8(%esp,1)
+800725ba:	00 
+800725bb:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800725bf:	e8 fc f3 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:488
+800725c4:	c7 04 24 7c 23 07 80 	movl   $0x8007237c,(%esp,1)
+800725cb:	e8 d0 01 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:489
+800725d0:	89 34 24             	mov    %esi,(%esp,1)
+800725d3:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+800725da:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+800725e1:	80 
+800725e2:	c7 44 24 08 f4 00 00 	movl   $0xf4,0x8(%esp,1)
+800725e9:	00 
+800725ea:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800725ee:	e8 cd f3 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:490
+800725f3:	c7 04 24 9a 23 07 80 	movl   $0x8007239a,(%esp,1)
+800725fa:	e8 a1 01 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:506
+800725ff:	89 74 24 04          	mov    %esi,0x4(%esp,1)
+80072603:	c7 04 24 01 00 00 00 	movl   $0x1,(%esp,1)
+8007260a:	e8 01 01 00 00       	call   80072710 <_DevRegisterIrq>
+/mobius/coreos/drivers/keyboard/keyboard.c:507
+8007260f:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+80072612:	89 75 08             	mov    %esi,0x8(%ebp)
+80072615:	89 7d 10             	mov    %edi,0x10(%ebp)
+80072618:	89 45 0c             	mov    %eax,0xc(%ebp)
+8007261b:	83 c4 1c             	add    $0x1c,%esp
+8007261e:	5b                   	pop    %ebx
+8007261f:	5e                   	pop    %esi
+80072620:	5f                   	pop    %edi
+80072621:	5d                   	pop    %ebp
+80072622:	e9 d9 00 00 00       	jmp    80072700 <_DevAddDevice>
+80072627:	89 f6                	mov    %esi,%esi
+80072629:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+80072630:	89 34 24             	mov    %esi,(%esp,1)
+80072633:	e8 d8 f2 ff ff       	call   80071910 <_kbdHwRead>
+80072638:	3c 83                	cmp    $0x83,%al
+8007263a:	0f 85 1f ff ff ff    	jne    8007255f <_KbdAddDevice+0x14f>
+/mobius/coreos/drivers/keyboard/keyboard.c:457
+80072640:	c7 04 24 c0 23 07 80 	movl   $0x800723c0,(%esp,1)
+80072647:	e8 54 01 00 00       	call   800727a0 <_wprintf>
+/mobius/coreos/drivers/keyboard/keyboard.c:460
+8007264c:	89 34 24             	mov    %esi,(%esp,1)
+8007264f:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+80072656:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+8007265d:	80 
+8007265e:	c7 44 24 08 f0 00 00 	movl   $0xf0,0x8(%esp,1)
+80072665:	00 
+80072666:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+8007266a:	e8 51 f3 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:463
+8007266f:	89 34 24             	mov    %esi,(%esp,1)
+80072672:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+80072679:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+80072680:	80 
+80072681:	c7 44 24 08 01 00 00 	movl   $0x1,0x8(%esp,1)
+80072688:	00 
+80072689:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+8007268d:	e8 2e f3 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:467
+80072692:	89 34 24             	mov    %esi,(%esp,1)
+80072695:	0f b7 86 2e 01 00 00 	movzwl 0x12e(%esi),%eax
+8007269c:	c7 44 24 0c b4 22 07 	movl   $0x800722b4,0xc(%esp,1)
+800726a3:	80 
+800726a4:	c7 44 24 08 fa 00 00 	movl   $0xfa,0x8(%esp,1)
+800726ab:	00 
+800726ac:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+800726b0:	e8 0b f3 ff ff       	call   800719c0 <_kbdHwWriteRead>
+/mobius/coreos/drivers/keyboard/keyboard.c:469
+800726b5:	c6 86 2c 01 00 00 01 	movb   $0x1,0x12c(%esi)
+800726bc:	e9 b1 fe ff ff       	jmp    80072572 <_KbdAddDevice+0x162>
+800726c1:	90                   	nop    
+800726c2:	8d b4 26 00 00 00 00 	lea    0x0(%esi,1),%esi
+800726c9:	8d bc 27 00 00 00 00 	lea    0x0(%edi,1),%edi
+
+800726d0 <_DrvInit>:
+DrvInit():
+/mobius/coreos/drivers/keyboard/keyboard.c:511
+800726d0:	55                   	push   %ebp
+800726d1:	89 e5                	mov    %esp,%ebp
+/mobius/coreos/drivers/keyboard/keyboard.c:512
+800726d3:	8b 45 08             	mov    0x8(%ebp),%eax
+800726d6:	c7 40 10 10 24 07 80 	movl   $0x80072410,0x10(%eax)
+/mobius/coreos/drivers/keyboard/keyboard.c:514
+800726dd:	b8 01 00 00 00       	mov    $0x1,%eax
+800726e2:	5d                   	pop    %ebp
+800726e3:	c3                   	ret    
+800726e4:	90                   	nop    
+800726e5:	90                   	nop    
+800726e6:	90                   	nop    
+800726e7:	90                   	nop    
+800726e8:	90                   	nop    
+800726e9:	90                   	nop    
+800726ea:	90                   	nop    
+800726eb:	90                   	nop    
+800726ec:	90                   	nop    
+800726ed:	90                   	nop    
+800726ee:	90                   	nop    
+800726ef:	90                   	nop    
+800726f0:	90                   	nop    
+800726f1:	90                   	nop    
+800726f2:	90                   	nop    
+800726f3:	90                   	nop    
+800726f4:	90                   	nop    
+800726f5:	90                   	nop    
+800726f6:	90                   	nop    
+800726f7:	90                   	nop    
+800726f8:	90                   	nop    
+800726f9:	90                   	nop    
+800726fa:	90                   	nop    
+800726fb:	90                   	nop    
+800726fc:	90                   	nop    
+800726fd:	90                   	nop    
+800726fe:	90                   	nop    
+800726ff:	90                   	nop    
+
+80072700 <_DevAddDevice>:
+80072700:	ff 25 60 40 07 80    	jmp    *0x80074060
+80072706:	90                   	nop    
+80072707:	90                   	nop    
+	...
+
+80072710 <_DevRegisterIrq>:
+80072710:	ff 25 70 40 07 80    	jmp    *0x80074070
+80072716:	90                   	nop    
+80072717:	90                   	nop    
+	...
+
+80072720 <___malloc>:
+80072720:	ff 25 84 40 07 80    	jmp    *0x80074084
+80072726:	90                   	nop    
+80072727:	90                   	nop    
+	...
+
+80072730 <_MemVerifyBuffer>:
+80072730:	ff 25 78 40 07 80    	jmp    *0x80074078
+80072736:	90                   	nop    
+80072737:	90                   	nop    
+	...
+
+80072740 <___dj_assert>:
+80072740:	ff 25 80 40 07 80    	jmp    *0x80074080
+80072746:	90                   	nop    
+80072747:	90                   	nop    
+	...
+
+80072750 <_DevQueueRequest>:
+80072750:	ff 25 6c 40 07 80    	jmp    *0x8007406c
+80072756:	90                   	nop    
+80072757:	90                   	nop    
+	...
+
+80072760 <_ThrGetCurrent>:
+80072760:	ff 25 7c 40 07 80    	jmp    *0x8007407c
+80072766:	90                   	nop    
+80072767:	90                   	nop    
+	...
+
+80072770 <_DevFinishIo>:
+80072770:	ff 25 64 40 07 80    	jmp    *0x80074064
+80072776:	90                   	nop    
+80072777:	90                   	nop    
+	...
+
+80072780 <_MemUnmapTemp>:
+80072780:	ff 25 74 40 07 80    	jmp    *0x80074074
+80072786:	90                   	nop    
+80072787:	90                   	nop    
+	...
+
+80072790 <_DevMapBuffer>:
+80072790:	ff 25 68 40 07 80    	jmp    *0x80074068
+80072796:	90                   	nop    
+80072797:	90                   	nop    
+	...
+
+800727a0 <_wprintf>:
+800727a0:	ff 25 88 40 07 80    	jmp    *0x80074088
+800727a6:	90                   	nop    
+800727a7:	90                   	nop    
+	...
+
+800727b0 <__CTOR_LIST__>:
+800727b0:	ff                   	(bad)  
+800727b1:	ff                   	(bad)  
+800727b2:	ff                   	(bad)  
+800727b3:	ff 00                	incl   (%eax)
+800727b5:	00 00                	add    %al,(%eax)
+	...
+
+800727b8 <__DTOR_LIST__>:
+800727b8:	ff                   	(bad)  
+800727b9:	ff                   	(bad)  
+800727ba:	ff                   	(bad)  
+800727bb:	ff 00                	incl   (%eax)
+	...

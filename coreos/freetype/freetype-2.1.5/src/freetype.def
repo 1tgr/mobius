@@ -1,0 +1,8 @@
+NAME	freetype.dll
+EXPORTS
+	FT_Done_Face
+	FT_Done_FreeType
+	FT_Init_FreeType
+	FT_Load_Char
+	FT_New_Memory_Face
+	FT_Set_Char_Size

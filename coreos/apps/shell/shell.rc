@@ -1,0 +1,64 @@
+/* $Id: shell.rc,v 1.1.1.1 2002/12/21 09:51:10 pavlovskii Exp $ */
+
+#ifdef APSTUDIO_INVOKED
+#error Do not edit this with the Visual Studio resource editor
+#endif
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    1                       "Displays help for the shell"
+    2                       "Exits the shell"
+    3                       "Changes the current working directory"
+    4                       "Displays a list of files in the current directory"
+    5                       "Displays the contents of a file"
+    6                       "Clears the screen"
+    7                       "Writes the string ""Hello, world!"" to a file or device"
+    8                       "Displays the contents of a file as hex"
+    9                       "Executes a program"
+    10                      "Executes a program on a different console\nOptions: \\in=file      Use file for standard input\n         \\out=file     Use file for standard output\n         \\wait         Wait for the program to finish before continuing"
+    11                      "Demonstrates the shell's parser"
+    12                      "Displays various information\nOptions: \\system     Displays information from the SysGetInfo call\n         \\times      Displays timing information from the SysGetTimes call"
+    13                      "Loads and runs a .COM file under the DOS emulator"
+    14                      "Turns the computer's power off"
+    15                      "Pauses the shell for the specified time in milliseconds"
+    16                      "Writes a string"
+    17                      "Mounts a file system\nOptions:\n \\fs=fsd      Name of the file system driver (e.g. fat)\n \\path=path   Full name of path on which to mount the file system\n \\device=dev  Name of device to use for file system (e.g. Classes/floppy0)\n"
+    18                      "Dismounts the specified mounted file system"
+    19                      "Tests pipes"
+    20                      "Tests exception handling"
+    21                      "Tests I/O quickly without printing any data"
+    22                      "Lists installed devices"
+    23                      "Changes the colours used for text"
+
+    4096                    "The Möbius: command-line shell\n"
+END
+
+1 VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", ""
+            VALUE "FileDescription", "Command-line shell"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "shell"
+            VALUE "LegalCopyright", "Copyright © 2002"
+            VALUE "LegalTrademarks", ""
+            VALUE "OriginalFilename", "shell.exe"
+            VALUE "ProductName", "The Möbius Operating System"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

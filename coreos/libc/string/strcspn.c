@@ -1,0 +1,22 @@
+/* $Id: strcspn.c,v 1.1.1.1 2002/12/21 09:50:17 pavlovskii Exp $ */
+
+/* Copyright (C) 1994 DJ Delorie, see COPYING.DJ for details */
+#include <string.h>
+
+size_t
+strcspn(const char *s1, const char *s2)
+{
+  const char *p, *spanp;
+  char c, sc;
+
+  for (p = s1;;)
+  {
+    c = *p++;
+    spanp = s2;
+    do {
+      if ((sc = *spanp++) == c)
+	return p - 1 - s1;
+    } while (sc != 0);
+  }
+  /* NOTREACHED */
+}

@@ -1,0 +1,205 @@
+
+main.o:     file format pe-i386
+
+Disassembly of section .text:
+
+00000000 <.text>:
+   0:	6c                   	insb   (%dx),%es:(%edi)
+   1:	00 69 00             	add    %ch,0x0(%ecx)
+   4:	62 00                	bound  %eax,(%eax)
+   6:	63 00                	arpl   %ax,(%eax)
+   8:	3a 00                	cmp    (%eax),%al
+   a:	20 00                	and    %al,(%eax)
+   c:	65 00 78 00          	add    %bh,%gs:0x0(%eax)
+  10:	63 00                	arpl   %ax,(%eax)
+  12:	65 00 70 00          	add    %dh,%gs:0x0(%eax)
+  16:	74 00                	je     18 <.text+0x18>
+  18:	69 00 6f 00 6e 00    	imul   $0x6e006f,(%eax),%eax
+  1e:	20 00                	and    %al,(%eax)
+  20:	25 00 6c 00 64       	and    $0x64006c00,%eax
+  25:	00 20                	add    %ah,(%eax)
+  27:	00 61 00             	add    %ah,0x0(%ecx)
+  2a:	74 00                	je     2c <.text+0x2c>
+  2c:	20 00                	and    %al,(%eax)
+  2e:	25 00 30 00 38       	and    $0x38003000,%eax
+  33:	00 6c 00 78          	add    %ch,0x78(%eax,%eax,1)
+  37:	00 0a                	add    %cl,(%edx)
+  39:	00 00                	add    %al,(%eax)
+  3b:	00 25 00 53 00 25    	add    %ah,0x25005300
+  41:	00 53 00             	add    %dl,0x0(%ebx)
+  44:	28 00                	sub    %al,(%eax)
+  46:	25 00 68 00 75       	and    $0x75006800,%eax
+  4b:	00 29                	add    %ch,(%ecx)
+  4d:	00 0a                	add    %cl,(%edx)
+  4f:	00 00                	add    %al,(%eax)
+	...
+
+00000052 <_DbgHandleException>:
+DbgHandleException():
+/mobius/coreos/libc/sys/main.c:13
+  52:	55                   	push   %ebp
+  53:	89 e5                	mov    %esp,%ebp
+  55:	83 ec 28             	sub    $0x28,%esp
+/mobius/coreos/libc/sys/main.c:17
+  58:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp,1)
+  5f:	8b 45 08             	mov    0x8(%ebp),%eax
+  62:	8b 40 38             	mov    0x38(%eax),%eax
+  65:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+  69:	8b 45 08             	mov    0x8(%ebp),%eax
+  6c:	8b 40 40             	mov    0x40(%eax),%eax
+  6f:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+  73:	e8 00 00 00 00       	call   78 <_DbgHandleException+0x26>
+/mobius/coreos/libc/sys/main.c:20
+  78:	8b 45 08             	mov    0x8(%ebp),%eax
+  7b:	8b 40 40             	mov    0x40(%eax),%eax
+  7e:	89 04 24             	mov    %eax,(%esp,1)
+  81:	8d 45 fc             	lea    0xfffffffc(%ebp),%eax
+  84:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+  88:	8d 45 f8             	lea    0xfffffff8(%ebp),%eax
+  8b:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+  8f:	8d 45 f4             	lea    0xfffffff4(%ebp),%eax
+  92:	89 44 24 0c          	mov    %eax,0xc(%esp,1)
+  96:	e8 00 00 00 00       	call   9b <_DbgHandleException+0x49>
+  9b:	84 c0                	test   %al,%al
+  9d:	74 21                	je     c0 <_DbgHandleException+0x6e>
+/mobius/coreos/libc/sys/main.c:21
+  9f:	c7 04 24 3c 00 00 00 	movl   $0x3c,(%esp,1)
+  a6:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
+  a9:	89 44 24 04          	mov    %eax,0x4(%esp,1)
+  ad:	8b 45 f8             	mov    0xfffffff8(%ebp),%eax
+  b0:	89 44 24 08          	mov    %eax,0x8(%esp,1)
+  b4:	8b 45 f4             	mov    0xfffffff4(%ebp),%eax
+  b7:	89 44 24 0c          	mov    %eax,0xc(%esp,1)
+  bb:	e8 00 00 00 00       	call   c0 <_DbgHandleException+0x6e>
+/mobius/coreos/libc/sys/main.c:23
+  c0:	8b 45 08             	mov    0x8(%ebp),%eax
+  c3:	83 78 38 03          	cmpl   $0x3,0x38(%eax)
+  c7:	0f 94 c0             	sete   %al
+  ca:	0f b6 c0             	movzbl %al,%eax
+/mobius/coreos/libc/sys/main.c:24
+  cd:	c9                   	leave  
+  ce:	c3                   	ret    
+  cf:	90                   	nop    
+
+000000d0 <___libc_exception_handler>:
+__libc_exception_handler():
+/mobius/coreos/libc/sys/main.c:27
+  d0:	55                   	push   %ebp
+  d1:	89 e5                	mov    %esp,%ebp
+  d3:	57                   	push   %edi
+  d4:	56                   	push   %esi
+  d5:	83 ec 10             	sub    $0x10,%esp
+/mobius/coreos/libc/sys/main.c:32
+  d8:	80 3d 00 00 00 00 00 	cmpb   $0x0,0x0
+  df:	74 0c                	je     ed <___libc_exception_handler+0x1d>
+/mobius/coreos/libc/sys/main.c:33
+  e1:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp,1)
+  e8:	e8 00 00 00 00       	call   ed <___libc_exception_handler+0x1d>
+/mobius/coreos/libc/sys/main.c:35
+  ed:	c6 05 00 00 00 00 01 	movb   $0x1,0x0
+/mobius/coreos/libc/sys/main.c:36
+  f4:	e8 00 00 00 00       	call   f9 <___libc_exception_handler+0x29>
+  f9:	83 c0 18             	add    $0x18,%eax
+  fc:	89 45 f0             	mov    %eax,0xfffffff0(%ebp)
+/mobius/coreos/libc/sys/main.c:37
+  ff:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+ 102:	89 04 24             	mov    %eax,(%esp,1)
+ 105:	e8 48 ff ff ff       	call   52 <_DbgHandleException>
+ 10a:	88 45 f7             	mov    %al,0xfffffff7(%ebp)
+/mobius/coreos/libc/sys/main.c:38
+ 10d:	c6 05 00 00 00 00 00 	movb   $0x0,0x0
+/mobius/coreos/libc/sys/main.c:40
+ 114:	80 7d f7 00          	cmpb   $0x0,0xfffffff7(%ebp)
+ 118:	74 1c                	je     136 <___libc_exception_handler+0x66>
+/mobius/coreos/libc/sys/main.c:45
+ 11a:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+ 11d:	8b 48 10             	mov    0x10(%eax),%ecx
+ 120:	8b 55 f0             	mov    0xfffffff0(%ebp),%edx
+ 123:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+ 126:	8b 70 0c             	mov    0xc(%eax),%esi
+ 129:	8b 45 f0             	mov    0xfffffff0(%ebp),%eax
+ 12c:	8b 78 08             	mov    0x8(%eax),%edi
+ 12f:	89 cd                	mov    %ecx,%ebp
+ 131:	ff 62 40             	jmp    *0x40(%edx)
+ 134:	eb 0c                	jmp    142 <___libc_exception_handler+0x72>
+/mobius/coreos/libc/sys/main.c:54
+ 136:	c7 04 24 00 00 00 00 	movl   $0x0,(%esp,1)
+ 13d:	e8 00 00 00 00       	call   142 <___libc_exception_handler+0x72>
+/mobius/coreos/libc/sys/main.c:55
+ 142:	83 c4 10             	add    $0x10,%esp
+ 145:	5e                   	pop    %esi
+ 146:	5f                   	pop    %edi
+ 147:	5d                   	pop    %ebp
+ 148:	c3                   	ret    
+ 149:	90                   	nop    
+
+0000014a <___main>:
+__main():
+/mobius/coreos/libc/sys/main.c:59
+ 14a:	55                   	push   %ebp
+ 14b:	89 e5                	mov    %esp,%ebp
+ 14d:	83 ec 08             	sub    $0x8,%esp
+/mobius/coreos/libc/sys/main.c:61
+ 150:	c7 45 fc 00 00 00 00 	movl   $0x0,0xfffffffc(%ebp)
+/mobius/coreos/libc/sys/main.c:63
+ 157:	e8 00 00 00 00       	call   15c <___main+0x12>
+ 15c:	c7 40 14 d0 00 00 00 	movl   $0xd0,0x14(%eax)
+/mobius/coreos/libc/sys/main.c:65
+ 163:	e8 00 00 00 00       	call   168 <___main+0x1e>
+/mobius/coreos/libc/sys/main.c:66
+ 168:	e8 00 00 00 00       	call   16d <___main+0x23>
+/mobius/coreos/libc/sys/main.c:67
+ 16d:	e8 00 00 00 00       	call   172 <___main+0x28>
+/mobius/coreos/libc/sys/main.c:68
+ 172:	e8 00 00 00 00       	call   177 <___main+0x2d>
+/mobius/coreos/libc/sys/main.c:70
+ 177:	8d 45 fc             	lea    0xfffffffc(%ebp),%eax
+ 17a:	83 00 04             	addl   $0x4,(%eax)
+ 17d:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
+ 180:	83 38 00             	cmpl   $0x0,(%eax)
+ 183:	75 f2                	jne    177 <___main+0x2d>
+ 185:	90                   	nop    
+/mobius/coreos/libc/sys/main.c:72
+ 186:	8d 45 fc             	lea    0xfffffffc(%ebp),%eax
+ 189:	83 28 04             	subl   $0x4,(%eax)
+ 18c:	81 7d fc 00 00 00 00 	cmpl   $0x0,0xfffffffc(%ebp)
+ 193:	77 02                	ja     197 <___main+0x4d>
+ 195:	eb 09                	jmp    1a0 <___main+0x56>
+/mobius/coreos/libc/sys/main.c:73
+ 197:	8b 45 fc             	mov    0xfffffffc(%ebp),%eax
+ 19a:	8b 00                	mov    (%eax),%eax
+ 19c:	ff d0                	call   *%eax
+ 19e:	eb e6                	jmp    186 <___main+0x3c>
+/mobius/coreos/libc/sys/main.c:74
+ 1a0:	c9                   	leave  
+ 1a1:	c3                   	ret    
+ 1a2:	90                   	nop    
+ 1a3:	90                   	nop    
+ 1a4:	90                   	nop    
+ 1a5:	90                   	nop    
+ 1a6:	90                   	nop    
+ 1a7:	90                   	nop    
+ 1a8:	90                   	nop    
+ 1a9:	90                   	nop    
+ 1aa:	90                   	nop    
+ 1ab:	90                   	nop    
+ 1ac:	90                   	nop    
+ 1ad:	90                   	nop    
+ 1ae:	90                   	nop    
+ 1af:	90                   	nop    
+ 1b0:	90                   	nop    
+ 1b1:	90                   	nop    
+ 1b2:	90                   	nop    
+ 1b3:	90                   	nop    
+ 1b4:	90                   	nop    
+ 1b5:	90                   	nop    
+ 1b6:	90                   	nop    
+ 1b7:	90                   	nop    
+ 1b8:	90                   	nop    
+ 1b9:	90                   	nop    
+ 1ba:	90                   	nop    
+ 1bb:	90                   	nop    
+ 1bc:	90                   	nop    
+ 1bd:	90                   	nop    
+ 1be:	90                   	nop    
+ 1bf:	90                   	nop    

@@ -1,0 +1,63 @@
+# $Id: menu.lst,v 1.15 2002/09/01 16:24:38 pavlovskii Exp$
+
+timeout	10
+default	2
+
+title	The M”bius (CD-ROM)
+root	(fd0)
+kernel	/boot/kernel.exe \\boot=cdfs,Classes/cdrom0
+module	/boot/system.pro
+module	/boot/monitor.exe
+module	/boot/ata.drv
+module	/boot/cdfs.drv
+
+title	The M”bius (CD-ROM) [serial on COM2]
+root	(fd0)
+kernel	/boot/kernel.exe \\boot=cdfs,Classes/cdrom0 \\debugport=0x2f8 \\debugspeed=115200
+module	/boot/system.pro
+module	/boot/monitor.exe
+module	/boot/ata.drv
+module	/boot/cdfs.drv
+
+title	The M”bius (floppy disk)
+root	(fd0)
+kernel	/boot/kernel.exe.gz \\boot=tarfs,mobius.tar.gz
+module	/boot/system.pro
+module	/boot/monitor.exe
+module	/boot/mobius.tar.gz
+
+title	The M”bius (floppy disk) [debug]
+root	(fd0)
+kernel	/boot/kernel.exe.gz \\boot=tarfs,mobius.tar.gz \\debugport=1
+module	/boot/system.pro
+module	/boot/monitor.exe
+module	/boot/mobius.tar.gz
+
+title	The M”bius (floppy disk) [serial on COM2]
+root	(fd0)
+kernel	/boot/kernel.exe.gz \\boot=tarfs,mobius.tar.gz \\debugport=0x2f8 \\debugspeed=115200
+module	/boot/system.pro
+module	/boot/monitor.exe
+module	/boot/mobius.tar.gz
+
+title	The M”bius (hard disk)
+root	(hd0,0)
+kernel	/System/boot/kernel.exe \\boot=fat,Classes/volume0
+module	/System/boot/system.pro
+module	/System/boot/monitor.exe
+module	/System/boot/ata.drv
+module	/System/boot/fat.drv
+
+title	The M”bius (hard disk) [serial on COM2]
+root	(hd0,0)
+kernel	/System/boot/kernel.exe \\boot=fat,Classes/volume0 \\debugport=0x2f8 \\debugspeed=115200
+module	/System/boot/system.pro
+module	/System/boot/monitor.exe
+module	/System/boot/ata.drv
+module	/System/boot/fat.drv
+
+title	Reinstall loader to hard disk
+install	(hd0,0)/stage1 (hd0,0) (hd0,0)/stage2 (hd0,0)/boot/menu.lst
+
+title	Reinstall loader to floppy disk
+install	(fd0)/stage1 (fd0) (fd0)/stage2 (fd0)/boot/menu.lst

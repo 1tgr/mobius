@@ -1,0 +1,25 @@
+# $Header$
+
+timeout	2
+default	1
+
+title	The M”bius (network)
+root	(nd)
+kernel	/kernel.exe.gz \\boot=tarfs,mobius.tar.gz
+module	/system.pro
+module	/monitor.exe
+module	/mobius.tar.gz
+
+title	The M”bius (network) [debug]
+root	(nd)
+kernel	/kernel.exe.gz \\boot=tarfs,mobius.tar.gz \\debugport=1
+module	/system.pro
+module	/monitor.exe
+module	/mobius.tar.gz
+
+title	The M”bius (network) [serial]
+root	(nd)
+kernel	/kernel.exe.gz \\boot=tarfs,mobius.tar.gz \\debugport=0x2f8 \\debugspeed=57600
+module	/system.pro
+module	/monitor.exe
+module	/mobius.tar.gz

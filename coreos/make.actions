@@ -1,0 +1,44 @@
+ifneq ($(DEF),)
+EXP=	$(OBJDIR)/$(DEF:.def=.exp)
+endif
+
+all:	$(TARGET) $(TARGET_S) $(TARGET_D) $(TARGET_DRIVER) $(IMP)
+
+$(OBJDIR)/.base:	$(BIN)/coffbase.txt Makefile
+	$(BIN)/base.sh $(BASE) $(BIN)/coffbase.txt > $(OBJDIR)/.base
+
+# Static library
+$(TARGET_S):	$(OBJS_IN_DIR)
+	ar rcs $(TARGET_S) \
+		$(OBJS_IN_DIR)
+
+# DLL
+$(TARGET_D):	$(OBJS_IN_DIR) $(LIBS) $(EXP) $(OBJDIR)/.base
+	$(LD) --dll -o $(TARGET_D) --image-base `cat $(OBJDIR)/.base` \
+		--entry _DllMainCRTStartup $(LDFLAGS) \
+		$(EXP) \
+		$(OBJS_IN_DIR) \
+		$(LIBS)
+
+# Driver
+$(TARGET_DRIVER):	$(OBJS_IN_DIR) $(LIBS) $(EXP) $(OBJDIR)/.base
+	$(LD) --dll -o $(TARGET_DRIVER) --image-base `cat $(OBJDIR)/.base` \
+		--entry _DrvInit --subsystem native $(LDFLAGS) \
+		$(EXP) \
+		$(OBJS_IN_DIR) \
+		$(LIBS)
+
+# Normal EXE
+$(TARGET):	$(OBJS_IN_DIR) $(LIBS)
+	$(LD) -o $(TARGET) $(LDFLAGS) \
+		$(OBJS_IN_DIR) \
+		$(LIBS) \
+		-lgcc -L/lib/gcc-lib/i686-pc-cygwin/3.2
+
+$(IMP):	$(DEF)
+	dlltool -d $< -l $@ -D $(notdir $(TARGET_D)) $(notdir $(TARGET)) $(notdir $(TARGET_DRIVER))
+
+clean:
+	rm $(OBJS_IN_DIR:.o=.d) $(OBJS_IN_DIR) $(EXP) $(IMP) $(TARGET_D) $(TARGET_S) $(TARGET_DRIVER) $(TARGET)
+
+include $(OBJS_IN_DIR:.o=.d)

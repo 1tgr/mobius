@@ -1,0 +1,9 @@
+CFLAGS+=	-DKERNEL -Di386
+LIBS+=		$(LIB)/kernel.lib
+
+include $(ROOT)/coreos/make.conf
+
+TARGET_DRIVER:=	$(TARGET)
+TARGET:=	
+
+include $(ROOT)/coreos/make.actions
