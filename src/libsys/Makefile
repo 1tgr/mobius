@@ -13,7 +13,7 @@ DEF=    libsys.def
 #   these .o's. Ah, well. Make sure you do "make clean -i" to be safe.
 #
 OBJS=	dllmain.o syscall.o port.o misc.o \
-	resource.o console.o queue.o fs.o \
+	resource.o console.o fs.o \
 	../libc/errno/errno.o ../libc/string/wcslen.o \
         ../libc/string/memcpy.o ../libc/string/wcschr.o \
 	../libc/string/wcscat.o ../libc/string/wcscmp.o \

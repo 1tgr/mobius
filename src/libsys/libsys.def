@@ -37,11 +37,6 @@ EXPORTS
     PortAccept
     PortConnect
     PortListen
-    QueueAppend
-    QueueClear
-    QueueInit
-    QueuePopFirst
-    QueuePopLast
     ResFindResource
     ResGetStringLength
     ResLoadString
@@ -75,4 +70,5 @@ EXPORTS
     VmmAlloc
     VmmFree
     VmmMapFile
-    VmmMapShared
+    VmmMapSharedArea
+    VmmOpenSharedArea

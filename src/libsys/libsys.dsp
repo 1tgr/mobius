@@ -141,6 +141,10 @@ SOURCE=..\..\include\os\coff.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\include\os\comdef.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\include\os\defs.h
 # End Source File
 # Begin Source File
