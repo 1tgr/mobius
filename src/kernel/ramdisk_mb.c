@@ -1,4 +1,4 @@
-/* $Id: ramdisk_mb.c,v 1.16 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: ramdisk_mb.c,v 1.17 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/thread.h>
@@ -52,7 +52,7 @@ status_t RdParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vno
     return ENOTFOUND;
 }
 
-status_t RdLookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
+status_t RdLookupFile(fsd_t *fsd, vnode_id_t id, uint32_t open_flags, void **cookie)
 {
     if (id >= kernel_startup.multiboot_info->mods_count)
         return ENOTFOUND;

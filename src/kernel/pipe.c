@@ -1,13 +1,22 @@
-/* $Id: pipe.c,v 1.2 2002/08/31 00:32:11 pavlovskii Exp $ */
+/* $Id: pipe.c,v 1.3 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
 #include <kernel/fs.h>
+
+#include <os/ioctl.h>
+
 #include <errno.h>
 #include <stdio.h>
 
 typedef struct pipe_asyncio_t pipe_asyncio_t;
+struct pipe_asyncio_t
+{
+    pipe_asyncio_t *prev, *next;
+    page_array_t *pages;
+    size_t length;
+    fs_asyncio_t *io;
+};
 
-typedef struct pipe_t pipe_t;
 struct pipe_t
 {
     pipe_t *other;
@@ -18,36 +27,33 @@ struct pipe_t
     spinlock_t sem;
 };
 
-struct pipe_asyncio_t
-{
-    pipe_asyncio_t *prev, *next;
-    file_t *file;
-    page_array_t *pages;
-    size_t length;
-    fs_asyncio_t *io;
-};
-
 static void PipeWakeBlockedReaders(pipe_t *pipe)
 {
     uint8_t *dest;
     pipe_asyncio_t *io, *next;
+    size_t length;
 
-    wprintf(L"PipeWakeBlockedReaders(%p): %u bytes\n", pipe, pipe->write_ptr - pipe->read_ptr);
+    length = pipe->write_ptr - pipe->read_ptr;
+    //wprintf(L"PipeWakeBlockedReaders(%p): %u bytes\n", pipe, length);
 
     SpinAcquire(&pipe->sem);
     for (io = pipe->aio_first; io != NULL; io = next)
     {
         next = io->next;
-        if (io->length <= pipe->write_ptr - pipe->read_ptr)
+        //if (io->length <= pipe->write_ptr - pipe->read_ptr)
+        if (length > 0)
         {
             LIST_REMOVE(pipe->aio, io);
-            wprintf(L"Pipe has %u bytes, request %p needs %u bytes\n",
-                pipe->write_ptr - pipe->read_ptr, io, io->length);
+            length = pipe->write_ptr - pipe->read_ptr;
+            if (length > io->length)
+                length = io->length;
+            //wprintf(L"Pipe has %u bytes, request %p needs %u bytes\n",
+                //length, io, io->length);
             dest = MemMapPageArray(io->pages, io->length);
-            memcpy(dest, pipe->buffer + pipe->read_ptr, io->length);
+            memcpy(dest, pipe->buffer + pipe->read_ptr, length);
             MemUnmapTemp();
-            pipe->read_ptr += io->length;
-            FsNotifyCompletion(io->io, io->length, 0);
+            pipe->read_ptr += length;
+            FsNotifyCompletion(io->io, length, 0);
 
             MemDeletePageArray(io->pages);
             free(io);
@@ -96,6 +102,11 @@ bool PipeReadFile(fsd_t *fsd, file_t *file, page_array_t *pages,
     pipe_t *pipe;
     pipe_asyncio_t *aio;
 
+    /*
+     * Don't use any fields in file other than fsd_cookie, because it might
+     *  come from PortReadFile, which doesn't bother filling in the other 
+     *  fields.
+     */
     pipe = file->fsd_cookie;
     assert(!pipe->is_closed);
 
@@ -113,7 +124,7 @@ bool PipeReadFile(fsd_t *fsd, file_t *file, page_array_t *pages,
         return false;
     }
 
-    aio->file = file;
+    //aio->file = file;
     aio->pages = MemCopyPageArray(pages);
     aio->length = length;
     aio->io = io;
@@ -135,6 +146,10 @@ bool PipeWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
     pipe_t *pipe, *other;
     void *buf;
 
+    /*
+     * Same proviso applies here as in PipeReadFile about the other fields in
+     *  file.
+     */
     pipe = file->fsd_cookie;
     assert(!pipe->is_closed);
     other = pipe->other;
@@ -148,12 +163,12 @@ bool PipeWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
     SpinAcquire(&pipe->other->sem);
     if (other->write_ptr + length > other->allocated)
     {
-        wprintf(L"PipeWriteFile(%p): read = %u, write = %u, length = %u, allocated = %u\n",
+        /*wprintf(L"PipeWriteFile(%p): read = %u, write = %u, length = %u, allocated = %u\n",
             pipe,
             other->read_ptr,
             other->write_ptr,
             length,
-            other->allocated);
+            other->allocated);*/
 
         if (other->read_ptr == other->write_ptr)
             other->read_ptr = other->write_ptr = 0;
@@ -182,10 +197,32 @@ bool PipeWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
 }
 
 bool PipeIoCtlFile(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
-    size_t length, fs_asyncio_t *io)
+                   size_t length, fs_asyncio_t *io)
 {
-    io->op.result = ENOTIMPL;
-    return false;
+    pipe_t *pipe;
+
+    pipe = file->fsd_cookie;
+    switch (code)
+    {
+    case IOCTL_BYTES_AVAILABLE:
+        if (length < sizeof(size_t))
+        {
+            io->op.result = EBUFFER;
+            return false;
+        }
+
+        //wprintf(L"PipeIoCtlFile(IOCTL_BYTES_AVAILABLE): %u\n",
+            //pipe->write_ptr - pipe->read_ptr);
+        *(size_t*) buf = pipe->write_ptr - pipe->read_ptr;
+        break;
+
+    default:
+        io->op.result = ENOTIMPL;
+        return false;
+    }
+
+    FsNotifyCompletion(io, length, 0);
+    return true;
 }
 
 static vtbl_fsd_t pipe_vtbl =
@@ -205,20 +242,18 @@ static vtbl_fsd_t pipe_vtbl =
     NULL,           /* mkdir */
     NULL,           /* opendir */
     NULL,           /* readdir */
-    NULL,           /* free_dir_cookie */
+    NULL,           /* freedircookie */
     NULL,           /* finishio */
     NULL,           /* flush_cache */
 };
 
-static fsd_t pipe_fsd = 
+fsd_t pipe_fsd = 
 {
     &pipe_vtbl,
 };
 
-bool FsCreatePipe(handle_t *ends)
+bool FsCreatePipeInternal(pipe_t **pipes)
 {
-    pipe_t *pipes[2];
-
     pipes[0] = malloc(sizeof(pipe_t));
     if (pipes[0] == NULL)
         return false;
@@ -227,30 +262,42 @@ bool FsCreatePipe(handle_t *ends)
 
     pipes[1] = malloc(sizeof(pipe_t));
     if (pipes[1] == NULL)
-        goto error1;
+    {
+        free(pipes[0]);
+        return false;
+    }
 
     memset(pipes[1], 0, sizeof(pipe_t));
     pipes[0]->other = pipes[1];
     pipes[1]->other = pipes[0];
 
+    return true;
+}
+
+bool FsCreatePipe(handle_t *ends)
+{
+    pipe_t *pipes[2];
+
+    if (!FsCreatePipeInternal(pipes))
+        return false;
+
     ends[0] = FsCreateFileHandle(NULL, &pipe_fsd, pipes[0], NULL, 
         FILE_READ | FILE_WRITE);
     if (ends[0] == NULL)
-        goto error2;
+    {
+        free(pipes[0]);
+        free(pipes[1]);
+        return false;
+    }
 
     ends[1] = FsCreateFileHandle(NULL, &pipe_fsd, pipes[1], NULL, 
         FILE_READ | FILE_WRITE);
     if (ends[1] == NULL)
     {
+        pipes[1]->is_closed = true;
         HndClose(NULL, ends[0], 'file');
-        goto error2;
+        return false;
     }
 
     return true;
-
-error2:
-    free(pipes[1]);
-error1:
-    free(pipes[0]);
-    return false;
 }

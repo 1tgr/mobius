@@ -1,4 +1,4 @@
-/* $Id: fs.c,v 1.31 2002/08/31 00:32:11 pavlovskii Exp $ */
+/* $Id: fs.c,v 1.32 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/fs.h>
@@ -52,8 +52,6 @@ static void FsCompletionApc(void *param)
 
     io = param;
     assert(io != NULL);
-    wprintf(L"FsCompletionApc(%p): io->original = %p\n",
-        io, io->original);
     FsDoCompletion(param);
 }
 
@@ -62,17 +60,11 @@ void FsNotifyCompletion(fs_asyncio_t *io, size_t bytes, status_t result)
     io->op.result = result;
     io->op.bytes = bytes;
     io->file->pos += bytes;
-    /*wprintf(L"FsNotifyCompletion(%p): io->owner = %p current = %p\n", 
-        io, io->owner, current);*/
 
     if (io->owner->process == current()->process)
         FsDoCompletion(io);
     else
-    {
-        //wprintf(L"FsNotifyCompletion: queueing APC\n");
-        //MemMap(0x7FFFF000, 0, 0x80000000, PAGE_READFAILED);
         ThrQueueKernelApc(io->owner, FsCompletionApc, io);
-    }
 }
 
 static void FsCleanupFile(void *ptr)
@@ -131,8 +123,8 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
     fs_info_t info;
     handle_hdr_t *ptr;
 
-    fd = HndAlloc(NULL, sizeof(file_t), 'file');
-    file = HndLock(NULL, fd, 'file');
+    fd = HndAlloc(proc, sizeof(file_t), 'file');
+    file = HndLock(proc, fd, 'file');
     if (file == NULL)
         return NULL;
 
@@ -161,7 +153,7 @@ handle_t FsCreateFileHandle(process_t *proc, fsd_t *fsd, void *fsd_cookie,
 
     file->flags = flags;
     file->pos = 0;
-    HndUnlock(NULL, fd, 'file');
+    HndUnlock(proc, fd, 'file');
     return fd;
 }
 
@@ -221,6 +213,18 @@ status_t FsPathToVnode(const wchar_t *path, vnode_t *vn, bool do_create, const w
     assert(node.fsd != NULL);
     while (*ch != '\0')
     {
+        old_node = node;
+
+        /*
+         * If this is the root of a mounted FD, switch over to the mounted FS 
+         *  unless the file name is "..".
+         * If the file name is "..", give it to the FSD which handles the 
+         *  directory under the mount point.
+         */
+        if (FsLookupMountPoint(&mount_point, &node) &&
+            wcscmp(ch, L"..") != 0)
+            node = mount_point;
+
         slash = wcschr(ch, '/');
         if (slash == NULL)
         {
@@ -236,18 +240,6 @@ status_t FsPathToVnode(const wchar_t *path, vnode_t *vn, bool do_create, const w
         }
         else
             *slash = '\0';
-
-        old_node = node;
-
-        /*
-         * If this is the root of a mounted FD, switch over to the mounted FS 
-         *  unless the file name is "..".
-         * If the file name is "..", give it to the FSD which handles the 
-         *  directory under the mount point.
-         */
-        if (FsLookupMountPoint(&mount_point, &node) &&
-            wcscmp(ch, L"..") != 0)
-            node = mount_point;
 
         newname = NULL;
         //wprintf(L"element: %s", ch);
@@ -315,7 +307,7 @@ handle_t FsCreateOpen(const wchar_t *path, uint32_t flags, bool do_create)
         if (do_create && node.fsd->vtbl->create_file != NULL)
             ret = node.fsd->vtbl->create_file(node.fsd, node.id, nodename, &cookie);
         else if (!do_create && node.fsd->vtbl->lookup_file != NULL)
-            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, &cookie);
+            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, flags, &cookie);
         else
             ret = ENOTIMPL;
     }
@@ -782,7 +774,7 @@ off_t FsSeek(handle_t file, off_t ofs, unsigned origin)
     return ofs;
 }
 
-bool FsRequestSync(handle_t file, uint32_t code, void *params, size_t size, fileop_t *op)
+bool FsRequest(handle_t file, uint32_t code, void *params, size_t size, fileop_t *op)
 {
     fsd_t *fsd;
     file_t *fd;
@@ -973,7 +965,7 @@ bool FsQueryFile(const wchar_t *name, uint32_t query_class, void *buffer, size_t
             ret = ENOTIMPL;
         else
         {
-            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, &cookie);
+            ret = node.fsd->vtbl->lookup_file(node.fsd, node.id, 0, &cookie);
         }
     }
 
@@ -1307,10 +1299,11 @@ bool FsInit(void)
     FsCreateDir(L"/System");
     FsCreateDir(SYS_BOOT);
     FsCreateDir(SYS_DEVICES);
+    FsCreateDir(SYS_PORTS);
     b = FsMount(SYS_BOOT, L"ramfs", NULL);
     assert(b || "Failed to mount ramdisk");
-    //b = FsMount(SYS_PORTS, L"portfs", NULL);
-    //assert(b || "Failed to mount ports");
+    b = FsMount(SYS_PORTS, L"portfs", NULL);
+    assert(b || "Failed to mount ports");
     FsMount(SYS_DEVICES, L"devfs", NULL);
     assert(b || "Failed to mount devices");
 

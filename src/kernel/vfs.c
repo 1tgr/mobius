@@ -1,11 +1,11 @@
-/* $Id: vfs.c,v 1.6 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: vfs.c,v 1.7 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/fs.h>
 
+typedef struct vfs_dir_t vfs_dir_t;
+
 #include <errno.h>
 #include <wchar.h>
-
-typedef struct vfs_dir_t vfs_dir_t;
 struct vfs_dir_t
 {
     vfs_dir_t *prev, *next, *parent;
@@ -69,7 +69,7 @@ static status_t VfsCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, v
     return EACCESS;
 }
 
-static status_t VfsLookupFile(fsd_t *fsd, vnode_id_t node, void **cookie)
+static status_t VfsLookupFile(fsd_t *fsd, vnode_id_t node, uint32_t open_flags, void **cookie)
 {
     vfs_t *vfs;
 

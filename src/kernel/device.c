@@ -1,4 +1,4 @@
-/* $Id: device.c,v 1.33 2002/08/31 00:32:11 pavlovskii Exp $ */
+/* $Id: device.c,v 1.34 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/driver.h>
 #include <kernel/arch.h>
@@ -304,7 +304,7 @@ status_t DfsParseElement(fsd_t *fsd, const wchar_t *name, wchar_t **new_path, vn
     return ENOTFOUND;
 }
 
-status_t DfsLookupFile(fsd_t *fsd, vnode_id_t id, void **cookie)
+status_t DfsLookupFile(fsd_t *fsd, vnode_id_t id, uint32_t open_flags, void **cookie)
 {
     /*device_info_t *info;
 
@@ -932,8 +932,8 @@ driver_t *DevInstallNewDriver(const wchar_t *name, const wchar_t *profile_key)
 {
     if (_wcsicmp(name, L"ramfs") == 0)
         return &rd_driver;
-    //else if (_wcsicmp(name, L"portfs") == 0)
-        //return &port_driver;
+    else if (_wcsicmp(name, L"portfs") == 0)
+        return &port_driver;
     else if (_wcsicmp(name, L"devfs") == 0)
         return &devfs_driver;
     else if (_wcsicmp(name, L"vfs") == 0)

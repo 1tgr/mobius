@@ -1,648 +1,419 @@
-/* $Id: port.c,v 1.16 2002/08/29 13:59:37 pavlovskii Exp $ */
+/* $Id: port.c,v 1.17 2002/09/01 16:16:32 pavlovskii Exp $ */
 
 #include <kernel/kernel.h>
-#include <kernel/driver.h>
-#include <kernel/handle.h>
-#include <kernel/thread.h>
 #include <kernel/fs.h>
-#include <kernel/init.h>
+#include <kernel/thread.h>
 
-#define DEBUG
-#include <kernel/debug.h>
-
-#include <os/ioctl.h>
-#include <wchar.h>
 #include <errno.h>
+#include <wchar.h>
 
-#define PORT_BUFFER_SIZE    4084
-
+extern struct module_t mod_kernel;
 typedef struct port_t port_t;
+
+typedef struct port_waiter_t port_waiter_t;
+struct port_waiter_t
+{
+    port_waiter_t *prev, *next;
+    pipe_t *end_server, *end_client;
+};
+
 struct port_t
 {
-    wchar_t *name;
     bool is_server;
     port_t *prev, *next;
-    spinlock_t sem_connect;
-    unsigned copies;
 
     union
     {
         struct
         {
-            port_t *waiting_first, *waiting_last;
-            fs_asyncio_t *listener;
+            spinlock_t sem;
+            fs_asyncio_t *io_listen;
+            page_array_t *pages_listen;
+            wchar_t *name;
+            port_waiter_t *waiter_first, *waiter_last;
         } server;
 
-        struct
-        {
-            port_t *server;
-            bool is_accepted;
-            uint8_t *buffer, *buffer_end;
-            uint8_t *writeptr, *readptr;
-        } client;
+        pipe_t *client;
     } u;
 };
 
-typedef struct port_asyncio_t port_asyncio_t;
-struct port_asyncio_t
-{
-    port_asyncio_t *prev, *next;
-    file_t *file;
-    page_array_t *pages;
-    size_t total_length;
-    size_t length;
-    fs_asyncio_t *io;
-    bool is_reading;
-};
-
-typedef struct port_dir_t port_dir_t;
-struct port_dir_t
+typedef struct port_fsd_t port_fsd_t;
+struct port_fsd_t
 {
     fsd_t fsd;
+    spinlock_t sem;
     port_t *server_first, *server_last;
-    spinlock_t sem_listen;
-    unsigned port_num_unnamed;
-    port_asyncio_t *io_first, *io_last;
 };
 
-static port_t *PortFind(port_dir_t *dir, const wchar_t *name)
+extern fsd_t pipe_fsd;
+bool PipeReadFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
+                  size_t length, fs_asyncio_t *io);
+bool PipeWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
+                   size_t length, fs_asyncio_t *io);
+bool PipeIoCtlFile(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
+                   size_t length, fs_asyncio_t *io);
+void PipeFreeCookie(fsd_t *fsd, void *cookie);
+
+static void PortWakeBlockedAcceptors(port_t *server)
 {
-    port_t *port;
-    
-    for (port = dir->server_first; port != NULL; port = port->next)
-        if (_wcsicmp(port->name, name) == 0)
-            return port;
+    params_port_t *params;
+    fs_asyncio_t *io;
+    port_waiter_t *waiter;
 
-    return NULL;
-}
+    assert(server->is_server);
+    SpinAcquire(&server->u.server.sem);
+    io = server->u.server.io_listen;
+    waiter = server->u.server.waiter_first;
+    //wprintf(L"PortWakeBlockedAcceptors(%p): io = %p, waiter = %p\n",
+        //server, io, waiter);
 
-static void PortAddRef(port_t *port)
-{
-    KeAtomicInc(&port->copies);
-}
-
-static int PortRelease(port_t *port)
-{
-    /*if (port->is_server)
+    if (io != NULL && waiter != NULL)
     {
-        LIST_REMOVE(server, port);
-    }
-    else if (port->u.client.server != NULL)
-    {
-        port_t *s;
-        s = port->u.client.server;
-        port->u.client.server = NULL;
-        PortRelease(s);
-    }*/
+        params = MemMapPageArray(server->u.server.pages_listen, 
+            PRIV_WR | PRIV_KERN | PRIV_PRES);
+        params->port_accept.client = 
+            FsCreateFileHandle(io->owner->process, &pipe_fsd, waiter->end_server,
+                NULL, 
+                params->port_accept.flags);
+        //wprintf(L"PortWakeBlockedAcceptors(%p): pipe = %p, handle = %u\n",
+            //server, waiter->end_server, params->port_accept.client);
+        MemUnmapTemp();
 
-    KeAtomicDec(&port->copies);
-    if (port->copies == 0)
-    {
-        /*HndRemovePtrEntries(NULL, &port->hdr);*/
-        
-        /*if (!port->is_server)
-            free(port->u.client.buffer);
-        
-        free(port->name);
-        free(port);*/
-        return 0;
+        LIST_REMOVE(server->u.server.waiter, waiter);
+        free(waiter);
+        MemDeletePageArray(server->u.server.pages_listen);
+        server->u.server.io_listen = NULL;
+        server->u.server.pages_listen = NULL;
+        SpinRelease(&server->u.server.sem);
+        FsNotifyCompletion(io, sizeof(params_port_t), 0);
     }
     else
-        return port->copies;
+        SpinRelease(&server->u.server.sem);
 }
 
-static bool PortConnect(port_t *port, port_dir_t *dir, const wchar_t *name, status_t *result)
+status_t PortParseElement(fsd_t *fsd, const wchar_t *name, 
+                          wchar_t **new_path, vnode_t *node)
 {
+    port_fsd_t *pfsd;
     port_t *server;
 
-    /*
-     * Connect a client port to a server.
-     * Place the client in the server's 'waiting' queue and block until the server does an 
-     *  accept.
-     */
-    if (port->is_server)
+    pfsd = (port_fsd_t*) fsd;
+    assert(node->id == VNODE_ROOT);
+
+    SpinAcquire(&pfsd->sem);
+    for (server = pfsd->server_first; server != NULL; server = server->next)
     {
-        *result = EINVALID;
-        return false;
-    }
-
-    server = PortFind(dir, name);
-    if (server == NULL)
-    {
-        *result = ENOTFOUND;
-        return false;
-    }
-
-    if (server->u.server.listener == NULL)
-    {
-        wprintf(L"PortConnect(%s=>%s): server is already handling another connection\n",
-            port->name, server->name);
-        *result = EACCESS;
-        return false;
-    }
-
-    SpinAcquire(&server->sem_connect);
-    SpinAcquire(&port->sem_connect);
-    port->u.client.server = server;
-    LIST_ADD(server->u.server.waiting, port);
-    port->u.client.buffer = malloc(PORT_BUFFER_SIZE);
-    port->u.client.buffer_end = port->u.client.buffer + PORT_BUFFER_SIZE;
-    port->u.client.readptr = port->u.client.writeptr = port->u.client.buffer;
-    PortAddRef(port);
-    PortAddRef(server);
-    SpinRelease(&port->sem_connect);
-    SpinRelease(&server->sem_connect);
-
-    FsNotifyCompletion(server->u.server.listener, 0, 0);
-    server->u.server.listener = NULL;
-
-    /*HndSignalPtr(&server->hdr, true);*/
-
-    /*
-     * Server will now call PortAccept; on the first read, this client will wait to be 
-     *  accepted.
-     */
-    return true;
-}
-
-static port_t *PortCreate(const wchar_t *name)
-{
-    port_t *port;
-
-    port = malloc(sizeof(port_t));
-    if (port == NULL)
-        return NULL;
-
-    memset(port, 0, sizeof(port_t));
-    port->name = _wcsdup(name);
-    SpinInit(&port->sem_connect);
-    return port;
-}
-
-/*static port_t *PortLockHandle(struct process_t *proc, handle_t hnd)
-{
-    handle_hdr_t *ptr;
-    ptr = HndLock(proc, hnd, 'file');
-    if (ptr == NULL)
-        return NULL;
-    else
-        return (port_t*) (ptr - 1);
-}*/
-
-void PortFinishIo(port_dir_t *dir, port_asyncio_t *io, size_t bytes, status_t result)
-{
-    FsNotifyCompletion(io->io, bytes, result);
-    LIST_REMOVE(dir->io, io);
-    free(io);
-}
-
-static void PortStartIo(void *param)
-{
-    port_dir_t *dir;
-    port_asyncio_t *io, *next;
-    port_t *port, *remote;
-    size_t bytes;
-    uint8_t *buf;
-    bool again;
-
-    wprintf(L"PortStartIo(%p): started\n", param);
-    dir = param;
-    do
-    {
-        again = false;
-        for (io = dir->io_first; io != NULL; io = next)
+        assert(server->is_server);
+        if (_wcsicmp(server->u.server.name, name) == 0)
         {
-            next = io->next;
-
-            /*fd = req_fs->params.fs_read.file;
-            proc = io->owner->process;
-            port = PortLockHandle(proc, fd);
-            assert(port != NULL);*/
-            port = io->file->fsd_cookie;
-            assert(!port->is_server);
-
-            if (port->u.client.is_accepted)
-            {
-                remote = port->u.client.server;
-
-                if (io->is_reading)
-                {
-                    if (port->u.client.readptr <= port->u.client.writeptr)
-                        /* read, write, end */
-                        bytes = port->u.client.writeptr - port->u.client.readptr;
-                    else
-                        /* write, read, end (write wrapped round) */
-                        bytes = port->u.client.buffer_end - port->u.client.readptr;
-
-                    if (bytes > io->total_length - io->length)
-                        bytes = io->total_length - io->length;
-
-                    wprintf(L"PortStartIo(read): port = %p(%s)=>%p(%s) readptr = %p writeptr = %p bytes = %u\n",
-                        port, port->name, remote, remote->name,
-                        port->u.client.readptr, port->u.client.writeptr, bytes);
-
-                    //buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
-                    buf = MemMapPageArray(io->pages, 
-                        PRIV_WR | PRIV_KERN | PRIV_PRES);
-                    memcpy(buf + io->length, port->u.client.readptr, bytes);
-                    io->length += bytes;
-                    port->u.client.readptr += bytes;
-
-                    assert(port->u.client.readptr <= port->u.client.buffer_end);
-                    if (port->u.client.readptr == port->u.client.buffer_end)
-                        port->u.client.readptr = port->u.client.buffer;
-
-                    MemUnmapTemp();
-
-                    if (bytes > 0)
-                        again = true;
-
-                    if (io->length >= io->total_length)
-                    {
-                        wprintf(L"PortStartIo(read): finished read\n");
-                        PortFinishIo(dir, io, io->length, 0);
-                        /*DevFinishIo(dev, io, 0);*/
-                    }
-                    else
-                        wprintf(L"PortStartIo(read): %u bytes left\n", io->total_length - io->length);
-                }
-                else
-                {
-                    if (remote->u.client.writeptr >= remote->u.client.readptr)
-                        /* read, write, end */
-                        bytes = remote->u.client.buffer_end - remote->u.client.writeptr;
-                    else
-                        /* write, read, end (write wrapped round) */
-                        bytes = remote->u.client.readptr - remote->u.client.writeptr;
-
-                    if (bytes > io->total_length - io->length)
-                        bytes = io->total_length - io->length;
-
-                    wprintf(L"PortStartIo(write): port = %p(%s)=>%p(%s) readptr = %p writeptr = %p bytes = %u\n",
-                        port, port->name, remote, remote->name,
-                        remote->u.client.readptr, remote->u.client.writeptr, bytes);
-
-                    //buf = DevMapBuffer(io) + io->mod_buffer_start + io->length;
-                    buf = MemMapPageArray(io->pages, 
-                        PRIV_KERN | PRIV_PRES);
-                    memcpy(remote->u.client.writeptr, buf + io->length, bytes);
-                    io->length += bytes;
-                    remote->u.client.writeptr += bytes;
-
-                    assert(remote->u.client.writeptr <= remote->u.client.buffer_end);
-                    if (remote->u.client.writeptr == remote->u.client.buffer_end)
-                        remote->u.client.writeptr = remote->u.client.buffer;
-
-                    MemUnmapTemp();
-
-                    if (bytes > 0)
-                        again = true;
-
-                    if (io->length >= io->total_length)
-                    {
-                        wprintf(L"PortStartIo(write): finished write\n");
-                        PortFinishIo(dir, io, io->length, 0);
-                        /*DevFinishIo(dev, io, 0);*/
-                    }
-                    else
-                        wprintf(L"PortStartIo(write): %u bytes left\n", io->total_length - io->length);
-                }
-            }
+            node->id = (vnode_id_t) server;
+            SpinRelease(&pfsd->sem);
+            return 0;
         }
-    } while (again);
+    }
 
-    wprintf(L"PortStartIo(%p): finished\n", param);
+    SpinRelease(&pfsd->sem);
+    return ENOTFOUND;
 }
 
-static void PortQueueStartIo(port_dir_t *dir)
+status_t PortCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, 
+                        void **cookie)
 {
-    /*ThrQueueKernelApc(current, PortStartIo, dir);*/
-    PortStartIo(dir);
-}
+    port_fsd_t *pfsd;
+    port_t *server;
 
-void PortDismount(fsd_t *fsd)
-{
-    port_dir_t *dir;
-    dir = (port_dir_t*) fsd;
-    assert(dir->server_first == NULL);
-    free(dir);
-}
-
-status_t PortParseElement(fsd_t *fsd, const wchar_t *name, vnode_t *node)
-{
-    return ENOTIMPL;
-}
-
-status_t PortCreateFile(fsd_t *fsd, vnode_id_t dir, const wchar_t *name, void **cookie)
-{
-    port_t *port;
-
+    pfsd = (port_fsd_t*) fsd;
     assert(dir == VNODE_ROOT);
-    port = PortCreate(name);
-    if (port == NULL)
+
+    //wprintf(L"PortCreateFile(%s)\n", name);
+
+    server = malloc(sizeof(port_t));
+    if (server == NULL)
         return errno;
 
-    TRACE2("PortCreateFile: created port %p(%s)\n", port, port->name);
-    *cookie = port;
+    memset(server, 0, sizeof(port_t));
+    server->is_server = true;
+    server->u.server.name = _wcsdup(name);
+    *cookie = server;
+
+    SpinAcquire(&pfsd->sem);
+    LIST_ADD(pfsd->server, server);
+    SpinRelease(&pfsd->sem);
+
     return 0;
 }
 
-status_t PortLookupFile(fsd_t *fsd, vnode_id_t node, void **cookie)
+status_t PortLookupFile(fsd_t *fsd, vnode_id_t node, uint32_t open_flags, 
+                        void **cookie)
 {
-    wchar_t client_name[20];
-    status_t ret;
-    port_dir_t *dir;
-    port_t *port;
+    port_fsd_t *pfsd;
+    port_t *server, *client;
+    port_waiter_t *waiter;
+    pipe_t *ends[2];
 
-    dir = (port_dir_t*) fsd;
+    pfsd = (port_fsd_t*) fsd;
+    if (node == VNODE_ROOT)
+        return EACCESS;
 
-    swprintf(client_name, L"client_%u", ++dir->port_num_unnamed);
+    server = (port_t*) node;
+    assert(server->is_server);
 
-    wprintf(L"PortLookupFile: client = %s, remote = %s\n", client_name, path);
-    port = PortCreate(client_name);
-    if (port == NULL)
-        return errno;
+    client = malloc(sizeof(port_t));
+    if (client == NULL)
+        goto error0;
 
-    if (PortConnect(port, dir, path, &ret))
-    {
-        TRACE2("PortLookupFile: connected %s to %s\n", port->name, port->u.client.server->name);
-        *cookie = port;
-        return 0;
-    }
-    else
-    {
-        free(port->name);
-        free(port);
-        return ret;
-    }
-}
+    waiter = malloc(sizeof(port_waiter_t));
+    if (waiter == NULL)
+        goto error1;
 
-status_t PortGetFileInfo(fsd_t *fsd, void *cookie, uint32_t type, void *buf)
-{
-    return ENOTIMPL;
+    if (!FsCreatePipeInternal(ends))
+        goto error2;
+
+    client->is_server = false;
+    waiter->end_client = client->u.client = ends[0];
+    waiter->end_server = ends[1];
+
+    SpinAcquire(&server->u.server.sem);
+    LIST_ADD(server->u.server.waiter, waiter);
+    SpinRelease(&server->u.server.sem);
+
+    *cookie = client;
+    PortWakeBlockedAcceptors(server);
+    return 0;
+
+error2:
+    free(waiter);
+error1:
+    free(client);
+error0:
+    return errno;
 }
 
 void PortFreeCookie(fsd_t *fsd, void *cookie)
 {
-    PortRelease(cookie);
-}
+    port_fsd_t *pfsd;
+    port_t *server;
 
-bool PortQueueRequest(port_dir_t *dir, file_t *file, page_array_t *pages,
-                      size_t length, fs_asyncio_t *io, bool is_reading)
-{
-    port_asyncio_t *pio;
+    pfsd = (port_fsd_t*) fsd;
+    server = cookie;
 
-    pio = malloc(sizeof(port_asyncio_t));
-    if (pio == NULL)
-        return false;
-    
-    pio->file = file;
-    pio->pages = MemCopyPageArray(pages);
-
-    if (pio->pages == NULL)
+    if (server->is_server)
     {
-        free(pio);
-        return false;
+        SpinAcquire(&pfsd->sem);
+        LIST_REMOVE(pfsd->server, server);
+        SpinRelease(&pfsd->sem);
+
+        free(server->u.server.name);
     }
+    else
+        PipeFreeCookie(fsd, server->u.client);
 
-    pio->total_length = length;
-    pio->length = 0;
-    pio->io = io;
-    pio->is_reading = is_reading;
-    LIST_ADD(dir->io, pio);
-    return true;
-}
-
-bool PortReadWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages,
-                       size_t length, fs_asyncio_t *io, bool is_reading)
-{
-    port_t *port;
-    port_dir_t *dir;
-
-    port = file->fsd_cookie;
-    if (port->is_server)
-    {
-        io->op.result = EINVALID;
-        return false;
-    }
-
-    dir = (port_dir_t*) fsd;
-
-    /*array = MemCreatePageArray(req_fs->params.fs_read.buffer, 
-        req_fs->params.fs_read.length);
-    if (array == NULL)
-    {
-        req->result = errno;
-        HndUnlock(NULL, req_fs->params.fs_read.file, 'file');
-        return false;
-    }*/
-
-    /*io = DevQueueRequest(dev, &req_fs->header, sizeof(request_fs_t),
-        req_fs->params.fs_read.pages,
-        req_fs->params.fs_read.length);*/
-
-    /*MemDeletePageArray(array);*/
-
-    wprintf(L"PortReadWriteFile(%s): queueing request\n", 
-        is_reading ? L"read" : L"write");
-    if (!PortQueueRequest(dir, file, pages, length, io, is_reading))
-    {
-        io->op.result = errno;
-        return false;
-    }
-
-    io->op.result = io->original->result = SIOPENDING;
-    PortQueueStartIo(dir);
-    return true;
+    free(server);
 }
 
 bool PortReadFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
                   size_t length, fs_asyncio_t *io)
 {
-    return PortReadWriteFile(fsd, file, pages, length, io, true);
+    port_fsd_t *pfsd;
+    port_t *port;
+
+    pfsd = (port_fsd_t*) fsd;
+    port = file->fsd_cookie;
+    if (port->is_server)
+    {
+        io->op.result = EACCESS;
+        return false;
+    }
+    else
+    {
+        file_t temp;
+        temp.fsd_cookie = port->u.client;
+        return PipeReadFile(fsd, &temp, pages, length, io);
+    }
 }
 
 bool PortWriteFile(fsd_t *fsd, file_t *file, page_array_t *pages, 
                    size_t length, fs_asyncio_t *io)
 {
-    return PortReadWriteFile(fsd, file, pages, length, io, false);
+    port_fsd_t *pfsd;
+    port_t *port;
+
+    pfsd = (port_fsd_t*) fsd;
+    port = file->fsd_cookie;
+    if (port->is_server)
+    {
+        io->op.result = EACCESS;
+        return false;
+    }
+    else
+    {
+        file_t temp;
+        temp.fsd_cookie = port->u.client;
+        return PipeWriteFile(fsd, &temp, pages, length, io);
+    }
 }
 
 bool PortIoCtlFile(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
                    size_t length, fs_asyncio_t *io)
 {
+    port_fsd_t *pfsd;
     port_t *port;
 
+    pfsd = (port_fsd_t*) fsd;
     port = file->fsd_cookie;
-    io->op.result = 0;
-    switch (code)
+    if (port->is_server)
     {
-    case IOCTL_BYTES_AVAILABLE:
-        if (length < sizeof(size_t))
-        {
-            io->op.result = EBUFFER;
-            return false;
-        }
-
-        if (port->u.client.readptr <= port->u.client.writeptr)
-            /* read, write, end */
-            *(size_t*) buf = 
-                port->u.client.writeptr - port->u.client.readptr;
-        else
-            /* write, read, end (write wrapped round) */
-            *(size_t*) buf = 
-                (port->u.client.buffer_end - port->u.client.readptr) + 
-                    (port->u.client.writeptr - port->u.client.buffer);
-
-        return true;
+        io->op.result = EACCESS;
+        return false;
     }
-
-    io->op.result = ENOTIMPL;
-    return false;
+    else
+    {
+        file_t temp;
+        temp.fsd_cookie = port->u.client;
+        return PipeIoCtlFile(fsd, &temp, code, buf, length, io);
+    }
 }
 
 bool PortPassthrough(fsd_t *fsd, file_t *file, uint32_t code, void *buf, 
                      size_t length, fs_asyncio_t *io)
 {
-    port_dir_t *dir;
-    port_t *port, *client, *remote;
     params_port_t *params;
+    port_t *server;
 
-    dir = (port_dir_t*) fsd;
-    port = file->fsd_cookie;
-    params = (params_port_t*) buf;
+    params = buf;
 
-    if (length < sizeof(params_port_t) ||
-        !MemVerifyBuffer(params, length))
+    if (length < sizeof(params_port_t))
     {
         io->op.result = EBUFFER;
+        return false;
+    }
+
+    server = file->fsd_cookie;
+    if (!server->is_server)
+    {
+        io->op.result = EACCESS;
         return false;
     }
 
     switch (code)
     {
     case PORT_LISTEN:
-        if (port->is_server && 
-            port->u.server.listener != NULL)
-        {
-            io->op.result = EINVALID;
-            return false;
-        }
-
-        SpinAcquire(&dir->sem_listen);
-
-        if (!port->is_server)
-            LIST_ADD(dir->server, port);
-
-        port->is_server = true;
-        port->u.server.listener = io;
-        wprintf(L"PortDoPortRequest(PORT_LISTEN): listening on %p(%s)\n", port, port->name);
-        SpinRelease(&dir->sem_listen);
-        io->op.result = io->original->result = SIOPENDING;
-        return true;
-
     case PORT_CONNECT:
-        return PortConnect(port, dir, params->port_connect.remote, &io->op.result);
+        //wprintf(L"PortPassthrough(%p): PORT_LISTEN and PORT_CONNECT not implemented\n",
+            //server);
+        //FsNotifyCompletion(io, length, 0);
+        //break;
+        io->op.result = ENOTIMPL;
+        return false;
 
     case PORT_ACCEPT:
-        if (!port->is_server)
+        SpinAcquire(&server->u.server.sem);
+        if (server->u.server.io_listen != NULL)
         {
-            wprintf(L"PortDoPortRequest(PORT_ACCEPT, %s): not a server\n", port->name);
-            params->port_accept.client = NULL;
-            io->op.result = EINVALID;
+            SpinRelease(&server->u.server.sem);
+            io->op.result = EACCESS;
             return false;
         }
 
-        if (port->u.server.waiting_first == NULL)
-        {
-            wprintf(L"PortDoPortRequest(PORT_ACCEPT, %s): no clients waiting\n", port->name);
-            params->port_accept.client = NULL;
-            io->op.result = ENOCLIENT;
-            return false;
-        }
+        //wprintf(L"PortPassthrough(%p): PORT_ACCEPT, waiter = %p\n",
+            //server,
+            //server->u.server.waiter_first);
+        server->u.server.io_listen = io;
+        server->u.server.pages_listen = MemCreatePageArray(buf, length);
+        SpinRelease(&server->u.server.sem);
+        io->op.result = io->original->result = SIOPENDING;
+        PortWakeBlockedAcceptors(server);
+        break;
 
-        remote = port->u.server.waiting_first;
-        wprintf(L"PortDoPortRequest(PORT_ACCEPT): accepting %s on %s\n",
-            remote->name, port->name);
-        SpinAcquire(&remote->sem_connect);
-        SpinAcquire(&port->sem_connect);
-        LIST_REMOVE(port->u.server.waiting, remote);
-        PortRelease(port);
-        SpinRelease(&port->sem_connect);
-
-        client = PortCreate(L"");
-        client->u.client.buffer = malloc(PORT_BUFFER_SIZE);
-        client->u.client.buffer_end = client->u.client.buffer + PORT_BUFFER_SIZE;
-        client->u.client.readptr = client->u.client.writeptr = client->u.client.buffer;
-        remote->u.client.is_accepted = client->u.client.is_accepted = true;
-        client->u.client.server = remote;
-        remote->u.client.server = client;
-        PortAddRef(client);
-        PortAddRef(remote);
-
-        SpinRelease(&remote->sem_connect);
-
-        params->port_accept.client = 
-            FsCreateFileHandle(NULL, fsd, client, NULL, params->port_accept.flags);
-        PortQueueStartIo(dir);
-        return true;
+    default:
+        io->op.result = ENOTIMPL;
+        return false;
     }
 
-    io->op.result = ENOTIMPL;
-    return false;
+    return true;
 }
 
-status_t PortOpenDir(fsd_t *fsd, const wchar_t *path, fsd_t **redirect, void **dir_cookie)
+status_t PortOpenDir(fsd_t *fsd, vnode_id_t node, void **dir_cookie)
 {
-    return ENOTIMPL;
+    port_fsd_t *pfsd;
+    port_t **server;
+
+    assert(node == VNODE_ROOT);
+    pfsd = (port_fsd_t*) fsd;
+
+    server = malloc(sizeof(port_t*));
+    *dir_cookie = server;
+    if (*dir_cookie == NULL)
+        return errno;
+
+    *server = pfsd->server_first;
+    return 0;
 }
 
 status_t PortReadDir(fsd_t *fsd, void *dir_cookie, dirent_t *buf)
 {
-    return ENOTIMPL;
+    port_fsd_t *pfsd;
+    port_t **server;
+
+    pfsd = (port_fsd_t*) fsd;
+    server = dir_cookie;
+
+    if (*server == NULL)
+        return EEOF;
+
+    assert((*server)->is_server);
+    buf->vnode = 0;
+    wcsncpy(buf->name, (*server)->u.server.name, _countof(buf->name));
+    *server = (*server)->next;
+    return 0;
 }
 
 void PortFreeDirCookie(fsd_t *fsd, void *dir_cookie)
 {
+    free(dir_cookie);
 }
 
-static const struct vtbl_fsd_t portfs_vtbl =
+static vtbl_fsd_t port_vtbl =
 {
-    PortDismount,       /* dismount */
-    NULL,               /* get_fs_info */
+    NULL,           /* dismount */
+    NULL,           /* get_fs_info */
     PortParseElement,
     PortCreateFile,
     PortLookupFile,
-    PortGetFileInfo,
-    NULL,               /* set_file_info */
+    NULL,           /* get_file_info */
+    NULL,           /* set_file_info */
     PortFreeCookie,
     PortReadFile,
     PortWriteFile,
     PortIoCtlFile,
-    PortPassthrough,    /* passthrough */
+    PortPassthrough,
+    NULL,           /* mkdir */
     PortOpenDir,
     PortReadDir,
-    PortFreeDirCookie,  /* free_dir_cookie */
-    NULL,               /* mount */
-    NULL,               /* finishio */
-    NULL,               /* flush_cache */
+    PortFreeDirCookie,
+    NULL,           /* finishio */
+    NULL,           /* flush_cache */
 };
 
 fsd_t *PortMountFs(driver_t *driver, const wchar_t *dest)
 {
-    port_dir_t *dir;
-    dir = malloc(sizeof(port_dir_t));
-    memset(dir, 0, sizeof(port_dir_t));
-    dir->fsd.vtbl = &portfs_vtbl;
-    return &dir->fsd;
-}
+    port_fsd_t *pfsd;
 
-extern struct module_t mod_kernel;
+    pfsd = malloc(sizeof(port_fsd_t));
+    if (pfsd == NULL)
+        return NULL;
+
+    pfsd->fsd.vtbl = &port_vtbl;
+    SpinInit(&pfsd->sem);
+    pfsd->server_first = pfsd->server_last = NULL;
+
+    return &pfsd->fsd;
+}
 
 driver_t port_driver =
 {
     &mod_kernel,
-    NULL,
+    NULL, NULL,
     NULL,
     NULL,
     PortMountFs,
